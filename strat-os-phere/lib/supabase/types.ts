@@ -11,17 +11,24 @@ export type Json =
 // Row types
 export interface ProjectRow {
   id: string
-  owner_id: string
+  user_id: string
   name: string
-  description: string | null
+  market: string
+  target_customer: string
+  your_product: string | null
+  business_goal: string | null
+  geography: string | null
   created_at: string
-  updated_at: string | null
 }
 
 export interface ProjectInsert {
-  owner_id: string
+  user_id: string
   name: string
-  description?: string | null
+  market: string
+  target_customer: string
+  your_product?: string | null
+  business_goal?: string | null
+  geography?: string | null
 }
 
 export type ProjectUpdate = Partial<ProjectInsert>
@@ -30,40 +37,36 @@ export interface CompetitorRow {
   id: string
   project_id: string
   name: string
-  website: string | null
-  description: string | null
+  url: string | null
+  evidence_text: string | null
   created_at: string
 }
 
 export interface CompetitorInsert {
   project_id: string
   name: string
-  website?: string | null
-  description?: string | null
+  url?: string | null
+  evidence_text?: string | null
 }
 
 export type CompetitorUpdate = Partial<CompetitorInsert>
 
-export type ArtifactType = 'note' | 'screenshot' | 'document' | 'link'
+// Artifact storage for analysis outputs (and future extension types).
+// Database schema: { id, project_id, type, content_json(jsonb), created_at }
+export type ArtifactType = 'profiles' | 'synthesis'
 
 export interface ArtifactRow {
   id: string
   project_id: string
-  competitor_id: string | null
   type: ArtifactType
-  title: string
-  url: string | null
-  content: string | null
+  content_json: Json
   created_at: string
 }
 
 export interface ArtifactInsert {
   project_id: string
   type: ArtifactType
-  title: string
-  competitor_id?: string | null
-  url?: string | null
-  content?: string | null
+  content_json: Json
 }
 
 export type ArtifactUpdate = Partial<ArtifactInsert>

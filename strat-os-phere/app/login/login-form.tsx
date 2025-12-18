@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { signIn } from './actions'
 
 export function LoginForm() {
@@ -18,10 +20,12 @@ export function LoginForm() {
 
     const result = await signIn(email)
 
-    if (result?.error) {
+    if (!result?.success) {
       setIsError(true)
-      setMessage(result.error)
-    } else if (result?.success) {
+      setMessage(
+        result?.message ?? 'Unable to send magic link. Please try again.'
+      )
+    } else {
       setIsError(false)
       setMessage('Check your email for the magic link!')
     }
@@ -30,18 +34,17 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
         <label htmlFor="email" className="text-sm font-medium">
           Email
         </label>
-        <input
+        <Input
           id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="you@example.com"
         />
       </div>
@@ -49,7 +52,11 @@ export function LoginForm() {
         {loading ? 'Sending...' : 'Send magic link'}
       </Button>
       {message && (
-        <p className={`text-sm ${isError ? 'text-red-600' : 'text-green-600'}`}>
+        <p
+          className={`text-sm ${
+            isError ? 'text-destructive' : 'text-accent-foreground'
+          }`}
+        >
           {message}
         </p>
       )}

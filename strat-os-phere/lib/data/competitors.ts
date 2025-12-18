@@ -2,6 +2,7 @@ import type {
   TypedSupabaseClient,
   Competitor,
   NewCompetitor,
+  CompetitorUpdate,
 } from '@/lib/supabase/types'
 
 type Client = TypedSupabaseClient
@@ -59,5 +60,36 @@ export async function getCompetitorById(
 
   return data
 }
+
+export async function updateCompetitor(
+  client: Client,
+  competitorId: string,
+  input: CompetitorUpdate
+): Promise<Competitor> {
+  const { data, error } = await client
+    .from('competitors')
+    .update(input)
+    .eq('id', competitorId)
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data
+}
+
+export async function deleteCompetitor(
+  client: Client,
+  competitorId: string
+): Promise<void> {
+  const { error } = await client.from('competitors').delete().eq('id', competitorId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
 
 

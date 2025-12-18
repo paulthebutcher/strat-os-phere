@@ -1,0 +1,382 @@
+'use server'
+
+import {
+  MIN_COMPETITORS_FOR_ANALYSIS,
+  MAX_COMPETITORS_PER_PROJECT,
+  MAX_EVIDENCE_CHARS,
+} from '@/lib/constants'
+import { listCompetitorsForProject } from '@/lib/data/competitors'
+import { createArtifact } from '@/lib/data/artifacts'
+import { getProjectById } from '@/lib/data/projects'
+import { callLLM } from '@/lib/llm/callLLM'
+import {
+  COMPETITOR_SNAPSHOT_SCHEMA_SHAPE,
+  buildSnapshotMessages,
+  type ProjectContext,
+} from '@/lib/prompts/snapshot'
+import {
+  MARKET_SYNTHESIS_SCHEMA_SHAPE,
+  buildSynthesisMessages,
+} from '@/lib/prompts/synthesis'
+import { buildRepairMessages } from '@/lib/prompts/repair'
+import {
+  CompetitorSnapshotSchema,
+  type CompetitorSnapshot,
+} from '@/lib/schemas/competitorSnapshot'
+import {
+  MarketSynthesisSchema,
+  type MarketSynthesis,
+} from '@/lib/schemas/marketSynthesis'
+import { safeParseLLMJson } from '@/lib/schemas/safeParseLLMJson'
+import { createClient } from '@/lib/supabase/server'
+
+type GenerateAnalysisSuccessResult = {
+  ok: true
+  runId: string
+  artifactIds: {
+    profilesId: string
+    synthesisId: string
+  }
+}
+
+type GenerateAnalysisErrorResult = {
+  ok: false
+  message: string
+  details?: Record<string, unknown>
+}
+
+export type GenerateAnalysisResult =
+  | GenerateAnalysisSuccessResult
+  | GenerateAnalysisErrorResult
+
+function generateRunId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return (crypto as Crypto).randomUUID()
+  }
+  return `run_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`
+}
+
+function summarizeValidationError(error: string | undefined): string | undefined {
+  if (!error) return undefined
+  return error.length > 500 ? `${error.slice(0, 497)}...` : error
+}
+
+export async function generateAnalysis(
+  projectId: string
+): Promise<GenerateAnalysisResult> {
+  const runId = generateRunId()
+  const runLabel = `[generateAnalysis][run_id=${runId}][projectId=${projectId}]`
+
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      const message = 'You must be signed in to generate analysis.'
+      // eslint-disable-next-line no-console
+      console.error(`${runLabel} Unauthenticated request`)
+      return {
+        ok: false,
+        message,
+        details: { code: 'UNAUTHENTICATED' },
+      }
+    }
+
+    const project = await getProjectById(supabase, projectId)
+
+    if (!project || project.user_id !== user.id) {
+      const message = 'Project not found or access denied.'
+      // eslint-disable-next-line no-console
+      console.error(`${runLabel} Project access denied or missing`)
+      return {
+        ok: false,
+        message,
+        details: { code: 'PROJECT_NOT_FOUND_OR_FORBIDDEN' },
+      }
+    }
+
+    const competitors = await listCompetitorsForProject(supabase, projectId)
+    const competitorCount = competitors.length
+
+    if (competitorCount < MIN_COMPETITORS_FOR_ANALYSIS) {
+      return {
+        ok: false,
+        message: 'Add at least 3 competitors to generate analysis.',
+        details: { competitorCount },
+      }
+    }
+
+    if (competitorCount > MAX_COMPETITORS_PER_PROJECT) {
+      return {
+        ok: false,
+        message: 'Maximum of 7 competitors allowed.',
+        details: { competitorCount },
+      }
+    }
+
+    const projectContext: ProjectContext = {
+      market: project.market,
+      target_customer: project.target_customer,
+      your_product: project.your_product,
+      business_goal: project.business_goal,
+      geography: project.geography,
+    }
+
+    const snapshots: CompetitorSnapshot[] = []
+
+    let snapshotProvider: string | undefined
+    let snapshotModel: string | undefined
+    const snapshotUsageTotals = {
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+    }
+
+    for (const competitor of competitors) {
+      const originalEvidence = competitor.evidence_text ?? ''
+      const originalLength = originalEvidence.length
+      const truncatedEvidence = originalEvidence.slice(0, MAX_EVIDENCE_CHARS)
+      const truncatedLength = truncatedEvidence.length
+      const wasTruncated = originalLength > MAX_EVIDENCE_CHARS
+
+      if (wasTruncated) {
+        // eslint-disable-next-line no-console
+        console.warn(`${runLabel} Evidence truncated for competitor "${competitor.name}"`, {
+          competitorId: competitor.id,
+          evidence_original_length: originalLength,
+          evidence_used_length: truncatedLength,
+          evidence_truncated: true,
+        })
+      }
+
+      const competitorContext = {
+        name: competitor.name,
+        url: competitor.url,
+        evidence_text: truncatedEvidence,
+      }
+
+      const messages = buildSnapshotMessages({
+        project: projectContext,
+        competitor: competitorContext,
+      })
+
+      const snapshotResponse = await callLLM({
+        messages,
+        jsonMode: true,
+        temperature: 0.2,
+        maxTokens: 1_600,
+      })
+
+      snapshotProvider ??= snapshotResponse.provider
+      snapshotModel ??= snapshotResponse.model
+      if (snapshotResponse.usage) {
+        snapshotUsageTotals.inputTokens += snapshotResponse.usage.inputTokens ?? 0
+        snapshotUsageTotals.outputTokens += snapshotResponse.usage.outputTokens ?? 0
+        snapshotUsageTotals.totalTokens += snapshotResponse.usage.totalTokens ?? 0
+      }
+
+      let parsedSnapshot = safeParseLLMJson<CompetitorSnapshot>(
+        snapshotResponse.text,
+        CompetitorSnapshotSchema
+      )
+
+      if (!parsedSnapshot.ok) {
+        const schemaShapeText = JSON.stringify(
+          COMPETITOR_SNAPSHOT_SCHEMA_SHAPE,
+          null,
+          2
+        )
+
+        const repairMessages = buildRepairMessages({
+          rawText: snapshotResponse.text,
+          schemaName: 'CompetitorSnapshot',
+          schemaShapeText,
+          validationErrors: parsedSnapshot.error,
+        })
+
+        const repairResponse = await callLLM({
+          messages: repairMessages,
+          jsonMode: true,
+          temperature: 0.1,
+          maxTokens: 1_600,
+        })
+
+        if (repairResponse.usage) {
+          snapshotUsageTotals.inputTokens += repairResponse.usage.inputTokens ?? 0
+          snapshotUsageTotals.outputTokens += repairResponse.usage.outputTokens ?? 0
+          snapshotUsageTotals.totalTokens += repairResponse.usage.totalTokens ?? 0
+        }
+
+        const repaired = safeParseLLMJson<CompetitorSnapshot>(
+          repairResponse.text,
+          CompetitorSnapshotSchema
+        )
+
+        if (!repaired.ok) {
+          const message = `Failed to validate competitor snapshot for "${competitor.name}".`
+
+          // eslint-disable-next-line no-console
+          console.error(`${runLabel} Snapshot validation failed`, {
+            competitorId: competitor.id,
+            competitorName: competitor.name,
+            summary: summarizeValidationError(repaired.error),
+          })
+
+          return {
+            ok: false,
+            message,
+            details: {
+              stage: 'snapshot_validation',
+              competitorId: competitor.id,
+              competitorName: competitor.name,
+              validationError: summarizeValidationError(repaired.error),
+            },
+          }
+        }
+
+        parsedSnapshot = repaired
+      }
+
+      snapshots.push(parsedSnapshot.data)
+    }
+
+    const snapshotsJson = JSON.stringify(snapshots)
+
+    const synthesisMessages = buildSynthesisMessages({
+      project: projectContext,
+      snapshotsJson,
+    })
+
+    let synthesisResponse = await callLLM({
+      messages: synthesisMessages,
+      jsonMode: true,
+      temperature: 0.2,
+      maxTokens: 2_400,
+    })
+
+    let synthesisParsed = safeParseLLMJson<MarketSynthesis>(
+      synthesisResponse.text,
+      MarketSynthesisSchema
+    )
+
+    if (!synthesisParsed.ok) {
+      const schemaShapeText = JSON.stringify(
+        MARKET_SYNTHESIS_SCHEMA_SHAPE,
+        null,
+        2
+      )
+
+      const repairMessages = buildRepairMessages({
+        rawText: synthesisResponse.text,
+        schemaName: 'MarketSynthesis',
+        schemaShapeText,
+        validationErrors: synthesisParsed.error,
+      })
+
+      const repairResponse = await callLLM({
+        messages: repairMessages,
+        jsonMode: true,
+        temperature: 0.1,
+        maxTokens: 2_400,
+      })
+
+      synthesisResponse = repairResponse
+
+      synthesisParsed = safeParseLLMJson<MarketSynthesis>(
+        repairResponse.text,
+        MarketSynthesisSchema
+      )
+
+      if (!synthesisParsed.ok) {
+        const message = 'Failed to validate market synthesis output.'
+
+        // eslint-disable-next-line no-console
+        console.error(`${runLabel} Synthesis validation failed`, {
+          summary: summarizeValidationError(synthesisParsed.error),
+        })
+
+        return {
+          ok: false,
+          message,
+          details: {
+            stage: 'synthesis_validation',
+            validationError: summarizeValidationError(synthesisParsed.error),
+          },
+        }
+      }
+    }
+
+    const generatedAt = new Date().toISOString()
+
+    const profilesArtifact = await createArtifact(supabase, {
+      project_id: projectId,
+      type: 'profiles',
+      content_json: {
+        run_id: runId,
+        generated_at: generatedAt,
+        competitor_count: snapshots.length,
+        llm: {
+          stage: 'snapshots',
+          provider: snapshotProvider,
+          model: snapshotModel,
+          usage: snapshotUsageTotals,
+        },
+        snapshots,
+      },
+    })
+
+    const synthesisArtifact = await createArtifact(supabase, {
+      project_id: projectId,
+      type: 'synthesis',
+      content_json: {
+        run_id: runId,
+        generated_at: generatedAt,
+        competitor_count: snapshots.length,
+        llm: {
+          stage: 'synthesis',
+          provider: synthesisResponse.provider,
+          model: synthesisResponse.model,
+          usage: synthesisResponse.usage,
+        },
+        synthesis: synthesisParsed.data,
+      },
+    })
+
+    return {
+      ok: true,
+      runId,
+      artifactIds: {
+        profilesId: profilesArtifact.id,
+        synthesisId: synthesisArtifact.id,
+      },
+    }
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Unexpected error during analysis generation.'
+
+    // eslint-disable-next-line no-console
+    console.error(`${runLabel} Unhandled error in generateAnalysis`, error)
+
+    return {
+      ok: false,
+      message,
+      details:
+        error instanceof Error
+          ? {
+              code: 'UNEXPECTED_ERROR',
+              name: error.name,
+              message: error.message,
+            }
+          : {
+              code: 'UNEXPECTED_ERROR',
+              value: String(error),
+            },
+    }
+  }
+}
+
+

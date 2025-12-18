@@ -1,0 +1,7 @@
+export const MAX_COMPETITORS_PER_PROJECT = 7
+
+export const MIN_COMPETITORS_FOR_ANALYSIS = 3
+
+export const MAX_EVIDENCE_CHARS = 12_000
+
+

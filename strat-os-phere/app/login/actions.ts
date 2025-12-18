@@ -1,9 +1,14 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 
-export async function signIn(email: string) {
+interface AuthActionResult {
+  success: boolean
+  message?: string
+}
+
+export async function signIn(email: string): Promise<AuthActionResult> {
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signInWithOtp({
@@ -16,7 +21,10 @@ export async function signIn(email: string) {
   })
 
   if (error) {
-    return { error: error.message }
+    // Temporary logging to aid Supabase debugging
+    console.error('Failed to send sign-in link', error)
+
+    return { success: false, message: error.message }
   }
 
   return { success: true }

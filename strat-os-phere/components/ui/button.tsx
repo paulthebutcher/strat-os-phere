@@ -9,14 +9,22 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        // Primary: solid, graphite-ink emphasis
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/90",
+        // Destructive stays clear but not neon
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        // Secondary: paper surface with soft border
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-border bg-surface text-foreground hover:bg-muted",
+        // Tonal secondary, slightly stronger than outline
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-muted text-foreground hover:bg-muted/80",
+        // Ghost: minimal chrome, for low-emphasis actions
+        ghost:
+          "bg-transparent text-foreground/80 hover:bg-muted hover:text-foreground",
+        // Link-style for inline actions
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

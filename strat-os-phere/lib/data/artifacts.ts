@@ -25,24 +25,17 @@ export async function createArtifact(
 
 export interface ListArtifactsParams {
   projectId: string
-  competitorId?: string
 }
 
 export async function listArtifacts(
   client: Client,
   params: ListArtifactsParams
 ): Promise<Artifact[]> {
-  const query = client
+  const { data, error } = await client
     .from('artifacts')
     .select('*')
     .eq('project_id', params.projectId)
     .order('created_at', { ascending: false })
-
-  if (params.competitorId) {
-    query.eq('competitor_id', params.competitorId)
-  }
-
-  const { data, error } = await query
 
   if (error) {
     throw new Error(error.message)
@@ -70,5 +63,3 @@ export async function getArtifactById(
 
   return data
 }
-
-

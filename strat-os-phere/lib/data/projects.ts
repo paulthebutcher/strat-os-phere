@@ -26,7 +26,7 @@ export async function listProjectsForOwner(
   const { data, error } = await client
     .from('projects')
     .select('*')
-    .eq('owner_id', ownerId)
+    .eq('user_id', ownerId)
     .order('created_at', { ascending: false })
 
   if (error) {
