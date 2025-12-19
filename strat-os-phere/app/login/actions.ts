@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getOrigin } from '@/lib/utils'
 
 interface AuthActionResult {
   success: boolean
@@ -10,13 +11,12 @@ interface AuthActionResult {
 
 export async function signIn(email: string): Promise<AuthActionResult> {
   const supabase = await createClient()
+  const origin = await getOrigin()
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${
-        process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-      }/auth/callback?next=/dashboard`,
+      emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
     },
   })
 
