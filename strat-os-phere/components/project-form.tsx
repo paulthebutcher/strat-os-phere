@@ -84,7 +84,7 @@ export function ProjectForm({
       <div className="mb-6 space-y-1">
         <h2 className="text-xl font-semibold">{title}</h2>
         {description ? (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-sm text-text-secondary">{description}</p>
         ) : null}
       </div>
 
@@ -201,7 +201,7 @@ export function ProjectForm({
         ) : null}
 
         <div className="flex items-center justify-between gap-4 pt-2">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-text-secondary">
             <span className="text-destructive">*</span> Required fields
           </p>
           <Button type="submit" disabled={submitting}>

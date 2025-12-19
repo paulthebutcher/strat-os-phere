@@ -22,12 +22,12 @@ function ConfidentialInfoDisclosure() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+        className="text-xs text-text-secondary underline-offset-4 hover:underline"
       >
         Why?
       </button>
       {isOpen && (
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-xs text-text-secondary">
           We use this text to generate summaries. Keep it public to avoid risk.
         </p>
       )}
@@ -210,12 +210,12 @@ export function CompetitorForm({
   const qualityToneClass =
     evidenceQuality === 'too-short' || evidenceQuality === 'long'
       ? 'text-destructive'
-      : 'text-muted-foreground'
+      : 'text-text-secondary'
 
   return (
     <section className="panel px-6 py-5">
       <header className="mb-5 space-y-2">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+        <p className="text-xs uppercase tracking-wide text-text-secondary">
           Step 2
         </p>
         <h2 className="text-lg font-semibold">
@@ -225,11 +225,11 @@ export function CompetitorForm({
         </h2>
         {isFirstCompetitor ? (
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-text-secondary">
               Add a handful of real alternatives so the analysis has something
               concrete to compare against.
             </p>
-            <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+            <ul className="list-disc space-y-1 pl-5 text-xs text-text-secondary">
               <li>Add 3–7 competitors</li>
               <li>Paste public homepage, pricing, or feature copy</li>
               <li>Generate an exec-ready landscape summary</li>
@@ -237,7 +237,7 @@ export function CompetitorForm({
             <EvidenceHelpers className="mt-2" />
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-text-secondary">
             You can add up to {MAX_COMPETITORS_PER_PROJECT} competitors per
             analysis. Remaining slots: {competitorsRemaining}.
           </p>
@@ -291,14 +291,14 @@ export function CompetitorForm({
               <button
                 type="button"
                 onClick={handleTrimWhitespace}
-                className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                className="text-xs text-text-secondary underline-offset-4 hover:underline"
               >
                 Trim whitespace
               </button>
               <button
                 type="button"
                 onClick={handleSplitIntoSections}
-                className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                className="text-xs text-text-secondary underline-offset-4 hover:underline"
               >
                 Split into sections
               </button>
@@ -318,7 +318,7 @@ export function CompetitorForm({
               <p className={cn('max-w-xs', qualityToneClass)}>{qualityLabel}</p>
               <span
                 className={cn(
-                  'tabular-nums text-muted-foreground',
+                  'tabular-nums text-text-secondary',
                   evidenceLength > MAX_EVIDENCE_CHARS && 'text-destructive'
                 )}
               >
@@ -327,7 +327,7 @@ export function CompetitorForm({
               </span>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-text-secondary">
                 Paste public website text only. Don't paste confidential or customer data.
               </p>
               <ConfidentialInfoDisclosure />
@@ -342,13 +342,13 @@ export function CompetitorForm({
         ) : null}
 
         {success ? (
-          <p className="text-sm text-muted-foreground" role="status">
+          <p className="text-sm text-text-secondary" role="status">
             {success}
           </p>
         ) : null}
 
         <div className="flex items-center justify-between gap-4 pt-2">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-text-secondary">
             <span className="text-destructive">*</span> Required fields
           </p>
           <Button type="submit" disabled={submitting || isAtCap}>

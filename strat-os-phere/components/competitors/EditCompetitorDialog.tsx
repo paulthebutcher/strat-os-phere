@@ -138,7 +138,7 @@ export function EditCompetitorDialog({
   const qualityToneClass =
     evidenceQuality === 'too-short' || evidenceQuality === 'long'
       ? 'text-destructive'
-      : 'text-muted-foreground'
+      : 'text-text-secondary'
 
   return (
     <>
@@ -168,14 +168,14 @@ export function EditCompetitorDialog({
                 >
                   Edit competitor
                 </h2>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-text-secondary">
                   {competitor.name}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-full px-2 text-sm text-muted-foreground hover:bg-muted"
+                className="rounded-full px-2 text-sm text-text-secondary hover:bg-surface-muted"
                 aria-label="Close"
               >
                 ✕
@@ -225,14 +225,14 @@ export function EditCompetitorDialog({
                     <button
                       type="button"
                       onClick={handleTrimWhitespace}
-                      className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                      className="text-xs text-text-secondary underline-offset-4 hover:underline"
                     >
                       Trim whitespace
                     </button>
                     <button
                       type="button"
                       onClick={handleSplitIntoSections}
-                      className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                      className="text-xs text-text-secondary underline-offset-4 hover:underline"
                     >
                       Split into sections
                     </button>
@@ -251,7 +251,7 @@ export function EditCompetitorDialog({
                   </p>
                   <span
                     className={cn(
-                      'tabular-nums text-muted-foreground',
+                      'tabular-nums text-text-secondary',
                       evidenceLength > MAX_EVIDENCE_CHARS && 'text-destructive'
                     )}
                   >
@@ -268,7 +268,7 @@ export function EditCompetitorDialog({
               ) : null}
 
               {success ? (
-                <p className="text-sm text-muted-foreground" role="status">
+                <p className="text-sm text-text-secondary" role="status">
                   {success}
                 </p>
               ) : null}

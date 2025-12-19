@@ -36,7 +36,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <label htmlFor="email" className="text-sm font-medium">
+        <label htmlFor="email" className="text-sm font-medium text-text-primary">
           Email
         </label>
         <Input
@@ -54,7 +54,7 @@ export function LoginForm() {
       {message && (
         <p
           className={`text-sm ${
-            isError ? 'text-destructive' : 'text-accent-foreground'
+            isError ? 'text-danger' : 'text-accent-primary'
           }`}
         >
           {message}

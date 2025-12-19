@@ -28,12 +28,12 @@ export function InlineError({ message, details, className }: InlineErrorProps) {
           <button
             type="button"
             onClick={() => setShowDetails(!showDetails)}
-            className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+            className="text-xs text-text-secondary underline-offset-4 hover:underline"
           >
             {showDetails ? 'Hide' : 'Show'} debug details
           </button>
           {showDetails && (
-            <pre className="mt-2 overflow-auto rounded border border-border bg-background p-2 text-xs text-muted-foreground">
+            <pre className="mt-2 overflow-auto rounded border border-border-subtlebg-background p-2 text-xs text-text-secondary">
               {JSON.stringify(details, null, 2)}
             </pre>
           )}

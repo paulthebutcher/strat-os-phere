@@ -52,7 +52,7 @@ export function InlineStatusPanel({
         <button
           type="button"
           onClick={onCancel}
-          className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+          className="text-xs text-text-secondary underline-offset-4 hover:underline"
         >
           Cancel
         </button>

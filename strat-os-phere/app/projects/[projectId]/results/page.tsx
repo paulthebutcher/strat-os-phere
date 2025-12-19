@@ -112,19 +112,19 @@ export default async function ResultsPage(props: ResultsPageProps) {
       : anglesMarkdown
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
       <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-        <header className="flex flex-col gap-4 border-b border-border pb-4 md:flex-row md:items-start md:justify-between">
+        <header className="flex flex-col gap-4 border-b border-border-subtle pb-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs uppercase tracking-wide text-text-muted">
               Module 1 · Competitive & landscape scan
             </p>
-            <h1 className="text-2xl font-semibold">{project.name}</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1>{project.name}</h1>
+            <p className="text-sm text-text-secondary">
               AI-generated analysis based on your curated competitors and pasted
               evidence.
             </p>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
               <span>
                 Competitors:{' '}
                 <span className="font-medium">
@@ -149,24 +149,24 @@ export default async function ResultsPage(props: ResultsPageProps) {
           </div>
 
           <div className="flex flex-col items-start gap-3 text-left md:items-end md:text-right">
-            <nav className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <nav className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
               <Link
                 href="/dashboard"
-                className="underline-offset-4 hover:underline"
+                className="underline-offset-4 hover:text-text-primary hover:underline transition-colors"
               >
                 Dashboard
               </Link>
               <span aria-hidden="true">·</span>
               <Link
                 href={`/projects/${project.id}`}
-                className="underline-offset-4 hover:underline"
+                className="underline-offset-4 hover:text-text-primary hover:underline transition-colors"
               >
                 Overview
               </Link>
               <span aria-hidden="true">·</span>
               <Link
                 href={`/projects/${project.id}/competitors`}
-                className="underline-offset-4 hover:underline"
+                className="underline-offset-4 hover:text-text-primary hover:underline transition-colors"
               >
                 Competitors
               </Link>
@@ -184,10 +184,10 @@ export default async function ResultsPage(props: ResultsPageProps) {
         {!hasAnyArtifacts ? (
           <section className="panel flex flex-col gap-4 p-6">
             <div className="space-y-2">
-              <h2 className="text-base font-semibold text-foreground">
+              <h2 className="text-base font-semibold text-text-primary">
                 No results yet
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-text-secondary">
                 {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS
                   ? 'Run an analysis to see profiles, themes, and opportunities here.'
                   : `Add at least ${MIN_COMPETITORS_FOR_ANALYSIS} competitors to generate analysis.`}
@@ -272,7 +272,7 @@ interface ProfilesSectionProps {
 function ProfilesSection({ profiles }: ProfilesSectionProps) {
   if (!profiles || profiles.snapshots.length === 0) {
     return (
-      <section className="panel p-5 text-sm text-muted-foreground">
+      <section className="panel p-5 text-sm text-text-secondary">
         <p>No competitor profiles are available yet for this project.</p>
       </section>
     )
@@ -286,7 +286,7 @@ function ProfilesSection({ profiles }: ProfilesSectionProps) {
             <h2 className="text-sm font-semibold">
               {snapshot.competitor_name}
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-text-secondary">
               {snapshot.positioning_one_liner}
             </p>
           </header>
@@ -314,19 +314,19 @@ function ProfilesSection({ profiles }: ProfilesSectionProps) {
             <div className="space-y-3 text-sm">
               {snapshot.proof_points?.length ? (
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                     Proof points
                   </h3>
                   <ul className="mt-2 space-y-2 text-xs">
                     {snapshot.proof_points.map((proof, proofIndex) => (
                       <li key={proofIndex}>
                         <p className="font-medium">{proof.claim}</p>
-                        <p className="mt-1 italic text-muted-foreground">
-                          “{proof.evidence_quote}”
-                        </p>
-                        <p className="mt-1 text-[11px] text-muted-foreground">
-                          Confidence: {proof.confidence}
-                        </p>
+            <p className="mt-1 italic text-text-secondary">
+              "{proof.evidence_quote}"
+            </p>
+            <p className="mt-1 text-[11px] text-text-muted">
+              Confidence: {proof.confidence}
+            </p>
                       </li>
                     ))}
                   </ul>
@@ -350,7 +350,7 @@ function SnapshotList({ title, items }: SnapshotListProps) {
 
   return (
     <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
         {title}
       </h3>
       <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
@@ -371,7 +371,7 @@ function ThemesSection({ synthesis }: SynthesisSectionProps) {
 
   if (!value) {
     return (
-      <section className="panel p-5 text-sm text-muted-foreground">
+      <section className="panel p-5 text-sm text-text-secondary">
         <p>No themes are available yet for this project.</p>
       </section>
     )
@@ -387,7 +387,7 @@ function ThemesSection({ synthesis }: SynthesisSectionProps) {
         </h2>
         <div className="mt-3 grid gap-4 md:grid-cols-2">
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
               What is changing
             </h3>
             <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
@@ -397,7 +397,7 @@ function ThemesSection({ synthesis }: SynthesisSectionProps) {
             </ul>
           </div>
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
               What buyers care about
             </h3>
             <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
@@ -414,11 +414,11 @@ function ThemesSection({ synthesis }: SynthesisSectionProps) {
           {themes.map((theme, index) => (
             <article key={index} className="panel p-4">
               <h3 className="text-sm font-semibold">{theme.theme}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-text-secondary">
                 {theme.description}
               </p>
               {theme.competitors_supporting?.length ? (
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-2 text-xs text-text-secondary">
                   Competitors supporting:{' '}
                   <span className="font-medium">
                     {theme.competitors_supporting.join(', ')}
@@ -438,7 +438,7 @@ function PositioningSection({ synthesis }: SynthesisSectionProps) {
 
   if (!value) {
     return (
-      <section className="panel p-5 text-sm text-muted-foreground">
+      <section className="panel p-5 text-sm text-text-secondary">
         <p>No positioning analysis is available yet for this project.</p>
       </section>
     )
@@ -450,7 +450,7 @@ function PositioningSection({ synthesis }: SynthesisSectionProps) {
     <section className="space-y-4">
       <article className="panel p-4">
         <h2 className="text-sm font-semibold">Positioning map</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-sm text-text-secondary">
           Axes:{' '}
           <span className="font-medium">
             {positioning_map_text.axis_x} (x) · {positioning_map_text.axis_y}{' '}
@@ -460,17 +460,17 @@ function PositioningSection({ synthesis }: SynthesisSectionProps) {
         {positioning_map_text.quadrants?.length ? (
           <ul className="mt-3 space-y-2 text-sm">
             {positioning_map_text.quadrants.map((quadrant, index) => (
-              <li key={index} className="rounded-md bg-muted px-3 py-2">
+              <li key={index} className="rounded-md bg-surface-muted px-3 py-2">
                 <p className="text-xs font-semibold uppercase tracking-wide">
                   {quadrant.name}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-xs text-text-secondary">
                   Competitors:{' '}
                   <span className="font-medium">
                     {quadrant.competitors.join(', ')}
                   </span>
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-xs text-text-secondary">
                   {quadrant.notes}
                 </p>
               </li>
@@ -484,17 +484,17 @@ function PositioningSection({ synthesis }: SynthesisSectionProps) {
           <h2 className="text-sm font-semibold">Clusters</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {clusters.map((cluster, index) => (
-              <li key={index} className="rounded-md bg-muted px-3 py-2">
+              <li key={index} className="rounded-md bg-surface-muted px-3 py-2">
                 <p className="text-xs font-semibold uppercase tracking-wide">
                   {cluster.cluster_name}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-xs text-text-secondary">
                   Who is in it:{' '}
                   <span className="font-medium">
                     {cluster.who_is_in_it.join(', ')}
                   </span>
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-xs text-text-secondary">
                   {cluster.cluster_logic}
                 </p>
               </li>
@@ -511,7 +511,7 @@ function OpportunitiesSection({ synthesis }: SynthesisSectionProps) {
 
   if (!value || !value.opportunities?.length) {
     return (
-      <section className="panel p-5 text-sm text-muted-foreground">
+      <section className="panel p-5 text-sm text-text-secondary">
         <p>No opportunities are available yet for this project.</p>
       </section>
     )
@@ -529,7 +529,7 @@ function OpportunitiesSection({ synthesis }: SynthesisSectionProps) {
             <h2 className="text-sm font-semibold">
               {opportunity.opportunity}
             </h2>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-text-secondary">
               Priority {opportunity.priority}
             </span>
           </header>
@@ -569,7 +569,7 @@ function AnglesSection({ synthesis }: SynthesisSectionProps) {
     !value.recommended_differentiation_angles?.length
   ) {
     return (
-      <section className="panel p-5 text-sm text-muted-foreground">
+      <section className="panel p-5 text-sm text-text-secondary">
         <p>No differentiation angles are available yet for this project.</p>
       </section>
     )
@@ -580,13 +580,13 @@ function AnglesSection({ synthesis }: SynthesisSectionProps) {
       {value.recommended_differentiation_angles.map((angle, index) => (
         <article key={index} className="panel p-4">
           <h2 className="text-sm font-semibold">{angle.angle}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-text-secondary">
             {angle.what_to_claim}
           </p>
 
           {angle.how_to_prove?.length ? (
             <div className="mt-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 How to prove
               </h3>
               <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
@@ -599,7 +599,7 @@ function AnglesSection({ synthesis }: SynthesisSectionProps) {
 
           {angle.watch_out_for?.length ? (
             <div className="mt-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 Watch out for
               </h3>
               <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">

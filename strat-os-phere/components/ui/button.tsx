@@ -5,31 +5,31 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        // Primary: solid, graphite-ink emphasis
+        // Primary: solid, professional blue
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/90",
-        // Destructive stays clear but not neon
+          "bg-accent-primary text-primary-foreground hover:bg-accent-primary/90 border border-accent-primary",
+        // Destructive: professional red
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        // Secondary: paper surface with soft border
+          "bg-danger text-destructive-foreground hover:bg-danger/90 border border-danger",
+        // Secondary: outlined with border
         outline:
-          "border border-border bg-surface text-foreground hover:bg-muted",
-        // Tonal secondary, slightly stronger than outline
+          "border border-border-subtle bg-surface text-text-primary hover:bg-surface-muted",
+        // Secondary: filled muted
         secondary:
-          "bg-muted text-foreground hover:bg-muted/80",
-        // Ghost: minimal chrome, for low-emphasis actions
+          "bg-surface-muted text-text-primary hover:bg-surface-muted/80 border border-border-subtle",
+        // Ghost: minimal chrome, transparent background
         ghost:
-          "bg-transparent text-foreground/80 hover:bg-muted hover:text-foreground",
+          "bg-transparent text-text-primary/80 hover:bg-surface-muted hover:text-text-primary border-transparent",
         // Link-style for inline actions
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-accent-primary underline-offset-4 hover:underline bg-transparent border-transparent p-0 h-auto",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
+        sm: "h-9 rounded-md px-3 text-xs",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
       },

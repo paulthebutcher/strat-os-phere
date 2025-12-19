@@ -135,7 +135,7 @@ export function RegenerateButton({
             onCancel={handleCancel}
           />
           {showTimeoutMessage && (
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="mt-2 text-xs text-text-secondary">
               Still working… Large competitor sets can take a minute.
             </p>
           )}

@@ -60,7 +60,7 @@ export function CopySectionButton({
           {error}
         </p>
       ) : copied ? (
-        <p className="text-xs text-muted-foreground" role="status">
+        <p className="text-xs text-text-secondary" role="status">
           Copied
         </p>
       ) : null}

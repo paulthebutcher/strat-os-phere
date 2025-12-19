@@ -83,7 +83,7 @@ export function CompetitorCard({
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-medium">{competitor.name}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
             {competitor.url ? (
               <a
                 href={competitor.url}
@@ -94,7 +94,7 @@ export function CompetitorCard({
                 {competitor.url}
               </a>
             ) : null}
-            <span className="text-muted-foreground">
+            <span className="text-text-secondary">
               Added {createdLabel}
             </span>
           </div>
@@ -124,7 +124,7 @@ export function CompetitorCard({
             <button
               type="button"
               onClick={() => setExpanded((value) => !value)}
-              className="text-xs font-medium text-muted-foreground underline-offset-4 hover:underline"
+              className="text-xs font-medium text-text-secondary underline-offset-4 hover:underline"
             >
               {expanded ? 'Show less' : 'Show more'}
             </button>
@@ -133,13 +133,13 @@ export function CompetitorCard({
       ) : null}
 
       {notes ? (
-        <p className="mt-2 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+        <p className="mt-2 rounded-md bg-surface-muted px-3 py-2 text-xs text-text-secondary">
           {notes}
         </p>
       ) : null}
 
       {showAnalysisHint ? (
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="mt-2 text-xs text-text-secondary">
           Add {MIN_COMPETITORS_FOR_ANALYSIS - total} more competitor
           {MIN_COMPETITORS_FOR_ANALYSIS - total === 1 ? '' : 's'} to generate an
           analysis.
@@ -153,7 +153,7 @@ export function CompetitorCard({
       ) : null}
 
       {success ? (
-        <p className="mt-2 text-xs text-muted-foreground" role="status">
+        <p className="mt-2 text-xs text-text-secondary" role="status">
           {success}
         </p>
       ) : null}
