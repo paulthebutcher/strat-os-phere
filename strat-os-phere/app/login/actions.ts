@@ -12,17 +12,29 @@ interface AuthActionResult {
 export async function signIn(email: string): Promise<AuthActionResult> {
   const supabase = await createClient()
   const origin = await getOrigin()
+  const redirectUrl = `${origin}/auth/callback?next=/dashboard`
+
+  // Dev-only logging to debug redirect URL
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[signIn]', {
+      origin,
+      redirectUrl,
+    })
+  }
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
+      emailRedirectTo: redirectUrl,
     },
   })
 
   if (error) {
-    // Temporary logging to aid Supabase debugging
-    console.error('Failed to send sign-in link', error)
+    console.error('[signIn] Failed to send sign-in link', {
+      error: error.message,
+      code: error.code,
+      redirectUrl,
+    })
 
     return { success: false, message: error.message }
   }
