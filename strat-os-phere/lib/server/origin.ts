@@ -13,13 +13,32 @@ export async function getOrigin(): Promise<string> {
   const forwardedHost = headersList.get("x-forwarded-host")
   const forwardedProto = headersList.get("x-forwarded-proto")
   const host = headersList.get("host")
+  const isPreview = process.env.VERCEL_ENV === 'preview'
   
   // Prefer forwarded headers (Vercel sets these for Preview and Production)
   // This ensures staging/preview URLs return to the same host
   if (forwardedHost && forwardedProto) {
-    // forwardedHost can be a comma-separated list, take the first one
-    const hostValue = forwardedHost.split(',')[0].trim()
-    return `${forwardedProto}://${hostValue}`
+    // forwardedHost can be a comma-separated list
+    // Proxies can prepend values, so take the LAST entry (most recent/trusted)
+    const hosts = forwardedHost.split(',').map(h => h.trim()).filter(Boolean)
+    
+    let selectedHost: string
+    
+    if (isPreview && hosts.length > 1) {
+      // For preview deployments, prefer .vercel.app domain if present
+      const vercelAppHost = hosts.find(h => h.endsWith('.vercel.app'))
+      if (vercelAppHost) {
+        selectedHost = vercelAppHost
+      } else {
+        // Fallback to last entry if no .vercel.app found
+        selectedHost = hosts[hosts.length - 1]
+      }
+    } else {
+      // For production or single host, take the last entry
+      selectedHost = hosts[hosts.length - 1]
+    }
+    
+    return `${forwardedProto}://${selectedHost}`
   }
   
   // Fallback to host header if available (works in all environments)
