@@ -14,11 +14,13 @@ export async function signIn(email: string): Promise<AuthActionResult> {
   const origin = await getOrigin()
   const redirectUrl = `${origin}/auth/callback?next=/dashboard`
 
-  // Dev-only logging to debug redirect URL
-  if (process.env.NODE_ENV === 'development') {
+  // Log origin and redirect URL in dev/preview (not production)
+  // VERCEL_ENV indicates preview deployments
+  const isDevOrPreview = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview'
+  if (isDevOrPreview) {
     console.log('[signIn]', {
       origin,
-      redirectUrl,
+      emailRedirectTo: redirectUrl,
     })
   }
 

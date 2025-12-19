@@ -109,6 +109,10 @@ export async function GET(request: NextRequest) {
     // Copy all cookies from temp response (set by Supabase) to final redirect
     applyCookies(tempResponse, finalResponse)
 
+    // One-line log: host and final redirect target
+    const host = request.headers.get('host') || request.nextUrl.host
+    console.log(`[auth/callback] ${host} -> ${next}`)
+
     console.log('[auth/callback]', {
       requestId,
       result: 'exchangeOk',
@@ -149,6 +153,10 @@ export async function GET(request: NextRequest) {
     
     // Copy all cookies from temp response (set by Supabase) to final redirect
     applyCookies(tempResponse, finalResponse)
+
+    // One-line log: host and final redirect target
+    const host = request.headers.get('host') || request.nextUrl.host
+    console.log(`[auth/callback] ${host} -> ${next}`)
 
     console.log('[auth/callback]', {
       requestId,

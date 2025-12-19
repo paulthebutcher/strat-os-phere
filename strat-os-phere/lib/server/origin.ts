@@ -14,27 +14,38 @@ export async function getOrigin(): Promise<string> {
   const forwardedProto = headersList.get("x-forwarded-proto")
   const host = headersList.get("host")
   
-  // Prefer forwarded headers (Vercel sets these)
+  // Prefer forwarded headers (Vercel sets these for Preview and Production)
+  // This ensures staging/preview URLs return to the same host
   if (forwardedHost && forwardedProto) {
     // forwardedHost can be a comma-separated list, take the first one
-    const host = forwardedHost.split(',')[0].trim()
-    return `${forwardedProto}://${host}`
+    const hostValue = forwardedHost.split(',')[0].trim()
+    return `${forwardedProto}://${hostValue}`
   }
   
-  // Fallback to host header if available
+  // Fallback to host header if available (works in all environments)
+  // Use https in production/preview, http in development
   if (host) {
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+    // VERCEL environment variable indicates Vercel deployment
+    const isVercel = !!process.env.VERCEL
+    const protocol = (process.env.NODE_ENV === 'production' || isVercel) ? 'https' : 'http'
     return `${protocol}://${host}`
   }
   
   // Final fallback for local development only
+  // Never use hardcoded production domain - always use actual request host
   if (process.env.NODE_ENV === 'development') {
     return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
   }
   
-  // Production fallback - should not happen if headers are set correctly
-  // But if it does, log a warning
-  console.warn('[getOrigin] No host headers found, using fallback')
-  return process.env.NEXT_PUBLIC_SITE_URL || "https://www.myplinth.com"
+  // Should never reach here if headers are set correctly
+  // Log error and throw to prevent silent failures
+  console.error('[getOrigin] ERROR: No host headers found', {
+    hasForwardedHost: !!forwardedHost,
+    hasForwardedProto: !!forwardedProto,
+    hasHost: !!host,
+    nodeEnv: process.env.NODE_ENV,
+    vercel: !!process.env.VERCEL,
+  })
+  throw new Error('Unable to determine origin: no host headers available')
 }
 
