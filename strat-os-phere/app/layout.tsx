@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/layout/nav";
+import { MarketingNav } from "@/components/marketing/MarketingNav";
+import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,21 +16,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StratOSphere",
-  description: "An AI-enabled OS for experience strategy work",
+  title: "Plinth",
+  description: "Strategic intelligence for product, strategy, and UX leaders",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Nav />
+        {user ? <Nav /> : <MarketingNav />}
         <div className="min-h-screen bg-background">
           {children}
         </div>
