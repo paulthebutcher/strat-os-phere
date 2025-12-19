@@ -129,18 +129,30 @@ function normalizeSynthesisArtifact(
 
   // Wrapped envelope with { synthesis, run_id, generated_at, ... }.
   const asEnvelope = SynthesisEnvelopeSchema.safeParse(raw)
-  if (!asEnvelope.success || !asEnvelope.data.synthesis) {
+  if (!asEnvelope.success) {
     return null
   }
 
   const envelope = asEnvelope.data
+  // Validate synthesis is present and matches MarketSynthesis schema
+  if (!envelope.synthesis) {
+    return null
+  }
+
+  // Validate the synthesis object matches MarketSynthesis schema
+  const validatedSynthesis = MarketSynthesisSchema.safeParse(envelope.synthesis)
+  if (!validatedSynthesis.success) {
+    // If synthesis doesn't match schema, return null rather than throwing
+    // This allows the function to gracefully handle malformed data
+    return null
+  }
 
   return {
     type: 'synthesis',
     runId: envelope.run_id ?? null,
     generatedAt: envelope.generated_at ?? null,
     competitorCount: envelope.competitor_count ?? null,
-    synthesis: envelope.synthesis,
+    synthesis: validatedSynthesis.data,
     artifactCreatedAt: artifact.created_at,
   }
 }

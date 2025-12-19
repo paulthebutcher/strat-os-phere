@@ -1,10 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Database, TypedSupabaseClient } from './types'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from './database.types'
+import type { TypedSupabaseClient } from './types'
 
 export async function createClient(): Promise<TypedSupabaseClient> {
   const cookieStore = await cookies()
 
+  // Cast to SupabaseClient<Database> to preserve type information
+  // The @supabase/ssr return type is compatible but doesn't preserve the generic
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -26,6 +30,6 @@ export async function createClient(): Promise<TypedSupabaseClient> {
         },
       },
     }
-  )
+  ) as SupabaseClient<Database>
 }
 

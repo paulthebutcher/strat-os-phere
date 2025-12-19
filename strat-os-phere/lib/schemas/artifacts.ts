@@ -56,7 +56,7 @@ export function getArtifactContentSchema(
 export function validateArtifactContent(
   type: ArtifactType,
   value: unknown
-): z.SafeParseReturnType<unknown, ArtifactContent> {
+): ReturnType<z.ZodType<ArtifactContent>['safeParse']> {
   const schema = getArtifactContentSchema(type)
   return schema.safeParse(value)
 }
