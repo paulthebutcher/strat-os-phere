@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getOrigin } from '@/lib/utils'
+import { getOrigin } from '@/lib/server/origin'
 
 interface AuthActionResult {
   success: boolean
