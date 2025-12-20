@@ -5,6 +5,7 @@ import { CopySectionButton } from '@/components/results/CopySectionButton'
 import { RegenerateButton } from '@/components/results/RegenerateButton'
 import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
 import { CompetitorScoreBarChart } from '@/components/results/CompetitorScoreBarChart'
+import { ArtifactsDebugPanel } from '@/components/results/ArtifactsDebugPanel'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
@@ -165,6 +166,9 @@ export default async function ResultsPage(props: ResultsPageProps) {
               AI-generated analysis based on your curated competitors and pasted
               evidence.
             </p>
+            <p className="text-xs text-text-muted italic">
+              Insights are based on publicly available information from the last 90 days, including marketing sites, reviews, pricing pages, changelogs, and documentation.
+            </p>
             <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
               <span>
                 Competitors:{' '}
@@ -214,14 +218,12 @@ export default async function ResultsPage(props: ResultsPageProps) {
             </nav>
 
             <div className="flex items-center gap-2">
-              {hasAnyArtifacts ? (
-                <>
-                  <RegenerateButton
-                    projectId={project.id}
-                    competitorCount={effectiveCompetitorCount}
-                  />
-                  <GenerateResultsV2Button projectId={project.id} />
-                </>
+              {hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
+                <RegenerateButton
+                  projectId={project.id}
+                  competitorCount={effectiveCompetitorCount}
+                  label="Regenerate Results"
+                />
               ) : null}
               {!hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
                 <GenerateResultsV2Button projectId={project.id} label="Generate Results" />
@@ -235,6 +237,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
                 </span>
               </p>
             ) : null}
+            <ArtifactsDebugPanel projectId={project.id} />
           </div>
         </header>
 
@@ -252,10 +255,9 @@ export default async function ResultsPage(props: ResultsPageProps) {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
-                <RegenerateButton
+                <GenerateResultsV2Button
                   projectId={project.id}
-                  label="Generate analysis"
-                  competitorCount={effectiveCompetitorCount}
+                  label="Generate Results"
                 />
               ) : (
                 <Button asChild type="button" size="sm">
@@ -325,13 +327,16 @@ export default async function ResultsPage(props: ResultsPageProps) {
               <AnglesSection synthesis={synthesis} />
             ) : null}
             {activeTab === 'jobs' ? (
-              <JtbdSection jtbd={jtbd?.content} />
+              <JtbdSection jtbd={jtbd?.content} projectId={project.id} />
             ) : null}
             {activeTab === 'scorecard' ? (
-              <ScoringSection scoring={scoringMatrix?.content} />
+              <ScoringSection scoring={scoringMatrix?.content} projectId={project.id} />
             ) : null}
             {activeTab === 'opportunities_v2' ? (
-              <OpportunitiesV2Section opportunities={opportunitiesV2?.content} />
+              <OpportunitiesV2Section
+                opportunities={opportunitiesV2?.content}
+                projectId={project.id}
+              />
             ) : null}
           </section>
         )}
@@ -384,6 +389,12 @@ function ProfilesSection({ profiles }: ProfilesSectionProps) {
                 title="Risks & unknowns"
                 items={snapshot.risks_and_unknowns}
               />
+              {snapshot.customer_struggles && snapshot.customer_struggles.length > 0 ? (
+                <SnapshotList
+                  title="What customers struggle with today"
+                  items={snapshot.customer_struggles}
+                />
+              ) : null}
             </div>
 
             <div className="space-y-3 text-sm">
@@ -758,13 +769,20 @@ function RecommendedNextStepsPanel({
 
 interface JtbdSectionProps {
   jtbd: JtbdArtifactContent | null | undefined
+  projectId: string
 }
 
-function JtbdSection({ jtbd }: JtbdSectionProps) {
+function JtbdSection({ jtbd, projectId }: JtbdSectionProps) {
   if (!jtbd || !jtbd.jobs?.length) {
     return (
-      <section className="panel p-5 text-sm text-text-secondary">
-        <p>No Jobs To Be Done are available yet for this project.</p>
+      <section className="panel p-5 space-y-3">
+        <div className="text-sm text-text-secondary">
+          <p>No Jobs To Be Done are available yet for this project.</p>
+        </div>
+        <GenerateResultsV2Button
+          projectId={projectId}
+          label="Generate Results v2"
+        />
       </section>
     )
   }
@@ -913,13 +931,20 @@ function JtbdSection({ jtbd }: JtbdSectionProps) {
 
 interface OpportunitiesV2SectionProps {
   opportunities: OpportunitiesArtifactContent | null | undefined
+  projectId: string
 }
 
-function OpportunitiesV2Section({ opportunities }: OpportunitiesV2SectionProps) {
+function OpportunitiesV2Section({ opportunities, projectId }: OpportunitiesV2SectionProps) {
   if (!opportunities || !opportunities.opportunities?.length) {
     return (
-      <section className="panel p-5 text-sm text-text-secondary">
-        <p>No opportunities are available yet for this project.</p>
+      <section className="panel p-5 space-y-3">
+        <div className="text-sm text-text-secondary">
+          <p>No opportunities are available yet for this project.</p>
+        </div>
+        <GenerateResultsV2Button
+          projectId={projectId}
+          label="Generate Results v2"
+        />
       </section>
     )
   }
@@ -1038,13 +1063,20 @@ function OpportunitiesV2Section({ opportunities }: OpportunitiesV2SectionProps) 
 
 interface ScoringSectionProps {
   scoring: ScoringMatrixArtifactContent | null | undefined
+  projectId: string
 }
 
-function ScoringSection({ scoring }: ScoringSectionProps) {
+function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
   if (!scoring) {
     return (
-      <section className="panel p-5 text-sm text-text-secondary">
-        <p>No scoring matrix is available yet for this project.</p>
+      <section className="panel p-5 space-y-3">
+        <div className="text-sm text-text-secondary">
+          <p>No scoring matrix is available yet for this project.</p>
+        </div>
+        <GenerateResultsV2Button
+          projectId={projectId}
+          label="Generate Results v2"
+        />
       </section>
     )
   }

@@ -54,6 +54,17 @@ export interface CompetitorInsert {
 
 export type CompetitorUpdate = Partial<CompetitorInsert>
 
+export type EvidenceSourceType =
+  | 'marketing_site'
+  | 'changelog'
+  | 'pricing'
+  | 'reviews'
+  | 'jobs'
+  | 'docs'
+  | 'status'
+
+export type EvidenceSourceConfidence = 'low' | 'medium' | 'high'
+
 export interface EvidenceSourceRow {
   id: string
   project_id: string
@@ -62,6 +73,9 @@ export interface EvidenceSourceRow {
   url: string
   extracted_text: string
   page_title: string | null
+  source_type: EvidenceSourceType
+  source_date_range: string | null // e.g., "last 90 days"
+  source_confidence: EvidenceSourceConfidence | null
   extracted_at: string
   created_at: string
 }
@@ -73,6 +87,9 @@ export interface EvidenceSourceInsert {
   url: string
   extracted_text: string
   page_title?: string | null
+  source_type?: EvidenceSourceType
+  source_date_range?: string | null
+  source_confidence?: EvidenceSourceConfidence | null
   extracted_at?: string
 }
 

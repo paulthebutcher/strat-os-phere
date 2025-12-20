@@ -167,6 +167,7 @@ export function buildJtbdMessages(input: JtbdPromptInput): Message[] {
     'Evidence (optional):',
     '- Link back to competitor evidence if relevant',
     '- Include competitor name, citation URL, or quote if available',
+    '- Reference live signals when available: "Based on recent G2 reviews...", "Pricing constraints indicate...", "Changelog shows..."',
     '',
     'QUALITY STANDARDS',
     '- Every job must be something you could test with users in a 1-2 week research sprint',

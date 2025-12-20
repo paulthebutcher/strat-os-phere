@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = await generateResultsV2(projectId, user.id)
+    const result = await generateResultsV2(projectId, user.id, {})
 
     if (!result.ok) {
       // Map error codes to HTTP status codes

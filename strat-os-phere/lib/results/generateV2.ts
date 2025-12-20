@@ -42,6 +42,11 @@ import {
   computeResultsV2Signals,
   type ResultsV2QualitySignals,
 } from '@/lib/results/qualitySignals'
+import {
+  type ProgressCallback,
+  type ProgressEvent,
+  makeProgressEvent,
+} from '@/lib/results/progress'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 import type { MarketSynthesis } from '@/lib/schemas/marketSynthesis'
 
@@ -77,15 +82,22 @@ function summarizeValidationError(error: string | undefined): string | undefined
   return error.length > 500 ? `${error.slice(0, 497)}...` : error
 }
 
+export interface GenerateResultsV2Options {
+  runId?: string
+  onProgress?: ProgressCallback
+}
+
 /**
  * Generate Results v2 artifacts (JTBD, Opportunities, Scoring Matrix)
  * This is the canonical generation function - should only be called from the API route
  */
 export async function generateResultsV2(
   projectId: string,
-  userId: string
+  userId: string,
+  options?: GenerateResultsV2Options
 ): Promise<GenerateResultsV2Result> {
-  const runId = generateRunId()
+  const runId = options?.runId ?? generateRunId()
+  const onProgress = options?.onProgress
 
   try {
     const supabase = await createClient()
@@ -102,8 +114,23 @@ export async function generateResultsV2(
       }
     }
 
+    // Phase: load_input
+    const t0 = performance.now()
+    onProgress?.(
+      makeProgressEvent(runId, 'load_input', 'Loading project data and competitors...', {
+        meta: { competitorCount: 0 },
+      })
+    )
+
     const competitors = await listCompetitorsForProject(supabase, projectId)
     const competitorCount = competitors.length
+
+    onProgress?.(
+      makeProgressEvent(runId, 'load_input', 'Project data loaded', {
+        detail: `Found ${competitorCount} competitor${competitorCount !== 1 ? 's' : ''}`,
+        meta: { competitorCount },
+      })
+    )
 
     if (competitorCount < MIN_COMPETITORS_FOR_ANALYSIS) {
       return {
@@ -181,6 +208,20 @@ export async function generateResultsV2(
 
     const generatedAt = new Date().toISOString()
 
+    // Phase: jobs_generate
+    const tJobsStart = performance.now()
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'jobs_generate',
+        'Extracting the jobs your market actually hires tools for...',
+        {
+          detail: 'Drafting Jobs to Be Done (1/3)',
+          meta: { llmCallsDone: 0, llmCallsTotal: 3 },
+        }
+      )
+    )
+
     // Generate JTBD
     const jtbdMessages = buildJtbdMessages({
       project: projectContext,
@@ -195,12 +236,38 @@ export async function generateResultsV2(
       maxTokens: 2_400,
     })
 
+    onProgress?.(
+      makeProgressEvent(runId, 'jobs_generate', 'Jobs draft complete', {
+        detail: 'Validating structure...',
+        meta: { llmCallsDone: 1, llmCallsTotal: 3 },
+      })
+    )
+
+    // Phase: jobs_validate
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'jobs_validate',
+        'Validating structure and removing vague language...',
+        {
+          meta: { repairsUsed: 0 },
+        }
+      )
+    )
+
     let jtbdParsed = safeParseLLMJson<JtbdArtifactContent>(
       jtbdResponse.text,
       JtbdArtifactContentSchema
     )
 
     if (!jtbdParsed.ok) {
+      onProgress?.(
+        makeProgressEvent(runId, 'jobs_validate', 'Repairing invalid JSON...', {
+          detail: 'Model retrying due to invalid JSON (attempt 1/1)',
+          meta: { repairsUsed: 1 },
+        })
+      )
+
       const schemaShapeText = JSON.stringify(JTBD_SCHEMA_SHAPE, null, 2)
 
       const repairMessages = buildRepairMessages({
@@ -242,6 +309,20 @@ export async function generateResultsV2(
       }
     }
 
+    const tJobsEnd = performance.now()
+    logger.debug('JTBD generation completed', {
+      durationMs: Math.round(tJobsEnd - tJobsStart),
+    })
+
+    onProgress?.(
+      makeProgressEvent(runId, 'jobs_validate', 'Jobs validated', {
+        detail: `${jtbdParsed.data.jobs.length} jobs extracted`,
+        meta: {
+          durationMs: Math.round(tJobsEnd - tJobsStart),
+        },
+      })
+    )
+
     // Compute opportunity scores for JTBD items
     const jtbdWithScores: JtbdArtifactContent = {
       ...jtbdParsed.data,
@@ -259,6 +340,20 @@ export async function generateResultsV2(
     jtbdWithScores.meta.generated_at = generatedAt
     jtbdWithScores.meta.schema_version = 2
 
+    // Phase: scorecard_generate
+    const tScorecardStart = performance.now()
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'scorecard_generate',
+        'Building competitive scorecard...',
+        {
+          detail: 'Drafting Scorecard (2/3)',
+          meta: { llmCallsDone: 1, llmCallsTotal: 3 },
+        }
+      )
+    )
+
     // Generate Scoring Matrix
     const scoringMessages = buildScoringMessages({
       project: projectContext,
@@ -273,12 +368,38 @@ export async function generateResultsV2(
       maxTokens: 2_400,
     })
 
+    onProgress?.(
+      makeProgressEvent(runId, 'scorecard_generate', 'Scorecard draft complete', {
+        detail: 'Validating structure...',
+        meta: { llmCallsDone: 2, llmCallsTotal: 3 },
+      })
+    )
+
+    // Phase: scorecard_validate
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'scorecard_validate',
+        'Validating scorecard structure...',
+        {
+          meta: { repairsUsed: jtbdParsed.ok ? 0 : 1 },
+        }
+      )
+    )
+
     let scoringParsed = safeParseLLMJson<ScoringMatrixArtifactContent>(
       scoringResponse.text,
       ScoringMatrixArtifactContentSchema
     )
 
     if (!scoringParsed.ok) {
+      onProgress?.(
+        makeProgressEvent(runId, 'scorecard_validate', 'Repairing invalid JSON...', {
+          detail: 'Model retrying due to invalid JSON (attempt 1/1)',
+          meta: { repairsUsed: (jtbdParsed.ok ? 0 : 1) + 1 },
+        })
+      )
+
       const schemaShapeText = JSON.stringify(SCORING_MATRIX_SCHEMA_SHAPE, null, 2)
 
       const repairMessages = buildRepairMessages({
@@ -320,10 +441,38 @@ export async function generateResultsV2(
       }
     }
 
+    const tScorecardEnd = performance.now()
+    logger.debug('Scorecard generation completed', {
+      durationMs: Math.round(tScorecardEnd - tScorecardStart),
+    })
+
+    onProgress?.(
+      makeProgressEvent(runId, 'scorecard_validate', 'Scorecard validated', {
+        detail: `${scoringParsed.data.criteria.length} criteria defined`,
+        meta: {
+          durationMs: Math.round(tScorecardEnd - tScorecardStart),
+        },
+      })
+    )
+
     // Update scoring meta with schema_version=2
     scoringParsed.data.meta.run_id = runId
     scoringParsed.data.meta.generated_at = generatedAt
     scoringParsed.data.meta.schema_version = 2
+
+    // Phase: opportunities_generate
+    const tOpportunitiesStart = performance.now()
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'opportunities_generate',
+        'Ranking differentiation opportunities...',
+        {
+          detail: 'Drafting Opportunities (3/3)',
+          meta: { llmCallsDone: 2, llmCallsTotal: 3 },
+        }
+      )
+    )
 
     // Generate Opportunities (with JTBD context)
     const jtbdJson = JSON.stringify(jtbdWithScores)
@@ -341,12 +490,42 @@ export async function generateResultsV2(
       maxTokens: 2_400,
     })
 
+    onProgress?.(
+      makeProgressEvent(runId, 'opportunities_generate', 'Opportunities draft complete', {
+        detail: 'Validating structure...',
+        meta: { llmCallsDone: 3, llmCallsTotal: 3 },
+      })
+    )
+
+    // Phase: opportunities_validate
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'opportunities_validate',
+        'Validating opportunities structure...',
+        {
+          meta: {
+            repairsUsed: (jtbdParsed.ok ? 0 : 1) + (scoringParsed.ok ? 0 : 1),
+          },
+        }
+      )
+    )
+
     let opportunitiesParsed = safeParseLLMJson<OpportunitiesArtifactContent>(
       opportunitiesResponse.text,
       OpportunitiesArtifactContentSchema
     )
 
     if (!opportunitiesParsed.ok) {
+      const totalRepairs =
+        (jtbdParsed.ok ? 0 : 1) + (scoringParsed.ok ? 0 : 1) + 1
+      onProgress?.(
+        makeProgressEvent(runId, 'opportunities_validate', 'Repairing invalid JSON...', {
+          detail: 'Model retrying due to invalid JSON (attempt 1/1)',
+          meta: { repairsUsed: totalRepairs },
+        })
+      )
+
       const schemaShapeText = JSON.stringify(
         OPPORTUNITIES_V2_SCHEMA_SHAPE,
         null,
@@ -392,6 +571,32 @@ export async function generateResultsV2(
       }
     }
 
+    const tOpportunitiesEnd = performance.now()
+    logger.debug('Opportunities generation completed', {
+      durationMs: Math.round(tOpportunitiesEnd - tOpportunitiesStart),
+    })
+
+    onProgress?.(
+      makeProgressEvent(runId, 'opportunities_validate', 'Opportunities validated', {
+        detail: `${opportunitiesParsed.data.opportunities.length} opportunities ranked`,
+        meta: {
+          durationMs: Math.round(tOpportunitiesEnd - tOpportunitiesStart),
+        },
+      })
+    )
+
+    // Phase: scoring_compute
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'scoring_compute',
+        'Computing scores...',
+        {
+          detail: 'Scoring competitors against weighted criteria',
+        }
+      )
+    )
+
     // Compute opportunity scores
     const opportunitiesWithScores: OpportunitiesArtifactContent = {
       ...opportunitiesParsed.data,
@@ -432,6 +637,12 @@ export async function generateResultsV2(
       scoringMatrix: scoringParsed.data,
     })
 
+    onProgress?.(
+      makeProgressEvent(runId, 'scoring_compute', 'Scores computed', {
+        detail: 'All deterministic scores calculated',
+      })
+    )
+
     // Store signals in meta for all artifacts
     // Cast to Record<string, unknown> to match schema type (double cast via unknown)
     const signalsRecord = signals as unknown as Record<string, unknown>
@@ -446,6 +657,19 @@ export async function generateResultsV2(
       signals,
     })
 
+    // Phase: save_artifacts
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'save_artifacts',
+        'Writing outputs to your workspace...',
+        {
+          detail: 'Saving Jobs, Scorecard, and Opportunities',
+          meta: { writesDone: 0, writesTotal: 3 },
+        }
+      )
+    )
+
     // Store artifacts
     // Note: Using type assertions because database types haven't been updated yet
     // The database accepts any string for the type field and any JSON-serializable value
@@ -455,17 +679,50 @@ export async function generateResultsV2(
       content_json: jtbdWithScores as any,
     })
 
+    onProgress?.(
+      makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
+        detail: 'Saving Jobs, Scorecard, and Opportunities',
+        meta: { writesDone: 1, writesTotal: 3 },
+      })
+    )
+
     const opportunitiesArtifact = await createArtifact(supabase, {
       project_id: projectId,
       type: 'opportunities_v2' as any,
       content_json: opportunitiesWithScores as any,
     })
 
+    onProgress?.(
+      makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
+        detail: 'Saving Jobs, Scorecard, and Opportunities',
+        meta: { writesDone: 2, writesTotal: 3 },
+      })
+    )
+
     const scoringArtifact = await createArtifact(supabase, {
       project_id: projectId,
       type: 'scoring_matrix' as any,
       content_json: scoringParsed.data as any,
     })
+
+    onProgress?.(
+      makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
+        detail: 'This lets you regenerate without losing history',
+        meta: { writesDone: 3, writesTotal: 3 },
+      })
+    )
+
+    // Phase: finalize
+    const tTotal = performance.now() - t0
+    onProgress?.(
+      makeProgressEvent(runId, 'finalize', 'Finalizing artifacts for copy/export...', {
+        detail: 'Indexing results for fast reuse',
+        meta: {
+          artifactCount: 3,
+          durationMs: Math.round(tTotal),
+        },
+      })
+    )
 
     return {
       ok: true,

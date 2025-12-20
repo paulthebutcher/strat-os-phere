@@ -11,6 +11,9 @@ export interface EvidencePromptInput {
     url: string
     text: string
     title?: string
+    sourceType?: string
+    confidence?: string | null
+    dateRange?: string | null
   }>
 }
 
@@ -52,12 +55,17 @@ function stringifySchemaForPrompt(schemaShape: unknown): string {
 export function buildEvidenceMessages(input: EvidencePromptInput): Message[] {
   const { competitorName, domain, extractedContent } = input
 
-  // Build content sections from extracted pages
+  // Build content sections from extracted pages with source type metadata
   const contentSections = extractedContent
     .map((content, index) => {
+      const sourceType = content.sourceType || 'marketing_site'
+      const sourceTypeLabel = sourceType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
       const lines = [
         `SOURCE ${index + 1}: ${content.url}`,
         content.title ? `Title: ${content.title}` : '',
+        `Source Type: ${sourceTypeLabel}`,
+        content.dateRange ? `Date Range: ${content.dateRange}` : '',
+        content.confidence ? `Confidence: ${content.confidence}` : '',
         'Content:',
         content.text,
         '',
@@ -77,7 +85,19 @@ export function buildEvidenceMessages(input: EvidencePromptInput): Message[] {
     '',
     'SCRAPED CONTENT',
     'The following content was extracted from public web pages. Use only this content as your source of truth.',
-    'Each source is labeled with its URL. Cite these URLs in the sources arrays.',
+    'Each source is labeled with its URL, source type, and metadata. Cite these URLs in the sources arrays.',
+    '',
+    'SOURCE TYPE HIERARCHY (prefer higher-signal sources when conflicts exist):',
+    '1. reviews - Real user feedback (highest signal for actual experience)',
+    '2. pricing - Actual pricing constraints and plans',
+    '3. changelog - Recent product changes and updates',
+    '4. jobs - Hiring signals (what they\'re building)',
+    '5. docs - Technical documentation (what\'s actually available)',
+    '6. status - Service status and reliability signals',
+    '7. marketing_site - Marketing claims (lowest signal, verify against other sources)',
+    '',
+    'CRITICAL: When sources conflict, prefer evidence from reviews, pricing, and changelog over marketing claims.',
+    'Distinguish between "What they market" vs "What they actually deliver" based on source types.',
     'CONTENT_START',
     contentSections,
     'CONTENT_END',
@@ -102,9 +122,11 @@ export function buildEvidenceMessages(input: EvidencePromptInput): Message[] {
     '',
     'Pricing:',
     '- Extract pricing information, pricing models, plans, or pricing-related messaging.',
+    '- PREFER pricing source_type over marketing_site for pricing information.',
     '- Include specific prices if found, pricing tiers, or pricing structure details.',
+    '- Note any pricing constraints, limitations, or hidden costs mentioned in reviews.',
     '- If pricing is "contact us" or not publicly available, state that clearly.',
-    '- Cite the specific URL(s) where pricing information appears.',
+    '- Cite the specific URL(s) where pricing information appears, noting source_type when relevant.',
     '',
     'Target customers:',
     '- Extract information about who they serve: customer segments, industries, company sizes, roles, etc.',
@@ -133,6 +155,15 @@ export function buildEvidenceMessages(input: EvidencePromptInput): Message[] {
     '- Each bullet must be supported by at least one source URL in that section\'s sources array.',
     '- Use concise, factual language. Avoid marketing fluff or overly promotional language.',
     '- If content is ambiguous or unclear, reflect that uncertainty in the bullet text.',
+    '',
+    'MARKETING vs REALITY:',
+    '- When you find conflicting information, note the conflict and prefer higher-signal sources.',
+    '- Example: If marketing says "easy to use" but reviews mention "steep learning curve", include both perspectives.',
+    '- For reviews source_type: Extract top complaints and praises. These reflect actual user experience.',
+    '- For changelog source_type: Note recent changes (last 6-12 months) that indicate product direction.',
+    '- For pricing source_type: Extract actual constraints, limitations, and plan differences.',
+    '- For jobs source_type: Note what roles they\'re hiring for and required skills (indicates product direction).',
+    '- Always cite the source_type in your analysis when it\'s relevant to understanding the evidence.',
   ].join('\n')
 
   return [getSystemStyleGuide(), { role: 'user', content: userContent }]

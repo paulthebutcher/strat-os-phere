@@ -10,6 +10,8 @@ import type {
   ArtifactType,
   EvidenceSourceRow,
   EvidenceSourceInsert,
+  EvidenceSourceType,
+  EvidenceSourceConfidence,
   Json,
 } from './database.types'
 
@@ -23,6 +25,8 @@ export type {
   ArtifactRow,
   ArtifactInsert,
   ArtifactType,
+  EvidenceSourceType,
+  EvidenceSourceConfidence,
   Json,
 }
 

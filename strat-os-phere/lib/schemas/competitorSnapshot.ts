@@ -43,6 +43,9 @@ export const CompetitorSnapshotSchema = z.object({
   risks_and_unknowns: z
     .array(z.string().min(1))
     .min(1, { message: 'risks_and_unknowns must include at least one entry' }),
+  customer_struggles: z
+    .array(z.string().min(1))
+    .optional(), // Optional: What customers struggle with today (from reviews, support forums, etc.)
 })
 
 export type EvidenceLocation = z.infer<typeof EvidenceLocationSchema>

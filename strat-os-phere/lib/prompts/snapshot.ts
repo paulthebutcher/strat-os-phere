@@ -42,6 +42,7 @@ export const COMPETITOR_SNAPSHOT_SCHEMA_SHAPE = {
     },
   ],
   risks_and_unknowns: ['string'],
+  customer_struggles: ['string'], // Optional: What customers struggle with today
 } as const
 
 function stringifySchemaForPrompt(schemaShape: unknown): string {
@@ -119,6 +120,7 @@ export function buildSnapshotMessages(input: SnapshotPromptInput): Message[] {
     '• For every proof point, set evidence_location to "pasted_text".',
     '• Set confidence based on how directly the evidence supports the claim: low, med, or high.',
     '• risks_and_unknowns should capture gaps, uncertainties, or places where you cannot be confident; if something is implied but not clearly supported, add entries such as "Not supported by provided evidence" or "Not stated in evidence".',
+    '• customer_struggles (optional): Extract what customers actually struggle with based on reviews, support forums, or user feedback. Only include if evidence contains clear complaints, pain points, or negative feedback. Focus on specific, actionable struggles rather than vague dissatisfaction.',
     '',
     'HANDLING MISSING OR UNSUPPORTED INFORMATION',
     '• Never fabricate pricing, security, compliance, or other sensitive details.',

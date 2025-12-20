@@ -2,7 +2,7 @@ import 'server-only'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { buildTargetUrls } from '@/lib/extract/targets'
-import { fetchAndExtract } from '@/lib/extract/fetchAndExtract'
+import { extractWithSourceType } from '@/lib/extract/specialized'
 import { buildEvidenceMessages } from '@/lib/prompts/evidence'
 import { callLLM } from '@/lib/llm/callLLM'
 import { safeParseLLMJson } from '@/lib/schemas/safeParseLLMJson'
@@ -14,6 +14,7 @@ import {
 import { createClient } from '@/lib/supabase/server'
 import { MAX_PAGES_PER_COMPETITOR, EVIDENCE_CACHE_TTL_HOURS } from '@/lib/constants'
 import { logger } from '@/lib/logger'
+import { getSearchProvider } from '@/lib/search'
 
 export const runtime = 'nodejs'
 
@@ -126,10 +127,10 @@ export async function POST(request: Request) {
             { url: target.url, label: target.label }
           )
 
-          const extracted = await fetchAndExtract(target.url)
+          const extracted = await extractWithSourceType(target.url, target.label)
 
-          if (extracted.error || !extracted.text) {
-            logger.warn(`Failed to extract ${target.url}: ${extracted.error}`)
+          if (!extracted) {
+            logger.warn(`Failed to extract ${target.url}`)
             return null
           }
 
@@ -142,6 +143,9 @@ export async function POST(request: Request) {
               url: extracted.url,
               extracted_text: extracted.text,
               page_title: extracted.title || null,
+              source_type: extracted.sourceType,
+              source_confidence: extracted.confidence,
+              source_date_range: extracted.dateRange || null,
               extracted_at: new Date().toISOString(),
             })
             return source
@@ -156,12 +160,52 @@ export async function POST(request: Request) {
               url: extracted.url,
               extracted_text: extracted.text,
               page_title: extracted.title || null,
+              source_type: extracted.sourceType,
+              source_confidence: extracted.confidence,
+              source_date_range: extracted.dateRange || null,
               extracted_at: new Date().toISOString(),
               created_at: new Date().toISOString(),
             } as typeof sources[0]
           }
         })
       )
+
+      // Also search for reviews (limited to 2-3 results to stay within page limits)
+      try {
+        const searchProvider = getSearchProvider()
+        const reviewQuery = `${competitorName} reviews G2 Capterra Trustpilot`
+        logger.info('[evidence/generate] Searching for reviews', { query: reviewQuery })
+        
+        const reviewResults = await searchProvider.search(reviewQuery, 2)
+        
+        for (const review of reviewResults) {
+          if (review.url) {
+            const extracted = await extractWithSourceType(review.url)
+            if (extracted && extracted.sourceType === 'reviews') {
+              try {
+                const source = await createEvidenceSource(supabase, {
+                  project_id: projectId,
+                  competitor_id: null,
+                  domain,
+                  url: extracted.url,
+                  extracted_text: extracted.text,
+                  page_title: extracted.title || review.title || null,
+                  source_type: 'reviews',
+                  source_confidence: 'medium',
+                  source_date_range: null,
+                  extracted_at: new Date().toISOString(),
+                })
+                extractionResults.push(source)
+              } catch (error) {
+                logger.warn(`Failed to store review source: ${review.url}`, error)
+              }
+            }
+          }
+        }
+      } catch (error) {
+        // Don't fail if review search fails - it's optional
+        logger.warn('[evidence/generate] Review search failed', error)
+      }
 
       sources = extractionResults.filter(
         (s): s is typeof sources[0] => s !== null
@@ -184,11 +228,14 @@ export async function POST(request: Request) {
       sourceCount: sources.length,
     })
 
-    // Build LLM prompt
+    // Build LLM prompt with source type information
     const extractedContent = sources.map((source) => ({
       url: source.url,
       text: source.extracted_text,
       title: source.page_title || undefined,
+      sourceType: source.source_type || 'marketing_site',
+      confidence: source.source_confidence || null,
+      dateRange: source.source_date_range || null,
     }))
 
     const messages = buildEvidenceMessages({
