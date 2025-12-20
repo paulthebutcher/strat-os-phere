@@ -9,6 +9,18 @@ import {
   MarketSynthesisSchema,
   type MarketSynthesis,
 } from '@/lib/schemas/marketSynthesis'
+import {
+  JtbdArtifactContentSchema,
+  type JtbdArtifactContent,
+} from '@/lib/schemas/jtbd'
+import {
+  OpportunitiesArtifactContentSchema,
+  type OpportunitiesArtifactContent,
+} from '@/lib/schemas/opportunities'
+import {
+  ScoringMatrixArtifactContentSchema,
+  type ScoringMatrixArtifactContent,
+} from '@/lib/schemas/scoring'
 
 /**
  * Normalized views over raw Supabase artifacts so the rest of the app
@@ -57,9 +69,36 @@ export interface NormalizedSynthesisArtifact {
   artifactCreatedAt: string
 }
 
+export interface NormalizedJtbdArtifact {
+  type: 'jtbd'
+  runId: string | null
+  generatedAt: string | null
+  content: JtbdArtifactContent
+  artifactCreatedAt: string
+}
+
+export interface NormalizedOpportunitiesV2Artifact {
+  type: 'opportunities_v2'
+  runId: string | null
+  generatedAt: string | null
+  content: OpportunitiesArtifactContent
+  artifactCreatedAt: string
+}
+
+export interface NormalizedScoringMatrixArtifact {
+  type: 'scoring_matrix'
+  runId: string | null
+  generatedAt: string | null
+  content: ScoringMatrixArtifactContent
+  artifactCreatedAt: string
+}
+
 export interface NormalizedResultsArtifacts {
   profiles: NormalizedProfilesArtifact | null
   synthesis: NormalizedSynthesisArtifact | null
+  jtbd: NormalizedJtbdArtifact | null
+  opportunitiesV2: NormalizedOpportunitiesV2Artifact | null
+  scoringMatrix: NormalizedScoringMatrixArtifact | null
   runId: string | null
   generatedAt: string | null
   competitorCount: number | null
@@ -157,6 +196,61 @@ function normalizeSynthesisArtifact(
   }
 }
 
+function normalizeJtbdArtifact(
+  artifact: Artifact
+): NormalizedJtbdArtifact | null {
+  if ((artifact.type as string) !== 'jtbd') return null
+
+  const parsed = JtbdArtifactContentSchema.safeParse(artifact.content_json)
+  if (!parsed.success) return null
+
+  return {
+    type: 'jtbd',
+    runId: parsed.data.meta.run_id ?? null,
+    generatedAt: parsed.data.meta.generated_at ?? null,
+    content: parsed.data,
+    artifactCreatedAt: artifact.created_at,
+  }
+}
+
+function normalizeOpportunitiesV2Artifact(
+  artifact: Artifact
+): NormalizedOpportunitiesV2Artifact | null {
+  if ((artifact.type as string) !== 'opportunities_v2') return null
+
+  const parsed = OpportunitiesArtifactContentSchema.safeParse(
+    artifact.content_json
+  )
+  if (!parsed.success) return null
+
+  return {
+    type: 'opportunities_v2',
+    runId: parsed.data.meta.run_id ?? null,
+    generatedAt: parsed.data.meta.generated_at ?? null,
+    content: parsed.data,
+    artifactCreatedAt: artifact.created_at,
+  }
+}
+
+function normalizeScoringMatrixArtifact(
+  artifact: Artifact
+): NormalizedScoringMatrixArtifact | null {
+  if ((artifact.type as string) !== 'scoring_matrix') return null
+
+  const parsed = ScoringMatrixArtifactContentSchema.safeParse(
+    artifact.content_json
+  )
+  if (!parsed.success) return null
+
+  return {
+    type: 'scoring_matrix',
+    runId: parsed.data.meta.run_id ?? null,
+    generatedAt: parsed.data.meta.generated_at ?? null,
+    content: parsed.data,
+    artifactCreatedAt: artifact.created_at,
+  }
+}
+
 export function normalizeResultsArtifacts(
   artifacts: Artifact[]
 ): NormalizedResultsArtifacts {
@@ -164,6 +258,9 @@ export function normalizeResultsArtifacts(
     return {
       profiles: null,
       synthesis: null,
+      jtbd: null,
+      opportunitiesV2: null,
+      scoringMatrix: null,
       runId: null,
       generatedAt: null,
       competitorCount: null,
@@ -181,8 +278,55 @@ export function normalizeResultsArtifacts(
     .map(normalizeSynthesisArtifact)
     .filter((value): value is NormalizedSynthesisArtifact => value !== null)
 
+  const jtbdList = artifacts
+    .filter((artifact) => (artifact.type as string) === 'jtbd')
+    .map(normalizeJtbdArtifact)
+    .filter((value): value is NormalizedJtbdArtifact => value !== null)
+
+  const opportunitiesV2List = artifacts
+    .filter((artifact) => (artifact.type as string) === 'opportunities_v2')
+    .map(normalizeOpportunitiesV2Artifact)
+    .filter(
+      (value): value is NormalizedOpportunitiesV2Artifact => value !== null
+    )
+
+  const scoringMatrixList = artifacts
+    .filter((artifact) => (artifact.type as string) === 'scoring_matrix')
+    .map(normalizeScoringMatrixArtifact)
+    .filter(
+      (value): value is NormalizedScoringMatrixArtifact => value !== null
+    )
+
+  // Prefer v2 artifacts (schema_version=2) over v1, then by created_at (newest first)
+  const selectV2Artifact = <T extends { content: { meta?: { schema_version?: number } }; artifactCreatedAt: string }>(
+    list: T[]
+  ): T | null => {
+    // Separate v2 and v1 artifacts
+    const v2Artifacts = list.filter(
+      (a) => a.content.meta?.schema_version === 2
+    )
+    const v1Artifacts = list.filter(
+      (a) => !a.content.meta?.schema_version || a.content.meta.schema_version === 1
+    )
+
+    // Prefer v2, fall back to v1
+    const candidates = v2Artifacts.length > 0 ? v2Artifacts : v1Artifacts
+    if (candidates.length === 0) return null
+
+    // Sort by artifactCreatedAt (newest first) - listArtifacts already returns newest first,
+    // but we're filtering so we need to re-sort
+    return candidates.sort(
+      (a, b) =>
+        new Date(b.artifactCreatedAt).getTime() -
+        new Date(a.artifactCreatedAt).getTime()
+    )[0]
+  }
+
   let selectedProfiles = profilesList[0] ?? null
   let selectedSynthesis = synthesisList[0] ?? null
+  const selectedJtbd = selectV2Artifact(jtbdList)
+  const selectedOpportunitiesV2 = selectV2Artifact(opportunitiesV2List)
+  const selectedScoringMatrix = selectV2Artifact(scoringMatrixList)
 
   // Prefer matching run_id pairs when available.
   if (selectedProfiles?.runId && selectedSynthesis?.runId) {
@@ -206,13 +350,22 @@ export function normalizeResultsArtifacts(
   const runId =
     selectedProfiles?.runId ??
     selectedSynthesis?.runId ??
+    selectedJtbd?.runId ??
+    selectedOpportunitiesV2?.runId ??
+    selectedScoringMatrix?.runId ??
     null
 
   const generatedAt =
     selectedProfiles?.generatedAt ??
     selectedSynthesis?.generatedAt ??
+    selectedJtbd?.generatedAt ??
+    selectedOpportunitiesV2?.generatedAt ??
+    selectedScoringMatrix?.generatedAt ??
     selectedProfiles?.artifactCreatedAt ??
     selectedSynthesis?.artifactCreatedAt ??
+    selectedJtbd?.artifactCreatedAt ??
+    selectedOpportunitiesV2?.artifactCreatedAt ??
+    selectedScoringMatrix?.artifactCreatedAt ??
     null
 
   const competitorCount =
@@ -223,6 +376,9 @@ export function normalizeResultsArtifacts(
   return {
     profiles: selectedProfiles,
     synthesis: selectedSynthesis,
+    jtbd: selectedJtbd,
+    opportunitiesV2: selectedOpportunitiesV2,
+    scoringMatrix: selectedScoringMatrix,
     runId,
     generatedAt,
     competitorCount,
@@ -443,6 +599,198 @@ export function formatAnglesToMarkdown(
       }
       lines.push('')
     }
+  }
+
+  return lines.join('\n').trimEnd()
+}
+
+export function formatJtbdToMarkdown(
+  jtbd: JtbdArtifactContent | null | undefined
+): string {
+  if (!jtbd || !jtbd.jobs?.length) {
+    return 'No Jobs To Be Done are available yet.'
+  }
+
+  // Sort by opportunity_score descending
+  const sorted = [...jtbd.jobs].sort(
+    (a, b) => b.opportunity_score - a.opportunity_score
+  )
+
+  const lines: string[] = ['# Jobs To Be Done', '']
+
+  for (const job of sorted) {
+    lines.push(`## ${job.job_statement}`, '')
+    lines.push(`**Context:** ${job.context}`, '')
+    lines.push(`**Who:** ${job.who}`, '')
+    lines.push(`**Frequency:** ${job.frequency}`, '')
+    lines.push(
+      `**Opportunity Score:** ${job.opportunity_score}/100 (Importance: ${job.importance_score}/5, Satisfaction: ${job.satisfaction_score}/5)`,
+      ''
+    )
+
+    if (job.desired_outcomes?.length) {
+      lines.push('**Desired Outcomes:**')
+      for (const outcome of job.desired_outcomes) {
+        lines.push(`- ${outcome}`)
+      }
+      lines.push('')
+    }
+
+    if (job.constraints?.length) {
+      lines.push('**Constraints:**')
+      for (const constraint of job.constraints) {
+        lines.push(`- ${constraint}`)
+      }
+      lines.push('')
+    }
+
+    if (job.current_workarounds?.length) {
+      lines.push('**Current Workarounds:**')
+      for (const workaround of job.current_workarounds) {
+        lines.push(`- ${workaround}`)
+      }
+      lines.push('')
+    }
+
+    if (job.non_negotiables?.length) {
+      lines.push('**Non-negotiables:**')
+      for (const nonNegotiable of job.non_negotiables) {
+        lines.push(`- ${nonNegotiable}`)
+      }
+      lines.push('')
+    }
+
+    if (job.evidence?.length) {
+      lines.push('**Evidence:**')
+      for (const ev of job.evidence) {
+        if (ev.competitor) lines.push(`- Competitor: ${ev.competitor}`)
+        if (ev.citation) lines.push(`  - Citation: ${ev.citation}`)
+        if (ev.quote) lines.push(`  - Quote: "${ev.quote}"`)
+      }
+      lines.push('')
+    }
+  }
+
+  return lines.join('\n').trimEnd()
+}
+
+export function formatOpportunitiesV2ToMarkdown(
+  opportunities: OpportunitiesArtifactContent | null | undefined
+): string {
+  if (!opportunities || !opportunities.opportunities?.length) {
+    return 'No opportunities are available yet.'
+  }
+
+  // Sort by score descending
+  const sorted = [...opportunities.opportunities].sort(
+    (a, b) => b.score - a.score
+  )
+
+  const lines: string[] = ['# Differentiation Opportunities', '']
+
+  for (const opp of sorted) {
+    lines.push(
+      `## [Score: ${opp.score}/100] ${opp.title}`,
+      `**Type:** ${opp.type}`,
+      `**Who it serves:** ${opp.who_it_serves}`,
+      `**Impact:** ${opp.impact} | **Effort:** ${opp.effort} | **Confidence:** ${opp.confidence}`,
+      ''
+    )
+
+    if (opp.why_now) {
+      lines.push(`**Why now:** ${opp.why_now}`, '')
+    }
+
+    if (opp.how_to_win?.length) {
+      lines.push('**How to win:**')
+      for (const tactic of opp.how_to_win) {
+        lines.push(`- ${tactic}`)
+      }
+      lines.push('')
+    }
+
+    if (opp.what_competitors_do_today) {
+      lines.push(`**What competitors do today:** ${opp.what_competitors_do_today}`, '')
+    }
+
+    if (opp.why_they_cant_easily_copy) {
+      lines.push(`**Why they can't easily copy:** ${opp.why_they_cant_easily_copy}`, '')
+    }
+
+    if (opp.risks?.length) {
+      lines.push('**Risks:**')
+      for (const risk of opp.risks) {
+        lines.push(`- ${risk}`)
+      }
+      lines.push('')
+    }
+
+    if (opp.first_experiments?.length) {
+      lines.push('**First Experiments (1-2 weeks):**')
+      for (const exp of opp.first_experiments) {
+        lines.push(`- ${exp}`)
+      }
+      lines.push('')
+    }
+  }
+
+  return lines.join('\n').trimEnd()
+}
+
+export function formatScoringMatrixToMarkdown(
+  scoring: ScoringMatrixArtifactContent | null | undefined
+): string {
+  if (!scoring) {
+    return 'No scoring matrix is available yet.'
+  }
+
+  const lines: string[] = ['# Competitive Scoring Matrix', '']
+
+  if (scoring.criteria?.length) {
+    lines.push('## Criteria', '')
+    for (const criterion of scoring.criteria) {
+      lines.push(
+        `### ${criterion.name} (Weight: ${criterion.weight}/5)`,
+        criterion.description,
+        `**How to score:** ${criterion.how_to_score}`,
+        ''
+      )
+    }
+  }
+
+  if (scoring.summary?.length) {
+    // Sort by total_weighted_score descending
+    const sorted = [...scoring.summary].sort(
+      (a, b) => b.total_weighted_score - a.total_weighted_score
+    )
+
+    lines.push('## Summary', '')
+    for (const summary of sorted) {
+      lines.push(
+        `### ${summary.competitor_name} (Score: ${summary.total_weighted_score.toFixed(1)}/100)`,
+        ''
+      )
+
+      if (summary.strengths?.length) {
+        lines.push('**Strengths:**')
+        for (const strength of summary.strengths) {
+          lines.push(`- ${strength}`)
+        }
+        lines.push('')
+      }
+
+      if (summary.weaknesses?.length) {
+        lines.push('**Weaknesses:**')
+        for (const weakness of summary.weaknesses) {
+          lines.push(`- ${weakness}`)
+        }
+        lines.push('')
+      }
+    }
+  }
+
+  if (scoring.notes) {
+    lines.push('## Notes', '', scoring.notes)
   }
 
   return lines.join('\n').trimEnd()

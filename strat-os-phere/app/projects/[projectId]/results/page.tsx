@@ -3,11 +3,17 @@ import { notFound } from 'next/navigation'
 
 import { CopySectionButton } from '@/components/results/CopySectionButton'
 import { RegenerateButton } from '@/components/results/RegenerateButton'
+import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
+import { CompetitorScoreBarChart } from '@/components/results/CompetitorScoreBarChart'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { getProjectById } from '@/lib/data/projects'
+import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
+import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
+import type { ScoringMatrixArtifactContent } from '@/lib/schemas/scoring'
 import {
   normalizeResultsArtifacts,
   formatProfilesToMarkdown,
@@ -15,12 +21,23 @@ import {
   formatPositioningToMarkdown,
   formatOpportunitiesToMarkdown,
   formatAnglesToMarkdown,
+  formatJtbdToMarkdown,
+  formatOpportunitiesV2ToMarkdown,
+  formatScoringMatrixToMarkdown,
   type NormalizedProfilesArtifact,
   type NormalizedSynthesisArtifact,
 } from '@/lib/results/normalizeArtifacts'
 import { createClient } from '@/lib/supabase/server'
 
-type TabId = 'profiles' | 'themes' | 'positioning' | 'opportunities' | 'angles'
+type TabId =
+  | 'profiles'
+  | 'themes'
+  | 'positioning'
+  | 'opportunities'
+  | 'angles'
+  | 'jobs'
+  | 'scorecard'
+  | 'opportunities_v2'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'profiles', label: 'Profiles' },
@@ -28,6 +45,9 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'positioning', label: 'Positioning' },
   { id: 'opportunities', label: 'Opportunities' },
   { id: 'angles', label: 'Angles' },
+  { id: 'jobs', label: 'Jobs' },
+  { id: 'scorecard', label: 'Scorecard' },
+  { id: 'opportunities_v2', label: 'Opportunities' },
 ]
 
 interface ResultsPageProps {
@@ -77,8 +97,18 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
   const competitorCount = competitors.length
   const normalized = normalizeResultsArtifacts(artifacts)
-  const { profiles, synthesis, runId, generatedAt } = normalized
-  const hasAnyArtifacts = Boolean(profiles || synthesis)
+  const {
+    profiles,
+    synthesis,
+    jtbd,
+    opportunitiesV2,
+    scoringMatrix,
+    runId,
+    generatedAt,
+  } = normalized
+  const hasAnyArtifacts = Boolean(
+    profiles || synthesis || jtbd || opportunitiesV2 || scoringMatrix
+  )
   const effectiveCompetitorCount =
     normalized.competitorCount ?? competitorCount
 
@@ -99,6 +129,11 @@ export default async function ResultsPage(props: ResultsPageProps) {
     synthesis?.synthesis
   )
   const anglesMarkdown = formatAnglesToMarkdown(synthesis?.synthesis)
+  const jtbdMarkdown = formatJtbdToMarkdown(jtbd?.content)
+  const opportunitiesV2Markdown = formatOpportunitiesV2ToMarkdown(
+    opportunitiesV2?.content
+  )
+  const scoringMarkdown = formatScoringMatrixToMarkdown(scoringMatrix?.content)
 
   const copyContent =
     activeTab === 'profiles'
@@ -109,7 +144,13 @@ export default async function ResultsPage(props: ResultsPageProps) {
       ? positioningMarkdown
       : activeTab === 'opportunities'
       ? opportunitiesMarkdown
-      : anglesMarkdown
+      : activeTab === 'angles'
+      ? anglesMarkdown
+      : activeTab === 'jobs'
+      ? jtbdMarkdown
+      : activeTab === 'opportunities_v2'
+      ? opportunitiesV2Markdown
+      : scoringMarkdown
 
   return (
     <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
@@ -172,11 +213,27 @@ export default async function ResultsPage(props: ResultsPageProps) {
               </Link>
             </nav>
 
-            {hasAnyArtifacts ? (
-              <RegenerateButton
-                projectId={project.id}
-                competitorCount={effectiveCompetitorCount}
-              />
+            <div className="flex items-center gap-2">
+              {hasAnyArtifacts ? (
+                <>
+                  <RegenerateButton
+                    projectId={project.id}
+                    competitorCount={effectiveCompetitorCount}
+                  />
+                  <GenerateResultsV2Button projectId={project.id} />
+                </>
+              ) : null}
+              {!hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
+                <GenerateResultsV2Button projectId={project.id} label="Generate Results" />
+              ) : null}
+            </div>
+            {jtbd || opportunitiesV2 || scoringMatrix ? (
+              <p className="text-xs text-text-secondary">
+                Results v2 last generated:{' '}
+                <span className="font-medium">
+                  {formattedGeneratedAt || 'Unknown'}
+                </span>
+              </p>
             ) : null}
           </div>
         </header>
@@ -224,6 +281,15 @@ export default async function ResultsPage(props: ResultsPageProps) {
           </section>
         ) : (
           <section className="flex flex-col gap-4">
+            {/* Recommended Next Steps Panel */}
+            {opportunitiesV2?.content?.opportunities &&
+            opportunitiesV2.content.opportunities.length > 0 ? (
+              <RecommendedNextStepsPanel
+                opportunities={opportunitiesV2.content}
+                projectId={project.id}
+              />
+            ) : null}
+
             <div className="flex flex-wrap items-center justify-between gap-3">
               <nav
                 className="tabs-list"
@@ -257,6 +323,15 @@ export default async function ResultsPage(props: ResultsPageProps) {
             ) : null}
             {activeTab === 'angles' ? (
               <AnglesSection synthesis={synthesis} />
+            ) : null}
+            {activeTab === 'jobs' ? (
+              <JtbdSection jtbd={jtbd?.content} />
+            ) : null}
+            {activeTab === 'scorecard' ? (
+              <ScoringSection scoring={scoringMatrix?.content} />
+            ) : null}
+            {activeTab === 'opportunities_v2' ? (
+              <OpportunitiesV2Section opportunities={opportunitiesV2?.content} />
             ) : null}
           </section>
         )}
@@ -611,6 +686,462 @@ function AnglesSection({ synthesis }: SynthesisSectionProps) {
           ) : null}
         </article>
       ))}
+    </section>
+  )
+}
+
+interface RecommendedNextStepsPanelProps {
+  opportunities: OpportunitiesArtifactContent
+  projectId: string
+}
+
+function RecommendedNextStepsPanel({
+  opportunities,
+  projectId,
+}: RecommendedNextStepsPanelProps) {
+  // Get top 2 opportunities by score
+  const topOpportunities = [...opportunities.opportunities]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2)
+
+  if (topOpportunities.length === 0) return null
+
+  const panelContent = [
+    '# Recommended Next Steps',
+    '',
+    ...topOpportunities.map((opp, index) => {
+      const lines = [
+        `## ${opp.title} (Score: ${opp.score}/100)`,
+        '',
+      ]
+      if (opp.first_experiments && opp.first_experiments.length > 0) {
+        lines.push('First experiments:')
+        opp.first_experiments.slice(0, 3).forEach((exp) => {
+          lines.push(`- ${exp}`)
+        })
+      }
+      return lines.join('\n')
+    }),
+  ].join('\n\n')
+
+  return (
+    <article className="panel p-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h2 className="text-sm font-semibold">Recommended next steps</h2>
+          <p className="mt-1 text-xs text-text-secondary">
+            Top opportunities to start working on now
+          </p>
+        </div>
+        <CopySectionButton content={panelContent} label="Copy" />
+      </div>
+      <div className="space-y-4">
+        {topOpportunities.map((opp, index) => (
+          <div key={index} className="border-b border-border-subtle pb-4 last:border-b-0 last:pb-0">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h3 className="text-sm font-semibold">{opp.title}</h3>
+              <Badge variant="primary">{opp.score}/100</Badge>
+            </div>
+            {opp.first_experiments && opp.first_experiments.length > 0 ? (
+              <ul className="list-disc space-y-1 pl-4 text-xs">
+                {opp.first_experiments.slice(0, 3).map((exp, expIndex) => (
+                  <li key={expIndex}>{exp}</li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </article>
+  )
+}
+
+interface JtbdSectionProps {
+  jtbd: JtbdArtifactContent | null | undefined
+}
+
+function JtbdSection({ jtbd }: JtbdSectionProps) {
+  if (!jtbd || !jtbd.jobs?.length) {
+    return (
+      <section className="panel p-5 text-sm text-text-secondary">
+        <p>No Jobs To Be Done are available yet for this project.</p>
+      </section>
+    )
+  }
+
+  // Sort by opportunity_score descending
+  const sorted = [...jtbd.jobs].sort(
+    (a, b) => b.opportunity_score - a.opportunity_score
+  )
+
+  return (
+    <section className="space-y-4">
+      {/* Explainer */}
+      <div className="panel p-3 bg-muted/50 border-border">
+        <p className="text-xs text-text-secondary">
+          <strong>Jobs To Be Done (JTBD)</strong> describe the specific tasks customers need to accomplish. Each job includes measurable outcomes and an opportunity score based on importance and current satisfaction. Use these to prioritize features and validate solutions.
+        </p>
+      </div>
+      {sorted.map((job, index) => (
+        <article key={index} className="panel p-4">
+          <header className="mb-3 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="text-sm font-semibold">{job.job_statement}</h2>
+              <Badge variant="primary" className="shrink-0">
+                Score: {job.opportunity_score}/100
+              </Badge>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+              <span>
+                <span className="font-medium">Who:</span> {job.who}
+              </span>
+              <span>·</span>
+              <span>
+                <span className="font-medium">Frequency:</span> {job.frequency}
+              </span>
+              <span>·</span>
+              <span>
+                <span className="font-medium">Importance:</span> {job.importance_score}/5
+              </span>
+              <span>·</span>
+              <span>
+                <span className="font-medium">Satisfaction:</span> {job.satisfaction_score}/5
+              </span>
+            </div>
+          </header>
+
+          <div className="space-y-3 text-sm">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                Context
+              </h3>
+              <p className="mt-1">{job.context}</p>
+            </div>
+
+            {job.desired_outcomes?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Desired Outcomes
+                </h3>
+                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+                  {job.desired_outcomes.map((outcome, outcomeIndex) => (
+                    <li key={outcomeIndex}>{outcome}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {job.constraints?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Constraints
+                </h3>
+                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+                  {job.constraints.map((constraint, constraintIndex) => (
+                    <li key={constraintIndex}>{constraint}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {job.current_workarounds?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Current Workarounds
+                </h3>
+                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+                  {job.current_workarounds.map((workaround, workaroundIndex) => (
+                    <li key={workaroundIndex}>{workaround}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {job.non_negotiables?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Non-negotiables
+                </h3>
+                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+                  {job.non_negotiables.map((nonNegotiable, nonNegotiableIndex) => (
+                    <li key={nonNegotiableIndex}>{nonNegotiable}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {job.evidence?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Evidence
+                </h3>
+                <ul className="mt-1 space-y-1 text-xs">
+                  {job.evidence.map((ev, evIndex) => (
+                    <li key={evIndex}>
+                      {ev.competitor && (
+                        <span className="font-medium">{ev.competitor}</span>
+                      )}
+                      {ev.citation && (
+                        <span className="ml-1 text-text-secondary">
+                          {' '}
+                          (<a
+                            href={ev.citation}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline"
+                          >
+                            source
+                          </a>)
+                        </span>
+                      )}
+                      {ev.quote && (
+                        <p className="mt-1 italic text-text-secondary">
+                          "{ev.quote}"
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        </article>
+      ))}
+    </section>
+  )
+}
+
+interface OpportunitiesV2SectionProps {
+  opportunities: OpportunitiesArtifactContent | null | undefined
+}
+
+function OpportunitiesV2Section({ opportunities }: OpportunitiesV2SectionProps) {
+  if (!opportunities || !opportunities.opportunities?.length) {
+    return (
+      <section className="panel p-5 text-sm text-text-secondary">
+        <p>No opportunities are available yet for this project.</p>
+      </section>
+    )
+  }
+
+  // Sort by score descending
+  const sorted = [...opportunities.opportunities].sort(
+    (a, b) => b.score - a.score
+  )
+
+  return (
+    <section className="space-y-4">
+      {/* Explainer */}
+      <div className="panel p-3 bg-muted/50 border-border">
+        <p className="text-xs text-text-secondary">
+          <strong>Differentiation Opportunities</strong> are ranked by score (impact, effort, confidence, and linked job importance). Each opportunity includes first experiments—concrete tests you can run in 1–2 weeks to validate the idea before committing to a full build.
+        </p>
+      </div>
+      {sorted.map((opp, index) => (
+        <article key={index} className="panel p-4">
+          <header className="mb-3 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="text-sm font-semibold">{opp.title}</h2>
+              <Badge variant="primary" className="shrink-0">
+                Score: {opp.score}/100
+              </Badge>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+              <Badge variant="secondary">{opp.type.replace('_', ' ')}</Badge>
+              <Badge variant={opp.impact === 'high' ? 'success' : opp.impact === 'med' ? 'warning' : 'default'}>
+                Impact: {opp.impact}
+              </Badge>
+              <Badge variant={opp.effort === 'S' ? 'success' : opp.effort === 'M' ? 'warning' : 'default'}>
+                Effort: {opp.effort}
+              </Badge>
+              <Badge variant={opp.confidence === 'high' ? 'success' : opp.confidence === 'med' ? 'warning' : 'default'}>
+                Confidence: {opp.confidence}
+              </Badge>
+            </div>
+            <p className="text-sm">
+              <span className="font-medium">Who it serves:</span> {opp.who_it_serves}
+            </p>
+          </header>
+
+          <div className="space-y-3 text-sm">
+            {opp.why_now ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Why Now
+                </h3>
+                <p className="mt-1">{opp.why_now}</p>
+              </div>
+            ) : null}
+
+            {opp.how_to_win?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  How to Win
+                </h3>
+                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+                  {opp.how_to_win.map((tactic, tacticIndex) => (
+                    <li key={tacticIndex}>{tactic}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {opp.what_competitors_do_today ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  What Competitors Do Today
+                </h3>
+                <p className="mt-1">{opp.what_competitors_do_today}</p>
+              </div>
+            ) : null}
+
+            {opp.why_they_cant_easily_copy ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Why They Can&apos;t Easily Copy
+                </h3>
+                <p className="mt-1">{opp.why_they_cant_easily_copy}</p>
+              </div>
+            ) : null}
+
+            {opp.risks?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Risks
+                </h3>
+                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+                  {opp.risks.map((risk, riskIndex) => (
+                    <li key={riskIndex}>{risk}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {opp.first_experiments?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  First Experiments (1-2 weeks)
+                </h3>
+                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+                  {opp.first_experiments.map((exp, expIndex) => (
+                    <li key={expIndex}>{exp}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        </article>
+      ))}
+    </section>
+  )
+}
+
+interface ScoringSectionProps {
+  scoring: ScoringMatrixArtifactContent | null | undefined
+}
+
+function ScoringSection({ scoring }: ScoringSectionProps) {
+  if (!scoring) {
+    return (
+      <section className="panel p-5 text-sm text-text-secondary">
+        <p>No scoring matrix is available yet for this project.</p>
+      </section>
+    )
+  }
+
+  // Sort summary by total_weighted_score descending
+  const sortedSummary = scoring.summary
+    ? [...scoring.summary].sort(
+        (a, b) => b.total_weighted_score - a.total_weighted_score
+      )
+    : []
+
+  return (
+    <section className="space-y-4">
+      {/* Explainer */}
+      <div className="panel p-3 bg-muted/50 border-border">
+        <p className="text-xs text-text-secondary">
+          <strong>Competitive Scorecard</strong> evaluates each competitor on key criteria that matter to buyers. Scores are weighted by importance (1–5), with total scores out of 100. Higher scores indicate stronger positioning on evaluation criteria.
+        </p>
+      </div>
+
+      {/* Bar Chart */}
+      {sortedSummary.length > 0 ? (
+        <article className="panel p-4">
+          <h2 className="text-sm font-semibold mb-3">Competitor score overview</h2>
+          <CompetitorScoreBarChart data={sortedSummary} />
+        </article>
+      ) : null}
+      {scoring.criteria?.length ? (
+        <article className="panel p-4">
+          <h2 className="text-sm font-semibold mb-3">Evaluation Criteria</h2>
+          <div className="space-y-3">
+            {scoring.criteria.map((criterion) => (
+              <div key={criterion.id} className="border-b border-border-subtle pb-3 last:border-b-0">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <h3 className="text-xs font-semibold">{criterion.name}</h3>
+                  <Badge variant="secondary">Weight: {criterion.weight}/5</Badge>
+                </div>
+                <p className="text-xs text-text-secondary mb-1">{criterion.description}</p>
+                <p className="text-xs text-text-muted italic">
+                  <span className="font-medium">How to score:</span> {criterion.how_to_score}
+                </p>
+              </div>
+            ))}
+          </div>
+        </article>
+      ) : null}
+
+      {sortedSummary.length ? (
+        <article className="panel p-4">
+          <h2 className="text-sm font-semibold mb-3">Competitor Scores</h2>
+          <div className="space-y-4">
+            {sortedSummary.map((summary, index) => (
+              <div key={index} className="border-b border-border-subtle pb-4 last:border-b-0">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <h3 className="text-sm font-semibold">{summary.competitor_name}</h3>
+                  <Badge variant="primary">
+                    {summary.total_weighted_score.toFixed(1)}/100
+                  </Badge>
+                </div>
+
+                {summary.strengths?.length ? (
+                  <div className="mb-2">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">
+                      Strengths
+                    </h4>
+                    <ul className="list-disc space-y-1 pl-4 text-xs">
+                      {summary.strengths.map((strength, strengthIndex) => (
+                        <li key={strengthIndex}>{strength}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                {summary.weaknesses?.length ? (
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">
+                      Weaknesses
+                    </h4>
+                    <ul className="list-disc space-y-1 pl-4 text-xs">
+                      {summary.weaknesses.map((weakness, weaknessIndex) => (
+                        <li key={weaknessIndex}>{weakness}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </article>
+      ) : null}
+
+      {scoring.notes ? (
+        <article className="panel p-4">
+          <h2 className="text-sm font-semibold mb-2">Notes</h2>
+          <p className="text-sm text-text-secondary">{scoring.notes}</p>
+        </article>
+      ) : null}
     </section>
   )
 }
