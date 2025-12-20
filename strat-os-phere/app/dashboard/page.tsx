@@ -43,56 +43,58 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-center justify-center px-4">
-      <main className="flex w-full max-w-4xl flex-col items-stretch gap-8 py-10">
-        <header className="space-y-1">
-          <h1>Dashboard</h1>
-          <p className="text-sm text-text-secondary">
-            Your strategy projects and analyses
-          </p>
-        </header>
+    <div className="min-h-[calc(100vh-57px)] bg-background">
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <main className="flex w-full flex-col items-stretch gap-8">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-semibold text-foreground">Dashboard</h1>
+            <p className="text-sm text-muted-foreground">
+              Your strategy projects and analyses
+            </p>
+          </header>
 
-        {!hasProjects ? (
-          <section className="w-full">
-            <ProjectForm />
-          </section>
-        ) : (
-          <section className="flex w-full flex-col gap-6">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-lg font-semibold text-text-primary">Your analyses</h2>
-              <Link href="/projects/new">
-                <Button type="button" size="sm" variant="outline">
-                  New +
-                </Button>
-              </Link>
-            </div>
-
-            <div className="panel divide-y divide-border-subtle">
-              {projects.map((project) => (
-                <Link
-                  key={project.id}
-                  href={`/projects/${project.id}/competitors`}
-                  className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-surface-muted"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-text-primary">
-                      {project.name}
-                    </p>
-                    {formatProjectSummary(project) ? (
-                      <p className="mt-1 line-clamp-2 text-xs text-text-secondary">
-                        {formatProjectSummary(project)}
-                      </p>
-                    ) : null}
-                  </div>
-                  <span className="text-xs text-text-muted whitespace-nowrap">
-                    View competitors →
-                  </span>
+          {!hasProjects ? (
+            <section className="w-full">
+              <ProjectForm />
+            </section>
+          ) : (
+            <section className="flex w-full flex-col gap-6">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-lg font-semibold text-foreground">Your analyses</h2>
+                <Link href="/projects/new">
+                  <Button type="button" size="sm">
+                    New +
+                  </Button>
                 </Link>
-              ))}
-            </div>
-          </section>
-        )}
-      </main>
+              </div>
+
+              <div className="panel divide-y">
+                {projects.map((project) => (
+                  <Link
+                    key={project.id}
+                    href={`/projects/${project.id}/competitors`}
+                    className="flex items-center justify-between gap-4 px-6 py-4 transition-colors hover:bg-muted"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-base font-semibold text-foreground">
+                        {project.name}
+                      </p>
+                      {formatProjectSummary(project) ? (
+                        <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
+                          {formatProjectSummary(project)}
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className="text-sm font-medium text-primary whitespace-nowrap">
+                      View →
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </main>
+      </div>
     </div>
   )
 }

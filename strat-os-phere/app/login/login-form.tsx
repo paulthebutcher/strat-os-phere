@@ -42,7 +42,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <label htmlFor="email" className="text-sm font-medium text-text-primary">
+        <label htmlFor="email" className="text-sm font-semibold text-foreground">
           Email
         </label>
         <Input
@@ -60,14 +60,14 @@ export function LoginForm() {
       {message && (
         <div className="space-y-1">
           <p
-            className={`text-sm ${
-              isError ? 'text-danger' : 'text-accent-primary'
+            className={`text-sm font-medium ${
+              isError ? 'text-destructive' : 'text-primary'
             }`}
           >
             {message}
           </p>
           {isError && (
-            <p className="text-xs text-text-muted">
+            <p className="text-xs text-muted-foreground">
               If this is a redirect URL error, check Supabase allowlist settings.
             </p>
           )}

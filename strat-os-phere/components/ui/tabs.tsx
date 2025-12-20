@@ -40,7 +40,7 @@ const TabsList = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "tabs-list inline-flex items-center gap-0.5 rounded-md border border-surface bg-surface p-0.5",
+      "tabs-list inline-flex items-center gap-0.5 rounded-lg border bg-card p-0.5",
       className
     )}
     {...props}
@@ -67,8 +67,8 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
         type="button"
         className={cn(
           "tabs-trigger inline-flex items-center justify-center rounded-sm px-3 py-1.5 text-xs font-medium transition-colors",
-          "text-text-secondary hover:bg-surface-muted hover:text-card-foreground",
-          isActive && "bg-background text-text-primary font-semibold",
+          "text-muted-foreground hover:bg-muted hover:text-foreground",
+          isActive && "bg-background text-foreground font-semibold",
           className
         )}
         onClick={() => context.onValueChange(value)}

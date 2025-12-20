@@ -81,10 +81,10 @@ export function ProjectForm({
 
   return (
     <div className="panel w-full max-w-xl px-6 py-6">
-      <div className="mb-6 space-y-1">
-        <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="mb-6 space-y-2">
+        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
         {description ? (
-          <p className="text-sm text-text-secondary">{description}</p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         ) : null}
       </div>
 
@@ -92,9 +92,9 @@ export function ProjectForm({
         <div className="space-y-2">
           <label
             htmlFor="name"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Project name<span className="text-destructive">*</span>
+            Project name<span className="text-destructive ml-1">*</span>
           </label>
           <Input
             id="name"
@@ -109,9 +109,9 @@ export function ProjectForm({
         <div className="space-y-2">
           <label
             htmlFor="marketCategory"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Market / category<span className="text-destructive">*</span>
+            Market / category<span className="text-destructive ml-1">*</span>
           </label>
           <Input
             id="marketCategory"
@@ -128,9 +128,9 @@ export function ProjectForm({
         <div className="space-y-2">
           <label
             htmlFor="targetCustomer"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Target customer<span className="text-destructive">*</span>
+            Target customer<span className="text-destructive ml-1">*</span>
           </label>
           <Input
             id="targetCustomer"
@@ -147,9 +147,9 @@ export function ProjectForm({
         <div className="space-y-2">
           <label
             htmlFor="product"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Your product (optional)
+            Your product <span className="text-muted-foreground font-normal">(optional)</span>
           </label>
           <Input
             id="product"
@@ -163,9 +163,9 @@ export function ProjectForm({
         <div className="space-y-2">
           <label
             htmlFor="goal"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Business goal (optional)
+            Business goal <span className="text-muted-foreground font-normal">(optional)</span>
           </label>
           <Textarea
             id="goal"
@@ -179,9 +179,9 @@ export function ProjectForm({
         <div className="space-y-2">
           <label
             htmlFor="geography"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Geography (optional)
+            Geography <span className="text-muted-foreground font-normal">(optional)</span>
           </label>
           <Input
             id="geography"
@@ -195,13 +195,15 @@ export function ProjectForm({
         </div>
 
         {error ? (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2">
+            <p className="text-sm font-medium text-destructive" role="alert">
+              {error}
+            </p>
+          </div>
         ) : null}
 
         <div className="flex items-center justify-between gap-4 pt-2">
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-muted-foreground">
             <span className="text-destructive">*</span> Required fields
           </p>
           <Button type="submit" disabled={submitting}>

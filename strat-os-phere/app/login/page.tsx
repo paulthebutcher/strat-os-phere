@@ -14,11 +14,11 @@ export default async function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-center justify-center px-4">
+    <div className="flex min-h-[calc(100vh-57px)] items-center justify-center bg-background px-4">
       <main className="panel flex w-full max-w-md flex-col gap-6 px-6 py-8">
-        <header className="space-y-1">
-          <h1>Sign in to Plinth</h1>
-          <p className="text-sm text-text-secondary">
+        <header className="space-y-2">
+          <h1 className="text-2xl font-semibold text-foreground">Sign in to Plinth</h1>
+          <p className="text-sm text-muted-foreground">
             A quiet workspace for serious strategy work.
           </p>
         </header>

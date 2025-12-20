@@ -1,40 +1,41 @@
 @import "tailwindcss";
 
 /*
-  StratOSphere Design System
+  Plinth Design System
   
-  Professional, restrained, and modern design system for B2B strategy tools.
-  Inspired by Linear, Notion, and Figma — calm, trustworthy, and invisible.
+  Professional, high-contrast design system for B2B strategy tools.
+  Inspired by Fullstory — clean SaaS, crisp typography, white surfaces, confident primary color.
   
   Design Principles:
-  - High readability, low visual noise
-  - Familiar patterns that reduce cognitive load
-  - Neutral, professional colors
-  - Flat design with subtle borders (1px)
-  - Minimal shadows, slight border radius (4-6px)
+  - High readability (WCAG AA minimum, AAA for body text)
+  - Clean, modern SaaS aesthetic
+  - White surfaces with subtle borders
+  - Deep indigo primary color for confidence
+  - Restrained accents
+  - Minimal shadows, consistent rounded corners
   
   ⚠️ ALL UI must use design tokens. No hardcoded colors, spacing, or typography.
 */
 
 :root {
-  /* Backgrounds */
-  --background: 0 0% 24%; /* Gunmetal #3C3C3C - app background */
-  --surface: 0 0% 96%; /* White Smoke #F5F5F5 - cards/panels */
-  --surface-muted: 0 0% 94%; /* Slightly darker White Smoke for subtle sections */
+  /* Backgrounds - Fullstory-inspired light theme */
+  --background: 0 0% 98%; /* Near-white with slight warmth */
+  --surface: 0 0% 100%; /* Pure white for cards/panels */
+  --surface-muted: 0 0% 97%; /* Very light gray for subtle sections */
 
-  /* Text */
-  --text-primary: 0 0% 96%; /* White Smoke text on Gunmetal background */
-  --text-secondary: 0 0% 75%; /* Medium gray for secondary text */
-  --text-muted: 0 0% 60%; /* Muted text for labels/helpers */
+  /* Text - High contrast for readability */
+  --text-primary: 0 0% 9%; /* Near-black for maximum readability */
+  --text-secondary: 0 0% 45%; /* Medium gray that passes WCAG AA (4.5:1 on white) */
+  --text-muted: 0 0% 55%; /* Muted text that's still readable */
 
-  /* Borders */
-  --border-subtle: 0 0% 40%; /* Subtle borders on Gunmetal */
-  --border-strong: 0 0% 50%; /* Stronger borders for emphasis */
-  --border-surface: 0 0% 75%; /* Borders on White Smoke surfaces for better contrast */
+  /* Borders - Subtle but visible */
+  --border-subtle: 0 0% 88%; /* Light gray borders */
+  --border-strong: 0 0% 75%; /* Stronger borders for emphasis */
+  --border-surface: 0 0% 88%; /* Borders on white surfaces */
 
-  /* Accents */
-  --accent-primary: 358 100% 68%; /* Coral #FF5A5F - primary brand/action color */
-  --accent-secondary: 186 90% 29%; /* Teal #087E8B - accent color for secondary actions */
+  /* Primary - Deep indigo/blue for professional SaaS */
+  --accent-primary: 230 57% 50%; /* Deep indigo #3B5BDB - professional, confident */
+  --accent-secondary: 215 20% 65%; /* Muted blue-gray for secondary actions */
 
   /* States */
   --success: 142 71% 45%; /* Success state */
@@ -42,25 +43,25 @@
   --danger: 0 84% 60%; /* Danger/destructive state */
 
   /* Semantic aliases (for compatibility with existing components) */
-  --foreground: var(--text-primary);
+  --foreground: var(--text-primary); /* Near-black text */
   --text: var(--text-primary);
-  --card: var(--surface);
-  --card-foreground: 0 0% 24%; /* Gunmetal text on White Smoke cards */
+  --card: var(--surface); /* Pure white */
+  --card-foreground: var(--text-primary); /* Near-black on white cards */
   --popover: var(--surface);
-  --popover-foreground: 0 0% 24%; /* Gunmetal text on White Smoke popovers */
+  --popover-foreground: var(--text-primary);
   
   /* Interaction colors */
-  --primary: var(--accent-primary); /* Coral */
-  --primary-foreground: 0 0% 100%; /* White text on Coral buttons */
-  --secondary: var(--accent-secondary); /* Teal */
-  --secondary-foreground: 0 0% 100%; /* White text on Teal buttons */
-  --accent: 336 35% 64%; /* Old Rose #C1839F - tertiary accent for badges/highlights */
-  --accent-foreground: 0 0% 100%; /* White text on Old Rose */
+  --primary: var(--accent-primary); /* Deep indigo */
+  --primary-foreground: 0 0% 100%; /* White text on indigo buttons */
+  --secondary: 0 0% 96%; /* Very light gray for secondary buttons */
+  --secondary-foreground: var(--text-primary); /* Dark text on light background */
+  --accent: var(--accent-primary); /* Use primary as accent */
+  --accent-foreground: 0 0% 100%;
   --muted: var(--surface-muted);
-  --muted-foreground: var(--text-secondary);
+  --muted-foreground: var(--text-secondary); /* Readable muted text */
   --border: var(--border-subtle);
-  --input: var(--surface);
-  --ring: var(--accent-primary); /* Coral focus ring */
+  --input: var(--surface); /* White input backgrounds */
+  --ring: var(--accent-primary); /* Deep indigo focus ring */
   --destructive: var(--danger);
   --destructive-foreground: 0 0% 100%;
 
@@ -82,21 +83,21 @@
 }
 
 .dark {
-  /* Dark mode - slightly darker than default Gunmetal */
-  --background: 0 0% 18%; /* Darker than Gunmetal for true dark mode */
-  --surface: 0 0% 24%; /* Gunmetal for cards in dark mode */
-  --surface-muted: 0 0% 22%; /* Slightly lighter than background */
+  /* Dark mode - high contrast dark theme (optional, kept for compatibility) */
+  --background: 0 0% 9%; /* Near-black background */
+  --surface: 0 0% 13%; /* Dark gray cards */
+  --surface-muted: 0 0% 11%; /* Slightly darker than surface */
 
-  --text-primary: 0 0% 96%; /* White Smoke text */
-  --text-secondary: 0 0% 75%; /* Medium gray for secondary text */
+  --text-primary: 0 0% 98%; /* Near-white text */
+  --text-secondary: 0 0% 70%; /* Light gray for secondary text */
   --text-muted: 0 0% 60%; /* Muted text */
 
-  --border-subtle: 0 0% 35%; /* Subtle borders */
-  --border-strong: 0 0% 45%; /* Stronger borders */
-  --border-surface: 0 0% 70%; /* Borders on surfaces in dark mode */
+  --border-subtle: 0 0% 25%; /* Subtle borders */
+  --border-strong: 0 0% 35%; /* Stronger borders */
+  --border-surface: 0 0% 25%;
 
-  --accent-primary: 358 100% 68%; /* Coral - same as default */
-  --accent-secondary: 186 90% 29%; /* Teal - same as default */
+  --accent-primary: 230 57% 60%; /* Lighter indigo for dark mode */
+  --accent-secondary: 215 20% 55%;
 
   --success: 142 71% 55%;
   --warning: 38 92% 60%;
@@ -109,17 +110,17 @@
   --popover: var(--surface);
   --popover-foreground: var(--text-primary);
   
-  --primary: var(--accent-primary); /* Coral */
-  --primary-foreground: 0 0% 100%; /* White text on Coral */
-  --secondary: var(--accent-secondary); /* Teal */
-  --secondary-foreground: 0 0% 100%; /* White text on Teal */
-  --accent: 336 35% 64%; /* Old Rose */
-  --accent-foreground: 0 0% 100%; /* White text on Old Rose */
+  --primary: var(--accent-primary);
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 20%;
+  --secondary-foreground: var(--text-primary);
+  --accent: var(--accent-primary);
+  --accent-foreground: 0 0% 100%;
   --muted: var(--surface-muted);
   --muted-foreground: var(--text-secondary);
   --border: var(--border-subtle);
   --input: var(--surface);
-  --ring: var(--accent-primary); /* Coral focus ring */
+  --ring: var(--accent-primary);
   --destructive: var(--danger);
   --destructive-foreground: 0 0% 100%;
 }
@@ -180,7 +181,7 @@
 
   body {
     background-color: hsl(var(--background));
-    color: hsl(var(--text-primary));
+    color: hsl(var(--foreground));
     font-family: var(--font-sans);
     font-size: var(--font-size-base);
     line-height: var(--line-height-normal);
@@ -188,87 +189,79 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Typography hierarchy */
+  /* Typography hierarchy - High contrast, crisp typography */
   h1 {
     font-size: var(--font-size-2xl);
     font-weight: 600;
     line-height: var(--line-height-tight);
-    color: hsl(var(--text-primary));
+    color: hsl(var(--foreground));
+    letter-spacing: -0.01em;
   }
 
   h2 {
     font-size: var(--font-size-xl);
     font-weight: 600;
     line-height: var(--line-height-tight);
-    color: hsl(var(--text-primary));
+    color: hsl(var(--foreground));
+    letter-spacing: -0.01em;
   }
 
   h3 {
     font-size: var(--font-size-lg);
     font-weight: 600;
     line-height: var(--line-height-normal);
-    color: hsl(var(--text-primary));
+    color: hsl(var(--foreground));
   }
 
   h4 {
     font-size: var(--font-size-base);
     font-weight: 600;
     line-height: var(--line-height-normal);
-    color: hsl(var(--text-primary));
+    color: hsl(var(--foreground));
   }
 
   p {
     font-size: var(--font-size-base);
     line-height: var(--line-height-relaxed);
-    color: hsl(var(--text-primary));
+    color: hsl(var(--foreground));
   }
 
   small {
     font-size: var(--font-size-sm);
     line-height: var(--line-height-normal);
+    color: hsl(var(--muted-foreground));
   }
 }
 
 @layer components {
-  /* Card / Panel surfaces */
+  /* Card / Panel surfaces - Fullstory-style white cards */
   .panel {
-    @apply rounded-md border bg-surface;
-    border-color: hsl(var(--border-surface));
-    box-shadow: none;
+    @apply rounded-lg border bg-card shadow-sm;
+    border-color: hsl(var(--border));
+    transition: box-shadow 0.2s ease;
+  }
+
+  .panel:hover {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
   }
 
   .panel-muted {
-    @apply rounded-md border bg-surface-muted;
-    border-color: hsl(var(--border-surface));
-    box-shadow: none;
+    @apply rounded-lg border bg-muted;
+    border-color: hsl(var(--border));
   }
 
-  /* Ensure text inside panels uses card-foreground color */
-  .panel h1,
-  .panel h2,
-  .panel h3,
-  .panel h4,
-  .panel p {
-    color: hsl(var(--card-foreground));
-  }
-
-  .panel-muted h1,
-  .panel-muted h2,
-  .panel-muted h3,
-  .panel-muted h4,
-  .panel-muted p {
-    color: hsl(var(--card-foreground));
-  }
+  /* Text inside panels automatically uses card-foreground via base styles */
 
   /* Tab primitives */
   .tabs-list {
-    @apply inline-flex items-center gap-0.5 rounded-md border border-border-subtle bg-surface p-0.5;
+    @apply inline-flex items-center gap-0.5 rounded-lg border bg-card p-0.5;
+    border-color: hsl(var(--border));
   }
 
   .tabs-trigger {
-    @apply inline-flex items-center rounded-sm px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors;
-    @apply hover:bg-surface-muted hover:text-text-primary;
-    @apply data-[state=active]:bg-background data-[state=active]:text-text-primary data-[state=active]:font-semibold;
+    @apply inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium transition-colors;
+    @apply text-muted-foreground hover:text-foreground hover:bg-muted;
+    @apply data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:font-semibold;
   }
 
   /* Table styles */
@@ -277,20 +270,23 @@
   }
 
   .table thead {
-    @apply border-b border-border-subtle;
+    @apply border-b;
+    border-color: hsl(var(--border));
   }
 
   .table th {
-    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary;
-    @apply bg-surface-muted;
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide;
+    @apply text-muted-foreground bg-muted;
   }
 
   .table td {
-    @apply px-4 py-3 text-sm text-card-foreground border-b border-border-subtle;
+    @apply px-4 py-3 text-sm border-b;
+    @apply text-foreground;
+    border-color: hsl(var(--border));
   }
 
   .table tbody tr {
-    @apply hover:bg-surface-muted transition-colors;
+    @apply hover:bg-muted transition-colors;
   }
 
   .table tbody tr:last-child td {
