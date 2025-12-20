@@ -1,22 +1,34 @@
+/**
+ * CTA Band Section
+ * 
+ * Design tokens used:
+ * - accent-primary: Background gradient and primary button
+ * - text-primary-foreground: Text color on accent background
+ * - surface: Card background for contrast
+ * 
+ * Enhanced with accent background gradient and stronger visual treatment.
+ */
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export function CTABand() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-20">
-      <div className="panel mx-auto max-w-3xl p-12 text-center">
-        <h2 className="text-3xl font-semibold text-text-primary md:text-4xl">
+    <section className="mx-auto max-w-7xl px-4 py-24 md:py-32">
+      <div className="relative mx-auto max-w-4xl overflow-hidden rounded-xl border-2 border-accent-primary/20 bg-gradient-to-br from-accent-primary/10 via-accent-primary/5 to-surface p-12 text-center shadow-lg md:p-16">
+        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
           Start from a stronger foundation
         </h2>
-        <p className="mt-4 text-base text-text-secondary">
+        <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl">
           Stop debating opinions. Start making decisions grounded in structure, evidence, and clarity.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link href="/dashboard">
-            <Button size="lg">Try Plinth</Button>
+            <Button size="lg" className="w-full sm:w-auto">
+              Try Plinth
+            </Button>
           </Link>
           <Link href="#outputs">
-            <Button size="lg" variant="outline">
+            <Button size="lg" variant="outline" className="w-full sm:w-auto border-2">
               Explore a sample analysis
             </Button>
           </Link>

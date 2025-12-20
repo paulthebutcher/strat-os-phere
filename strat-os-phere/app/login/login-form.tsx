@@ -27,7 +27,13 @@ export function LoginForm() {
       )
     } else {
       setIsError(false)
-      setMessage('Check your email for the magic link!')
+      // In dev/preview, show canary info if present; otherwise show success message
+      // Check if message contains canary info (server action sets this in dev/preview)
+      if (result?.message && result.message.includes('canary=')) {
+        setMessage(result.message)
+      } else {
+        setMessage('Check your email for the magic link!')
+      }
     }
 
     setLoading(false)
@@ -52,13 +58,20 @@ export function LoginForm() {
         {loading ? 'Sending...' : 'Send magic link'}
       </Button>
       {message && (
-        <p
-          className={`text-sm ${
-            isError ? 'text-danger' : 'text-accent-primary'
-          }`}
-        >
-          {message}
-        </p>
+        <div className="space-y-1">
+          <p
+            className={`text-sm ${
+              isError ? 'text-danger' : 'text-accent-primary'
+            }`}
+          >
+            {message}
+          </p>
+          {isError && (
+            <p className="text-xs text-text-muted">
+              If this is a redirect URL error, check Supabase allowlist settings.
+            </p>
+          )}
+        </div>
       )}
     </form>
   )

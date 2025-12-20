@@ -16,6 +16,7 @@ import {
 } from '@/lib/data/competitors'
 import { getProjectById } from '@/lib/data/projects'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 
 type ActionResult = {
   success: boolean
@@ -102,8 +103,7 @@ export async function createCompetitorForProject(
 
     return { success: true }
   } catch (error) {
-    // Temporary logging to aid Supabase debugging
-    console.error('Failed to create competitor', error)
+    logger.error('Failed to create competitor', error)
 
     const message =
       error instanceof Error
@@ -157,8 +157,7 @@ export async function updateCompetitorForProject(
 
     return { success: true }
   } catch (error) {
-    // Temporary logging to aid Supabase debugging
-    console.error('Failed to update competitor', error)
+    logger.error('Failed to update competitor', error)
 
     const message =
       error instanceof Error
@@ -188,8 +187,7 @@ export async function deleteCompetitorForProject(
 
     return { success: true }
   } catch (error) {
-    // Temporary logging to aid Supabase debugging
-    console.error('Failed to delete competitor', error)
+    logger.error('Failed to delete competitor', error)
 
     const message =
       error instanceof Error

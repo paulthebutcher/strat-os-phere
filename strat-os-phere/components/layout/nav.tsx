@@ -22,7 +22,7 @@ export async function Nav() {
             href="/dashboard"
             className="text-base font-semibold text-text-primary hover:text-accent-primary transition-colors"
           >
-            StratOSphere
+            Plinth
           </Link>
           <div className="hidden items-center gap-6 md:flex">
             <Link

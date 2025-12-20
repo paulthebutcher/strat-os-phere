@@ -29,6 +29,7 @@ import {
 } from '@/lib/schemas/marketSynthesis'
 import { safeParseLLMJson } from '@/lib/schemas/safeParseLLMJson'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 
 type GenerateAnalysisSuccessResult = {
   ok: true
@@ -65,7 +66,6 @@ export async function generateAnalysis(
   projectId: string
 ): Promise<GenerateAnalysisResult> {
   const runId = generateRunId()
-  const runLabel = `[generateAnalysis][run_id=${runId}][projectId=${projectId}]`
 
   try {
     const supabase = await createClient()
@@ -74,12 +74,9 @@ export async function generateAnalysis(
     } = await supabase.auth.getUser()
 
     if (!user) {
-      const message = 'You must be signed in to generate analysis.'
-      // eslint-disable-next-line no-console
-      console.error(`${runLabel} Unauthenticated request`)
       return {
         ok: false,
-        message,
+        message: 'You must be signed in to generate analysis.',
         details: { code: 'UNAUTHENTICATED' },
       }
     }
@@ -87,12 +84,9 @@ export async function generateAnalysis(
     const project = await getProjectById(supabase, projectId)
 
     if (!project || project.user_id !== user.id) {
-      const message = 'Project not found or access denied.'
-      // eslint-disable-next-line no-console
-      console.error(`${runLabel} Project access denied or missing`)
       return {
         ok: false,
-        message,
+        message: 'Project not found or access denied.',
         details: { code: 'PROJECT_NOT_FOUND_OR_FORBIDDEN' },
       }
     }
@@ -142,12 +136,11 @@ export async function generateAnalysis(
       const wasTruncated = originalLength > MAX_EVIDENCE_CHARS
 
       if (wasTruncated) {
-        // eslint-disable-next-line no-console
-        console.warn(`${runLabel} Evidence truncated for competitor "${competitor.name}"`, {
+        logger.warn('Evidence truncated for competitor', {
           competitorId: competitor.id,
-          evidence_original_length: originalLength,
-          evidence_used_length: truncatedLength,
-          evidence_truncated: true,
+          competitorName: competitor.name,
+          originalLength,
+          truncatedLength,
         })
       }
 
@@ -215,10 +208,7 @@ export async function generateAnalysis(
         )
 
         if (!repaired.ok) {
-          const message = `Failed to validate competitor snapshot for "${competitor.name}".`
-
-          // eslint-disable-next-line no-console
-          console.error(`${runLabel} Snapshot validation failed`, {
+          logger.error('Snapshot validation failed after repair', {
             competitorId: competitor.id,
             competitorName: competitor.name,
             summary: summarizeValidationError(repaired.error),
@@ -226,7 +216,7 @@ export async function generateAnalysis(
 
           return {
             ok: false,
-            message,
+            message: `Failed to validate competitor snapshot for "${competitor.name}".`,
             details: {
               stage: 'snapshot_validation',
               competitorId: competitor.id,
@@ -290,16 +280,13 @@ export async function generateAnalysis(
       )
 
       if (!synthesisParsed.ok) {
-        const message = 'Failed to validate market synthesis output.'
-
-        // eslint-disable-next-line no-console
-        console.error(`${runLabel} Synthesis validation failed`, {
+        logger.error('Synthesis validation failed after repair', {
           summary: summarizeValidationError(synthesisParsed.error),
         })
 
         return {
           ok: false,
-          message,
+          message: 'Failed to validate market synthesis output.',
           details: {
             stage: 'synthesis_validation',
             validationError: summarizeValidationError(synthesisParsed.error),
@@ -353,17 +340,13 @@ export async function generateAnalysis(
       },
     }
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : 'Unexpected error during analysis generation.'
-
-    // eslint-disable-next-line no-console
-    console.error(`${runLabel} Unhandled error in generateAnalysis`, error)
+    logger.error('Unhandled error in generateAnalysis', error)
 
     return {
       ok: false,
-      message,
+      message: error instanceof Error
+        ? error.message
+        : 'Unexpected error during analysis generation.',
       details:
         error instanceof Error
           ? {

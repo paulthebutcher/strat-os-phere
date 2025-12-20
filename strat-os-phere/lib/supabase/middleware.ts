@@ -1,8 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from './database.types'
+import { mergeAuthCookieOptions } from './cookie-options'
+import { logger } from '@/lib/logger'
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  // Public routes that should always be allowed
+  const publicRoutes = ['/', '/login', '/auth/callback']
+  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/api/')
+
+  // Protected routes that require authentication
+  const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/projects')
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -16,14 +27,14 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          // In middleware, we can only set cookies on the response, not the request
-          // Create a new response to ensure cookies are properly set
-          supabaseResponse = NextResponse.next({
-            request,
+          // Set cookies directly on the existing response to avoid dropping
+          // previously-set cookies/headers. Do not recreate the response.
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Merge with our auth cookie options to ensure 7-day maxAge
+            // Pass cookie name to protect PKCE verifier cookies
+            const mergedOptions = mergeAuthCookieOptions(options, name)
+            supabaseResponse.cookies.set(name, value, mergedOptions)
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
         },
       },
     }
@@ -35,16 +46,76 @@ export async function updateSession(request: NextRequest) {
 
   const {
     data: { user },
+    error: getUserError,
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    request.nextUrl.pathname.startsWith('/dashboard')
-  ) {
-    // no user, redirect to login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  const isAuthenticated = !!user
+
+  if (getUserError) {
+    logger.auth.debug('getUser error in middleware', { error: getUserError.message })
+  }
+
+  logger.auth.debug('Middleware session check', {
+    path: pathname,
+    authed: isAuthenticated,
+    isPublicRoute,
+    isProtectedRoute,
+  })
+
+  // Helper to copy cookies from supabaseResponse to a redirect response
+  // Ensures cookies (including maxAge) are preserved on redirects
+  const copyCookiesToResponse = (response: NextResponse) => {
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      // Get existing cookie options, but ensure maxAge is always set to our 7-day value
+      // This ensures session cookies persist even through redirects
+      const existingOptions: any = {
+        httpOnly: cookie.httpOnly,
+        secure: cookie.secure,
+        sameSite: cookie.sameSite,
+        path: cookie.path,
+        maxAge: cookie.maxAge,
+        domain: cookie.domain,
+      }
+      // Handle expires - convert number to Date if needed, or omit if not present
+      if (cookie.expires !== undefined) {
+        existingOptions.expires = cookie.expires instanceof Date 
+          ? cookie.expires 
+          : typeof cookie.expires === 'number' 
+            ? new Date(cookie.expires) 
+            : cookie.expires
+      }
+      // Re-apply merged options to ensure maxAge is always 7 days
+      // Pass cookie name to protect PKCE verifier cookies
+      const mergedOptions = mergeAuthCookieOptions(existingOptions, cookie.name)
+      response.cookies.set(cookie.name, cookie.value, mergedOptions)
+    })
+  }
+
+  // Always allow public routes and auth callback (critical for magic link flow)
+  if (isPublicRoute) {
+    // If user is authenticated and on login or home page, redirect to dashboard
+    if (isAuthenticated && (pathname === '/login' || pathname === '/')) {
+      const dashboardUrl = request.nextUrl.clone()
+      dashboardUrl.pathname = '/dashboard'
+      dashboardUrl.search = ''
+      // Copy cookies from supabaseResponse to preserve session cookies
+      const redirectResponse = NextResponse.redirect(dashboardUrl)
+      copyCookiesToResponse(redirectResponse)
+      return redirectResponse
+    }
+    // Otherwise, allow access to public routes
+    return supabaseResponse
+  }
+
+  // Protect routes that require authentication
+  if (isProtectedRoute && !isAuthenticated) {
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    loginUrl.search = ''
+    // Copy cookies from supabaseResponse to preserve any cookies that were set
+    const redirectResponse = NextResponse.redirect(loginUrl)
+    copyCookiesToResponse(redirectResponse)
+    return redirectResponse
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

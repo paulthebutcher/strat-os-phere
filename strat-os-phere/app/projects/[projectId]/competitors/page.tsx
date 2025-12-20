@@ -57,7 +57,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
             </p>
             <h1>{project.name}</h1>
             <p className="text-sm text-text-secondary">
-              Add real alternatives so StratOSphere can generate a sharp,
+              Add real alternatives so Plinth can generate a sharp,
               exec-ready landscape summary.
             </p>
           </div>
