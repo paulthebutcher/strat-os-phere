@@ -4,10 +4,14 @@ import { notFound } from 'next/navigation'
 import { CopySectionButton } from '@/components/results/CopySectionButton'
 import { RegenerateButton } from '@/components/results/RegenerateButton'
 import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
+import { AnalysisRunExperience } from '@/components/results/AnalysisRunExperience'
 import { CompetitorScoreBarChart } from '@/components/results/CompetitorScoreBarChart'
 import { ArtifactsDebugPanel } from '@/components/results/ArtifactsDebugPanel'
 import { PostGenerationHighlight } from '@/components/results/PostGenerationHighlight'
 import { ProgressiveReveal } from '@/components/results/ProgressiveReveal'
+import { ResultsFrameToggle } from '@/components/results/ResultsFrameToggle'
+import { ContrastSummary } from '@/components/results/ContrastSummary'
+import { LineageLink } from '@/components/results/LineageLink'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
@@ -29,7 +33,26 @@ import {
   formatScoringMatrixToMarkdown,
   type NormalizedProfilesArtifact,
   type NormalizedSynthesisArtifact,
+  type NormalizedJtbdArtifact,
+  type NormalizedOpportunitiesV2Artifact,
+  type NormalizedScoringMatrixArtifact,
 } from '@/lib/results/normalizeArtifacts'
+import {
+  getJtbdLineage,
+  getOpportunityLineage,
+  getStruggleLineage,
+} from '@/lib/results/lineageHelpers'
+import {
+  selectByJobs,
+  selectByDifferentiationThemes,
+  selectByCustomerStruggles,
+  selectByStrategicBets,
+  type ResultsFrame,
+} from '@/lib/results/selectors'
+import {
+  computeContrastSummary,
+  type ContrastSummary as ContrastSummaryType,
+} from '@/lib/results/diffHelpers'
 import { createClient } from '@/lib/supabase/server'
 
 type TabId =
@@ -53,12 +76,58 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'opportunities_v2', label: 'Opportunities' },
 ]
 
+/**
+ * Get artifacts from the previous run (second most recent)
+ */
+function getPreviousRunArtifacts(
+  artifacts: Awaited<ReturnType<typeof listArtifacts>>,
+  currentRunId: string | null
+) {
+  // Group artifacts by type and get the second one (previous run)
+  const jtbdList = artifacts
+    .filter((a) => (a.type as string) === 'jtbd')
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  
+  const opportunitiesList = artifacts
+    .filter((a) => (a.type as string) === 'opportunities_v2')
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  
+  const scoringList = artifacts
+    .filter((a) => (a.type as string) === 'scoring_matrix')
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  // Get second artifact if it exists and has different run_id
+  const previousJtbd = jtbdList.length > 1 && jtbdList[1] ? (() => {
+    const normalized = normalizeResultsArtifacts([jtbdList[1]])
+    return normalized.jtbd
+  })() : null
+
+  const previousOpportunities = opportunitiesList.length > 1 && opportunitiesList[1] ? (() => {
+    const normalized = normalizeResultsArtifacts([opportunitiesList[1]])
+    return normalized.opportunitiesV2
+  })() : null
+
+  const previousScoring = scoringList.length > 1 && scoringList[1] ? (() => {
+    const normalized = normalizeResultsArtifacts([scoringList[1]])
+    return normalized.scoringMatrix
+  })() : null
+
+  return {
+    jtbd: previousJtbd,
+    opportunities: previousOpportunities,
+    scorecard: previousScoring,
+  }
+}
+
 interface ResultsPageProps {
   params: Promise<{
     projectId: string
   }>
   searchParams?: Promise<{
     tab?: string
+    frame?: string
+    generating?: string
+    view?: string
   }>
 }
 
@@ -69,14 +138,23 @@ export default async function ResultsPage(props: ResultsPageProps) {
   ])
 
   const projectId = params.projectId
-  const tabParam =
-    (searchParams as {
-      tab?: string
-    }).tab ?? undefined
+  const searchParamsObj = searchParams as {
+    tab?: string
+    frame?: string
+    generating?: string
+    view?: string
+  }
+  const tabParam = searchParamsObj.tab ?? undefined
+  const frameParam = searchParamsObj.frame ?? undefined
+  const isGenerating = searchParamsObj.generating === 'true'
+  const viewResults = searchParamsObj.view === 'results'
 
   const activeTab: TabId =
     (TABS.find((tab) => tab.id === tabParam)?.id as TabId | undefined) ??
     'profiles'
+  
+  const activeFrame: ResultsFrame =
+    (frameParam as ResultsFrame | undefined) ?? 'jobs'
 
   const supabase = await createClient()
   const {
@@ -109,6 +187,21 @@ export default async function ResultsPage(props: ResultsPageProps) {
     runId,
     generatedAt,
   } = normalized
+
+  // Get previous run artifacts for contrast
+  const previousNormalized = getPreviousRunArtifacts(artifacts, runId)
+  const contrastSummary = computeContrastSummary(
+    {
+      jtbd: normalized.jtbd,
+      opportunities: normalized.opportunitiesV2,
+      scorecard: normalized.scoringMatrix,
+    },
+    {
+      jtbd: previousNormalized.jtbd,
+      opportunities: previousNormalized.opportunities,
+      scorecard: previousNormalized.scorecard,
+    }
+  )
   const hasAnyArtifacts = Boolean(
     profiles || synthesis || jtbd || opportunitiesV2 || scoringMatrix
   )
@@ -124,6 +217,13 @@ export default async function ResultsPage(props: ResultsPageProps) {
         minute: '2-digit',
       })
     : null
+
+  // Show AnalysisRunExperience if generating and not explicitly viewing results
+  // This ensures the experience is shown during generation, but results are shown
+  // after the user clicks "View analysis" (which sets view=results)
+  if (isGenerating && !viewResults) {
+    return <AnalysisRunExperience projectId={projectId} />
+  }
 
   const profilesMarkdown = formatProfilesToMarkdown(profiles?.snapshots)
   const themesMarkdown = formatThemesToMarkdown(synthesis?.synthesis)
@@ -293,6 +393,20 @@ export default async function ResultsPage(props: ResultsPageProps) {
               />
             )}
 
+            {/* Contrast Summary */}
+            {contrastSummary.hasChanges && (
+              <ContrastSummary
+                summary={contrastSummary}
+                latestRunDate={generatedAt}
+                previousRunDate={
+                  previousNormalized.jtbd?.generatedAt ??
+                  previousNormalized.opportunities?.generatedAt ??
+                  previousNormalized.scorecard?.generatedAt ??
+                  null
+                }
+              />
+            )}
+
             {/* Recommended Next Steps Panel */}
             {opportunitiesV2?.content?.opportunities &&
             opportunitiesV2.content.opportunities.length > 0 ? (
@@ -310,7 +424,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
                 {TABS.map((tab) => (
                   <Link
                     key={tab.id}
-                    href={`/projects/${project.id}/results?tab=${tab.id}`}
+                    href={`/projects/${project.id}/results?tab=${tab.id}${frameParam ? `&frame=${frameParam}` : ''}`}
                     className="tabs-trigger"
                     data-state={activeTab === tab.id ? 'active' : 'inactive'}
                   >
@@ -320,6 +434,14 @@ export default async function ResultsPage(props: ResultsPageProps) {
               </nav>
               <CopySectionButton content={copyContent} label="Copy" />
             </div>
+
+            {/* Frame Toggle - only show for v2 tabs */}
+            {(activeTab === 'jobs' || activeTab === 'opportunities_v2') && (
+              <ResultsFrameToggle
+                currentFrame={activeFrame}
+                projectId={project.id}
+              />
+            )}
 
             {activeTab === 'profiles' ? (
               <ProfilesSection profiles={profiles} />
@@ -338,7 +460,11 @@ export default async function ResultsPage(props: ResultsPageProps) {
             ) : null}
             {activeTab === 'jobs' ? (
               <ProgressiveReveal order={0} enabled={Boolean(jtbd)}>
-                <JtbdSection jtbd={jtbd?.content} projectId={project.id} />
+                <JtbdSection
+                  jtbd={jtbd?.content}
+                  projectId={project.id}
+                  frame={activeFrame}
+                />
               </ProgressiveReveal>
             ) : null}
             {activeTab === 'scorecard' ? (
@@ -351,6 +477,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
                 <OpportunitiesV2Section
                   opportunities={opportunitiesV2?.content}
                   projectId={project.id}
+                  frame={activeFrame}
                 />
               </ProgressiveReveal>
             ) : null}
@@ -406,10 +533,22 @@ function ProfilesSection({ profiles }: ProfilesSectionProps) {
                 items={snapshot.risks_and_unknowns}
               />
               {snapshot.customer_struggles && snapshot.customer_struggles.length > 0 ? (
-                <SnapshotList
-                  title="What customers struggle with today"
-                  items={snapshot.customer_struggles}
-                />
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">
+                    What customers struggle with today
+                  </h3>
+                  <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+                    {snapshot.customer_struggles.map((struggle, index) => {
+                      const lineage = getStruggleLineage(struggle, snapshot, profiles ? { signals: {} } : undefined)
+                      return (
+                        <li key={index} className="flex items-start justify-between gap-2">
+                          <span>{struggle}</span>
+                          <LineageLink lineage={lineage} title={struggle} />
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
               ) : null}
             </div>
 
@@ -786,9 +925,10 @@ function RecommendedNextStepsPanel({
 interface JtbdSectionProps {
   jtbd: JtbdArtifactContent | null | undefined
   projectId: string
+  frame: ResultsFrame
 }
 
-function JtbdSection({ jtbd, projectId }: JtbdSectionProps) {
+function JtbdSection({ jtbd, projectId, frame }: JtbdSectionProps) {
   if (!jtbd || !jtbd.jobs?.length) {
     return (
       <section className="panel p-5 space-y-3">
@@ -803,10 +943,13 @@ function JtbdSection({ jtbd, projectId }: JtbdSectionProps) {
     )
   }
 
-  // Sort by opportunity_score descending
-  const sorted = [...jtbd.jobs].sort(
-    (a, b) => b.opportunity_score - a.opportunity_score
-  )
+  // Apply frame-based reorganization
+  const frameGroups =
+    frame === 'jobs'
+      ? selectByJobs(jtbd)
+      : frame === 'customer_struggles'
+      ? [] // Struggles frame not applicable to JTBD
+      : selectByJobs(jtbd) // Default to jobs frame
 
   return (
     <section className="space-y-4">
@@ -816,15 +959,24 @@ function JtbdSection({ jtbd, projectId }: JtbdSectionProps) {
           <strong>Jobs To Be Done (JTBD)</strong> describe the specific tasks customers need to accomplish. Each job includes measurable outcomes and an opportunity score based on importance and current satisfaction. Use these to prioritize features and validate solutions.
         </p>
       </div>
-      {sorted.map((job, index) => (
-        <article key={index} className="panel p-4">
-          <header className="mb-3 space-y-2">
-            <div className="flex items-start justify-between gap-2">
-              <h2 className="text-sm font-semibold">{job.job_statement}</h2>
-              <Badge variant="primary" className="shrink-0">
-                Score: {job.opportunity_score}/100
-              </Badge>
-            </div>
+      {frameGroups.map((group) =>
+        group.items
+          .filter((item): item is { type: 'jtbd'; job: import('@/lib/schemas/jtbd').JtbdItem } => item.type === 'jtbd')
+          .map((item, index) => {
+            const job = item.job
+            const lineage = getJtbdLineage(job, jtbd)
+            return (
+              <article key={`${group.id}-${index}`} className="panel p-4">
+                <header className="mb-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h2 className="text-sm font-semibold">{job.job_statement}</h2>
+                    <div className="flex items-center gap-2">
+                      <LineageLink lineage={lineage} title={job.job_statement} />
+                      <Badge variant="primary" className="shrink-0">
+                        Score: {job.opportunity_score}/100
+                      </Badge>
+                    </div>
+                  </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
               <span>
                 <span className="font-medium">Who:</span> {job.who}
@@ -940,7 +1092,9 @@ function JtbdSection({ jtbd, projectId }: JtbdSectionProps) {
             ) : null}
           </div>
         </article>
-      ))}
+            )
+          })
+      )}
     </section>
   )
 }
@@ -948,9 +1102,14 @@ function JtbdSection({ jtbd, projectId }: JtbdSectionProps) {
 interface OpportunitiesV2SectionProps {
   opportunities: OpportunitiesArtifactContent | null | undefined
   projectId: string
+  frame: ResultsFrame
 }
 
-function OpportunitiesV2Section({ opportunities, projectId }: OpportunitiesV2SectionProps) {
+function OpportunitiesV2Section({
+  opportunities,
+  projectId,
+  frame,
+}: OpportunitiesV2SectionProps) {
   if (!opportunities || !opportunities.opportunities?.length) {
     return (
       <section className="panel p-5 space-y-3">
@@ -965,10 +1124,15 @@ function OpportunitiesV2Section({ opportunities, projectId }: OpportunitiesV2Sec
     )
   }
 
-  // Sort by score descending
-  const sorted = [...opportunities.opportunities].sort(
-    (a, b) => b.score - a.score
-  )
+  // Apply frame-based reorganization
+  const frameGroups =
+    frame === 'differentiation_themes'
+      ? selectByDifferentiationThemes(opportunities)
+      : frame === 'strategic_bets'
+      ? selectByStrategicBets(opportunities)
+      : frame === 'customer_struggles'
+      ? [] // Struggles frame handled separately
+      : selectByDifferentiationThemes(opportunities) // Default
 
   return (
     <section className="space-y-4">
@@ -978,15 +1142,33 @@ function OpportunitiesV2Section({ opportunities, projectId }: OpportunitiesV2Sec
           <strong>Differentiation Opportunities</strong> are ranked by score (impact, effort, confidence, and linked job importance). Each opportunity includes first experiments—concrete tests you can run in 1–2 weeks to validate the idea before committing to a full build.
         </p>
       </div>
-      {sorted.map((opp, index) => (
-        <article key={index} className="panel p-4">
-          <header className="mb-3 space-y-2">
-            <div className="flex items-start justify-between gap-2">
-              <h2 className="text-sm font-semibold">{opp.title}</h2>
-              <Badge variant="primary" className="shrink-0">
-                Score: {opp.score}/100
-              </Badge>
-            </div>
+      {frameGroups.map((group) => (
+        <div key={group.id} className="space-y-4">
+          {group.label !== 'All Jobs' && (
+            <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2">
+              {group.label}
+            </h3>
+          )}
+          {group.items
+            .filter(
+              (item): item is { type: 'opportunity'; opportunity: import('@/lib/schemas/opportunities').OpportunityItem } =>
+                item.type === 'opportunity'
+            )
+            .map((item, index) => {
+              const opp = item.opportunity
+              const lineage = getOpportunityLineage(opp, opportunities)
+              return (
+                <article key={`${group.id}-${index}`} className="panel p-4">
+                  <header className="mb-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <h2 className="text-sm font-semibold">{opp.title}</h2>
+                      <div className="flex items-center gap-2">
+                        <LineageLink lineage={lineage} title={opp.title} />
+                        <Badge variant="primary" className="shrink-0">
+                          Score: {opp.score}/100
+                        </Badge>
+                      </div>
+                    </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
               <Badge variant="secondary">{opp.type.replace('_', ' ')}</Badge>
               <Badge variant={opp.impact === 'high' ? 'success' : opp.impact === 'med' ? 'warning' : 'default'}>
@@ -1072,6 +1254,9 @@ function OpportunitiesV2Section({ opportunities, projectId }: OpportunitiesV2Sec
             ) : null}
           </div>
         </article>
+              )
+            })}
+        </div>
       ))}
     </section>
   )

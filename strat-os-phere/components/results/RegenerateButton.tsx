@@ -4,91 +4,54 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
-import { InlineError } from '@/components/common/InlineError'
 
 interface RegenerateButtonProps {
   projectId: string
   label?: string
   competitorCount?: number
+  onStart?: () => void
 }
 
-type GenerateResultsV2Response =
-  | { ok: true; runId: string; artifactIds: string[]; signals: unknown }
-  | { ok: false; error: { code: string; message: string } }
-
 /**
- * RegenerateButton now uses the v2 generator endpoint.
- * This replaces the legacy v1 generateAnalysis call.
+ * Button that triggers analysis regeneration
+ * When clicked, navigates to results page with generating=true to show AnalysisRunExperience
  */
 export function RegenerateButton({
   projectId,
   label = 'Regenerate analysis',
   competitorCount = 0,
+  onStart,
 }: RegenerateButtonProps) {
   const router = useRouter()
-  const [isPending, setIsPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [errorDetails, setErrorDetails] = useState<Record<string, unknown> | undefined>()
+  const [isStarting, setIsStarting] = useState(false)
 
-  const handleClick = async () => {
-    if (isPending) return
+  const handleClick = () => {
+    if (isStarting) return
 
-    setError(null)
-    setErrorDetails(undefined)
-    setIsPending(true)
+    setIsStarting(true)
+    onStart?.()
 
+    // Clear the progressive reveal flag so animation plays again for new results
     try {
-      const response = await fetch('/api/results/generate-v2', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ projectId }),
-      })
-
-      const result: GenerateResultsV2Response = await response.json()
-
-      if (result.ok) {
-        // Force refresh to show new artifacts
-        router.refresh()
-      } else {
-        setError(result.error.message)
-        setErrorDetails({
-          code: result.error.code,
-          hint: 'Check browser console or server logs for details (no secrets exposed)',
-        })
-      }
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : 'Unexpected error while regenerating results.'
-      setError(message)
-      setErrorDetails({
-        hint: 'Check browser console or server logs for details',
-      })
-    } finally {
-      setIsPending(false)
+      sessionStorage.removeItem('progressive-reveal-shown')
+    } catch {
+      // Ignore sessionStorage errors
     }
+
+    // Navigate to results page with generating flag
+    router.push(`/projects/${projectId}/results?generating=true`)
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        disabled={isPending}
-        onClick={handleClick}
-      >
-        {isPending ? 'Generating…' : label}
-      </Button>
-      {error && (
-        <div className="w-full max-w-xs">
-          <InlineError message={error} details={errorDetails} />
-        </div>
-      )}
-    </div>
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      disabled={isStarting}
+      onClick={handleClick}
+    >
+      {isStarting ? 'Starting...' : label}
+    </Button>
   )
 }
 

@@ -43,6 +43,13 @@ import {
   computeResultsV2Signals,
   type ResultsV2QualitySignals,
 } from '@/lib/results/qualitySignals'
+import { checkEvidenceQuality } from '@/lib/guardrails/evidence'
+import { detectBannedPatterns, computeBannedPatternPenalty } from '@/lib/guardrails/validation'
+import {
+  applyScoreCeiling,
+  computeConfidenceBand,
+  checkScoreDistribution,
+} from '@/lib/guardrails/scoring'
 import {
   type ProgressCallback,
   type ProgressEvent,
@@ -155,6 +162,30 @@ export async function generateResultsV2(
       }
     }
 
+    // Phase: evidence_quality_check (Guardrail Phase 1)
+    onProgress?.(
+      makeProgressEvent(runId, 'evidence_quality_check', 'Checking evidence quality...', {})
+    )
+
+    const evidenceQualityCheck = await checkEvidenceQuality(supabase, projectId)
+    
+    // Block generation if evidence quality is too low (can be made configurable)
+    // For now, we mark as low-confidence but allow generation
+    if (!evidenceQualityCheck.passes) {
+      onProgress?.(
+        makeProgressEvent(runId, 'evidence_quality_check', 'Evidence quality check completed', {
+          detail: evidenceQualityCheck.reason || 'Low evidence quality detected',
+        })
+      )
+      // Continue with generation but mark as low-confidence
+    } else {
+      onProgress?.(
+        makeProgressEvent(runId, 'evidence_quality_check', 'Evidence quality check passed', {
+          detail: `Quality: ${evidenceQualityCheck.confidence}, Decay: ${(evidenceQualityCheck.decayFactor * 100).toFixed(0)}%`,
+        })
+      )
+    }
+
     // Load existing artifacts
     const artifacts = await listArtifacts(supabase, { projectId })
     const profilesArtifact = artifacts.find((a) => a.type === 'profiles')
@@ -209,6 +240,9 @@ export async function generateResultsV2(
 
     const generatedAt = new Date().toISOString()
 
+    // Track repair attempts for guardrail signals (Phase 2)
+    let repairCount = 0
+
     // Phase: jobs_generate
     const tJobsStart = performance.now()
     onProgress?.(
@@ -262,10 +296,11 @@ export async function generateResultsV2(
     )
 
     if (!jtbdParsed.ok) {
+      repairCount += 1
       onProgress?.(
         makeProgressEvent(runId, 'jobs_validate', 'Repairing invalid JSON...', {
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
-          meta: { repairsUsed: 1 },
+          meta: { repairsUsed: repairCount },
         })
       )
 
@@ -324,16 +359,30 @@ export async function generateResultsV2(
       })
     )
 
+    // Check for banned patterns in JTBD (Phase 2.2)
+    const jtbdText = JSON.stringify(jtbdParsed.data)
+    const jtbdBannedPatternPenalty = computeBannedPatternPenalty(jtbdText)
+
     // Compute opportunity scores for JTBD items
     const jtbdWithScores: JtbdArtifactContent = {
       ...jtbdParsed.data,
-      jobs: jtbdParsed.data.jobs.map((job) => ({
-        ...job,
-        opportunity_score: computeJtbdOpportunityScore(
+      jobs: jtbdParsed.data.jobs.map((job) => {
+        const rawScore = computeJtbdOpportunityScore(
           job.importance_score,
           job.satisfaction_score
-        ),
-      })),
+        )
+        // Apply score ceiling based on confidence signals (Phase 3.1)
+        const adjustedScore = applyScoreCeiling(rawScore, {
+          evidenceQuality: evidenceQualityCheck.confidence,
+          decayFactor: evidenceQualityCheck.decayFactor,
+          repairCount,
+          bannedPatternPenalty: jtbdBannedPatternPenalty,
+        })
+        return {
+          ...job,
+          opportunity_score: adjustedScore,
+        }
+      }),
     }
 
     // Update meta with schema_version=2
@@ -383,7 +432,7 @@ export async function generateResultsV2(
         'scorecard_validate',
         'Validating scorecard structure...',
         {
-          meta: { repairsUsed: jtbdParsed.ok ? 0 : 1 },
+          meta: { repairsUsed: repairCount },
         }
       )
     )
@@ -394,10 +443,11 @@ export async function generateResultsV2(
     )
 
     if (!scoringParsed.ok) {
+      repairCount += 1
       onProgress?.(
         makeProgressEvent(runId, 'scorecard_validate', 'Repairing invalid JSON...', {
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
-          meta: { repairsUsed: (jtbdParsed.ok ? 0 : 1) + 1 },
+          meta: { repairsUsed: repairCount },
         })
       )
 
@@ -462,14 +512,29 @@ export async function generateResultsV2(
       scoringParsed.data.scores
     )
 
-    // Update summary with computed weighted scores
+    // Check for banned patterns in scoring matrix (Phase 2.2)
+    const scoringText = JSON.stringify(scoringParsed.data)
+    const scoringBannedPatternPenalty = computeBannedPatternPenalty(scoringText)
+
+    // Update summary with computed weighted scores and apply ceilings
+    const competitorScores = Array.from(weightedScores.values())
+    const scoringDistributionCheck = checkScoreDistribution(competitorScores) // Phase 3.2
+
     const scoringWithComputedScores = {
       ...scoringParsed.data,
       summary: scoringParsed.data.summary.map((summary) => {
         const computedScore = weightedScores.get(summary.competitor_name)
+        const rawScore = computedScore !== undefined ? computedScore : summary.total_weighted_score
+        // Apply score ceiling based on confidence signals (Phase 3.1)
+        const adjustedScore = applyScoreCeiling(rawScore, {
+          evidenceQuality: evidenceQualityCheck.confidence,
+          decayFactor: evidenceQualityCheck.decayFactor,
+          repairCount,
+          bannedPatternPenalty: scoringBannedPatternPenalty,
+        })
         return {
           ...summary,
-          total_weighted_score: computedScore !== undefined ? computedScore : summary.total_weighted_score,
+          total_weighted_score: adjustedScore,
         }
       }),
     }
@@ -524,7 +589,7 @@ export async function generateResultsV2(
         'Validating opportunities structure...',
         {
           meta: {
-            repairsUsed: (jtbdParsed.ok ? 0 : 1) + (scoringParsed.ok ? 0 : 1),
+            repairsUsed: repairCount,
           },
         }
       )
@@ -536,12 +601,11 @@ export async function generateResultsV2(
     )
 
     if (!opportunitiesParsed.ok) {
-      const totalRepairs =
-        (jtbdParsed.ok ? 0 : 1) + (scoringParsed.ok ? 0 : 1) + 1
+      repairCount += 1
       onProgress?.(
         makeProgressEvent(runId, 'opportunities_validate', 'Repairing invalid JSON...', {
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
-          meta: { repairsUsed: totalRepairs },
+          meta: { repairsUsed: repairCount },
         })
       )
 
@@ -616,7 +680,11 @@ export async function generateResultsV2(
       )
     )
 
-    // Compute opportunity scores
+    // Check for banned patterns in opportunities (Phase 2.2)
+    const opportunitiesText = JSON.stringify(opportunitiesParsed.data)
+    const opportunitiesBannedPatternPenalty = computeBannedPatternPenalty(opportunitiesText)
+
+    // Compute opportunity scores with ceilings applied
     const opportunitiesWithScores: OpportunitiesArtifactContent = {
       ...opportunitiesParsed.data,
       opportunities: opportunitiesParsed.data.opportunities.map((opp) => {
@@ -632,28 +700,66 @@ export async function generateResultsV2(
           }
         }
 
+        const rawScore = computeOpportunityScore(
+          opp.impact,
+          opp.effort,
+          opp.confidence,
+          linkedJtbdScore
+        )
+        // Apply score ceiling based on confidence signals (Phase 3.1)
+        const adjustedScore = applyScoreCeiling(rawScore, {
+          evidenceQuality: evidenceQualityCheck.confidence,
+          decayFactor: evidenceQualityCheck.decayFactor,
+          repairCount,
+          bannedPatternPenalty: opportunitiesBannedPatternPenalty,
+        })
         return {
           ...opp,
-          score: computeOpportunityScore(
-            opp.impact,
-            opp.effort,
-            opp.confidence,
-            linkedJtbdScore
-          ),
+          score: adjustedScore,
         }
       }),
     }
+
+    // Check opportunity score distribution (Phase 3.2)
+    const opportunityScores = opportunitiesWithScores.opportunities.map((opp) => opp.score)
+    const opportunityDistributionCheck = checkScoreDistribution(opportunityScores)
 
     // Update opportunities meta with schema_version=2
     opportunitiesWithScores.meta.run_id = runId
     opportunitiesWithScores.meta.generated_at = generatedAt
     opportunitiesWithScores.meta.schema_version = 2
 
-    // Compute quality signals
-    const signals = computeResultsV2Signals({
+    // Compute quality signals with guardrail data
+    const baseSignals = computeResultsV2Signals({
       jtbd: jtbdWithScores,
       opportunities: opportunitiesWithScores,
       scoringMatrix: scoringWithComputedScores,
+    })
+
+    // Add guardrail signals (Phase 2.1, Phase 3.2)
+    const signals: ResultsV2QualitySignals = {
+      ...baseSignals,
+      repairCount,
+      evidenceQuality: evidenceQualityCheck.confidence,
+      evidenceDecayFactor: Math.round(evidenceQualityCheck.decayFactor * 100) / 100,
+      bannedPatternPenalty: Math.round(
+        Math.max(jtbdBannedPatternPenalty, scoringBannedPatternPenalty, opportunitiesBannedPatternPenalty) * 100
+      ) / 100,
+      scoreDistributionFlags: [
+        ...scoringDistributionCheck.flags,
+        ...opportunityDistributionCheck.flags,
+      ],
+    }
+
+    // Compute overall confidence band (Phase 4.1)
+    const avgOpportunityScore = baseSignals.avgOpportunityScore
+    const avgJtbdScore = baseSignals.avgJtbdOpportunityScore
+    const avgScore = (avgOpportunityScore + avgJtbdScore) / 2
+    signals.confidenceBand = computeConfidenceBand(avgScore, {
+      evidenceQuality: evidenceQualityCheck.confidence,
+      decayFactor: evidenceQualityCheck.decayFactor,
+      repairCount,
+      bannedPatternPenalty: signals.bannedPatternPenalty,
     })
 
     onProgress?.(
@@ -667,7 +773,7 @@ export async function generateResultsV2(
     const signalsRecord = signals as unknown as Record<string, unknown>
     jtbdWithScores.meta.signals = signalsRecord
     opportunitiesWithScores.meta.signals = signalsRecord
-    scoringParsed.data.meta.signals = signalsRecord
+    scoringWithComputedScores.meta.signals = signalsRecord
 
     // Log quality signals (environment gated)
     logger.info('Results v2 generation completed', {

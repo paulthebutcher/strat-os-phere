@@ -12,6 +12,13 @@ export interface ResultsV2QualitySignals {
   criteriaCount: number
   competitorsCount: number
   hasFirstExperimentsRate: number // Percentage (0-100) of opportunities with >=2 experiments
+  // Guardrail signals
+  repairCount?: number // Total schema repair attempts
+  evidenceQuality?: 'low' | 'medium' | 'high' // Evidence quality assessment
+  evidenceDecayFactor?: number // Recency decay factor (0.0-1.0)
+  bannedPatternPenalty?: number // Banned pattern violation penalty (0.0-1.0)
+  scoreDistributionFlags?: string[] // Flags from score distribution checks
+  confidenceBand?: 'low' | 'medium' | 'high' // Overall confidence band
 }
 
 /**
