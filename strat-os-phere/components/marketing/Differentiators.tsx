@@ -22,17 +22,17 @@ export function Differentiators() {
     "Surfaces structural gaps",
     "Focuses on unmet jobs",
     "Prioritizes what competitors can't do",
-    "Produces insights you can defend in a room full of skeptics",
+    "Produces decisions you can defend in a room full of skeptics",
   ]
 
   return (
-    <section className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-24 md:py-32">
+    <section className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-32 md:py-40">
       <div className="mx-auto max-w-3xl text-center">
         <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
           Built for differentiation — not summaries
         </h2>
       </div>
-      <div className="mx-auto mt-20 grid gap-8 md:grid-cols-2 lg:max-w-5xl">
+      <div className="mx-auto mt-24 grid gap-8 md:grid-cols-2 lg:max-w-5xl">
         <div className="panel p-8 md:p-10">
           <h3 className="mb-8 text-2xl font-semibold text-text-primary">
             Most tools
@@ -48,7 +48,7 @@ export function Differentiators() {
             ))}
           </ul>
         </div>
-        <div className="panel border-2 border-accent-primary p-8 shadow-md md:p-10">
+        <div className="panel border-2 border-accent-primary p-8 shadow-sm md:p-10">
           <h3 className="mb-8 text-2xl font-semibold text-text-primary">
             Plinth
           </h3>

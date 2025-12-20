@@ -88,7 +88,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
               <p className="text-sm text-muted-foreground">
                 Add a handful of real alternatives so the analysis has something concrete to compare against.
               </p>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+              <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground" role="list">
                 <li>Add 3–7 competitors</li>
                 <li>Paste public website text (homepage/pricing/trust)</li>
                 <li>Generate exec-ready insights</li>
@@ -102,7 +102,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
         ) : competitorCount >= MAX_COMPETITORS_PER_PROJECT ? (
           <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.2fr)]">
             <div className="panel px-6 py-5">
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-muted-foreground">
                 Max {MAX_COMPETITORS_PER_PROJECT} competitors for this analysis.
               </p>
             </div>
@@ -130,7 +130,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
             <div className="space-y-6">
               {competitorCount > 0 && competitorCount < MIN_COMPETITORS_FOR_ANALYSIS && (
                 <div className="panel px-4 py-3">
-                  <p className="text-sm text-text-secondary">
+                  <p className="text-sm text-muted-foreground">
                     Add {remainingToReady} more to generate
                   </p>
                 </div>

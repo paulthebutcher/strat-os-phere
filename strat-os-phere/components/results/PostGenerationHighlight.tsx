@@ -61,59 +61,45 @@ export function PostGenerationHighlight({
   return (
     <div
       className={cn(
-        'panel border-2 border-primary/20 bg-primary/5 p-4 transition-all duration-300',
+        'panel border-l-4 border-l-primary bg-primary/5 p-5 transition-all duration-300',
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
       )}
       role="status"
       aria-live="polite"
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-4">
         <div className="mt-0.5 shrink-0">
           <Sparkles className="h-5 w-5 text-primary" aria-hidden="true" />
         </div>
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-4">
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-1">
+            <h3 className="text-base font-semibold text-foreground mb-1">
               Analysis complete
             </h3>
-            <p className="text-xs text-muted-foreground">
-              Here are the highlights from your analysis:
+            <p className="text-sm text-muted-foreground">
+              Highlights from your analysis:
             </p>
           </div>
 
           {topOpportunity && (
-            <div className="space-y-1">
+            <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
-                <span className="text-xs font-medium text-foreground">
+                <span className="text-sm font-medium text-foreground">
                   Top opportunity
                 </span>
-                <Badge variant="primary" className="text-xs">
+                <Badge variant="primary">
                   {topOpportunity.score}/100
                 </Badge>
               </div>
-              <p className="text-sm font-medium text-foreground">
+              <p className="text-sm font-medium text-foreground leading-relaxed">
                 {topOpportunity.title}
               </p>
               {topOpportunity.how_to_win?.[0] && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {topOpportunity.how_to_win[0]}
                 </p>
               )}
-            </div>
-          )}
-
-          {topOpportunity && topOpportunity.how_to_win?.[0] && (
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-                <span className="text-xs font-medium text-foreground">
-                  Strongest differentiation signal
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {topOpportunity.how_to_win[0]}
-              </p>
             </div>
           )}
         </div>

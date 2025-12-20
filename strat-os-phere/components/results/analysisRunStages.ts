@@ -17,13 +17,13 @@ export const ANALYSIS_STAGES: StageConfig[] = [
     id: 'starting',
     label: 'Preparing your analysis',
     description:
-      'We're setting up the analytical framework and validating your inputs before diving in.',
+      "We're setting up the analytical framework and validating your inputs before diving in.",
   },
   {
     id: 'gathering_inputs',
     label: 'Grounding in your context',
     description:
-      'We're anchoring the analysis in your goals, competitors, and the evidence you've provided.',
+      "We're anchoring the analysis in your goals, competitors, and the evidence you've provided.",
     signals: [
       'What each competitor explicitly claims to do',
       'What they implicitly optimize for',
@@ -34,7 +34,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
     id: 'analyzing_competitors',
     label: 'Understanding what competitors actually offer',
     description:
-      'We're separating positioning from reality by looking at features, constraints, pricing signals, and customer language.',
+      "We're separating positioning from reality by looking at features, constraints, pricing signals, and customer language.",
     signals: [
       'Capability overlaps vs. true differences',
       'Feature gaps hidden behind similar language',
@@ -45,7 +45,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
     id: 'deriving_jobs',
     label: 'Deriving real Jobs to be Done',
     description:
-      'We're translating competitor behavior into concrete jobs customers are trying to accomplish — without buzzwords or abstraction.',
+      "We're translating competitor behavior into concrete jobs customers are trying to accomplish — without buzzwords or abstraction.",
     signals: [
       'Workarounds customers rely on',
       'Jobs competitors partially serve',
@@ -56,7 +56,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
     id: 'scoring_positioning',
     label: 'Scoring competitive positioning',
     description:
-      'We're evaluating how well each competitor supports those jobs across key dimensions that actually matter in practice.',
+      "We're evaluating how well each competitor supports those jobs across key dimensions that actually matter in practice.",
     signals: [
       'Where strength is assumed but unsupported',
       'Where small gaps compound into real friction',
@@ -67,10 +67,10 @@ export const ANALYSIS_STAGES: StageConfig[] = [
     id: 'ranking_opportunities',
     label: 'Identifying differentiation opportunities',
     description:
-      'We're isolating opportunities where a new or improved product could meaningfully outperform what exists today.',
+      "We're isolating opportunities where a new or improved product could meaningfully outperform what exists today.",
     signals: [
       'Jobs that matter but are underserved',
-      'Opportunities competitors can't easily copy',
+      "Opportunities competitors can't easily copy",
       'Leverage points for first experiments',
     ],
   },
@@ -78,7 +78,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
     id: 'validating_outputs',
     label: 'Pressure-testing the results',
     description:
-      'We're checking for internal consistency, specificity, and actionability — and removing anything hand-wavy.',
+      "We're checking for internal consistency, specificity, and actionability — and removing anything hand-wavy.",
   },
   {
     id: 'saving_artifacts',

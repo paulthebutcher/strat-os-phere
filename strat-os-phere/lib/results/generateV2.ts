@@ -18,6 +18,10 @@ import {
   buildScoringMessages,
   SCORING_MATRIX_SCHEMA_SHAPE,
 } from '@/lib/prompts/scoring'
+import {
+  buildStrategicBetsMessages,
+  STRATEGIC_BETS_SCHEMA_SHAPE,
+} from '@/lib/prompts/strategicBets'
 import { buildRepairMessages } from '@/lib/prompts/repair'
 import {
   JtbdArtifactContentSchema,
@@ -31,6 +35,10 @@ import {
   ScoringMatrixArtifactContentSchema,
   type ScoringMatrixArtifactContent,
 } from '@/lib/schemas/scoring'
+import {
+  StrategicBetsArtifactContentSchema,
+  type StrategicBetsArtifactContent,
+} from '@/lib/schemas/strategicBet'
 import { safeParseLLMJson } from '@/lib/schemas/safeParseLLMJson'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
@@ -729,6 +737,151 @@ export async function generateResultsV2(
     opportunitiesWithScores.meta.generated_at = generatedAt
     opportunitiesWithScores.meta.schema_version = 2
 
+    // Phase: strategic_bets_generate
+    const tStrategicBetsStart = performance.now()
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'strategic_bets_generate',
+        'Converting opportunities into strategic bets...',
+        {
+          detail: 'Generating decision-ready commitments (4/4)',
+          meta: { llmCallsDone: 3, llmCallsTotal: 4 },
+        }
+      )
+    )
+
+    // Generate Strategic Bets (with all context)
+    const opportunitiesJson = JSON.stringify(opportunitiesWithScores)
+    const scoringJson = JSON.stringify(scoringWithComputedScores)
+    const strategicBetsMessages = buildStrategicBetsMessages({
+      project: projectContext,
+      snapshotsJson,
+      synthesisJson,
+      jtbdJson,
+      opportunitiesJson,
+      scoringJson,
+    })
+
+    let strategicBetsResponse = await callLLM({
+      messages: strategicBetsMessages,
+      jsonMode: true,
+      temperature: 0.2,
+      maxTokens: 2_400,
+    })
+
+    onProgress?.(
+      makeProgressEvent(runId, 'strategic_bets_generate', 'Strategic bets draft complete', {
+        detail: 'Validating structure...',
+        meta: { llmCallsDone: 4, llmCallsTotal: 4 },
+      })
+    )
+
+    // Phase: strategic_bets_validate
+    onProgress?.(
+      makeProgressEvent(
+        runId,
+        'strategic_bets_validate',
+        'Validating strategic bets structure...',
+        {
+          meta: {
+            repairsUsed: repairCount,
+          },
+        }
+      )
+    )
+
+    let strategicBetsParsed = safeParseLLMJson<StrategicBetsArtifactContent>(
+      strategicBetsResponse.text,
+      StrategicBetsArtifactContentSchema
+    )
+
+    if (!strategicBetsParsed.ok) {
+      repairCount += 1
+      onProgress?.(
+        makeProgressEvent(runId, 'strategic_bets_validate', 'Repairing invalid JSON...', {
+          detail: 'Model retrying due to invalid JSON (attempt 1/1)',
+          meta: { repairsUsed: repairCount },
+        })
+      )
+
+      const schemaShapeText = JSON.stringify(
+        STRATEGIC_BETS_SCHEMA_SHAPE,
+        null,
+        2
+      )
+
+      const repairMessages = buildRepairMessages({
+        rawText: strategicBetsResponse.text,
+        schemaName: 'StrategicBetsArtifactContent',
+        schemaShapeText,
+        validationErrors: strategicBetsParsed.error,
+      })
+
+      const repairResponse = await callLLM({
+        messages: repairMessages,
+        jsonMode: true,
+        temperature: 0.1,
+        maxTokens: 2_400,
+      })
+
+      strategicBetsResponse = repairResponse
+
+      strategicBetsParsed = safeParseLLMJson<StrategicBetsArtifactContent>(
+        repairResponse.text,
+        StrategicBetsArtifactContentSchema
+      )
+
+      if (!strategicBetsParsed.ok) {
+        logger.error('Strategic bets validation failed after repair', {
+          summary: summarizeValidationError(strategicBetsParsed.error),
+        })
+
+        return {
+          ok: false,
+          error: {
+            code: 'STRATEGIC_BETS_VALIDATION_FAILED',
+            message: 'Failed to validate strategic bets output.',
+          },
+          details: {
+            validationError: summarizeValidationError(strategicBetsParsed.error),
+          },
+        }
+      }
+    }
+
+    const tStrategicBetsEnd = performance.now()
+    logger.debug('Strategic bets generation completed', {
+      durationMs: Math.round(tStrategicBetsEnd - tStrategicBetsStart),
+    })
+
+    onProgress?.(
+      makeProgressEvent(runId, 'strategic_bets_validate', 'Strategic bets validated', {
+        detail: `${strategicBetsParsed.data.bets.length} strategic bets generated`,
+        meta: {
+          durationMs: Math.round(tStrategicBetsEnd - tStrategicBetsStart),
+        },
+      })
+    )
+
+    // Update strategic bets meta with schema_version and run_id
+    const strategicBetsWithMeta: StrategicBetsArtifactContent = {
+      ...strategicBetsParsed.data,
+      bets: strategicBetsParsed.data.bets.map((bet) => ({
+        ...bet,
+        meta: {
+          ...bet.meta,
+          created_at: generatedAt,
+        },
+      })),
+      meta: {
+        ...strategicBetsParsed.data.meta,
+        run_id: runId,
+        generated_at: generatedAt,
+        schema_version: 1,
+      },
+    }
+
     // Compute quality signals with guardrail data
     const baseSignals = computeResultsV2Signals({
       jtbd: jtbdWithScores,
@@ -774,6 +927,7 @@ export async function generateResultsV2(
     jtbdWithScores.meta.signals = signalsRecord
     opportunitiesWithScores.meta.signals = signalsRecord
     scoringWithComputedScores.meta.signals = signalsRecord
+    strategicBetsWithMeta.meta.signals = signalsRecord
 
     // Log quality signals (environment gated)
     logger.info('Results v2 generation completed', {
@@ -789,8 +943,8 @@ export async function generateResultsV2(
         'save_artifacts',
         'Writing outputs to your workspace...',
         {
-          detail: 'Saving Jobs, Scorecard, and Opportunities',
-          meta: { writesDone: 0, writesTotal: 3 },
+          detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
+          meta: { writesDone: 0, writesTotal: 4 },
         }
       )
     )
@@ -806,8 +960,8 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
-        detail: 'Saving Jobs, Scorecard, and Opportunities',
-        meta: { writesDone: 1, writesTotal: 3 },
+        detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
+        meta: { writesDone: 1, writesTotal: 4 },
       })
     )
 
@@ -819,8 +973,8 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
-        detail: 'Saving Jobs, Scorecard, and Opportunities',
-        meta: { writesDone: 2, writesTotal: 3 },
+        detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
+        meta: { writesDone: 2, writesTotal: 4 },
       })
     )
 
@@ -832,8 +986,21 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
+        detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
+        meta: { writesDone: 3, writesTotal: 4 },
+      })
+    )
+
+    const strategicBetsArtifact = await createArtifact(supabase, {
+      project_id: projectId,
+      type: 'strategic_bets' as any,
+      content_json: strategicBetsWithMeta as any,
+    })
+
+    onProgress?.(
+      makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
         detail: 'This lets you regenerate without losing history',
-        meta: { writesDone: 3, writesTotal: 3 },
+        meta: { writesDone: 4, writesTotal: 4 },
       })
     )
 
@@ -843,7 +1010,7 @@ export async function generateResultsV2(
       makeProgressEvent(runId, 'finalize', 'Finalizing artifacts for copy/export...', {
         detail: 'Indexing results for fast reuse',
         meta: {
-          artifactCount: 3,
+          artifactCount: 4,
           durationMs: Math.round(tTotal),
         },
       })
@@ -856,6 +1023,7 @@ export async function generateResultsV2(
         jtbdArtifact.id,
         opportunitiesArtifact.id,
         scoringArtifact.id,
+        strategicBetsArtifact.id,
       ],
       signals,
     }

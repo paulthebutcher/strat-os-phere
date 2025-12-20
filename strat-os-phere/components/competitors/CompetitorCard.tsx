@@ -83,18 +83,18 @@ export function CompetitorCard({
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-medium">{competitor.name}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {competitor.url ? (
               <a
                 href={competitor.url}
                 target="_blank"
                 rel="noreferrer"
-                className="truncate underline-offset-4 hover:underline"
+                className="truncate underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
               >
                 {competitor.url}
               </a>
             ) : null}
-            <span className="text-text-secondary">
+            <span className="text-muted-foreground">
               Added {createdLabel}
             </span>
           </div>
@@ -124,7 +124,8 @@ export function CompetitorCard({
             <button
               type="button"
               onClick={() => setExpanded((value) => !value)}
-              className="text-xs font-medium text-text-secondary underline-offset-4 hover:underline"
+              className="text-xs font-medium text-text-secondary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-expanded={expanded}
             >
               {expanded ? 'Show less' : 'Show more'}
             </button>
@@ -133,13 +134,13 @@ export function CompetitorCard({
       ) : null}
 
       {notes ? (
-        <p className="mt-2 rounded-md bg-surface-muted px-3 py-2 text-xs text-text-secondary">
+        <p className="mt-2 rounded-md bg-surface-muted px-3 py-2 text-xs text-muted-foreground">
           {notes}
         </p>
       ) : null}
 
       {showAnalysisHint ? (
-        <p className="mt-2 text-xs text-text-secondary">
+        <p className="mt-2 text-xs text-muted-foreground">
           Add {MIN_COMPETITORS_FOR_ANALYSIS - total} more competitor
           {MIN_COMPETITORS_FOR_ANALYSIS - total === 1 ? '' : 's'} to generate an
           analysis.
@@ -147,13 +148,13 @@ export function CompetitorCard({
       ) : null}
 
       {error ? (
-        <p className="mt-2 text-xs text-destructive" role="alert">
+        <p className="mt-2 text-xs text-destructive" role="alert" aria-live="assertive">
           {error}
         </p>
       ) : null}
 
       {success ? (
-        <p className="mt-2 text-xs text-text-secondary" role="status">
+        <p className="mt-2 text-xs text-text-secondary" role="status" aria-live="polite">
           {success}
         </p>
       ) : null}

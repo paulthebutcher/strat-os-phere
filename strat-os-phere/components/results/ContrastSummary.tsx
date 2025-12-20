@@ -41,18 +41,18 @@ export function ContrastSummary({
   }
 
   return (
-    <div className="panel border-l-4 border-l-primary bg-muted/30 p-4">
-      <div className="flex items-start justify-between gap-3">
+    <div className="panel border-l-4 border-l-primary bg-muted/30 p-5">
+      <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-foreground">
-              What changed since last run
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="text-base font-semibold text-foreground">
+              Changes since last run
             </h3>
-            <Badge variant="primary" className="text-xs">
+            <Badge variant="primary">
               {totalChanges} change{totalChanges !== 1 ? 's' : ''}
             </Badge>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Comparing {formatDate(latestRunDate)} with {formatDate(previousRunDate)}
           </p>
         </div>
@@ -71,25 +71,25 @@ export function ContrastSummary({
       </div>
 
       {isExpanded && (
-        <div className="mt-4 space-y-4 border-t border-border pt-4">
+        <div className="mt-5 space-y-5 border-t border-border pt-5">
           {/* JTBD Changes */}
           {summary.jtbd &&
             (summary.jtbd.added.length > 0 ||
               summary.jtbd.removed.length > 0 ||
               summary.jtbd.rankChanges.length > 0) && (
               <section>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                   Jobs To Be Done
                 </h4>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   {summary.jtbd.added.length > 0 && (
                     <div>
                       <span className="font-medium text-success">
                         +{summary.jtbd.added.length} job{summary.jtbd.added.length !== 1 ? 's' : ''} added:
                       </span>
-                      <ul className="mt-1 ml-4 list-disc space-y-1 text-xs">
+                      <ul className="mt-2 space-y-2">
                         {summary.jtbd.added.map((job, idx) => (
-                          <li key={idx} className="text-foreground">
+                          <li key={idx} className="text-foreground leading-relaxed">
                             {job.job_statement}
                           </li>
                         ))}
@@ -108,9 +108,9 @@ export function ContrastSummary({
                       <span className="font-medium text-muted-foreground">
                         {summary.jtbd.rankChanges.length} rank change{summary.jtbd.rankChanges.length !== 1 ? 's' : ''}:
                       </span>
-                      <ul className="mt-1 ml-4 list-disc space-y-1 text-xs">
+                      <ul className="mt-2 space-y-2">
                         {summary.jtbd.rankChanges.map((change, idx) => (
-                          <li key={idx} className="text-foreground">
+                          <li key={idx} className="text-foreground leading-relaxed">
                             {change.job.job_statement} (#{change.oldRank} → #{change.newRank})
                           </li>
                         ))}
@@ -127,18 +127,18 @@ export function ContrastSummary({
               summary.opportunities.removed.length > 0 ||
               summary.opportunities.scoreChanges.length > 0) && (
               <section>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                   Opportunities
                 </h4>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   {summary.opportunities.added.length > 0 && (
                     <div>
                       <span className="font-medium text-success">
                         +{summary.opportunities.added.length} opportunit{summary.opportunities.added.length !== 1 ? 'ies' : 'y'} added:
                       </span>
-                      <ul className="mt-1 ml-4 list-disc space-y-1 text-xs">
+                      <ul className="mt-2 space-y-2">
                         {summary.opportunities.added.map((opp, idx) => (
-                          <li key={idx} className="text-foreground">
+                          <li key={idx} className="text-foreground leading-relaxed">
                             {opp.title} (Score: {opp.score}/100)
                           </li>
                         ))}
@@ -157,9 +157,9 @@ export function ContrastSummary({
                       <span className="font-medium text-muted-foreground">
                         {summary.opportunities.scoreChanges.length} score change{summary.opportunities.scoreChanges.length !== 1 ? 's' : ''} (±10+):
                       </span>
-                      <ul className="mt-1 ml-4 list-disc space-y-1 text-xs">
+                      <ul className="mt-2 space-y-2">
                         {summary.opportunities.scoreChanges.map((change, idx) => (
-                          <li key={idx} className="text-foreground">
+                          <li key={idx} className="text-foreground leading-relaxed">
                             {change.opportunity.title}: {change.oldScore} → {change.newScore} (
                             {change.delta > 0 ? '+' : ''}
                             {change.delta})
@@ -175,17 +175,17 @@ export function ContrastSummary({
           {/* Scorecard Changes */}
           {summary.scorecard && summary.scorecard.scoreChanges.length > 0 && (
             <section>
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                 Scorecard
               </h4>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-3 text-sm">
                 <div>
                   <span className="font-medium text-muted-foreground">
                     {summary.scorecard.scoreChanges.length} competitor score change{summary.scorecard.scoreChanges.length !== 1 ? 's' : ''} (±10+):
                   </span>
-                  <ul className="mt-1 ml-4 list-disc space-y-1 text-xs">
+                  <ul className="mt-2 space-y-2">
                     {summary.scorecard.scoreChanges.map((change, idx) => (
-                      <li key={idx} className="text-foreground">
+                      <li key={idx} className="text-foreground leading-relaxed">
                         {change.competitor}: {change.oldScore.toFixed(1)} → {change.newScore.toFixed(1)} (
                         {change.delta > 0 ? '+' : ''}
                         {change.delta.toFixed(1)})

@@ -24,12 +24,14 @@ function ConfidentialInfoDisclosure() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-xs text-text-secondary underline-offset-4 hover:underline"
+        className="text-xs text-text-secondary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        aria-expanded={isOpen}
+        aria-label="Why should I keep evidence public?"
       >
         Why?
       </button>
       {isOpen && (
-        <p className="mt-1 text-xs text-text-secondary">
+        <p className="mt-1 text-xs text-muted-foreground">
           We use this text to generate summaries. Keep it public to avoid risk.
         </p>
       )}
@@ -344,18 +346,18 @@ export function CompetitorForm({
         <p className="text-xs uppercase tracking-wide text-text-secondary">
           Step 2
         </p>
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-lg font-semibold text-foreground">
           {isFirstCompetitor
             ? 'Add competitors to map the landscape'
             : 'Add another competitor'}
         </h2>
         {isFirstCompetitor ? (
           <div className="space-y-2">
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-muted-foreground">
               Add a handful of real alternatives so the analysis has something
               concrete to compare against.
             </p>
-            <ul className="list-disc space-y-1 pl-5 text-xs text-text-secondary">
+            <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground" role="list">
               <li>Add 3–7 competitors</li>
               <li>Paste public homepage, pricing, or feature copy</li>
               <li>Generate an exec-ready landscape summary</li>
@@ -363,7 +365,7 @@ export function CompetitorForm({
             <EvidenceHelpers className="mt-2" />
           </div>
         ) : (
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-muted-foreground">
             You can add up to {MAX_COMPETITORS_PER_PROJECT} competitors per
             analysis. Remaining slots: {competitorsRemaining}.
           </p>
@@ -422,14 +424,14 @@ export function CompetitorForm({
               <button
                 type="button"
                 onClick={handleTrimWhitespace}
-                className="text-xs text-text-secondary underline-offset-4 hover:underline"
+                className="text-xs text-text-secondary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 Trim whitespace
               </button>
               <button
                 type="button"
                 onClick={handleSplitIntoSections}
-                className="text-xs text-text-secondary underline-offset-4 hover:underline"
+                className="text-xs text-text-secondary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 Split into sections
               </button>
@@ -442,23 +444,26 @@ export function CompetitorForm({
             value={evidence}
             onChange={(event) => handleEvidenceChange(event.target.value)}
             placeholder="Paste key marketing copy, pricing details, or a feature overview."
+            aria-describedby="competitor-evidence-helper competitor-evidence-count"
           />
 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <p className={cn('max-w-xs', qualityToneClass)}>{qualityLabel}</p>
+              <p id="competitor-evidence-helper" className={cn('max-w-xs', qualityToneClass)}>{qualityLabel}</p>
               <span
+                id="competitor-evidence-count"
                 className={cn(
                   'tabular-nums text-text-secondary',
                   evidenceLength > MAX_EVIDENCE_CHARS && 'text-destructive'
                 )}
+                aria-live="polite"
               >
                 {evidenceLength.toLocaleString()} /{' '}
                 {MAX_EVIDENCE_CHARS.toLocaleString()}
               </span>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-muted-foreground">
                 Paste public website text only. Don't paste confidential or customer data.
               </p>
               <ConfidentialInfoDisclosure />
@@ -467,20 +472,20 @@ export function CompetitorForm({
         </div>
 
         {error ? (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="text-sm text-destructive" role="alert" aria-live="assertive">
             {error}
           </p>
         ) : null}
 
         {success ? (
-          <p className="text-sm text-text-secondary" role="status">
+          <p className="text-sm text-text-secondary" role="status" aria-live="polite">
             {success}
           </p>
         ) : null}
 
         <div className="flex items-center justify-between gap-4 pt-2">
-          <p className="text-xs text-text-secondary">
-            <span className="text-destructive">*</span> Required fields
+          <p className="text-xs text-muted-foreground">
+            <span className="text-destructive" aria-label="required">*</span> Required fields
           </p>
           <Button type="submit" disabled={submitting || isAtCap}>
             {submitting ? 'Adding…' : 'Add competitor'}

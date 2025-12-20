@@ -10,6 +10,7 @@ export type RepairableSchemaName =
   | 'JtbdArtifactContent'
   | 'OpportunitiesArtifactContent'
   | 'ScoringMatrixArtifactContent'
+  | 'StrategicBetsArtifactContent'
 
 export interface RepairPromptParams {
   rawText: string

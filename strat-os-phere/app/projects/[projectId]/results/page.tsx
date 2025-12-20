@@ -21,6 +21,7 @@ import { getProjectById } from '@/lib/data/projects'
 import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import type { ScoringMatrixArtifactContent } from '@/lib/schemas/scoring'
+import type { StrategicBetsArtifactContent } from '@/lib/schemas/strategicBet'
 import {
   normalizeResultsArtifacts,
   formatProfilesToMarkdown,
@@ -31,11 +32,13 @@ import {
   formatJtbdToMarkdown,
   formatOpportunitiesV2ToMarkdown,
   formatScoringMatrixToMarkdown,
+  formatStrategicBetsToMarkdown,
   type NormalizedProfilesArtifact,
   type NormalizedSynthesisArtifact,
   type NormalizedJtbdArtifact,
   type NormalizedOpportunitiesV2Artifact,
   type NormalizedScoringMatrixArtifact,
+  type NormalizedStrategicBetsArtifact,
 } from '@/lib/results/normalizeArtifacts'
 import {
   getJtbdLineage,
@@ -64,6 +67,7 @@ type TabId =
   | 'jobs'
   | 'scorecard'
   | 'opportunities_v2'
+  | 'strategic_bets'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'profiles', label: 'Profiles' },
@@ -74,6 +78,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'jobs', label: 'Jobs' },
   { id: 'scorecard', label: 'Scorecard' },
   { id: 'opportunities_v2', label: 'Opportunities' },
+  { id: 'strategic_bets', label: 'Strategic Bets' },
 ]
 
 /**
@@ -184,6 +189,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
     jtbd,
     opportunitiesV2,
     scoringMatrix,
+    strategicBets,
     runId,
     generatedAt,
   } = normalized
@@ -203,7 +209,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
     }
   )
   const hasAnyArtifacts = Boolean(
-    profiles || synthesis || jtbd || opportunitiesV2 || scoringMatrix
+    profiles || synthesis || jtbd || opportunitiesV2 || scoringMatrix || strategicBets
   )
   const effectiveCompetitorCount =
     normalized.competitorCount ?? competitorCount
@@ -237,6 +243,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
     opportunitiesV2?.content
   )
   const scoringMarkdown = formatScoringMatrixToMarkdown(scoringMatrix?.content)
+  const strategicBetsMarkdown = formatStrategicBetsToMarkdown(strategicBets?.content)
 
   const copyContent =
     activeTab === 'profiles'
@@ -253,67 +260,55 @@ export default async function ResultsPage(props: ResultsPageProps) {
       ? jtbdMarkdown
       : activeTab === 'opportunities_v2'
       ? opportunitiesV2Markdown
+      : activeTab === 'strategic_bets'
+      ? strategicBetsMarkdown
       : scoringMarkdown
 
   return (
     <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
       <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-        <header className="flex flex-col gap-4 border-b border-border-subtle pb-4 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wide text-text-muted">
-              Module 1 · Competitive & landscape scan
-            </p>
-            <h1>{project.name}</h1>
-            <p className="text-sm text-text-secondary">
-              AI-generated analysis based on your curated competitors and pasted
-              evidence.
-            </p>
-            <p className="text-xs text-text-muted italic">
-              Insights are based on publicly available information from the last 90 days, including marketing sites, reviews, pricing pages, changelogs, and documentation.
-            </p>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+        <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:pb-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold text-foreground tracking-tight">{project.name}</h1>
+              <p className="text-base text-muted-foreground">
+                Competitive landscape analysis and strategic insights
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
               <span>
-                Competitors:{' '}
-                <span className="font-medium">
-                  {effectiveCompetitorCount.toString()}
-                </span>
+                <span className="font-medium text-foreground">{effectiveCompetitorCount}</span> competitors analyzed
               </span>
               {formattedGeneratedAt ? (
                 <span>
-                  Last generated:{' '}
-                  <span className="font-medium">{formattedGeneratedAt}</span>
-                </span>
-              ) : (
-                <span>Not generated yet</span>
-              )}
-              {runId ? (
-                <span className="hidden sm:inline">
-                  Run ID:{' '}
-                  <span className="font-mono text-[11px]">{runId}</span>
+                  Generated <span className="font-medium text-foreground">{formattedGeneratedAt}</span>
                 </span>
               ) : null}
             </div>
+            <p className="text-xs text-muted-foreground max-w-2xl">
+              Insights derived from publicly available information from the past 90 days, including marketing materials, reviews, pricing, changelogs, and documentation.
+            </p>
           </div>
 
           <div className="flex flex-col items-start gap-3 text-left md:items-end md:text-right">
-            <nav className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+            <nav className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground" aria-label="Project navigation">
               <Link
                 href="/dashboard"
-                className="underline-offset-4 hover:text-text-primary hover:underline transition-colors"
+                className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
               >
                 Dashboard
               </Link>
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true" className="text-border">·</span>
               <Link
                 href={`/projects/${project.id}`}
-                className="underline-offset-4 hover:text-text-primary hover:underline transition-colors"
+                className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
               >
                 Overview
               </Link>
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true" className="text-border">·</span>
               <Link
                 href={`/projects/${project.id}/competitors`}
-                className="underline-offset-4 hover:text-text-primary hover:underline transition-colors"
+                className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
               >
                 Competitors
               </Link>
@@ -324,63 +319,42 @@ export default async function ResultsPage(props: ResultsPageProps) {
                 <RegenerateButton
                   projectId={project.id}
                   competitorCount={effectiveCompetitorCount}
-                  label="Regenerate Results"
+                  label="Regenerate"
                 />
               ) : null}
               {!hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
-                <GenerateResultsV2Button projectId={project.id} label="Generate Results" />
+                <GenerateResultsV2Button projectId={project.id} label="Generate Analysis" />
               ) : null}
             </div>
-            {jtbd || opportunitiesV2 || scoringMatrix ? (
-              <p className="text-xs text-text-secondary">
-                Results v2 last generated:{' '}
-                <span className="font-medium">
-                  {formattedGeneratedAt || 'Unknown'}
-                </span>
-              </p>
-            ) : null}
             <ArtifactsDebugPanel projectId={project.id} />
           </div>
         </header>
 
         {!hasAnyArtifacts ? (
-          <section className="panel flex flex-col gap-4 p-6">
-            <div className="space-y-2">
-              <h2 className="text-base font-semibold text-text-primary">
-                No results yet
+          <section className="flex flex-col items-center justify-center py-16 px-6">
+            <div className="w-full max-w-md space-y-4 text-center">
+              <h2 className="text-xl font-semibold text-foreground">
+                Analysis not yet generated
               </h2>
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-muted-foreground">
                 {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS
-                  ? 'Run an analysis to see profiles, themes, and opportunities here.'
-                  : `Add at least ${MIN_COMPETITORS_FOR_ANALYSIS} competitors to generate analysis.`}
+                  ? 'Generate your first analysis to view competitive insights, jobs to be done, and strategic opportunities.'
+                  : `Add at least ${MIN_COMPETITORS_FOR_ANALYSIS} competitors to begin analysis.`}
               </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
-                <GenerateResultsV2Button
-                  projectId={project.id}
-                  label="Generate Results"
-                />
-              ) : (
-                <Button asChild type="button" size="sm">
-                  <Link href={`/projects/${project.id}/competitors`}>
-                    Add competitors
-                  </Link>
-                </Button>
-              )}
-              <Button
-                asChild
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="px-2"
-              >
-                <Link href={`/projects/${project.id}/competitors`}>
-                  {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS
-                    ? 'Back to competitors'
-                    : 'Go to competitors'}
-                </Link>
-              </Button>
+              <div className="pt-2">
+                {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
+                  <GenerateResultsV2Button
+                    projectId={project.id}
+                    label="Generate Analysis"
+                  />
+                ) : (
+                  <Button asChild type="button" size="default">
+                    <Link href={`/projects/${project.id}/competitors`}>
+                      Add Competitors
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
           </section>
         ) : (
@@ -416,10 +390,10 @@ export default async function ResultsPage(props: ResultsPageProps) {
               />
             ) : null}
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
               <nav
                 className="tabs-list"
-                aria-label="Module 1 analysis sections"
+                aria-label="Analysis sections"
               >
                 {TABS.map((tab) => (
                   <Link
@@ -427,12 +401,13 @@ export default async function ResultsPage(props: ResultsPageProps) {
                     href={`/projects/${project.id}/results?tab=${tab.id}${frameParam ? `&frame=${frameParam}` : ''}`}
                     className="tabs-trigger"
                     data-state={activeTab === tab.id ? 'active' : 'inactive'}
+                    aria-current={activeTab === tab.id ? 'page' : undefined}
                   >
                     {tab.label}
                   </Link>
                 ))}
               </nav>
-              <CopySectionButton content={copyContent} label="Copy" />
+              <CopySectionButton content={copyContent} label="Copy section" />
             </div>
 
             {/* Frame Toggle - only show for v2 tabs */}
@@ -481,6 +456,14 @@ export default async function ResultsPage(props: ResultsPageProps) {
                 />
               </ProgressiveReveal>
             ) : null}
+            {activeTab === 'strategic_bets' ? (
+              <ProgressiveReveal order={3} enabled={Boolean(strategicBets)}>
+                <StrategicBetsSection
+                  strategicBets={strategicBets?.content}
+                  projectId={project.id}
+                />
+              </ProgressiveReveal>
+            ) : null}
           </section>
         )}
       </main>
@@ -495,33 +478,37 @@ interface ProfilesSectionProps {
 function ProfilesSection({ profiles }: ProfilesSectionProps) {
   if (!profiles || profiles.snapshots.length === 0) {
     return (
-      <section className="panel p-5 text-sm text-text-secondary">
-        <p>No competitor profiles are available yet for this project.</p>
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-2 text-center">
+          <p className="text-sm text-muted-foreground">
+            Competitor profiles will appear here after analysis is generated.
+          </p>
+        </div>
       </section>
     )
   }
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       {profiles.snapshots.map((snapshot, index) => (
-        <article key={`${snapshot.competitor_name}-${index}`} className="panel p-4">
-          <header className="mb-3 space-y-1">
-            <h2 className="text-sm font-semibold">
+        <article key={`${snapshot.competitor_name}-${index}`} className="panel p-6">
+          <header className="mb-6 space-y-2">
+            <h2 className="text-lg font-semibold text-foreground">
               {snapshot.competitor_name}
             </h2>
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {snapshot.positioning_one_liner}
             </p>
           </header>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3 text-sm">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-5">
               <SnapshotList
-                title="Key value props"
+                title="Value propositions"
                 items={snapshot.key_value_props}
               />
               <SnapshotList
-                title="Notable capabilities"
+                title="Capabilities"
                 items={snapshot.notable_capabilities}
               />
               <SnapshotList
@@ -534,15 +521,15 @@ function ProfilesSection({ profiles }: ProfilesSectionProps) {
               />
               {snapshot.customer_struggles && snapshot.customer_struggles.length > 0 ? (
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">
-                    What customers struggle with today
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                    Customer struggles
                   </h3>
-                  <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+                  <ul className="space-y-2">
                     {snapshot.customer_struggles.map((struggle, index) => {
                       const lineage = getStruggleLineage(struggle, snapshot, profiles ? { signals: {} } : undefined)
                       return (
-                        <li key={index} className="flex items-start justify-between gap-2">
-                          <span>{struggle}</span>
+                        <li key={index} className="flex items-start justify-between gap-3 text-sm">
+                          <span className="text-foreground">{struggle}</span>
                           <LineageLink lineage={lineage} title={struggle} />
                         </li>
                       )
@@ -552,22 +539,22 @@ function ProfilesSection({ profiles }: ProfilesSectionProps) {
               ) : null}
             </div>
 
-            <div className="space-y-3 text-sm">
+            <div className="space-y-5">
               {snapshot.proof_points?.length ? (
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                    Proof points
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+                    Evidence
                   </h3>
-                  <ul className="mt-2 space-y-2 text-xs">
+                  <ul className="space-y-4">
                     {snapshot.proof_points.map((proof, proofIndex) => (
-                      <li key={proofIndex}>
-                        <p className="font-medium">{proof.claim}</p>
-            <p className="mt-1 italic text-text-secondary">
-              "{proof.evidence_quote}"
-            </p>
-            <p className="mt-1 text-[11px] text-text-muted">
-              Confidence: {proof.confidence}
-            </p>
+                      <li key={proofIndex} className="space-y-2">
+                        <p className="text-sm font-medium text-foreground">{proof.claim}</p>
+                        <p className="text-sm italic text-muted-foreground leading-relaxed">
+                          "{proof.evidence_quote}"
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Confidence: <span className="font-medium">{proof.confidence}</span>
+                        </p>
                       </li>
                     ))}
                   </ul>
@@ -591,12 +578,12 @@ function SnapshotList({ title, items }: SnapshotListProps) {
 
   return (
     <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
         {title}
       </h3>
-      <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+      <ul className="space-y-2">
         {items.map((item, index) => (
-          <li key={index}>{item}</li>
+          <li key={index} className="text-sm text-foreground leading-relaxed">{item}</li>
         ))}
       </ul>
     </div>
@@ -612,8 +599,12 @@ function ThemesSection({ synthesis }: SynthesisSectionProps) {
 
   if (!value) {
     return (
-      <section className="panel p-5 text-sm text-text-secondary">
-        <p>No themes are available yet for this project.</p>
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-2 text-center">
+          <p className="text-sm text-muted-foreground">
+            Market themes will appear here after analysis is generated.
+          </p>
+        </div>
       </section>
     )
   }
@@ -621,29 +612,29 @@ function ThemesSection({ synthesis }: SynthesisSectionProps) {
   const { market_summary, themes } = value
 
   return (
-    <section className="space-y-4">
-      <article className="panel p-4">
-        <h2 className="text-sm font-semibold">
+    <section className="space-y-6">
+      <article className="panel p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-5">
           {market_summary.headline}
         </h2>
-        <div className="mt-3 grid gap-4 md:grid-cols-2">
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-              What is changing
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Market shifts
             </h3>
-            <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+            <ul className="space-y-2">
               {market_summary.what_is_changing.map((item, index) => (
-                <li key={index}>{item}</li>
+                <li key={index} className="text-sm text-foreground leading-relaxed">{item}</li>
               ))}
             </ul>
           </div>
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-              What buyers care about
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Buyer priorities
             </h3>
-            <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
+            <ul className="space-y-2">
               {market_summary.what_buyers_care_about.map((item, index) => (
-                <li key={index}>{item}</li>
+                <li key={index} className="text-sm text-foreground leading-relaxed">{item}</li>
               ))}
             </ul>
           </div>
@@ -651,23 +642,26 @@ function ThemesSection({ synthesis }: SynthesisSectionProps) {
       </article>
 
       {themes?.length ? (
-        <div className="grid gap-3 md:grid-cols-2">
-          {themes.map((theme, index) => (
-            <article key={index} className="panel p-4">
-              <h3 className="text-sm font-semibold">{theme.theme}</h3>
-              <p className="mt-1 text-sm text-text-secondary">
-                {theme.description}
-              </p>
-              {theme.competitors_supporting?.length ? (
-                <p className="mt-2 text-xs text-text-secondary">
-                  Competitors supporting:{' '}
-                  <span className="font-medium">
-                    {theme.competitors_supporting.join(', ')}
-                  </span>
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-4">Differentiation themes</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {themes.map((theme, index) => (
+              <article key={index} className="panel p-5">
+                <h3 className="text-sm font-semibold text-foreground mb-2">{theme.theme}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                  {theme.description}
                 </p>
-              ) : null}
-            </article>
-          ))}
+                {theme.competitors_supporting?.length ? (
+                  <p className="text-xs text-muted-foreground">
+                    Supported by:{' '}
+                    <span className="font-medium text-foreground">
+                      {theme.competitors_supporting.join(', ')}
+                    </span>
+                  </p>
+                ) : null}
+              </article>
+            ))}
+          </div>
         </div>
       ) : null}
     </section>
@@ -679,8 +673,12 @@ function PositioningSection({ synthesis }: SynthesisSectionProps) {
 
   if (!value) {
     return (
-      <section className="panel p-5 text-sm text-text-secondary">
-        <p>No positioning analysis is available yet for this project.</p>
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-2 text-center">
+          <p className="text-sm text-muted-foreground">
+            Positioning analysis will appear here after analysis is generated.
+          </p>
+        </div>
       </section>
     )
   }
@@ -688,59 +686,60 @@ function PositioningSection({ synthesis }: SynthesisSectionProps) {
   const { positioning_map_text, clusters } = value
 
   return (
-    <section className="space-y-4">
-      <article className="panel p-4">
-        <h2 className="text-sm font-semibold">Positioning map</h2>
-        <p className="mt-1 text-sm text-text-secondary">
-          Axes:{' '}
-          <span className="font-medium">
-            {positioning_map_text.axis_x} (x) · {positioning_map_text.axis_y}{' '}
-            (y)
-          </span>
-        </p>
+    <section className="space-y-6">
+      <article className="panel p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-5">Positioning map</h2>
+        <div className="mb-5">
+          <p className="text-sm text-muted-foreground">
+            Axes:{' '}
+            <span className="font-medium text-foreground">
+              {positioning_map_text.axis_x} (x) · {positioning_map_text.axis_y} (y)
+            </span>
+          </p>
+        </div>
         {positioning_map_text.quadrants?.length ? (
-          <ul className="mt-3 space-y-2 text-sm">
+          <div className="space-y-3">
             {positioning_map_text.quadrants.map((quadrant, index) => (
-              <li key={index} className="rounded-md bg-surface-muted px-3 py-2">
-                <p className="text-xs font-semibold uppercase tracking-wide">
+              <div key={index} className="rounded-md bg-surface-muted px-4 py-3 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-foreground">
                   {quadrant.name}
                 </p>
-                <p className="mt-1 text-xs text-text-secondary">
+                <p className="text-sm text-muted-foreground">
                   Competitors:{' '}
-                  <span className="font-medium">
+                  <span className="font-medium text-foreground">
                     {quadrant.competitors.join(', ')}
                   </span>
                 </p>
-                <p className="mt-1 text-xs text-text-secondary">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {quadrant.notes}
                 </p>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : null}
       </article>
 
       {clusters?.length ? (
-        <article className="panel p-4">
-          <h2 className="text-sm font-semibold">Clusters</h2>
-          <ul className="mt-3 space-y-2 text-sm">
+        <article className="panel p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-5">Competitor clusters</h2>
+          <div className="space-y-3">
             {clusters.map((cluster, index) => (
-              <li key={index} className="rounded-md bg-surface-muted px-3 py-2">
-                <p className="text-xs font-semibold uppercase tracking-wide">
+              <div key={index} className="rounded-md bg-surface-muted px-4 py-3 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-foreground">
                   {cluster.cluster_name}
                 </p>
-                <p className="mt-1 text-xs text-text-secondary">
-                  Who is in it:{' '}
-                  <span className="font-medium">
+                <p className="text-sm text-muted-foreground">
+                  Members:{' '}
+                  <span className="font-medium text-foreground">
                     {cluster.who_is_in_it.join(', ')}
                   </span>
                 </p>
-                <p className="mt-1 text-xs text-text-secondary">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {cluster.cluster_logic}
                 </p>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </article>
       ) : null}
     </section>
@@ -752,8 +751,12 @@ function OpportunitiesSection({ synthesis }: SynthesisSectionProps) {
 
   if (!value || !value.opportunities?.length) {
     return (
-      <section className="panel p-5 text-sm text-text-secondary">
-        <p>No opportunities are available yet for this project.</p>
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-2 text-center">
+          <p className="text-sm text-muted-foreground">
+            Opportunities will appear here after analysis is generated.
+          </p>
+        </div>
       </section>
     )
   }
@@ -763,38 +766,38 @@ function OpportunitiesSection({ synthesis }: SynthesisSectionProps) {
   )
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-5">
       {opportunities.map((opportunity, index) => (
-        <article key={index} className="panel p-4">
-          <header className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-sm font-semibold">
+        <article key={index} className="panel p-6">
+          <header className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-base font-semibold text-foreground">
               {opportunity.opportunity}
             </h2>
-            <span className="text-xs text-text-secondary">
+            <Badge variant="secondary">
               Priority {opportunity.priority}
-            </span>
+            </Badge>
           </header>
-          <div className="space-y-1 text-sm">
-            <p>
-              <span className="font-medium">Who it serves:</span>{' '}
-              {opportunity.who_it_serves}
-            </p>
-            <p>
-              <span className="font-medium">Why now:</span>{' '}
-              {opportunity.why_now}
-            </p>
-            <p>
-              <span className="font-medium">Why competitors miss it:</span>{' '}
-              {opportunity.why_competitors_miss_it}
-            </p>
-            <p>
-              <span className="font-medium">Suggested angle:</span>{' '}
-              {opportunity.suggested_angle}
-            </p>
-            <p>
-              <span className="font-medium">Risk or assumption:</span>{' '}
-              {opportunity.risk_or_assumption}
-            </p>
+          <div className="space-y-4 text-sm">
+            <div>
+              <span className="font-medium text-foreground">Who it serves:</span>{' '}
+              <span className="text-muted-foreground">{opportunity.who_it_serves}</span>
+            </div>
+            <div>
+              <span className="font-medium text-foreground">Why now:</span>{' '}
+              <span className="text-muted-foreground">{opportunity.why_now}</span>
+            </div>
+            <div>
+              <span className="font-medium text-foreground">Why competitors miss it:</span>{' '}
+              <span className="text-muted-foreground">{opportunity.why_competitors_miss_it}</span>
+            </div>
+            <div>
+              <span className="font-medium text-foreground">Suggested angle:</span>{' '}
+              <span className="text-muted-foreground">{opportunity.suggested_angle}</span>
+            </div>
+            <div>
+              <span className="font-medium text-foreground">Risk or assumption:</span>{' '}
+              <span className="text-muted-foreground">{opportunity.risk_or_assumption}</span>
+            </div>
           </div>
         </article>
       ))}
@@ -810,46 +813,52 @@ function AnglesSection({ synthesis }: SynthesisSectionProps) {
     !value.recommended_differentiation_angles?.length
   ) {
     return (
-      <section className="panel p-5 text-sm text-text-secondary">
-        <p>No differentiation angles are available yet for this project.</p>
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-2 text-center">
+          <p className="text-sm text-muted-foreground">
+            Differentiation angles will appear here after analysis is generated.
+          </p>
+        </div>
       </section>
     )
   }
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-5">
       {value.recommended_differentiation_angles.map((angle, index) => (
-        <article key={index} className="panel p-4">
-          <h2 className="text-sm font-semibold">{angle.angle}</h2>
-          <p className="mt-1 text-sm text-text-secondary">
+        <article key={index} className="panel p-6">
+          <h2 className="text-base font-semibold text-foreground mb-3">{angle.angle}</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-5">
             {angle.what_to_claim}
           </p>
 
-          {angle.how_to_prove?.length ? (
-            <div className="mt-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                How to prove
-              </h3>
-              <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
-                {angle.how_to_prove.map((item, itemIndex) => (
-                  <li key={itemIndex}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+          <div className="space-y-4">
+            {angle.how_to_prove?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  How to prove
+                </h3>
+                <ul className="space-y-2">
+                  {angle.how_to_prove.map((item, itemIndex) => (
+                    <li key={itemIndex} className="text-sm text-foreground leading-relaxed">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
-          {angle.watch_out_for?.length ? (
-            <div className="mt-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                Watch out for
-              </h3>
-              <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
-                {angle.watch_out_for.map((item, itemIndex) => (
-                  <li key={itemIndex}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+            {angle.watch_out_for?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Considerations
+                </h3>
+                <ul className="space-y-2">
+                  {angle.watch_out_for.map((item, itemIndex) => (
+                    <li key={itemIndex} className="text-sm text-foreground leading-relaxed">{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
         </article>
       ))}
     </section>
@@ -891,27 +900,27 @@ function RecommendedNextStepsPanel({
   ].join('\n\n')
 
   return (
-    <article className="panel p-4">
-      <div className="flex items-start justify-between gap-3 mb-3">
+    <article className="panel p-6">
+      <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-sm font-semibold">Recommended next steps</h2>
-          <p className="mt-1 text-xs text-text-secondary">
-            Top opportunities to start working on now
+          <h2 className="text-base font-semibold text-foreground">Recommended next steps</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Highest-scoring opportunities to prioritize
           </p>
         </div>
         <CopySectionButton content={panelContent} label="Copy" />
       </div>
-      <div className="space-y-4">
+      <div className="space-y-5">
         {topOpportunities.map((opp, index) => (
-          <div key={index} className="border-b border-border-subtle pb-4 last:border-b-0 last:pb-0">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="text-sm font-semibold">{opp.title}</h3>
-              <Badge variant="primary">{opp.score}/100</Badge>
+          <div key={index} className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-sm font-semibold text-foreground">{opp.title}</h3>
+              <Badge variant="primary" className="shrink-0">{opp.score}/100</Badge>
             </div>
             {opp.first_experiments && opp.first_experiments.length > 0 ? (
-              <ul className="list-disc space-y-1 pl-4 text-xs">
+              <ul className="space-y-2">
                 {opp.first_experiments.slice(0, 3).map((exp, expIndex) => (
-                  <li key={expIndex}>{exp}</li>
+                  <li key={expIndex} className="text-sm text-muted-foreground leading-relaxed">{exp}</li>
                 ))}
               </ul>
             ) : null}
@@ -931,14 +940,16 @@ interface JtbdSectionProps {
 function JtbdSection({ jtbd, projectId, frame }: JtbdSectionProps) {
   if (!jtbd || !jtbd.jobs?.length) {
     return (
-      <section className="panel p-5 space-y-3">
-        <div className="text-sm text-text-secondary">
-          <p>No Jobs To Be Done are available yet for this project.</p>
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Jobs To Be Done will appear here after analysis is generated.
+          </p>
+          <GenerateResultsV2Button
+            projectId={projectId}
+            label="Generate Analysis"
+          />
         </div>
-        <GenerateResultsV2Button
-          projectId={projectId}
-          label="Generate Results v2"
-        />
       </section>
     )
   }
@@ -952,11 +963,11 @@ function JtbdSection({ jtbd, projectId, frame }: JtbdSectionProps) {
       : selectByJobs(jtbd) // Default to jobs frame
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       {/* Explainer */}
-      <div className="panel p-3 bg-muted/50 border-border">
-        <p className="text-xs text-text-secondary">
-          <strong>Jobs To Be Done (JTBD)</strong> describe the specific tasks customers need to accomplish. Each job includes measurable outcomes and an opportunity score based on importance and current satisfaction. Use these to prioritize features and validate solutions.
+      <div className="rounded-lg bg-muted/50 border border-border p-4">
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Jobs To Be Done describe the specific tasks customers need to accomplish. Each job includes measurable outcomes and an opportunity score based on importance and current satisfaction.
         </p>
       </div>
       {frameGroups.map((group) =>
@@ -966,132 +977,128 @@ function JtbdSection({ jtbd, projectId, frame }: JtbdSectionProps) {
             const job = item.job
             const lineage = getJtbdLineage(job, jtbd)
             return (
-              <article key={`${group.id}-${index}`} className="panel p-4">
-                <header className="mb-3 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h2 className="text-sm font-semibold">{job.job_statement}</h2>
-                    <div className="flex items-center gap-2">
+              <article key={`${group.id}-${index}`} className="panel p-6">
+                <header className="mb-5 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <h2 className="text-base font-semibold text-foreground leading-snug">{job.job_statement}</h2>
+                    <div className="flex items-center gap-2 shrink-0">
                       <LineageLink lineage={lineage} title={job.job_statement} />
-                      <Badge variant="primary" className="shrink-0">
-                        Score: {job.opportunity_score}/100
+                      <Badge variant="primary">
+                        {job.opportunity_score}/100
                       </Badge>
                     </div>
                   </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
-              <span>
-                <span className="font-medium">Who:</span> {job.who}
-              </span>
-              <span>·</span>
-              <span>
-                <span className="font-medium">Frequency:</span> {job.frequency}
-              </span>
-              <span>·</span>
-              <span>
-                <span className="font-medium">Importance:</span> {job.importance_score}/5
-              </span>
-              <span>·</span>
-              <span>
-                <span className="font-medium">Satisfaction:</span> {job.satisfaction_score}/5
-              </span>
-            </div>
-          </header>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    <span>
+                      <span className="font-medium text-foreground">Who:</span> {job.who}
+                    </span>
+                    <span>
+                      <span className="font-medium text-foreground">Frequency:</span> {job.frequency}
+                    </span>
+                    <span>
+                      <span className="font-medium text-foreground">Importance:</span> {job.importance_score}/5
+                    </span>
+                    <span>
+                      <span className="font-medium text-foreground">Satisfaction:</span> {job.satisfaction_score}/5
+                    </span>
+                  </div>
+                </header>
 
-          <div className="space-y-3 text-sm">
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                Context
-              </h3>
-              <p className="mt-1">{job.context}</p>
-            </div>
+                <div className="space-y-5">
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                      Context
+                    </h3>
+                    <p className="text-sm text-foreground leading-relaxed">{job.context}</p>
+                  </div>
 
-            {job.desired_outcomes?.length ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Desired Outcomes
-                </h3>
-                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
-                  {job.desired_outcomes.map((outcome, outcomeIndex) => (
-                    <li key={outcomeIndex}>{outcome}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+                  {job.desired_outcomes?.length ? (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Desired outcomes
+                      </h3>
+                      <ul className="space-y-2">
+                        {job.desired_outcomes.map((outcome, outcomeIndex) => (
+                          <li key={outcomeIndex} className="text-sm text-foreground leading-relaxed">{outcome}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
 
-            {job.constraints?.length ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Constraints
-                </h3>
-                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
-                  {job.constraints.map((constraint, constraintIndex) => (
-                    <li key={constraintIndex}>{constraint}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+                  {job.constraints?.length ? (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Constraints
+                      </h3>
+                      <ul className="space-y-2">
+                        {job.constraints.map((constraint, constraintIndex) => (
+                          <li key={constraintIndex} className="text-sm text-foreground leading-relaxed">{constraint}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
 
-            {job.current_workarounds?.length ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Current Workarounds
-                </h3>
-                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
-                  {job.current_workarounds.map((workaround, workaroundIndex) => (
-                    <li key={workaroundIndex}>{workaround}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+                  {job.current_workarounds?.length ? (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Current workarounds
+                      </h3>
+                      <ul className="space-y-2">
+                        {job.current_workarounds.map((workaround, workaroundIndex) => (
+                          <li key={workaroundIndex} className="text-sm text-foreground leading-relaxed">{workaround}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
 
-            {job.non_negotiables?.length ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Non-negotiables
-                </h3>
-                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
-                  {job.non_negotiables.map((nonNegotiable, nonNegotiableIndex) => (
-                    <li key={nonNegotiableIndex}>{nonNegotiable}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+                  {job.non_negotiables?.length ? (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Non-negotiables
+                      </h3>
+                      <ul className="space-y-2">
+                        {job.non_negotiables.map((nonNegotiable, nonNegotiableIndex) => (
+                          <li key={nonNegotiableIndex} className="text-sm text-foreground leading-relaxed">{nonNegotiable}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
 
-            {job.evidence?.length ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Evidence
-                </h3>
-                <ul className="mt-1 space-y-1 text-xs">
-                  {job.evidence.map((ev, evIndex) => (
-                    <li key={evIndex}>
-                      {ev.competitor && (
-                        <span className="font-medium">{ev.competitor}</span>
-                      )}
-                      {ev.citation && (
-                        <span className="ml-1 text-text-secondary">
-                          {' '}
-                          (<a
-                            href={ev.citation}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline"
-                          >
-                            source
-                          </a>)
-                        </span>
-                      )}
-                      {ev.quote && (
-                        <p className="mt-1 italic text-text-secondary">
-                          "{ev.quote}"
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
-        </article>
+                  {job.evidence?.length ? (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Evidence
+                      </h3>
+                      <ul className="space-y-3">
+                        {job.evidence.map((ev, evIndex) => (
+                          <li key={evIndex} className="space-y-1">
+                            {ev.competitor && (
+                              <span className="text-sm font-medium text-foreground">{ev.competitor}</span>
+                            )}
+                            {ev.citation && (
+                              <span className="ml-2 text-sm text-muted-foreground">
+                                (<a
+                                  href={ev.citation}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+                                >
+                                  source
+                                </a>)
+                              </span>
+                            )}
+                            {ev.quote && (
+                              <p className="text-sm italic text-muted-foreground leading-relaxed">
+                                "{ev.quote}"
+                              </p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              </article>
             )
           })
       )}
@@ -1112,14 +1119,16 @@ function OpportunitiesV2Section({
 }: OpportunitiesV2SectionProps) {
   if (!opportunities || !opportunities.opportunities?.length) {
     return (
-      <section className="panel p-5 space-y-3">
-        <div className="text-sm text-text-secondary">
-          <p>No opportunities are available yet for this project.</p>
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Opportunities will appear here after analysis is generated.
+          </p>
+          <GenerateResultsV2Button
+            projectId={projectId}
+            label="Generate Analysis"
+          />
         </div>
-        <GenerateResultsV2Button
-          projectId={projectId}
-          label="Generate Results v2"
-        />
       </section>
     )
   }
@@ -1135,19 +1144,19 @@ function OpportunitiesV2Section({
       : selectByDifferentiationThemes(opportunities) // Default
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       {/* Explainer */}
-      <div className="panel p-3 bg-muted/50 border-border">
-        <p className="text-xs text-text-secondary">
-          <strong>Differentiation Opportunities</strong> are ranked by score (impact, effort, confidence, and linked job importance). Each opportunity includes first experiments—concrete tests you can run in 1–2 weeks to validate the idea before committing to a full build.
+      <div className="rounded-lg bg-muted/50 border border-border p-4">
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Ranked by score (impact, effort, confidence, and linked job importance). Each opportunity includes first experiments—concrete tests you can run in 1–2 weeks to validate before committing to a full build.
         </p>
       </div>
       {frameGroups.map((group) => (
-        <div key={group.id} className="space-y-4">
+        <div key={group.id} className="space-y-5">
           {group.label !== 'All Jobs' && (
-            <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2">
+            <h2 className="text-base font-semibold text-foreground pb-2">
               {group.label}
-            </h3>
+            </h2>
           )}
           {group.items
             .filter(
@@ -1158,102 +1167,102 @@ function OpportunitiesV2Section({
               const opp = item.opportunity
               const lineage = getOpportunityLineage(opp, opportunities)
               return (
-                <article key={`${group.id}-${index}`} className="panel p-4">
-                  <header className="mb-3 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <h2 className="text-sm font-semibold">{opp.title}</h2>
-                      <div className="flex items-center gap-2">
+                <article key={`${group.id}-${index}`} className="panel p-6">
+                  <header className="mb-5 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <h2 className="text-base font-semibold text-foreground leading-snug">{opp.title}</h2>
+                      <div className="flex items-center gap-2 shrink-0">
                         <LineageLink lineage={lineage} title={opp.title} />
-                        <Badge variant="primary" className="shrink-0">
-                          Score: {opp.score}/100
+                        <Badge variant="primary">
+                          {opp.score}/100
                         </Badge>
                       </div>
                     </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary">
-              <Badge variant="secondary">{opp.type.replace('_', ' ')}</Badge>
-              <Badge variant={opp.impact === 'high' ? 'success' : opp.impact === 'med' ? 'warning' : 'default'}>
-                Impact: {opp.impact}
-              </Badge>
-              <Badge variant={opp.effort === 'S' ? 'success' : opp.effort === 'M' ? 'warning' : 'default'}>
-                Effort: {opp.effort}
-              </Badge>
-              <Badge variant={opp.confidence === 'high' ? 'success' : opp.confidence === 'med' ? 'warning' : 'default'}>
-                Confidence: {opp.confidence}
-              </Badge>
-            </div>
-            <p className="text-sm">
-              <span className="font-medium">Who it serves:</span> {opp.who_it_serves}
-            </p>
-          </header>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">{opp.type.replace('_', ' ')}</Badge>
+                      <Badge variant={opp.impact === 'high' ? 'success' : opp.impact === 'med' ? 'warning' : 'default'} className="text-xs">
+                        Impact: {opp.impact}
+                      </Badge>
+                      <Badge variant={opp.effort === 'S' ? 'success' : opp.effort === 'M' ? 'warning' : 'default'} className="text-xs">
+                        Effort: {opp.effort}
+                      </Badge>
+                      <Badge variant={opp.confidence === 'high' ? 'success' : opp.confidence === 'med' ? 'warning' : 'default'} className="text-xs">
+                        Confidence: {opp.confidence}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Who it serves:</span> {opp.who_it_serves}
+                    </p>
+                  </header>
 
-          <div className="space-y-3 text-sm">
-            {opp.why_now ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Why Now
-                </h3>
-                <p className="mt-1">{opp.why_now}</p>
-              </div>
-            ) : null}
+                  <div className="space-y-5 text-sm">
+                    {opp.why_now ? (
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                          Why now
+                        </h3>
+                        <p className="text-foreground leading-relaxed">{opp.why_now}</p>
+                      </div>
+                    ) : null}
 
-            {opp.how_to_win?.length ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  How to Win
-                </h3>
-                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
-                  {opp.how_to_win.map((tactic, tacticIndex) => (
-                    <li key={tacticIndex}>{tactic}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+                    {opp.how_to_win?.length ? (
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                          How to win
+                        </h3>
+                        <ul className="space-y-2">
+                          {opp.how_to_win.map((tactic, tacticIndex) => (
+                            <li key={tacticIndex} className="text-foreground leading-relaxed">{tactic}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
 
-            {opp.what_competitors_do_today ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  What Competitors Do Today
-                </h3>
-                <p className="mt-1">{opp.what_competitors_do_today}</p>
-              </div>
-            ) : null}
+                    {opp.what_competitors_do_today ? (
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                          Current competitive landscape
+                        </h3>
+                        <p className="text-foreground leading-relaxed">{opp.what_competitors_do_today}</p>
+                      </div>
+                    ) : null}
 
-            {opp.why_they_cant_easily_copy ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Why They Can&apos;t Easily Copy
-                </h3>
-                <p className="mt-1">{opp.why_they_cant_easily_copy}</p>
-              </div>
-            ) : null}
+                    {opp.why_they_cant_easily_copy ? (
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                          Competitive moat
+                        </h3>
+                        <p className="text-foreground leading-relaxed">{opp.why_they_cant_easily_copy}</p>
+                      </div>
+                    ) : null}
 
-            {opp.risks?.length ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Risks
-                </h3>
-                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
-                  {opp.risks.map((risk, riskIndex) => (
-                    <li key={riskIndex}>{risk}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+                    {opp.risks?.length ? (
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                          Risks
+                        </h3>
+                        <ul className="space-y-2">
+                          {opp.risks.map((risk, riskIndex) => (
+                            <li key={riskIndex} className="text-foreground leading-relaxed">{risk}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
 
-            {opp.first_experiments?.length ? (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  First Experiments (1-2 weeks)
-                </h3>
-                <ul className="mt-1 list-disc space-y-1 pl-4 text-xs">
-                  {opp.first_experiments.map((exp, expIndex) => (
-                    <li key={expIndex}>{exp}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
-        </article>
+                    {opp.first_experiments?.length ? (
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                          First experiments (1–2 weeks)
+                        </h3>
+                        <ul className="space-y-2">
+                          {opp.first_experiments.map((exp, expIndex) => (
+                            <li key={expIndex} className="text-foreground leading-relaxed">{exp}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </div>
+                </article>
               )
             })}
         </div>
@@ -1270,14 +1279,16 @@ interface ScoringSectionProps {
 function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
   if (!scoring) {
     return (
-      <section className="panel p-5 space-y-3">
-        <div className="text-sm text-text-secondary">
-          <p>No scoring matrix is available yet for this project.</p>
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Competitive scorecard will appear here after analysis is generated.
+          </p>
+          <GenerateResultsV2Button
+            projectId={projectId}
+            label="Generate Analysis"
+          />
         </div>
-        <GenerateResultsV2Button
-          projectId={projectId}
-          label="Generate Results v2"
-        />
       </section>
     )
   }
@@ -1290,34 +1301,34 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
     : []
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       {/* Explainer */}
-      <div className="panel p-3 bg-muted/50 border-border">
-        <p className="text-xs text-text-secondary">
-          <strong>Competitive Scorecard</strong> evaluates each competitor on key criteria that matter to buyers. Scores are weighted by importance (1–5), with total scores out of 100. Higher scores indicate stronger positioning on evaluation criteria.
+      <div className="rounded-lg bg-muted/50 border border-border p-4">
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Evaluates each competitor on key criteria that matter to buyers. Scores are weighted by importance (1–5), with total scores out of 100.
         </p>
       </div>
 
       {/* Bar Chart */}
       {sortedSummary.length > 0 ? (
-        <article className="panel p-4">
-          <h2 className="text-sm font-semibold mb-3">Competitor score overview</h2>
+        <article className="panel p-6">
+          <h2 className="text-base font-semibold text-foreground mb-5">Score overview</h2>
           <CompetitorScoreBarChart data={sortedSummary} />
         </article>
       ) : null}
       {scoring.criteria?.length ? (
-        <article className="panel p-4">
-          <h2 className="text-sm font-semibold mb-3">Evaluation Criteria</h2>
-          <div className="space-y-3">
+        <article className="panel p-6">
+          <h2 className="text-base font-semibold text-foreground mb-5">Evaluation criteria</h2>
+          <div className="space-y-4">
             {scoring.criteria.map((criterion) => (
-              <div key={criterion.id} className="border-b border-border-subtle pb-3 last:border-b-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="text-xs font-semibold">{criterion.name}</h3>
-                  <Badge variant="secondary">Weight: {criterion.weight}/5</Badge>
+              <div key={criterion.id} className="space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-foreground">{criterion.name}</h3>
+                  <Badge variant="secondary" className="shrink-0">Weight: {criterion.weight}/5</Badge>
                 </div>
-                <p className="text-xs text-text-secondary mb-1">{criterion.description}</p>
-                <p className="text-xs text-text-muted italic">
-                  <span className="font-medium">How to score:</span> {criterion.how_to_score}
+                <p className="text-sm text-muted-foreground leading-relaxed">{criterion.description}</p>
+                <p className="text-sm text-muted-foreground italic">
+                  <span className="font-medium">Scoring method:</span> {criterion.how_to_score}
                 </p>
               </div>
             ))}
@@ -1326,43 +1337,45 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
       ) : null}
 
       {sortedSummary.length ? (
-        <article className="panel p-4">
-          <h2 className="text-sm font-semibold mb-3">Competitor Scores</h2>
-          <div className="space-y-4">
+        <article className="panel p-6">
+          <h2 className="text-base font-semibold text-foreground mb-5">Competitor breakdown</h2>
+          <div className="space-y-6">
             {sortedSummary.map((summary, index) => (
-              <div key={index} className="border-b border-border-subtle pb-4 last:border-b-0">
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <h3 className="text-sm font-semibold">{summary.competitor_name}</h3>
+              <div key={index} className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-base font-semibold text-foreground">{summary.competitor_name}</h3>
                   <Badge variant="primary">
                     {summary.total_weighted_score.toFixed(1)}/100
                   </Badge>
                 </div>
 
-                {summary.strengths?.length ? (
-                  <div className="mb-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">
-                      Strengths
-                    </h4>
-                    <ul className="list-disc space-y-1 pl-4 text-xs">
-                      {summary.strengths.map((strength, strengthIndex) => (
-                        <li key={strengthIndex}>{strength}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
+                <div className="grid gap-4 md:grid-cols-2">
+                  {summary.strengths?.length ? (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Strengths
+                      </h4>
+                      <ul className="space-y-2">
+                        {summary.strengths.map((strength, strengthIndex) => (
+                          <li key={strengthIndex} className="text-sm text-foreground leading-relaxed">{strength}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
 
-                {summary.weaknesses?.length ? (
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">
-                      Weaknesses
-                    </h4>
-                    <ul className="list-disc space-y-1 pl-4 text-xs">
-                      {summary.weaknesses.map((weakness, weaknessIndex) => (
-                        <li key={weaknessIndex}>{weakness}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
+                  {summary.weaknesses?.length ? (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Weaknesses
+                      </h4>
+                      <ul className="space-y-2">
+                        {summary.weaknesses.map((weakness, weaknessIndex) => (
+                          <li key={weaknessIndex} className="text-sm text-foreground leading-relaxed">{weakness}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ))}
           </div>
@@ -1370,11 +1383,144 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
       ) : null}
 
       {scoring.notes ? (
-        <article className="panel p-4">
-          <h2 className="text-sm font-semibold mb-2">Notes</h2>
-          <p className="text-sm text-text-secondary">{scoring.notes}</p>
+        <article className="panel p-6">
+          <h2 className="text-base font-semibold text-foreground mb-3">Notes</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">{scoring.notes}</p>
         </article>
       ) : null}
+    </section>
+  )
+}
+
+interface StrategicBetsSectionProps {
+  strategicBets: StrategicBetsArtifactContent | null | undefined
+  projectId: string
+}
+
+function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSectionProps) {
+  if (!strategicBets || !strategicBets.bets?.length) {
+    return (
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Strategic bets will appear here after analysis is generated.
+          </p>
+          <GenerateResultsV2Button
+            projectId={projectId}
+            label="Generate Analysis"
+          />
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="space-y-6">
+      {/* Explainer */}
+      <div className="rounded-lg bg-muted/50 border border-border p-4">
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Commitments under constraint — not ideas. Each bet forces explicit tradeoffs, requires specific capabilities, and includes a falsifiable experiment to validate or disconfirm the bet.
+        </p>
+      </div>
+
+      {strategicBets.bets.map((bet, index) => {
+        const betMarkdown = formatStrategicBetsToMarkdown({
+          meta: strategicBets.meta,
+          bets: [bet],
+        })
+
+        return (
+          <article key={bet.id || index} className="panel p-6">
+            <header className="mb-5 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="text-base font-semibold text-foreground leading-snug">{bet.title}</h2>
+                <div className="flex items-center gap-2 shrink-0">
+                  <CopySectionButton content={betMarkdown} label="Copy" />
+                  <Badge
+                    variant={
+                      bet.confidence === 'high'
+                        ? 'success'
+                        : bet.confidence === 'medium'
+                        ? 'warning'
+                        : 'default'
+                    }
+                  >
+                    {bet.confidence} confidence
+                  </Badge>
+                </div>
+              </div>
+            </header>
+
+            <div className="space-y-5 text-sm">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Bet statement
+                </h3>
+                <p className="font-medium text-foreground leading-relaxed">{bet.bet_statement}</p>
+              </div>
+
+              {bet.tradeoffs?.length ? (
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                    Tradeoffs
+                  </h3>
+                  <ul className="space-y-2">
+                    {bet.tradeoffs.map((tradeoff, tradeoffIndex) => (
+                      <li key={tradeoffIndex} className="font-medium text-foreground leading-relaxed">
+                        {tradeoff}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {bet.forced_capability ? (
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                    Required capability
+                  </h3>
+                  <p className="text-foreground leading-relaxed">{bet.forced_capability}</p>
+                </div>
+              ) : null}
+
+              {bet.competitor_constraints?.length ? (
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                    Competitor constraints
+                  </h3>
+                  <ul className="space-y-2">
+                    {bet.competitor_constraints.map((constraint, constraintIndex) => (
+                      <li key={constraintIndex} className="text-foreground leading-relaxed">{constraint}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {bet.disconfirming_experiment ? (
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                    Validation experiment
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <span className="font-medium text-foreground">Experiment:</span>{' '}
+                      <span className="text-muted-foreground">{bet.disconfirming_experiment.experiment}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">Success signal:</span>{' '}
+                      <span className="text-muted-foreground">{bet.disconfirming_experiment.success_signal}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">Failure signal:</span>{' '}
+                      <span className="text-muted-foreground">{bet.disconfirming_experiment.failure_signal}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </article>
+        )
+      })}
     </section>
   )
 }

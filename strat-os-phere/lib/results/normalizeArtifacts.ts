@@ -21,6 +21,10 @@ import {
   ScoringMatrixArtifactContentSchema,
   type ScoringMatrixArtifactContent,
 } from '@/lib/schemas/scoring'
+import {
+  StrategicBetsArtifactContentSchema,
+  type StrategicBetsArtifactContent,
+} from '@/lib/schemas/strategicBet'
 
 /**
  * Normalized views over raw Supabase artifacts so the rest of the app
@@ -93,12 +97,21 @@ export interface NormalizedScoringMatrixArtifact {
   artifactCreatedAt: string
 }
 
+export interface NormalizedStrategicBetsArtifact {
+  type: 'strategic_bets'
+  runId: string | null
+  generatedAt: string | null
+  content: StrategicBetsArtifactContent
+  artifactCreatedAt: string
+}
+
 export interface NormalizedResultsArtifacts {
   profiles: NormalizedProfilesArtifact | null
   synthesis: NormalizedSynthesisArtifact | null
   jtbd: NormalizedJtbdArtifact | null
   opportunitiesV2: NormalizedOpportunitiesV2Artifact | null
   scoringMatrix: NormalizedScoringMatrixArtifact | null
+  strategicBets: NormalizedStrategicBetsArtifact | null
   runId: string | null
   generatedAt: string | null
   competitorCount: number | null
@@ -251,6 +264,25 @@ function normalizeScoringMatrixArtifact(
   }
 }
 
+function normalizeStrategicBetsArtifact(
+  artifact: Artifact
+): NormalizedStrategicBetsArtifact | null {
+  if ((artifact.type as string) !== 'strategic_bets') return null
+
+  const parsed = StrategicBetsArtifactContentSchema.safeParse(
+    artifact.content_json
+  )
+  if (!parsed.success) return null
+
+  return {
+    type: 'strategic_bets',
+    runId: parsed.data.meta.run_id ?? null,
+    generatedAt: parsed.data.meta.generated_at ?? null,
+    content: parsed.data,
+    artifactCreatedAt: artifact.created_at,
+  }
+}
+
 export function normalizeResultsArtifacts(
   artifacts: Artifact[]
 ): NormalizedResultsArtifacts {
@@ -261,6 +293,7 @@ export function normalizeResultsArtifacts(
       jtbd: null,
       opportunitiesV2: null,
       scoringMatrix: null,
+      strategicBets: null,
       runId: null,
       generatedAt: null,
       competitorCount: null,
@@ -297,6 +330,13 @@ export function normalizeResultsArtifacts(
       (value): value is NormalizedScoringMatrixArtifact => value !== null
     )
 
+  const strategicBetsList = artifacts
+    .filter((artifact) => (artifact.type as string) === 'strategic_bets')
+    .map(normalizeStrategicBetsArtifact)
+    .filter(
+      (value): value is NormalizedStrategicBetsArtifact => value !== null
+    )
+
   // Prefer v2 artifacts (schema_version=2) over v1, then by created_at (newest first)
   const selectV2Artifact = <T extends { content: { meta?: { schema_version?: number } }; artifactCreatedAt: string }>(
     list: T[]
@@ -327,6 +367,7 @@ export function normalizeResultsArtifacts(
   const selectedJtbd = selectV2Artifact(jtbdList)
   const selectedOpportunitiesV2 = selectV2Artifact(opportunitiesV2List)
   const selectedScoringMatrix = selectV2Artifact(scoringMatrixList)
+  const selectedStrategicBets = selectV2Artifact(strategicBetsList)
 
   // Prefer matching run_id pairs when available.
   if (selectedProfiles?.runId && selectedSynthesis?.runId) {
@@ -353,6 +394,7 @@ export function normalizeResultsArtifacts(
     selectedJtbd?.runId ??
     selectedOpportunitiesV2?.runId ??
     selectedScoringMatrix?.runId ??
+    selectedStrategicBets?.runId ??
     null
 
   const generatedAt =
@@ -361,11 +403,13 @@ export function normalizeResultsArtifacts(
     selectedJtbd?.generatedAt ??
     selectedOpportunitiesV2?.generatedAt ??
     selectedScoringMatrix?.generatedAt ??
+    selectedStrategicBets?.generatedAt ??
     selectedProfiles?.artifactCreatedAt ??
     selectedSynthesis?.artifactCreatedAt ??
     selectedJtbd?.artifactCreatedAt ??
     selectedOpportunitiesV2?.artifactCreatedAt ??
     selectedScoringMatrix?.artifactCreatedAt ??
+    selectedStrategicBets?.artifactCreatedAt ??
     null
 
   const competitorCount =
@@ -379,6 +423,7 @@ export function normalizeResultsArtifacts(
     jtbd: selectedJtbd,
     opportunitiesV2: selectedOpportunitiesV2,
     scoringMatrix: selectedScoringMatrix,
+    strategicBets: selectedStrategicBets,
     runId,
     generatedAt,
     competitorCount,
@@ -791,6 +836,53 @@ export function formatScoringMatrixToMarkdown(
 
   if (scoring.notes) {
     lines.push('## Notes', '', scoring.notes)
+  }
+
+  return lines.join('\n').trimEnd()
+}
+
+export function formatStrategicBetsToMarkdown(
+  strategicBets: StrategicBetsArtifactContent | null | undefined
+): string {
+  if (!strategicBets || !strategicBets.bets?.length) {
+    return 'No strategic bets are available yet.'
+  }
+
+  const lines: string[] = ['# Strategic Bets', '']
+  lines.push('Strategic bets represent commitments under constraint — not ideas.', '')
+
+  for (const bet of strategicBets.bets) {
+    lines.push(`## ${bet.title}`, '')
+    lines.push(`**Confidence:** ${bet.confidence}`, '')
+    lines.push(`**Bet Statement:** ${bet.bet_statement}`, '')
+
+    if (bet.tradeoffs?.length) {
+      lines.push('**Tradeoffs:**')
+      for (const tradeoff of bet.tradeoffs) {
+        lines.push(`- ${tradeoff}`)
+      }
+      lines.push('')
+    }
+
+    if (bet.forced_capability) {
+      lines.push(`**Forced Capability:** ${bet.forced_capability}`, '')
+    }
+
+    if (bet.competitor_constraints?.length) {
+      lines.push('**Competitor Constraints:**')
+      for (const constraint of bet.competitor_constraints) {
+        lines.push(`- ${constraint}`)
+      }
+      lines.push('')
+    }
+
+    if (bet.disconfirming_experiment) {
+      lines.push('**Disconfirming Experiment:**')
+      lines.push(`- Experiment: ${bet.disconfirming_experiment.experiment}`)
+      lines.push(`- Success Signal: ${bet.disconfirming_experiment.success_signal}`)
+      lines.push(`- Failure Signal: ${bet.disconfirming_experiment.failure_signal}`)
+      lines.push('')
+    }
   }
 
   return lines.join('\n').trimEnd()

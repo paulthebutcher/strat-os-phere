@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -31,6 +31,71 @@ export function InsightLineageDrawer({
   isOpen,
   onClose,
 }: InsightLineageDrawerProps) {
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      // Store the previously focused element
+      previousFocusRef.current = document.activeElement as HTMLElement
+      // Focus the close button when drawer opens
+      setTimeout(() => {
+        const closeButton = drawerRef.current?.querySelector('button[aria-label="Close drawer"]') as HTMLButtonElement
+        closeButton?.focus()
+      }, 0)
+    } else {
+      // Restore focus when drawer closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus()
+      }
+    }
+  }, [isOpen])
+
+  // Handle escape key
+  useEffect(() => {
+    if (!isOpen) return
+
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isOpen, onClose])
+
+  // Focus trap
+  useEffect(() => {
+    if (!isOpen || !drawerRef.current) return
+
+    const drawer = drawerRef.current
+    const focusableElements = drawer.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    function handleTab(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement?.focus()
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement?.focus()
+        }
+      }
+    }
+
+    drawer.addEventListener('keydown', handleTab)
+    return () => drawer.removeEventListener('keydown', handleTab)
+  }, [isOpen])
+
   if (!isOpen) return null
 
   return (
@@ -44,6 +109,7 @@ export function InsightLineageDrawer({
       
       {/* Drawer */}
       <div
+        ref={drawerRef}
         className={cn(
           'fixed right-0 top-0 z-50 h-full w-full max-w-md bg-background shadow-lg',
           'transform transition-transform duration-200 ease-out',
@@ -69,7 +135,7 @@ export function InsightLineageDrawer({
               className="h-8 w-8"
               aria-label="Close drawer"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
 

@@ -51,7 +51,7 @@ export function CopySectionButton({
         size="sm"
         variant="ghost"
         onClick={handleCopy}
-        aria-label={label}
+        aria-label={`${label} section content`}
       >
         {copied ? 'Copied' : label}
       </Button>

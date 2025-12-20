@@ -31,8 +31,8 @@ export function ResultsFrameToggle({
   }
 
   return (
-    <div className="flex items-center gap-2 border-b border-border pb-3">
-      <span className="text-xs font-medium text-muted-foreground">View:</span>
+    <div className="flex items-center gap-3 pb-2">
+      <span className="text-sm font-medium text-muted-foreground">View:</span>
       <div className="flex flex-wrap items-center gap-1">
         {FRAMES.map((frame) => (
           <Button
@@ -46,6 +46,7 @@ export function ResultsFrameToggle({
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground'
             )}
+            aria-current={currentFrame === frame.id ? 'page' : undefined}
           >
             {frame.label}
           </Button>

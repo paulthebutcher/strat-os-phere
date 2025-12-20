@@ -5,6 +5,7 @@ import { MarketSynthesisSchema } from './marketSynthesis'
 import { JtbdArtifactContentSchema } from './jtbd'
 import { OpportunitiesArtifactContentSchema } from './opportunities'
 import { ScoringMatrixArtifactContentSchema } from './scoring'
+import { StrategicBetsArtifactContentSchema } from './strategicBet'
 
 export const ArtifactTypeSchema = z.enum([
   'profiles',
@@ -12,6 +13,7 @@ export const ArtifactTypeSchema = z.enum([
   'jtbd',
   'opportunities_v2',
   'scoring_matrix',
+  'strategic_bets',
 ])
 
 export type ArtifactType = z.infer<typeof ArtifactTypeSchema>
@@ -41,12 +43,18 @@ export const ScoringMatrixArtifactSchema = z.object({
   content: ScoringMatrixArtifactContentSchema,
 })
 
+export const StrategicBetsArtifactSchema = z.object({
+  type: z.literal('strategic_bets'),
+  content: StrategicBetsArtifactContentSchema,
+})
+
 export const ArtifactSchema = z.discriminatedUnion('type', [
   ProfilesArtifactSchema,
   SynthesisArtifactSchema,
   JtbdArtifactSchema,
   OpportunitiesV2ArtifactSchema,
   ScoringMatrixArtifactSchema,
+  StrategicBetsArtifactSchema,
 ])
 
 export type ProfilesArtifact = z.infer<typeof ProfilesArtifactSchema>
@@ -54,6 +62,7 @@ export type SynthesisArtifact = z.infer<typeof SynthesisArtifactSchema>
 export type JtbdArtifact = z.infer<typeof JtbdArtifactSchema>
 export type OpportunitiesV2Artifact = z.infer<typeof OpportunitiesV2ArtifactSchema>
 export type ScoringMatrixArtifact = z.infer<typeof ScoringMatrixArtifactSchema>
+export type StrategicBetsArtifact = z.infer<typeof StrategicBetsArtifactSchema>
 export type Artifact = z.infer<typeof ArtifactSchema>
 
 const ProfilesArtifactContentSchema = ProfilesArtifactSchema.shape.content
@@ -72,6 +81,9 @@ export type OpportunitiesV2ArtifactContent = z.infer<
 export type ScoringMatrixArtifactContent = z.infer<
   typeof ScoringMatrixArtifactContentSchema
 >
+export type StrategicBetsArtifactContent = z.infer<
+  typeof StrategicBetsArtifactContentSchema
+>
 
 export type ArtifactContent =
   | ProfilesArtifactContent
@@ -79,6 +91,7 @@ export type ArtifactContent =
   | JtbdArtifactContent
   | OpportunitiesV2ArtifactContent
   | ScoringMatrixArtifactContent
+  | StrategicBetsArtifactContent
 
 export function getArtifactContentSchema(
   type: ArtifactType
@@ -94,6 +107,8 @@ export function getArtifactContentSchema(
       return OpportunitiesArtifactContentSchema
     case 'scoring_matrix':
       return ScoringMatrixArtifactContentSchema
+    case 'strategic_bets':
+      return StrategicBetsArtifactContentSchema
     default: {
       const _exhaustiveCheck: never = type
       return _exhaustiveCheck

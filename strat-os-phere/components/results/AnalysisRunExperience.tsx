@@ -283,7 +283,7 @@ export function AnalysisRunExperience({
                   </h1>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {machine.error?.message ||
-                      'We weren't able to complete this run. Your inputs are safe, and nothing was lost.'}
+                      `We weren't able to complete this run. Your inputs are safe, and nothing was lost.`}
                   </p>
                 </div>
 

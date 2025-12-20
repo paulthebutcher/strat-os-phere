@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
@@ -37,6 +37,8 @@ export function EditCompetitorDialog({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     if (open) {
@@ -45,8 +47,65 @@ export function EditCompetitorDialog({
       setEvidence(competitor.evidence_text ?? '')
       setError(null)
       setSuccess(null)
+      // Store the previously focused element
+      previousFocusRef.current = document.activeElement as HTMLElement
+      // Focus the first input when dialog opens
+      setTimeout(() => {
+        const firstInput = dialogRef.current?.querySelector('input') as HTMLInputElement
+        firstInput?.focus()
+      }, 0)
+    } else {
+      // Restore focus when dialog closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus()
+      }
     }
   }, [open, competitor])
+
+  // Handle escape key
+  useEffect(() => {
+    if (!open) return
+
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !saving) {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [open, saving])
+
+  // Focus trap
+  useEffect(() => {
+    if (!open || !dialogRef.current) return
+
+    const dialog = dialogRef.current
+    const focusableElements = dialog.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    function handleTab(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement?.focus()
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement?.focus()
+        }
+      }
+    }
+
+    dialog.addEventListener('keydown', handleTab)
+    return () => dialog.removeEventListener('keydown', handleTab)
+  }, [open])
 
   const evidenceLength = evidence.length
   const evidenceQuality = getEvidenceQuality(evidenceLength)
@@ -153,12 +212,21 @@ export function EditCompetitorDialog({
       </Button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 px-4">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 px-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !saving) {
+              setOpen(false)
+            }
+          }}
+        >
           <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby={`edit-competitor-${competitor.id}-title`}
             className="panel w-full max-w-lg px-6 py-5"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
@@ -175,10 +243,11 @@ export function EditCompetitorDialog({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-full px-2 text-sm text-text-secondary hover:bg-surface-muted"
-                aria-label="Close"
+                disabled={saving}
+                className="rounded-full px-2 text-sm text-text-secondary hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+                aria-label="Close dialog"
               >
-                ✕
+                <span aria-hidden="true">✕</span>
               </button>
             </div>
 
@@ -243,17 +312,20 @@ export function EditCompetitorDialog({
                   id={`edit-evidence-${competitor.id}`}
                   value={evidence}
                   onChange={(event) => handleEvidenceChange(event.target.value)}
+                  aria-describedby={`edit-evidence-${competitor.id}-helper edit-evidence-${competitor.id}-count`}
                 />
 
                 <div className="flex items-center justify-between text-xs">
-                  <p className={cn('max-w-xs', qualityToneClass)}>
+                  <p id={`edit-evidence-${competitor.id}-helper`} className={cn('max-w-xs', qualityToneClass)}>
                     {qualityLabel}
                   </p>
                   <span
+                    id={`edit-evidence-${competitor.id}-count`}
                     className={cn(
                       'tabular-nums text-text-secondary',
                       evidenceLength > MAX_EVIDENCE_CHARS && 'text-destructive'
                     )}
+                    aria-live="polite"
                   >
                     {evidenceLength.toLocaleString()} /{' '}
                     {MAX_EVIDENCE_CHARS.toLocaleString()}
@@ -262,13 +334,13 @@ export function EditCompetitorDialog({
               </div>
 
               {error ? (
-                <p className="text-sm text-destructive" role="alert">
+                <p className="text-sm text-destructive" role="alert" aria-live="assertive">
                   {error}
                 </p>
               ) : null}
 
               {success ? (
-                <p className="text-sm text-text-secondary" role="status">
+                <p className="text-sm text-text-secondary" role="status" aria-live="polite">
                   {success}
                 </p>
               ) : null}

@@ -167,10 +167,10 @@ export function EvidenceGenerator({
   return (
     <div className="space-y-4 border-t border-border-subtle pt-4 mt-4">
       <div className="space-y-2">
-        <h3 className="text-sm font-medium text-text-primary">
+        <h3 className="text-sm font-medium text-foreground">
           Find competitor automatically
         </h3>
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-muted-foreground">
           Search by name or paste a URL to generate evidence from their website.
         </p>
       </div>
@@ -214,7 +214,7 @@ export function EvidenceGenerator({
 
         {searchResults.length > 0 && (
           <div className="space-y-2">
-            <label className="text-xs font-medium text-text-secondary">
+            <label className="text-xs font-medium text-foreground">
               Select a result:
             </label>
             <div className="space-y-2 max-h-48 overflow-y-auto border border-border-subtle rounded-md p-2">
@@ -232,14 +232,14 @@ export function EvidenceGenerator({
                     className="mt-1"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-text-primary truncate">
+                    <div className="text-sm font-medium text-foreground truncate">
                       {result.title || result.url}
                     </div>
-                    <div className="text-xs text-text-secondary truncate">
+                    <div className="text-xs text-muted-foreground truncate">
                       {result.url}
                     </div>
                     {result.snippet && (
-                      <div className="text-xs text-text-muted mt-1 line-clamp-2">
+                      <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                         {result.snippet}
                       </div>
                     )}
@@ -255,7 +255,7 @@ export function EvidenceGenerator({
             <div className="space-y-2">
               <label
                 htmlFor="competitor-name-generate"
-                className="text-xs font-medium text-text-secondary"
+                className="text-xs font-medium text-foreground"
               >
                 Competitor name
               </label>
@@ -279,18 +279,18 @@ export function EvidenceGenerator({
         )}
 
         {progress && (
-          <div className="text-xs text-text-secondary bg-surface-muted p-2 rounded">
+          <div className="text-xs text-muted-foreground bg-surface-muted p-2 rounded" role="status" aria-live="polite">
             {progress}
           </div>
         )}
 
         {error && (
-          <div className="text-xs text-destructive bg-surface-muted p-2 rounded">
+          <div className="text-xs text-destructive bg-surface-muted p-2 rounded" role="alert" aria-live="assertive">
             {error}
           </div>
         )}
 
-        <p className="text-xs text-text-muted">
+        <p className="text-xs text-muted-foreground">
           Note: Only public pages will be scraped. Don't paste confidential information.
         </p>
       </div>

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { Hero } from "@/components/marketing/Hero"
 import { Problem } from "@/components/marketing/Problem"
-import { Features } from "@/components/marketing/Features"
 import { HowItWorks } from "@/components/marketing/HowItWorks"
 import { Outputs } from "@/components/marketing/Outputs"
 import { Differentiators } from "@/components/marketing/Differentiators"
@@ -40,9 +39,8 @@ export default async function Home(props: HomeProps) {
     <main>
       <Hero />
       <Problem />
-      <Features />
-      <HowItWorks />
       <Outputs />
+      <HowItWorks />
       <Differentiators />
       <WhoItsFor />
       <Trust />
