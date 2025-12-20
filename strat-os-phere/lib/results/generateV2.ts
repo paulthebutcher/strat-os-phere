@@ -869,10 +869,8 @@ export async function generateResultsV2(
       ...strategicBetsParsed.data,
       bets: strategicBetsParsed.data.bets.map((bet) => ({
         ...bet,
-        meta: {
-          ...bet.meta,
-          created_at: generatedAt,
-        },
+        created_at: generatedAt,
+        schema_version: 1,
       })),
       meta: {
         ...strategicBetsParsed.data.meta,

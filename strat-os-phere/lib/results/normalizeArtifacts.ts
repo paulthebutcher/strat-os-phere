@@ -849,38 +849,57 @@ export function formatStrategicBetsToMarkdown(
   }
 
   const lines: string[] = ['# Strategic Bets', '']
-  lines.push('Strategic bets represent commitments under constraint — not ideas.', '')
+  lines.push('Strategic bets synthesize analysis into concrete, commitment-ready decisions suitable for VP+ Product and UX leaders.', '')
 
   for (const bet of strategicBets.bets) {
     lines.push(`## ${bet.title}`, '')
-    lines.push(`**Confidence:** ${bet.confidence}`, '')
-    lines.push(`**Bet Statement:** ${bet.bet_statement}`, '')
+    lines.push(`**Confidence Score:** ${bet.confidence_score}/100`, '')
+    lines.push(`**Summary:** ${bet.summary}`, '')
 
-    if (bet.tradeoffs?.length) {
-      lines.push('**Tradeoffs:**')
-      for (const tradeoff of bet.tradeoffs) {
-        lines.push(`- ${tradeoff}`)
+    if (bet.what_we_say_no_to?.length) {
+      lines.push('**What we say no to:**')
+      for (const item of bet.what_we_say_no_to) {
+        lines.push(`- ${item}`)
       }
       lines.push('')
     }
 
-    if (bet.forced_capability) {
-      lines.push(`**Forced Capability:** ${bet.forced_capability}`, '')
-    }
-
-    if (bet.competitor_constraints?.length) {
-      lines.push('**Competitor Constraints:**')
-      for (const constraint of bet.competitor_constraints) {
-        lines.push(`- ${constraint}`)
+    if (bet.forced_capabilities?.length) {
+      lines.push('**Capabilities this forces:**')
+      for (const capability of bet.forced_capabilities) {
+        lines.push(`- ${capability}`)
       }
       lines.push('')
     }
 
-    if (bet.disconfirming_experiment) {
-      lines.push('**Disconfirming Experiment:**')
-      lines.push(`- Experiment: ${bet.disconfirming_experiment.experiment}`)
-      lines.push(`- Success Signal: ${bet.disconfirming_experiment.success_signal}`)
-      lines.push(`- Failure Signal: ${bet.disconfirming_experiment.failure_signal}`)
+    if (bet.why_competitors_wont_follow) {
+      lines.push(`**Why competitors won't follow:** ${bet.why_competitors_wont_follow}`, '')
+    }
+
+    if (bet.first_real_world_proof) {
+      lines.push(`**First real-world proof (${bet.first_real_world_proof.timeframe_weeks} weeks):**`)
+      lines.push(`- Description: ${bet.first_real_world_proof.description}`)
+      lines.push(`- Success signal: ${bet.first_real_world_proof.success_signal}`)
+      lines.push('')
+    }
+
+    if (bet.invalidation_signals?.length) {
+      lines.push('**What would invalidate this bet:**')
+      for (const signal of bet.invalidation_signals) {
+        lines.push(`- ${signal}`)
+      }
+      lines.push('')
+    }
+
+    if (bet.opportunity_source_ids?.length) {
+      lines.push(`**Based on:** ${bet.opportunity_source_ids.join(', ')}`, '')
+    }
+
+    if (bet.supporting_signals?.length) {
+      lines.push('**Supporting evidence:**')
+      for (const signal of bet.supporting_signals) {
+        lines.push(`- ${signal.source_type} (${signal.citation_count} citations)`)
+      }
       lines.push('')
     }
   }

@@ -70,15 +70,15 @@ type TabId =
   | 'strategic_bets'
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: 'profiles', label: 'Profiles' },
-  { id: 'themes', label: 'Themes' },
-  { id: 'positioning', label: 'Positioning' },
-  { id: 'opportunities', label: 'Opportunities' },
-  { id: 'angles', label: 'Angles' },
+  { id: 'strategic_bets', label: 'Strategic Bets' },
   { id: 'jobs', label: 'Jobs' },
   { id: 'scorecard', label: 'Scorecard' },
   { id: 'opportunities_v2', label: 'Opportunities' },
-  { id: 'strategic_bets', label: 'Strategic Bets' },
+  { id: 'themes', label: 'Themes' },
+  { id: 'positioning', label: 'Positioning' },
+  { id: 'opportunities', label: 'Opportunities (Legacy)' },
+  { id: 'angles', label: 'Angles' },
+  { id: 'profiles', label: 'Profiles' },
 ]
 
 /**
@@ -156,7 +156,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
   const activeTab: TabId =
     (TABS.find((tab) => tab.id === tabParam)?.id as TabId | undefined) ??
-    'profiles'
+    'strategic_bets'
   
   const activeFrame: ResultsFrame =
     (frameParam as ResultsFrame | undefined) ?? 'jobs'
@@ -1402,12 +1402,15 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
+          <h2 className="text-xl font-semibold text-foreground">
+            Strategic Bets not yet generated
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Strategic bets will appear here after analysis is generated.
+            Turn analysis into commitment-ready decisions.
           </p>
           <GenerateResultsV2Button
             projectId={projectId}
-            label="Generate Analysis"
+            label="Generate Strategic Bets"
           />
         </div>
       </section>
@@ -1419,7 +1422,7 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Commitments under constraint — not ideas. Each bet forces explicit tradeoffs, requires specific capabilities, and includes a falsifiable experiment to validate or disconfirm the bet.
+          Strategic bets synthesize your analysis into concrete, commitment-ready decisions suitable for VP+ Product and UX leaders. Each bet forces explicit tradeoffs, requires specific capabilities, and includes a falsifiable experiment to validate or disconfirm.
         </p>
       </div>
 
@@ -1430,94 +1433,121 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
         })
 
         return (
-          <article key={bet.id || index} className="panel p-6">
-            <header className="mb-5 space-y-3">
+          <article key={bet.id || index} className="panel p-6 space-y-6">
+            <header className="space-y-3">
               <div className="flex items-start justify-between gap-3">
-                <h2 className="text-base font-semibold text-foreground leading-snug">{bet.title}</h2>
+                <h2 className="text-xl font-semibold text-foreground leading-tight">{bet.title}</h2>
                 <div className="flex items-center gap-2 shrink-0">
-                  <CopySectionButton content={betMarkdown} label="Copy" />
+                  <CopySectionButton content={betMarkdown} label="Copy bet" />
                   <Badge
                     variant={
-                      bet.confidence === 'high'
+                      bet.confidence_score >= 70
                         ? 'success'
-                        : bet.confidence === 'medium'
+                        : bet.confidence_score >= 50
                         ? 'warning'
                         : 'default'
                     }
+                    className="text-xs"
                   >
-                    {bet.confidence} confidence
+                    {bet.confidence_score}/100
                   </Badge>
                 </div>
               </div>
+              <p className="text-sm text-foreground leading-relaxed">{bet.summary}</p>
             </header>
 
-            <div className="space-y-5 text-sm">
+            {/* Three-column emphasis row */}
+            <div className="grid gap-4 md:grid-cols-3 border-t border-b border-border py-4">
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                  Bet statement
+                  What we say no to
                 </h3>
-                <p className="font-medium text-foreground leading-relaxed">{bet.bet_statement}</p>
+                <ul className="space-y-2">
+                  {bet.what_we_say_no_to.map((item, itemIndex) => (
+                    <li key={itemIndex} className="text-sm text-foreground leading-relaxed">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Capabilities this forces
+                </h3>
+                <ul className="space-y-2">
+                  {bet.forced_capabilities.map((capability, capabilityIndex) => (
+                    <li key={capabilityIndex} className="text-sm text-foreground leading-relaxed">
+                      {capability}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Why competitors won't follow
+                </h3>
+                <p className="text-sm text-foreground leading-relaxed">
+                  {bet.why_competitors_wont_follow}
+                </p>
+              </div>
+            </div>
+
+            {/* Proof & Risk */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  First real-world proof ({bet.first_real_world_proof.timeframe_weeks} weeks)
+                </h3>
+                <p className="text-sm text-foreground leading-relaxed mb-2">
+                  {bet.first_real_world_proof.description}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Success signal:</span>{' '}
+                  {bet.first_real_world_proof.success_signal}
+                </p>
               </div>
 
-              {bet.tradeoffs?.length ? (
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                    Tradeoffs
-                  </h3>
-                  <ul className="space-y-2">
-                    {bet.tradeoffs.map((tradeoff, tradeoffIndex) => (
-                      <li key={tradeoffIndex} className="font-medium text-foreground leading-relaxed">
-                        {tradeoff}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-
-              {bet.forced_capability ? (
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                    Required capability
-                  </h3>
-                  <p className="text-foreground leading-relaxed">{bet.forced_capability}</p>
-                </div>
-              ) : null}
-
-              {bet.competitor_constraints?.length ? (
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                    Competitor constraints
-                  </h3>
-                  <ul className="space-y-2">
-                    {bet.competitor_constraints.map((constraint, constraintIndex) => (
-                      <li key={constraintIndex} className="text-foreground leading-relaxed">{constraint}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-
-              {bet.disconfirming_experiment ? (
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                    Validation experiment
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="font-medium text-foreground">Experiment:</span>{' '}
-                      <span className="text-muted-foreground">{bet.disconfirming_experiment.experiment}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-foreground">Success signal:</span>{' '}
-                      <span className="text-muted-foreground">{bet.disconfirming_experiment.success_signal}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-foreground">Failure signal:</span>{' '}
-                      <span className="text-muted-foreground">{bet.disconfirming_experiment.failure_signal}</span>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  What would invalidate this bet
+                </h3>
+                <ul className="space-y-2">
+                  {bet.invalidation_signals.map((signal, signalIndex) => (
+                    <li key={signalIndex} className="text-sm text-foreground leading-relaxed">
+                      {signal}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
+
+            {/* Supporting evidence */}
+            {bet.supporting_signals && bet.supporting_signals.length > 0 ? (
+              <div className="border-t border-border pt-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Supporting evidence
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {bet.supporting_signals.map((signal, signalIndex) => (
+                    <Badge key={signalIndex} variant="secondary" className="text-xs">
+                      {signal.source_type} ({signal.citation_count})
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Opportunity sources */}
+            {bet.opportunity_source_ids && bet.opportunity_source_ids.length > 0 ? (
+              <div className="border-t border-border pt-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Based on
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {bet.opportunity_source_ids.join(', ')}
+                </p>
+              </div>
+            ) : null}
           </article>
         )
       })}

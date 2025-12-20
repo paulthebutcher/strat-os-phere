@@ -1,25 +1,21 @@
 import { z } from 'zod'
 
-export const StrategicBetConfidenceSchema = z.enum(['high', 'medium', 'low'])
-
 /**
- * Disconfirming experiment schema
- * Each bet must include a falsifiable experiment
+ * First real-world proof schema
+ * Each bet must include a concrete, behavioral test
  */
-export const DisconfirmingExperimentSchema = z.object({
-  experiment: z.string().min(1),
+export const FirstRealWorldProofSchema = z.object({
+  description: z.string().min(1),
+  timeframe_weeks: z.number().int().positive(),
   success_signal: z.string().min(1),
-  failure_signal: z.string().min(1),
 })
 
 /**
- * Strategic bet metadata
+ * Supporting signal schema
  */
-export const StrategicBetMetaSchema = z.object({
-  based_on_competitors: z.number().int().positive(),
-  signals_used: z.array(z.string().min(1)),
-  created_at: z.string(), // ISO 8601
-  schema_version: z.number().optional(),
+export const SupportingSignalSchema = z.object({
+  source_type: z.string().min(1),
+  citation_count: z.number().int().nonnegative(),
 })
 
 /**
@@ -29,21 +25,17 @@ export const StrategicBetMetaSchema = z.object({
 export const StrategicBetItemSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
-  confidence: StrategicBetConfidenceSchema,
-  bet_statement: z
-    .string()
-    .min(1)
-    .refine(
-      (val) => val.endsWith('.') || val.endsWith('!'),
-      {
-        message: 'bet_statement must be a complete sentence ending with . or !',
-      }
-    ),
-  tradeoffs: z.array(z.string().min(1)).min(1),
-  forced_capability: z.string().min(1),
-  competitor_constraints: z.array(z.string().min(1)).min(1),
-  disconfirming_experiment: DisconfirmingExperimentSchema,
-  meta: StrategicBetMetaSchema,
+  summary: z.string().min(1), // 2-3 sentence plain-English description
+  opportunity_source_ids: z.array(z.string().min(1)), // References to Opportunities v2 / JTBD IDs
+  what_we_say_no_to: z.array(z.string().min(1)).min(1), // Explicit deprioritized directions
+  forced_capabilities: z.array(z.string().min(1)).min(1), // Capabilities required to win
+  why_competitors_wont_follow: z.string().min(1), // Structural, economic, or organizational friction
+  first_real_world_proof: FirstRealWorldProofSchema,
+  invalidation_signals: z.array(z.string().min(1)).min(1), // What evidence would prove this bet is wrong
+  confidence_score: z.number().int().min(0).max(100), // 0-100 derived from signal strength, consensus, and data freshness
+  supporting_signals: z.array(SupportingSignalSchema),
+  created_at: z.string(), // ISO 8601
+  schema_version: z.literal(1),
 })
 
 /**
@@ -62,12 +54,11 @@ export const StrategicBetsMetaSchema = z.object({
  */
 export const StrategicBetsArtifactContentSchema = z.object({
   meta: StrategicBetsMetaSchema,
-  bets: z.array(StrategicBetItemSchema).min(2).max(3),
+  bets: z.array(StrategicBetItemSchema).min(2).max(4),
 })
 
-export type StrategicBetConfidence = z.infer<typeof StrategicBetConfidenceSchema>
-export type DisconfirmingExperiment = z.infer<typeof DisconfirmingExperimentSchema>
-export type StrategicBetMeta = z.infer<typeof StrategicBetMetaSchema>
+export type FirstRealWorldProof = z.infer<typeof FirstRealWorldProofSchema>
+export type SupportingSignal = z.infer<typeof SupportingSignalSchema>
 export type StrategicBetItem = z.infer<typeof StrategicBetItemSchema>
 export type StrategicBetsMeta = z.infer<typeof StrategicBetsMetaSchema>
 export type StrategicBetsArtifactContent = z.infer<typeof StrategicBetsArtifactContentSchema>

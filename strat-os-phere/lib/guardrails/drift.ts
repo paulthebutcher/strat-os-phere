@@ -1,6 +1,7 @@
 import 'server-only'
 
 import type { Artifact } from '@/lib/supabase/types'
+import type { ArtifactType } from '@/lib/schemas/artifacts'
 import type {
   JtbdArtifactContent,
 } from '@/lib/schemas/jtbd'
@@ -10,6 +11,61 @@ import type {
 import type {
   ScoringMatrixArtifactContent,
 } from '@/lib/schemas/scoring'
+
+// Canonical artifact type constants
+const CANONICAL_JTBD_TYPE: ArtifactType = 'jtbd'
+const CANONICAL_OPPORTUNITIES_TYPE: ArtifactType = 'opportunities_v2'
+const CANONICAL_SCORING_TYPE: ArtifactType = 'scoring_matrix'
+
+// Legacy type aliases for backward compatibility
+// Maps legacy string literals that might exist in older DB rows to canonical types
+const legacyTypeAliases: Record<string, ArtifactType> = {
+  jtbd: CANONICAL_JTBD_TYPE,
+  opportunities_v2: CANONICAL_OPPORTUNITIES_TYPE,
+  scoring_matrix: CANONICAL_SCORING_TYPE,
+}
+
+/**
+ * Normalize artifact type from DB row (which may be a wider string type)
+ * to canonical ArtifactType, handling legacy aliases if needed.
+ */
+function normalizeArtifactType(type: string): ArtifactType | null {
+  // First check if it's a canonical type
+  if (type === CANONICAL_JTBD_TYPE || type === CANONICAL_OPPORTUNITIES_TYPE || type === CANONICAL_SCORING_TYPE) {
+    return type as ArtifactType
+  }
+  // Check legacy aliases (for backward compatibility)
+  if (type in legacyTypeAliases) {
+    return legacyTypeAliases[type]
+  }
+  return null
+}
+
+/**
+ * Pick the most recent artifact that matches any of the given canonical types.
+ * Prefers artifacts with schema_version === 2, then falls back to newest created_at.
+ */
+function pickLatestArtifactByTypes(
+  artifacts: Artifact[],
+  types: ArtifactType[]
+): Artifact | undefined {
+  const matching = artifacts
+    .filter((a) => {
+      const normalized = normalizeArtifactType(a.type as string)
+      return normalized !== null && types.includes(normalized)
+    })
+    .sort((a, b) => {
+      // Prefer v2 artifacts (schema_version === 2) if present
+      const aVersion = (a.content_json as any)?.schema_version
+      const bVersion = (b.content_json as any)?.schema_version
+      if (aVersion === 2 && bVersion !== 2) return -1
+      if (bVersion === 2 && aVersion !== 2) return 1
+      // Otherwise sort by created_at (newest first)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  
+  return matching[0]
+}
 
 export interface DriftDetectionResult {
   hasSignificantDrift: boolean
@@ -179,6 +235,8 @@ function detectScoringDrift(
 
 /**
  * Extract artifact content from database artifacts for drift detection
+ * Uses canonical artifact types and prefers v2 artifacts when present.
+ * Maintains backward compatibility with legacy artifact types.
  */
 export function extractArtifactContent(
   artifacts: Artifact[]
@@ -193,24 +251,18 @@ export function extractArtifactContent(
     scoringMatrix?: ScoringMatrixArtifactContent
   } = {}
 
-  // Get most recent artifact of each type
-  const jtbdArtifact = artifacts
-    .filter((a) => a.type === 'jtbd')
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+  // Get most recent artifact of each type using canonical types
+  const jtbdArtifact = pickLatestArtifactByTypes(artifacts, [CANONICAL_JTBD_TYPE])
   if (jtbdArtifact?.content_json) {
     result.jtbd = jtbdArtifact.content_json as JtbdArtifactContent
   }
 
-  const opportunitiesArtifact = artifacts
-    .filter((a) => a.type === 'opportunities_v2')
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+  const opportunitiesArtifact = pickLatestArtifactByTypes(artifacts, [CANONICAL_OPPORTUNITIES_TYPE])
   if (opportunitiesArtifact?.content_json) {
     result.opportunities = opportunitiesArtifact.content_json as OpportunitiesArtifactContent
   }
 
-  const scoringArtifact = artifacts
-    .filter((a) => a.type === 'scoring_matrix')
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+  const scoringArtifact = pickLatestArtifactByTypes(artifacts, [CANONICAL_SCORING_TYPE])
   if (scoringArtifact?.content_json) {
     result.scoringMatrix = scoringArtifact.content_json as ScoringMatrixArtifactContent
   }
