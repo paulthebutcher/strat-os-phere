@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { SearchResult } from '@/lib/search/provider'
-import { generateEvidenceDraft } from '@/lib/actions/generateEvidence'
 import type { EvidenceDraft } from '@/lib/schemas/evidenceDraft'
 
 interface EvidenceGeneratorProps {
@@ -90,12 +89,30 @@ export function EvidenceGenerator({
     setProgress('Starting...')
 
     try {
-      const result = await generateEvidenceDraft(
-        projectId,
-        competitorName.trim(),
-        selectedResult,
-        (msg) => setProgress(msg)
-      )
+      setProgress('Fetching pages...')
+
+      const response = await fetch('/api/evidence/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          competitorName: competitorName.trim(),
+          domainOrUrl: selectedResult,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: Failed to generate evidence`
+        )
+      }
+
+      const result = (await response.json()) as {
+        success: boolean
+        draft?: EvidenceDraft
+        error?: string
+      }
 
       if (!result.success || !result.draft) {
         throw new Error(result.error || 'Failed to generate evidence draft')
@@ -103,7 +120,7 @@ export function EvidenceGenerator({
 
       onDraftGenerated(result.draft)
       setProgress(null)
-      
+
       // Reset state
       setSearchQuery('')
       setSearchResults([])

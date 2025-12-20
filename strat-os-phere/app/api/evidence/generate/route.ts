@@ -1,13 +1,5 @@
-/**
- * @deprecated This server action has been replaced by the API route at /api/evidence/generate
- * Use the API route instead to avoid server/client boundary issues.
- * 
- * The API route provides better debugging, avoids client reference errors,
- * and follows a cleaner request/response pattern.
- */
-
-'use server'
-
+import 'server-only'
+import { NextResponse } from 'next/server'
 import { buildTargetUrls } from '@/lib/extract/targets'
 import { fetchAndExtract } from '@/lib/extract/fetchAndExtract'
 import { buildEvidenceMessages } from '@/lib/prompts/evidence'
@@ -22,11 +14,18 @@ import { createClient } from '@/lib/supabase/server'
 import { MAX_PAGES_PER_COMPETITOR, EVIDENCE_CACHE_TTL_HOURS } from '@/lib/constants'
 import { logger } from '@/lib/logger'
 
-export interface GenerateEvidenceResult {
+export const runtime = 'nodejs'
+
+interface GenerateEvidenceRequest {
+  projectId: string
+  competitorName: string
+  domainOrUrl: string
+}
+
+interface GenerateEvidenceResponse {
   success: boolean
   draft?: EvidenceDraft
   error?: string
-  progress?: string
 }
 
 /**
@@ -53,27 +52,38 @@ function isCacheValid(extractedAt: string): boolean {
 
 /**
  * Generate evidence draft from a competitor name or URL
+ * POST /api/evidence/generate
  */
-export async function generateEvidenceDraft(
-  projectId: string,
-  competitorName: string,
-  domainOrUrl: string,
-  onProgress?: (message: string) => void
-): Promise<GenerateEvidenceResult> {
+export async function POST(request: Request) {
   try {
+    logger.info('[evidence/generate] Starting evidence generation')
+
+    const body = (await request.json()) as GenerateEvidenceRequest
+    const { projectId, competitorName, domainOrUrl } = body
+
+    if (!projectId || !competitorName || !domainOrUrl) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      )
+    }
+
     const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return { success: false, error: 'Not authenticated' }
+      return NextResponse.json(
+        { success: false, error: 'Not authenticated' },
+        { status: 401 }
+      )
     }
 
     // Extract domain
     const domain = extractDomain(domainOrUrl)
 
-    onProgress?.(`Searching for ${competitorName}...`)
+    logger.info('[evidence/generate] Domain extracted', { domain, competitorName })
 
     // Check for cached sources
     const cachedSources = await getEvidenceSourcesForDomain(
@@ -86,15 +96,18 @@ export async function generateEvidenceDraft(
 
     if (sources.length === 0) {
       // Need to fetch new sources
-      onProgress?.(`Fetching pages for ${domain}...`)
+      logger.info('[evidence/generate] No cache hit, fetching pages', { domain })
 
       const targetUrls = buildTargetUrls(domain)
       const extractionResults = await Promise.all(
         targetUrls.slice(0, MAX_PAGES_PER_COMPETITOR).map(async (target, index) => {
-          onProgress?.(`Fetching ${index + 1}/${targetUrls.length} pages: ${target.label}...`)
-          
+          logger.info(
+            `[evidence/generate] Fetching page ${index + 1}/${targetUrls.length}`,
+            { url: target.url, label: target.label }
+          )
+
           const extracted = await fetchAndExtract(target.url)
-          
+
           if (extracted.error || !extracted.text) {
             logger.warn(`Failed to extract ${target.url}: ${extracted.error}`)
             return null
@@ -134,17 +147,22 @@ export async function generateEvidenceDraft(
         (s): s is typeof sources[0] => s !== null
       )
     } else {
-      onProgress?.(`Using cached sources for ${domain}...`)
+      logger.info('[evidence/generate] Using cached sources', {
+        domain,
+        sourceCount: sources.length,
+      })
     }
 
     if (sources.length === 0) {
-      return {
+      return NextResponse.json({
         success: false,
         error: 'Could not extract any content from the provided domain. Please try manual entry.',
-      }
+      })
     }
 
-    onProgress?.(`Generating evidence draft from ${sources.length} sources...`)
+    logger.info('[evidence/generate] Generating evidence draft from sources', {
+      sourceCount: sources.length,
+    })
 
     // Build LLM prompt
     const extractedContent = sources.map((source) => ({
@@ -170,27 +188,32 @@ export async function generateEvidenceDraft(
 
     if (!parseResult.ok) {
       logger.error('Failed to parse evidence draft', parseResult.error)
-      return {
+      return NextResponse.json({
         success: false,
         error: `Failed to generate evidence draft: ${parseResult.error}`,
-      }
+      })
     }
 
-    onProgress?.(`Evidence draft generated successfully`)
+    logger.info('[evidence/generate] Evidence draft generated successfully')
 
-    return {
+    const response: GenerateEvidenceResponse = {
       success: true,
       draft: parseResult.data,
     }
+
+    return NextResponse.json(response)
   } catch (error) {
     logger.error('Failed to generate evidence draft', error)
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to generate evidence draft. Please try again.',
-    }
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to generate evidence draft. Please try again.',
+      },
+      { status: 500 }
+    )
   }
 }
 
