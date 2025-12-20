@@ -40,18 +40,14 @@ export async function signIn(email: string): Promise<AuthActionResult> {
       origin,
       redirectUrl,
       emailRedirectTo: redirectUrl,
-      redirectTo: redirectUrl,
       flowType: 'pkce',
     })
   }
 
-  // Pass both redirect keys to signInWithOtp for bulletproof propagation
+  // Use correct v2 signature with emailRedirectTo
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
-    options: { 
-      emailRedirectTo: redirectUrl,
-      redirectTo: redirectUrl
-    } as any // Type cast to allow both redirect keys
+    options: { emailRedirectTo: redirectUrl }
   })
 
   // Log after signInWithOtp in dev/preview (for debugging)
