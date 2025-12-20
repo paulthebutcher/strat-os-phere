@@ -1,7 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { getOrigin } from '@/lib/server/origin'
 
 interface AuthActionResult {
@@ -10,7 +11,12 @@ interface AuthActionResult {
 }
 
 export async function signIn(email: string): Promise<AuthActionResult> {
-  const supabase = await createClient()
+  // Use direct Supabase client to rule out wrapper behavior
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  
   const origin = await getOrigin()
   const redirectUrl = `${origin}/auth/callback?next=/dashboard`
 
@@ -63,7 +69,7 @@ export async function signIn(email: string): Promise<AuthActionResult> {
 }
 
 export async function signOut() {
-  const supabase = await createClient()
+  const supabase = await createServerClient()
   await supabase.auth.signOut()
   redirect('/login')
 }
