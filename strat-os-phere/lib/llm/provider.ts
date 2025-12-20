@@ -38,6 +38,17 @@ export type LLMRequest = {
 
 export type LLMProviderName = 'openai'
 
+/**
+ * Standardized response from an LLM provider.
+ * All providers must return this shape, with `text` containing the model's output string.
+ * 
+ * @property text - The model's output text content. This is the string that contains
+ *   the actual response from the model (e.g., JSON, prose, etc.). Always use this
+ *   property to access the model output.
+ * @property provider - The name of the provider that generated this response
+ * @property model - The model identifier used for this response
+ * @property usage - Optional token usage statistics
+ */
 export type LLMResponse = {
   text: string
   provider: LLMProviderName

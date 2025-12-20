@@ -162,7 +162,7 @@ export async function generateEvidenceDraft(
     })
 
     // Parse response
-    const parseResult = safeParseLLMJson(llmResponse.content, EvidenceDraftSchema)
+    const parseResult = safeParseLLMJson(llmResponse.text, EvidenceDraftSchema)
 
     if (!parseResult.ok) {
       logger.error('Failed to parse evidence draft', parseResult.error)

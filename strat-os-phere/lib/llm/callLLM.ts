@@ -4,6 +4,16 @@
  * All application code should depend on this file rather than
  * individual provider implementations so we can swap or route
  * between providers later.
+ *
+ * @returns LLMResponse with a `text` property containing the model's output string.
+ *   Use `response.text` to access the model output (not `.content` or any other property).
+ *
+ * @example
+ * ```ts
+ * const response = await callLLM({ messages: [...] })
+ * const jsonText = response.text // ✅ Correct
+ * const parsed = JSON.parse(response.text) // ✅ Correct
+ * ```
  */
 
 import { createOpenAIProvider } from './openai'

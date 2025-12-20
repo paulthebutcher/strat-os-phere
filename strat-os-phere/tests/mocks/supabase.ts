@@ -62,6 +62,7 @@ export class MockSupabaseStore {
       id,
       ...data,
       // Normalize optional nullable fields: undefined -> null
+      evidence_citations: data.evidence_citations ?? null,
       url: data.url ?? null,
       evidence_text: data.evidence_text ?? null,
       created_at: new Date().toISOString(),
