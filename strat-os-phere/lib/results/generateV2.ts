@@ -37,6 +37,7 @@ import { logger } from '@/lib/logger'
 import {
   computeJtbdOpportunityScore,
   computeOpportunityScore,
+  computeWeightedCompetitorScores,
 } from '@/lib/results/scoringHelpers'
 import {
   computeResultsV2Signals,
@@ -455,10 +456,28 @@ export async function generateResultsV2(
       })
     )
 
+    // Compute weighted competitor scores deterministically from dimension scores
+    const weightedScores = computeWeightedCompetitorScores(
+      scoringParsed.data.criteria,
+      scoringParsed.data.scores
+    )
+
+    // Update summary with computed weighted scores
+    const scoringWithComputedScores = {
+      ...scoringParsed.data,
+      summary: scoringParsed.data.summary.map((summary) => {
+        const computedScore = weightedScores.get(summary.competitor_name)
+        return {
+          ...summary,
+          total_weighted_score: computedScore !== undefined ? computedScore : summary.total_weighted_score,
+        }
+      }),
+    }
+
     // Update scoring meta with schema_version=2
-    scoringParsed.data.meta.run_id = runId
-    scoringParsed.data.meta.generated_at = generatedAt
-    scoringParsed.data.meta.schema_version = 2
+    scoringWithComputedScores.meta.run_id = runId
+    scoringWithComputedScores.meta.generated_at = generatedAt
+    scoringWithComputedScores.meta.schema_version = 2
 
     // Phase: opportunities_generate
     const tOpportunitiesStart = performance.now()
@@ -634,7 +653,7 @@ export async function generateResultsV2(
     const signals = computeResultsV2Signals({
       jtbd: jtbdWithScores,
       opportunities: opportunitiesWithScores,
-      scoringMatrix: scoringParsed.data,
+      scoringMatrix: scoringWithComputedScores,
     })
 
     onProgress?.(
@@ -702,7 +721,7 @@ export async function generateResultsV2(
     const scoringArtifact = await createArtifact(supabase, {
       project_id: projectId,
       type: 'scoring_matrix' as any,
-      content_json: scoringParsed.data as any,
+      content_json: scoringWithComputedScores as any,
     })
 
     onProgress?.(

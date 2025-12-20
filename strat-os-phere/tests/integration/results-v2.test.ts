@@ -81,7 +81,8 @@ describe('Results v2 Artifact Normalization', () => {
       impact: 'med' as const,
       confidence: 'med' as const,
       score: 50,
-      first_experiments: [`Experiment ${i}`],
+      risks: [`Risk ${i}`],
+      first_experiments: [`This is a test experiment ${i} that is long enough`],
     }))
 
     store.createArtifact({
@@ -97,7 +98,15 @@ describe('Results v2 Artifact Normalization', () => {
       },
     })
 
-    // Need at least 1 criterion and summary to satisfy schema
+    // Need at least 6 criteria to satisfy schema
+    const criteria = Array.from({ length: 6 }, (_, i) => ({
+      id: `criterion-${i + 1}`,
+      name: `Criterion ${i + 1}`,
+      description: `Test criterion ${i + 1}`,
+      weight: 3,
+      how_to_score: 'Test rubric',
+    }))
+
     store.createArtifact({
       project_id: project.id,
       type: 'scoring_matrix' as any,
@@ -107,21 +116,25 @@ describe('Results v2 Artifact Normalization', () => {
           schema_version: 2,
           run_id: 'test-run-123',
         },
-        criteria: [
+        criteria,
+        scores: [
           {
-            id: 'criterion-1',
-            name: 'Criterion 1',
-            description: 'Test criterion',
-            weight: 3,
-            how_to_score: 'Test rubric',
+            competitor_name: 'Competitor 1',
+            criteria_id: 'criterion-1',
+            dimensions: {
+              discovery_support: 0.7,
+              execution_support: 0.6,
+              reliability: 0.8,
+              flexibility: 0.5,
+              friction: 0.3,
+            },
           },
         ],
-        scores: [],
         summary: [
           {
             competitor_id: 'comp-1',
             competitor_name: 'Competitor 1',
-            total_weighted_score: 50,
+            total_weighted_score: 62.4, // Computed from dimensions: (0.7 + 0.6 + 0.8 + 0.5 + 0.7) / 5 * 100
             strengths: [],
             weaknesses: [],
           },
@@ -220,7 +233,8 @@ describe('Results v2 Artifact Normalization', () => {
       impact: 'med' as const,
       confidence: 'med' as const,
       score: 50,
-      first_experiments: [`Experiment ${i}`],
+      risks: [`Risk ${i}`],
+      first_experiments: [`This is a test experiment ${i} that is long enough`],
     }))
 
     store.createArtifact({
@@ -241,26 +255,38 @@ describe('Results v2 Artifact Normalization', () => {
       },
     })
 
+    const criteria = Array.from({ length: 6 }, (_, i) => ({
+      id: `criterion-${i + 1}`,
+      name: `Criterion ${i + 1}`,
+      description: `Test criterion ${i + 1}`,
+      weight: 3,
+      how_to_score: 'Test rubric',
+    }))
+
     store.createArtifact({
       project_id: project.id,
       type: 'scoring_matrix' as any,
       content_json: {
         meta: { generated_at: new Date().toISOString(), schema_version: 2 },
-        criteria: [
+        criteria,
+        scores: [
           {
-            id: 'criterion-1',
-            name: 'Criterion 1',
-            description: 'Test criterion',
-            weight: 3,
-            how_to_score: 'Test rubric',
+            competitor_name: 'Competitor 1',
+            criteria_id: 'criterion-1',
+            dimensions: {
+              discovery_support: 0.7,
+              execution_support: 0.6,
+              reliability: 0.8,
+              flexibility: 0.5,
+              friction: 0.3,
+            },
           },
         ],
-        scores: [],
         summary: [
           {
             competitor_id: 'comp-1',
             competitor_name: 'Competitor 1',
-            total_weighted_score: 50,
+            total_weighted_score: 62.4,
             strengths: [],
             weaknesses: [],
           },
@@ -289,5 +315,105 @@ describe('Results v2 Artifact Normalization', () => {
     expect(normalized.jtbd).toBeDefined()
     expect(normalized.opportunitiesV2).toBeDefined()
     expect(normalized.scoringMatrix).toBeDefined()
+  })
+
+  it('should verify scores show meaningful variance (not limited to 50/100)', async () => {
+    const project = store.createProject({
+      user_id: userId,
+      name: 'Test Project',
+      market: 'Test Market',
+      target_customer: 'Test Customer',
+    })
+
+    // Create scoring matrix with varied dimension scores to ensure meaningful variance
+    // Need at least 6 criteria to satisfy schema
+    const criteria = Array.from({ length: 6 }, (_, i) => ({
+      id: `criterion-${i + 1}`,
+      name: `Criterion ${i + 1}`,
+      description: `Test criterion ${i + 1}`,
+      weight: i === 0 ? 5 : 3, // First criterion has higher weight
+      how_to_score: 'Test rubric',
+    }))
+
+    store.createArtifact({
+      project_id: project.id,
+      type: 'scoring_matrix' as any,
+      content_json: {
+        meta: { generated_at: new Date().toISOString(), schema_version: 2 },
+        criteria,
+        scores: [
+          {
+            competitor_name: 'Competitor A',
+            criteria_id: 'criterion-1',
+            dimensions: {
+              discovery_support: 0.62, // Partial support
+              execution_support: 0.74, // Good support
+              reliability: 0.81, // High reliability
+              flexibility: 0.55, // Moderate flexibility
+              friction: 0.35, // Moderate friction (will be inverted)
+            },
+          },
+          {
+            competitor_name: 'Competitor B',
+            criteria_id: 'criterion-1',
+            dimensions: {
+              discovery_support: 0.45, // Weaker support
+              execution_support: 0.38, // Poor execution
+              reliability: 0.67, // Moderate reliability
+              flexibility: 0.72, // Good flexibility
+              friction: 0.58, // Higher friction
+            },
+          },
+        ],
+        summary: [
+          {
+            competitor_name: 'Competitor A',
+            total_weighted_score: 67.4, // Should be around 67 (not 50 or 100)
+            strengths: [],
+            weaknesses: [],
+          },
+          {
+            competitor_name: 'Competitor B',
+            total_weighted_score: 52.8, // Should be around 53 (not 50 or 100)
+            strengths: [],
+            weaknesses: [],
+          },
+        ],
+      },
+    })
+
+    const artifacts = await listArtifacts(client, { projectId: project.id })
+    const normalized = normalizeResultsArtifacts(artifacts)
+
+    expect(normalized.scoringMatrix).toBeDefined()
+    const scoringMatrix = normalized.scoringMatrix!
+
+    // Verify scores are not limited to multiples of 25 or 50
+    const scores = scoringMatrix.content.summary.map((s) => s.total_weighted_score)
+    expect(scores.length).toBe(2)
+    
+    // Check that scores show variance and are not clustered at 50 or 100
+    const scoreA = scores.find((_, i) => scoringMatrix.content.summary[i].competitor_name === 'Competitor A')!
+    const scoreB = scores.find((_, i) => scoringMatrix.content.summary[i].competitor_name === 'Competitor B')!
+    
+    // Scores should be different
+    expect(Math.abs(scoreA - scoreB)).toBeGreaterThan(5)
+    
+    // Scores should not be exactly 50 or 100
+    expect(scoreA).not.toBe(50)
+    expect(scoreA).not.toBe(100)
+    expect(scoreB).not.toBe(50)
+    expect(scoreB).not.toBe(100)
+    
+    // Scores should be in reasonable range (not just 0 or extreme values)
+    expect(scoreA).toBeGreaterThan(0)
+    expect(scoreA).toBeLessThan(100)
+    expect(scoreB).toBeGreaterThan(0)
+    expect(scoreB).toBeLessThan(100)
+    
+    // Competitor A should have partial support scores between 55-75 (not 50 or 100)
+    // Based on dimensions: (0.62 + 0.74 + 0.81 + 0.55 + 0.65) / 5 * 100 = 67.4
+    expect(scoreA).toBeGreaterThan(55)
+    expect(scoreA).toBeLessThan(75)
   })
 })

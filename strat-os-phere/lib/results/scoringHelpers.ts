@@ -92,8 +92,30 @@ export function computeOpportunityScore(
 }
 
 /**
+ * Aggregate dimension scores into a single score for a criterion
+ * Uses equal-weighted average of all dimensions, with friction inverted (lower friction = higher score)
+ * Returns a score in 0-1 range
+ */
+export function aggregateDimensionScores(
+  dimensions: CriterionScore['dimensions']
+): number {
+  // Equal-weighted average of all dimensions
+  // Friction is inverted: higher friction = lower score
+  const aggregated =
+    (dimensions.discovery_support +
+      dimensions.execution_support +
+      dimensions.reliability +
+      dimensions.flexibility +
+      (1 - dimensions.friction)) / 5
+
+  // Clamp to 0-1 range (shouldn't happen, but safety check)
+  return Math.max(0, Math.min(1, aggregated))
+}
+
+/**
  * Compute weighted competitor scores
- * Normalizes weights, converts 1-5 scores to 0-100 per criterion, then weighted sum
+ * Uses graded dimension scores (0.0-1.0), aggregates them per criterion, then applies weighted sum
+ * Returns scores in 0-100 range (not rounded, preserves decimals until presentation)
  */
 export function computeWeightedCompetitorScores(
   criteria: ScoringCriterion[],
@@ -107,13 +129,13 @@ export function computeWeightedCompetitorScores(
   })
 
   // Group scores by competitor
-  const competitorScores = new Map<string, Map<string, number>>()
+  const competitorScores = new Map<string, Map<string, CriterionScore['dimensions']>>()
   scores.forEach((score) => {
     if (!competitorScores.has(score.competitor_name)) {
       competitorScores.set(score.competitor_name, new Map())
     }
     const compScores = competitorScores.get(score.competitor_name)!
-    compScores.set(score.criteria_id, score.score)
+    compScores.set(score.criteria_id, score.dimensions)
   })
 
   // Compute weighted totals
@@ -121,15 +143,18 @@ export function computeWeightedCompetitorScores(
   competitorScores.forEach((compScores, competitorName) => {
     let total = 0
     criteria.forEach((criterion) => {
-      const score = compScores.get(criterion.id)
-      if (score !== undefined) {
-        // Convert 1-5 to 0-100
-        const normalizedScore = ((score - 1) / 4) * 100
+      const dimensions = compScores.get(criterion.id)
+      if (dimensions !== undefined) {
+        // Aggregate dimension scores to get criterion score (0-1 range)
+        const criterionScore = aggregateDimensionScores(dimensions)
+        // Convert to 0-100 range
+        const normalizedScore = criterionScore * 100
         const weight = normalizedWeights.get(criterion.id) || 0
         total += normalizedScore * weight
       }
     })
-    weightedTotals.set(competitorName, Math.round(total * 100) / 100) // Round to 2 decimals
+    // Preserve decimals, only round at presentation time
+    weightedTotals.set(competitorName, total)
   })
 
   return weightedTotals

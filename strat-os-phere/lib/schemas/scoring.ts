@@ -12,13 +12,46 @@ export const ScoringCriterionSchema = z.object({
 })
 
 /**
+ * Dimension scores for evaluating how well a competitor supports a criterion
+ * Each dimension is scored independently on a 0.0-1.0 continuous scale
+ */
+export const CriterionDimensionScoresSchema = z.object({
+  discovery_support: z
+    .number()
+    .min(0.0, { message: 'discovery_support must be between 0.0 and 1.0' })
+    .max(1.0, { message: 'discovery_support must be between 0.0 and 1.0' })
+    .refine((val) => !isNaN(val), { message: 'discovery_support must be a valid number' }),
+  execution_support: z
+    .number()
+    .min(0.0, { message: 'execution_support must be between 0.0 and 1.0' })
+    .max(1.0, { message: 'execution_support must be between 0.0 and 1.0' })
+    .refine((val) => !isNaN(val), { message: 'execution_support must be a valid number' }),
+  reliability: z
+    .number()
+    .min(0.0, { message: 'reliability must be between 0.0 and 1.0' })
+    .max(1.0, { message: 'reliability must be between 0.0 and 1.0' })
+    .refine((val) => !isNaN(val), { message: 'reliability must be a valid number' }),
+  flexibility: z
+    .number()
+    .min(0.0, { message: 'flexibility must be between 0.0 and 1.0' })
+    .max(1.0, { message: 'flexibility must be between 0.0 and 1.0' })
+    .refine((val) => !isNaN(val), { message: 'flexibility must be a valid number' }),
+  friction: z
+    .number()
+    .min(0.0, { message: 'friction must be between 0.0 and 1.0' })
+    .max(1.0, { message: 'friction must be between 0.0 and 1.0' })
+    .refine((val) => !isNaN(val), { message: 'friction must be a valid number' }),
+})
+
+/**
  * Score for a specific competitor on a specific criterion
+ * Uses graded dimension scores (0.0-1.0) instead of a single boolean/1-5 score
  */
 export const CriterionScoreSchema = z.object({
   competitor_id: z.string().optional(),
   competitor_name: z.string().min(1),
   criteria_id: z.string().min(1),
-  score: z.number().int().min(1).max(5),
+  dimensions: CriterionDimensionScoresSchema,
   evidence: z.string().optional(),
 })
 
@@ -56,6 +89,7 @@ export const ScoringMatrixArtifactContentSchema = z.object({
 })
 
 export type ScoringCriterion = z.infer<typeof ScoringCriterionSchema>
+export type CriterionDimensionScores = z.infer<typeof CriterionDimensionScoresSchema>
 export type CriterionScore = z.infer<typeof CriterionScoreSchema>
 export type CompetitorScoreSummary = z.infer<typeof CompetitorScoreSummarySchema>
 export type ScoringMeta = z.infer<typeof ScoringMetaSchema>

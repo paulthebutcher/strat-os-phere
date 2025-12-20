@@ -6,6 +6,8 @@ import { RegenerateButton } from '@/components/results/RegenerateButton'
 import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
 import { CompetitorScoreBarChart } from '@/components/results/CompetitorScoreBarChart'
 import { ArtifactsDebugPanel } from '@/components/results/ArtifactsDebugPanel'
+import { PostGenerationHighlight } from '@/components/results/PostGenerationHighlight'
+import { ProgressiveReveal } from '@/components/results/ProgressiveReveal'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
@@ -283,6 +285,14 @@ export default async function ResultsPage(props: ResultsPageProps) {
           </section>
         ) : (
           <section className="flex flex-col gap-4">
+            {/* Post-generation highlight */}
+            {(jtbd || opportunitiesV2 || scoringMatrix) && (
+              <PostGenerationHighlight
+                opportunities={opportunitiesV2?.content}
+                scoring={scoringMatrix?.content}
+              />
+            )}
+
             {/* Recommended Next Steps Panel */}
             {opportunitiesV2?.content?.opportunities &&
             opportunitiesV2.content.opportunities.length > 0 ? (
@@ -327,16 +337,22 @@ export default async function ResultsPage(props: ResultsPageProps) {
               <AnglesSection synthesis={synthesis} />
             ) : null}
             {activeTab === 'jobs' ? (
-              <JtbdSection jtbd={jtbd?.content} projectId={project.id} />
+              <ProgressiveReveal order={0} enabled={Boolean(jtbd)}>
+                <JtbdSection jtbd={jtbd?.content} projectId={project.id} />
+              </ProgressiveReveal>
             ) : null}
             {activeTab === 'scorecard' ? (
-              <ScoringSection scoring={scoringMatrix?.content} projectId={project.id} />
+              <ProgressiveReveal order={1} enabled={Boolean(scoringMatrix)}>
+                <ScoringSection scoring={scoringMatrix?.content} projectId={project.id} />
+              </ProgressiveReveal>
             ) : null}
             {activeTab === 'opportunities_v2' ? (
-              <OpportunitiesV2Section
-                opportunities={opportunitiesV2?.content}
-                projectId={project.id}
-              />
+              <ProgressiveReveal order={2} enabled={Boolean(opportunitiesV2)}>
+                <OpportunitiesV2Section
+                  opportunities={opportunitiesV2?.content}
+                  projectId={project.id}
+                />
+              </ProgressiveReveal>
             ) : null}
           </section>
         )}

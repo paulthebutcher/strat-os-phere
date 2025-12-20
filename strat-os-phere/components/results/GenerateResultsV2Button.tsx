@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { InlineError } from '@/components/common/InlineError'
+import { ThinkingMode } from './ThinkingMode'
 import type { ProgressEvent } from '@/lib/results/progress'
 
 interface GenerateResultsV2ButtonProps {
@@ -18,6 +19,7 @@ export function GenerateResultsV2Button({
 }: GenerateResultsV2ButtonProps) {
   const router = useRouter()
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isComplete, setIsComplete] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<ProgressEvent | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
@@ -36,7 +38,15 @@ export function GenerateResultsV2Button({
 
     setError(null)
     setProgress(null)
+    setIsComplete(false)
     setIsGenerating(true)
+
+    // Clear the progressive reveal flag so animation plays again for new results
+    try {
+      sessionStorage.removeItem('progressive-reveal-shown')
+    } catch {
+      // Ignore sessionStorage errors
+    }
 
     // Try SSE first
     try {
@@ -59,13 +69,19 @@ export function GenerateResultsV2Button({
           const data = JSON.parse(event.data)
           eventSource.close()
           eventSourceRef.current = null
-          setIsGenerating(false)
-          setProgress(null)
-          router.refresh()
+          setIsComplete(true)
+          // Show completion state briefly, then transition
+          setTimeout(() => {
+            setIsGenerating(false)
+            setIsComplete(false)
+            setProgress(null)
+            router.refresh()
+          }, 1500) // 1.5 second delay to show "Strategy Ready"
         } catch (err) {
           console.error('Failed to parse completion event:', err)
           setError('Generation completed but failed to parse response')
           setIsGenerating(false)
+          setIsComplete(false)
         }
       })
 
@@ -120,9 +136,17 @@ export function GenerateResultsV2Button({
       const result = await response.json()
 
       if (result.ok) {
-        router.refresh()
+        setIsComplete(true)
+        // Show completion state briefly, then transition
+        setTimeout(() => {
+          setIsGenerating(false)
+          setIsComplete(false)
+          router.refresh()
+        }, 1500)
       } else {
         setError(result.error.message)
+        setIsGenerating(false)
+        setIsComplete(false)
       }
     } catch (err) {
       const message =
@@ -130,8 +154,8 @@ export function GenerateResultsV2Button({
           ? err.message
           : 'Unexpected error while generating results.'
       setError(message)
-    } finally {
       setIsGenerating(false)
+      setIsComplete(false)
     }
   }
 
@@ -141,28 +165,29 @@ export function GenerateResultsV2Button({
       eventSourceRef.current = null
     }
     setIsGenerating(false)
+    setIsComplete(false)
     setProgress(null)
   }
 
-  const formatStepCount = (event: ProgressEvent | null): string | null => {
-    if (!event?.meta) return null
+  // Map progress events to step indices for more accurate progress tracking
+  const getStepIndexFromProgress = (progressEvent: ProgressEvent | null): number | undefined => {
+    if (!progressEvent?.message) return undefined
 
-    const { llmCallsDone, llmCallsTotal, writesDone, writesTotal } = event.meta
-
-    if (llmCallsDone !== undefined && llmCallsTotal !== undefined) {
-      return `(${llmCallsDone}/${llmCallsTotal})`
-    }
-
-    if (writesDone !== undefined && writesTotal !== undefined) {
-      return `(${writesDone}/${writesTotal})`
-    }
-
-    return null
+    const message = progressEvent.message.toLowerCase()
+    
+    // Map progress messages to step indices
+    if (message.includes('market') || message.includes('synthesis')) return 0
+    if (message.includes('competitor') || message.includes('snapshot') || message.includes('profile')) return 1
+    if (message.includes('struggle') || message.includes('customer') || message.includes('review')) return 2
+    if (message.includes('scoring') || message.includes('scorecard') || message.includes('opportunity')) return 3
+    if (message.includes('final') || message.includes('complete') || message.includes('save')) return 4
+    
+    return undefined
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-end gap-2">
         <Button
           type="button"
           size="sm"
@@ -170,43 +195,19 @@ export function GenerateResultsV2Button({
           disabled={isGenerating}
           onClick={isGenerating ? handleCancel : handleClick}
         >
-          {isGenerating ? 'Stop listening' : label}
+          {isGenerating ? 'Stop generation' : label}
         </Button>
-        {isGenerating && (
-          <a
-            href="#progress-info"
-            className="text-xs text-text-secondary underline hover:text-text-primary"
-            onClick={(e) => {
-              e.preventDefault()
-              // Simple alert for now - can be replaced with popover
-              alert(
-                'We generate structured outputs (Jobs, Scorecard, Opportunities), validate them with strict schemas, compute deterministic scores, and save artifacts so results persist and can be copied/shared.'
-              )
-            }}
-          >
-            What&apos;s happening?
-          </a>
-        )}
       </div>
 
-      {isGenerating && progress && (
-        <div className="w-full max-w-xs space-y-1">
-          <div className="text-sm font-medium text-text-primary">
-            {progress.message}
-            {formatStepCount(progress) && (
-              <span className="ml-1 text-xs text-text-secondary">
-                {formatStepCount(progress)}
-              </span>
-            )}
-          </div>
-          {progress.detail && (
-            <div className="text-xs text-text-secondary">{progress.detail}</div>
-          )}
-        </div>
+      {isGenerating && (
+        <ThinkingMode
+          currentStepIndex={getStepIndexFromProgress(progress)}
+          isComplete={isComplete}
+        />
       )}
 
       {error && (
-        <div className="w-full max-w-xs">
+        <div className="w-full">
           <InlineError message={error} />
         </div>
       )}
