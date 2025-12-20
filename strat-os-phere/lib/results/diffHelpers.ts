@@ -248,7 +248,7 @@ export function computeContrastSummary(
   )
   const scorecardDiff = diffScorecard(latest.scorecard, previous.scorecard)
 
-  const hasChanges =
+  const hasChanges = Boolean(
     (jtbdDiff &&
       (jtbdDiff.added.length > 0 ||
         jtbdDiff.removed.length > 0 ||
@@ -258,6 +258,7 @@ export function computeContrastSummary(
         opportunitiesDiff.removed.length > 0 ||
         opportunitiesDiff.scoreChanges.length > 0)) ||
     (scorecardDiff && scorecardDiff.scoreChanges.length > 0)
+  )
 
   return {
     jtbd: jtbdDiff,
