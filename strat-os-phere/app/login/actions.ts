@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { getOrigin } from '@/lib/server/origin'
@@ -12,16 +13,86 @@ interface AuthActionResult {
 
 export async function signIn(email: string): Promise<AuthActionResult> {
   const origin = await getOrigin()
+  const headersList = await headers()
+  const forwardedHost = headersList.get("x-forwarded-host")
+  const host = headersList.get("host")
   const isPreview = process.env.VERCEL_ENV === 'preview'
+  const isDevOrPreview = process.env.NODE_ENV === 'development' || isPreview
   
-  // Temporarily simplify redirect URL (no next query param)
-  let redirectUrl = `${origin}/auth/callback`
-  
-  // Add debug fingerprint in preview only to verify param propagation
-  if (isPreview) {
-    redirectUrl += '?src=staging-test-1'
+  // Redirect URL is exactly ${origin}/auth/callback (no query string)
+  const redirectUrl = `${origin}/auth/callback`
+
+  // Canary proof: include canary info in return payload for dev/preview
+  const canaryInfo = isDevOrPreview
+    ? `canary=signIn_v2|origin=${origin}|redirectUrl=${redirectUrl}`
+    : undefined
+
+  // Check if we should use direct GoTrue call (preview only, behind env flag)
+  const useGoTrueDirect = isPreview && process.env.USE_GOTRUE_DIRECT === 'true'
+
+  if (useGoTrueDirect) {
+    // Bypass SDK and call GoTrue directly
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+    console.log('[signIn] Using direct GoTrue call', {
+      origin,
+      redirectUrl,
+      supabaseUrl,
+    })
+
+    try {
+      const response = await fetch(`${supabaseUrl}/auth/v1/otp`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          redirect_to: redirectUrl,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
+        console.error('[signIn] Direct GoTrue call failed', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+          redirectUrl,
+          origin,
+        })
+        return {
+          success: false,
+          message: errorData.message || `GoTrue error: ${response.statusText}`,
+        }
+      }
+
+      console.log('[signIn] Direct GoTrue call succeeded', {
+        origin,
+        redirectUrl,
+        status: response.status,
+      })
+
+      return {
+        success: true,
+        message: canaryInfo,
+      }
+    } catch (error) {
+      console.error('[signIn] Direct GoTrue call exception', {
+        error: error instanceof Error ? error.message : String(error),
+        redirectUrl,
+        origin,
+      })
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error',
+      }
+    }
   }
 
+  // Default path: Use Supabase SDK
   // Create direct Supabase client with PKCE flow explicitly
   const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,13 +105,15 @@ export async function signIn(email: string): Promise<AuthActionResult> {
   )
 
   // Log origin and redirect URL in dev/preview (not production)
-  const isDevOrPreview = process.env.NODE_ENV === 'development' || isPreview
   if (isDevOrPreview) {
     console.log('[signIn] Before signInWithOtp', {
       origin,
       redirectUrl,
       emailRedirectTo: redirectUrl,
       flowType: 'pkce',
+      vercelEnv: process.env.VERCEL_ENV,
+      xForwardedHost: forwardedHost,
+      host: host,
     })
   }
 
@@ -79,7 +152,10 @@ export async function signIn(email: string): Promise<AuthActionResult> {
     return { success: false, message: error.message }
   }
 
-  return { success: true }
+  return {
+    success: true,
+    message: canaryInfo,
+  }
 }
 
 export async function signOut() {

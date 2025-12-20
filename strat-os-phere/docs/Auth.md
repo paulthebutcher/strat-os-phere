@@ -101,13 +101,20 @@ To test programmatically:
 
 ## Environment-Agnostic Configuration
 
-The authentication system works across all environments without separate `.env` files:
+The authentication system works across all environments without separate `.env` files and **does not rely on `NEXT_PUBLIC_SITE_URL`**:
 
 - **Local Development**: `secure: false` allows cookies on `localhost`
 - **Vercel Preview**: Uses `x-forwarded-host` and `x-forwarded-proto` headers
 - **Vercel Production**: Same as preview, with `secure: true` for HTTPS
+- **Custom Staging Domains**: Automatically detected from request headers
 
-The `getOrigin()` helper in `/lib/server/origin.ts` handles environment detection automatically.
+The `getOrigin()` helper in `/lib/server/origin.ts` handles environment detection automatically by:
+1. Preferring `x-forwarded-proto` and `x-forwarded-host` headers (set by Vercel)
+2. Falling back to the `host` header if forwarded headers aren't available
+3. Using `https` on Vercel deployments, `http` otherwise
+4. Only falling back to `localhost:3000` in development if no headers are present
+
+**Important**: Origin is always computed from request headers. The Supabase Site URL setting in the Supabase dashboard should remain set to production (e.g., `https://myplinth.com`), but magic links will use the correct origin based on where the login request originated.
 
 ## Troubleshooting
 

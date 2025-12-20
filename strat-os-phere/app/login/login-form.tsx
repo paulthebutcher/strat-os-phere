@@ -27,7 +27,13 @@ export function LoginForm() {
       )
     } else {
       setIsError(false)
-      setMessage('Check your email for the magic link!')
+      // In dev/preview, show canary info if present; otherwise show success message
+      // Check if message contains canary info (server action sets this in dev/preview)
+      if (result?.message && result.message.includes('canary=')) {
+        setMessage(result.message)
+      } else {
+        setMessage('Check your email for the magic link!')
+      }
     }
 
     setLoading(false)
