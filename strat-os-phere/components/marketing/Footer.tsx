@@ -1,38 +1,27 @@
-/**
- * Footer Section
- * 
- * Design tokens used:
- * - surface-muted: Footer background
- * - border-subtle: Border color for separation
- * - text-text-secondary: Link colors
- * - text-text-primary: Heading and hover states
- * 
- * Enhanced with better spacing, text sizing, and link grouping.
- */
 import Link from "next/link"
 
 export function Footer() {
   return (
-    <footer className="border-t border-border-subtle bg-surface-muted">
-      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
-        <div className="grid gap-12 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <h3 className="mb-4 text-xl font-semibold text-text-primary">
+    <footer className="border-t border-border bg-surface-muted">
+      <div className="mx-auto max-w-5xl px-4 py-12">
+        <div className="grid gap-8 md:grid-cols-4">
+          <div className="md:col-span-2 space-y-2">
+            <h3 className="text-base font-semibold text-foreground">
               Plinth
             </h3>
-            <p className="max-w-md text-base leading-relaxed text-text-secondary">
+            <p className="max-w-md text-sm text-muted-foreground">
               A strategy workspace for finding unfair advantage.
             </p>
           </div>
           <div>
-            <h4 className="mb-6 text-base font-semibold text-text-primary">
+            <h4 className="mb-4 text-sm font-semibold text-foreground">
               Product
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               <li>
                 <Link
                   href="#product"
-                  className="text-base text-text-secondary transition-colors hover:text-text-primary"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Features
                 </Link>
@@ -40,7 +29,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#outputs"
-                  className="text-base text-text-secondary transition-colors hover:text-text-primary"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Outputs
                 </Link>
@@ -48,7 +37,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#how-it-works"
-                  className="text-base text-text-secondary transition-colors hover:text-text-primary"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   How it works
                 </Link>
@@ -56,14 +45,14 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="mb-6 text-base font-semibold text-text-primary">
+            <h4 className="mb-4 text-sm font-semibold text-foreground">
               Legal
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               <li>
                 <Link
                   href="#privacy"
-                  className="text-base text-text-secondary transition-colors hover:text-text-primary"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Privacy
                 </Link>
@@ -71,7 +60,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#terms"
-                  className="text-base text-text-secondary transition-colors hover:text-text-primary"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Terms
                 </Link>
@@ -79,8 +68,8 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-12 border-t border-border-subtle pt-8 text-center">
-          <p className="text-sm text-text-muted">
+        <div className="mt-8 border-t border-border pt-6 text-center">
+          <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Plinth · myplinth.com
           </p>
         </div>

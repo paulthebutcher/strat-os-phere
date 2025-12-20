@@ -1,12 +1,3 @@
-/**
- * Who It's For Section
- * 
- * Design tokens used:
- * - text-text-primary: Headline and title colors
- * - text-text-secondary: Description colors
- * 
- * Minimal, confident presentation without icons or avatars.
- */
 export function WhoItsFor() {
   const audiences = [
     {
@@ -28,23 +19,23 @@ export function WhoItsFor() {
   ]
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-32 md:py-40">
-      <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
+    <section className="border-t border-border mx-auto max-w-5xl px-4 py-20 md:py-24">
+      <div className="mx-auto max-w-3xl space-y-12">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl text-center">
           Built for leaders who have to decide.
         </h2>
-      </div>
-      <div className="mt-24 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-        {audiences.map((audience, index) => (
-          <div key={index} className="text-center">
-            <h3 className="mb-3 text-xl font-semibold text-text-primary md:text-2xl">
-              {audience.title}
-            </h3>
-            <p className="text-base leading-relaxed text-text-secondary md:text-lg">
-              {audience.description}
-            </p>
-          </div>
-        ))}
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {audiences.map((audience, index) => (
+            <div key={index} className="text-center space-y-2">
+              <h3 className="text-base font-semibold text-foreground">
+                {audience.title}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {audience.description}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )

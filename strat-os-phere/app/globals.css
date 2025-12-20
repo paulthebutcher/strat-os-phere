@@ -3,44 +3,45 @@
 /*
   Plinth Design System
   
-  Professional, high-contrast design system for B2B strategy tools.
-  Inspired by Fullstory — clean SaaS, crisp typography, white surfaces, confident primary color.
+  Calm, authoritative, finished design system for strategic decision platforms.
+  Inspired by Fullstory's behavioral patterns — extreme contrast discipline,
+  one primary decision per screen, narrative over dashboard.
   
-  Design Principles:
-  - High readability (WCAG AA minimum, AAA for body text)
-  - Clean, modern SaaS aesthetic
-  - White surfaces with subtle borders
-  - Deep indigo primary color for confidence
-  - Restrained accents
-  - Minimal shadows, consistent rounded corners
+  Design Philosophy:
+  - Quiet confidence over visual excitement
+  - Hierarchy > decoration
+  - Typography does most of the work
+  - Whitespace is intentional
+  - Color encodes meaning, not personality
+  - Everything should look finished even when empty
   
   ⚠️ ALL UI must use design tokens. No hardcoded colors, spacing, or typography.
 */
 
 :root {
-  /* Backgrounds - Fullstory-inspired light theme */
-  --background: 0 0% 98%; /* Near-white with slight warmth */
+  /* Backgrounds - Neutral, calm surfaces */
+  --background: 0 0% 100%; /* Pure white - no warmth, no compromise */
   --surface: 0 0% 100%; /* Pure white for cards/panels */
-  --surface-muted: 0 0% 97%; /* Very light gray for subtle sections */
+  --surface-muted: 0 0% 98%; /* Subtle gray for quiet zones */
 
-  /* Text - High contrast for readability */
-  --text-primary: 0 0% 9%; /* Near-black for maximum readability */
-  --text-secondary: 0 0% 45%; /* Medium gray that passes WCAG AA (4.5:1 on white) */
-  --text-muted: 0 0% 55%; /* Muted text that's still readable */
+  /* Text - Maximum contrast, clear hierarchy */
+  --text-primary: 0 0% 5%; /* Near-black for maximum authority */
+  --text-secondary: 0 0% 40%; /* Medium gray - clear but secondary */
+  --text-muted: 0 0% 50%; /* Muted text - supporting context only */
 
-  /* Borders - Subtle but visible */
-  --border-subtle: 0 0% 88%; /* Light gray borders */
-  --border-strong: 0 0% 75%; /* Stronger borders for emphasis */
-  --border-surface: 0 0% 88%; /* Borders on white surfaces */
+  /* Borders - Minimal but definitive */
+  --border-subtle: 0 0% 90%; /* Light gray borders */
+  --border-strong: 0 0% 80%; /* Stronger borders for separation */
+  --border-surface: 0 0% 90%; /* Borders on white surfaces */
 
-  /* Primary - Deep indigo/blue for professional SaaS */
-  --accent-primary: 230 57% 50%; /* Deep indigo #3B5BDB - professional, confident */
-  --accent-secondary: 215 20% 65%; /* Muted blue-gray for secondary actions */
+  /* Primary - Deep, confident, not playful */
+  --accent-primary: 230 60% 45%; /* Deep indigo - authoritative */
+  --accent-secondary: 0 0% 60%; /* Neutral gray for secondary actions */
 
-  /* States */
-  --success: 142 71% 45%; /* Success state */
-  --warning: 38 92% 50%; /* Warning state */
-  --danger: 0 84% 60%; /* Danger/destructive state */
+  /* States - Color only for meaning */
+  --success: 142 60% 40%; /* Success - muted, not celebratory */
+  --warning: 38 80% 45%; /* Warning - clear but not alarming */
+  --danger: 0 70% 50%; /* Danger - direct, not dramatic */
 
   /* Semantic aliases (for compatibility with existing components) */
   --foreground: var(--text-primary); /* Near-black text */
@@ -50,10 +51,10 @@
   --popover: var(--surface);
   --popover-foreground: var(--text-primary);
   
-  /* Interaction colors */
+  /* Interaction colors - Color only for primary actions */
   --primary: var(--accent-primary); /* Deep indigo */
   --primary-foreground: 0 0% 100%; /* White text on indigo buttons */
-  --secondary: 0 0% 96%; /* Very light gray for secondary buttons */
+  --secondary: 0 0% 98%; /* Very light gray for secondary buttons */
   --secondary-foreground: var(--text-primary); /* Dark text on light background */
   --accent: var(--accent-primary); /* Use primary as accent */
   --accent-foreground: 0 0% 100%;
@@ -65,21 +66,30 @@
   --destructive: var(--danger);
   --destructive-foreground: 0 0% 100%;
 
-  /* Border radius */
-  --radius: 0.375rem; /* 6px - slight rounding */
+  /* Border radius - Minimal rounding */
+  --radius: 0.25rem; /* 4px - subtle, not playful */
   
-  /* Typography scale */
-  --font-size-xs: 0.75rem; /* 12px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-base: 1rem; /* 16px */
-  --font-size-lg: 1.125rem; /* 18px */
-  --font-size-xl: 1.25rem; /* 20px */
-  --font-size-2xl: 1.5rem; /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
+  /* Typography scale - Reduced sizes, increased contrast */
+  --font-size-xs: 0.6875rem; /* 11px - metadata only */
+  --font-size-sm: 0.8125rem; /* 13px - supporting text */
+  --font-size-base: 0.9375rem; /* 15px - body text */
+  --font-size-lg: 1.125rem; /* 18px - subsection labels */
+  --font-size-xl: 1.375rem; /* 22px - section titles */
+  --font-size-2xl: 1.75rem; /* 28px - page titles */
+  --font-size-3xl: 2.25rem; /* 36px - hero/landing only */
   
-  --line-height-tight: 1.25;
+  /* Line heights - Tighter for dense analysis */
+  --line-height-tight: 1.2;
   --line-height-normal: 1.5;
-  --line-height-relaxed: 1.75;
+  --line-height-relaxed: 1.65;
+  
+  /* Spacing - Intentional whitespace */
+  --spacing-xs: 0.25rem; /* 4px */
+  --spacing-sm: 0.5rem; /* 8px */
+  --spacing-md: 1rem; /* 16px */
+  --spacing-lg: 1.5rem; /* 24px */
+  --spacing-xl: 2rem; /* 32px */
+  --spacing-2xl: 3rem; /* 48px */
 }
 
 .dark {
@@ -189,80 +199,102 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Typography hierarchy - High contrast, crisp typography */
+  /* Typography hierarchy - Clear, authoritative, deliberate */
+  
+  /* Page titles - Largest, calm, confident */
   h1 {
     font-size: var(--font-size-2xl);
     font-weight: 600;
     line-height: var(--line-height-tight);
     color: hsl(var(--foreground));
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    margin: 0;
   }
 
+  /* Section titles - Clear hierarchy */
   h2 {
     font-size: var(--font-size-xl);
     font-weight: 600;
     line-height: var(--line-height-tight);
     color: hsl(var(--foreground));
     letter-spacing: -0.01em;
+    margin: 0;
   }
 
+  /* Subsection labels - Supporting structure */
   h3 {
     font-size: var(--font-size-lg);
     font-weight: 600;
     line-height: var(--line-height-normal);
     color: hsl(var(--foreground));
+    margin: 0;
   }
 
+  /* Tertiary labels - Metadata hierarchy */
   h4 {
     font-size: var(--font-size-base);
     font-weight: 600;
     line-height: var(--line-height-normal);
     color: hsl(var(--foreground));
+    margin: 0;
   }
 
+  /* Body text - Readable, authoritative */
   p {
     font-size: var(--font-size-base);
     line-height: var(--line-height-relaxed);
     color: hsl(var(--foreground));
+    margin: 0;
   }
 
+  /* Metadata / Supporting text */
   small {
     font-size: var(--font-size-sm);
     line-height: var(--line-height-normal);
-    color: hsl(var(--muted-foreground));
+    color: hsl(var(--text-secondary));
+  }
+  
+  /* System states - Loading, empty, error */
+  .text-muted {
+    color: hsl(var(--text-secondary));
+  }
+  
+  .text-muted-foreground {
+    color: hsl(var(--text-secondary));
   }
 }
 
 @layer components {
-  /* Card / Panel surfaces - Fullstory-style white cards */
+  /* Card / Panel surfaces - Minimal, finished, no decoration */
   .panel {
-    @apply rounded-lg border bg-card shadow-sm;
+    @apply border bg-card;
     border-color: hsl(var(--border));
-    transition: box-shadow 0.2s ease;
-  }
-
-  .panel:hover {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    border-radius: var(--radius);
+    /* No shadow by default - borders provide structure */
   }
 
   .panel-muted {
-    @apply rounded-lg border bg-muted;
+    @apply border bg-muted;
     border-color: hsl(var(--border));
+    border-radius: var(--radius);
   }
 
   /* Text inside panels automatically uses card-foreground via base styles */
 
-  /* Tab primitives */
+  /* Tab primitives - Clean, minimal, no decoration */
   .tabs-list {
-    @apply inline-flex items-center gap-0.5 rounded-lg border bg-card p-0.5;
+    @apply inline-flex items-center gap-0 border bg-card;
     border-color: hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 2px;
   }
 
   .tabs-trigger {
-    @apply inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium transition-colors;
-    @apply text-muted-foreground hover:text-foreground hover:bg-muted;
+    @apply inline-flex items-center px-4 py-2 text-sm font-medium transition-colors;
+    @apply text-muted-foreground hover:text-foreground;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
     @apply data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:font-semibold;
+    border-radius: calc(var(--radius) - 2px);
   }
 
   /* Table styles */
@@ -294,43 +326,30 @@
     @apply border-b-0;
   }
 
-  /* Badge styles */
+  /* Badge styles - Minimal, color encodes meaning */
   .badge {
-    @apply inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium;
-    @apply border border-border-subtle;
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-medium;
+    @apply border;
+    border-radius: calc(var(--radius) - 1px);
   }
 
   .badge-primary {
-    @apply bg-accent-primary text-primary-foreground border-accent-primary;
+    @apply bg-primary text-primary-foreground border-primary;
   }
 
   .badge-secondary {
-    @apply bg-surface-muted text-text-primary;
+    @apply bg-surface-muted text-text-primary border-border;
   }
 
   .badge-success {
-    @apply bg-success/10 text-success border-success/20;
+    @apply bg-success/10 text-success border-success/30;
   }
 
   .badge-warning {
-    @apply bg-warning/10 text-warning border-warning/20;
+    @apply bg-warning/10 text-warning border-warning/30;
   }
 
   .badge-danger {
-    @apply bg-danger/10 text-danger border-danger/20;
-  }
-
-  /* Subtle pulse animation for active states */
-  @keyframes pulse-subtle {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.8;
-    }
-  }
-
-  .animate-pulse-subtle {
-    animation: pulse-subtle 2s ease-in-out infinite;
+    @apply bg-danger/10 text-danger border-danger/30;
   }
 }

@@ -71,14 +71,14 @@ type TabId =
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'strategic_bets', label: 'Strategic Bets' },
-  { id: 'jobs', label: 'Jobs' },
-  { id: 'scorecard', label: 'Scorecard' },
   { id: 'opportunities_v2', label: 'Opportunities' },
+  { id: 'scorecard', label: 'Scorecard' },
+  { id: 'jobs', label: 'Jobs' },
   { id: 'themes', label: 'Themes' },
   { id: 'positioning', label: 'Positioning' },
+  { id: 'profiles', label: 'Profiles' },
   { id: 'opportunities', label: 'Opportunities (Legacy)' },
   { id: 'angles', label: 'Angles' },
-  { id: 'profiles', label: 'Profiles' },
 ]
 
 /**
@@ -156,7 +156,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
   const activeTab: TabId =
     (TABS.find((tab) => tab.id === tabParam)?.id as TabId | undefined) ??
-    'strategic_bets'
+    'strategic_bets' // Default to Strategic Bets - the primary decision output
   
   const activeFrame: ResultsFrame =
     (frameParam as ResultsFrame | undefined) ?? 'jobs'
@@ -266,16 +266,16 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
   return (
     <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-      <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-        <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:pb-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-semibold text-foreground tracking-tight">{project.name}</h1>
-              <p className="text-base text-muted-foreground">
+      <main className="flex w-full max-w-5xl flex-col gap-8 py-12">
+        <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:pb-8 border-b border-border">
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-foreground tracking-tight">{project.name}</h1>
+              <p className="text-sm text-muted-foreground">
                 Competitive landscape analysis and strategic insights
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span>
                 <span className="font-medium text-foreground">{effectiveCompetitorCount}</span> competitors analyzed
               </span>

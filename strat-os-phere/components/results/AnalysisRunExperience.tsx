@@ -315,68 +315,40 @@ export function AnalysisRunExperience({
     )
   }
 
-  // Complete state
+  // Complete state - Intentional action required
   if (machine.currentState === 'complete') {
-    const completedAt = machine.completedAt
-      ? new Date(machine.completedAt).toLocaleString(undefined, {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      : 'Just now'
-
     return (
       <div className="flex min-h-[calc(100vh-57px)] items-center justify-center bg-background px-4">
-        <main className="flex w-full max-w-2xl flex-col gap-6">
-          <div className="panel flex flex-col gap-6 p-8">
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <Check className="h-5 w-5 text-primary" />
+        <main className="flex w-full max-w-2xl flex-col gap-8">
+          <div className="border border-border bg-surface p-8">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h1 className="text-2xl font-semibold text-foreground">
+                  Analysis complete
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Strategic bets, opportunities, scorecard, and jobs are ready for review.
+                </p>
               </div>
-              <div className="flex-1 space-y-4">
-                <div>
-                  <h1 className="text-2xl font-semibold text-foreground">
-                    Your analysis is ready
-                  </h1>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    We've generated Jobs to be Done, a competitive scorecard, and ranked
-                    opportunities based on current market signals.
-                  </p>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Last generated: <span className="font-medium">{completedAt}</span>
-                  </p>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button
-                    onClick={() => {
-                      onViewResults?.()
-                      router.push(`/projects/${projectId}/results?view=results`)
-                      router.refresh()
-                    }}
-                  >
-                    View analysis
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setMachine(createStateMachine())
-                      setCurrentSavingSubStep(0)
-                      setCurrentSignalIndex(0)
-                      startGeneration()
-                    }}
-                  >
-                    Regenerate analysis
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => router.push('/dashboard')}
-                  >
-                    Back to projects
-                  </Button>
-                </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button
+                  onClick={() => {
+                    onViewResults?.()
+                    router.push(`/projects/${projectId}/results?view=results`)
+                    router.refresh()
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  View analysis
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/dashboard')}
+                  className="w-full sm:w-auto"
+                >
+                  Back to dashboard
+                </Button>
               </div>
             </div>
           </div>
@@ -392,23 +364,20 @@ export function AnalysisRunExperience({
 
   return (
     <div className="flex min-h-[calc(100vh-57px)] items-center justify-center bg-background px-4">
-      <main className="flex w-full max-w-4xl flex-col gap-8 py-10">
-        {/* Header */}
-        <header className="space-y-3 text-center">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Analyzing your market
+      <main className="flex w-full max-w-3xl flex-col gap-10 py-12">
+        {/* Header - Minimal, progress is the main event */}
+        <header className="space-y-2 text-center">
+          <h1 className="text-2xl font-semibold text-foreground">
+            Generating analysis
           </h1>
-          <p className="text-base text-muted-foreground">
-            Synthesizing live signals into differentiation you can act on.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            This usually takes 1–2 minutes depending on market complexity.
+          <p className="text-sm text-muted-foreground">
+            This usually takes 1–2 minutes.
           </p>
         </header>
 
-        {/* Progress timeline */}
-        <div className="panel flex flex-col gap-8 p-8">
-          <ol className="relative space-y-6" aria-label="Analysis progress">
+        {/* Progress timeline - Main event */}
+        <div className="border border-border bg-surface">
+          <ol className="divide-y divide-border" aria-label="Analysis progress">
             {ANALYSIS_STAGES.map((stage, index) => {
               const isCompleted = index < activeStageIndex
               const isCurrent = index === activeStageIndex
@@ -418,56 +387,40 @@ export function AnalysisRunExperience({
                 <li
                   key={stage.id}
                   className={cn(
-                    'relative flex items-start gap-4 transition-opacity',
-                    isUpcoming && 'opacity-50',
-                    !prefersReducedMotion.current &&
-                      isCurrent &&
-                      'animate-pulse'
+                    'relative flex items-start gap-4 px-6 py-5 transition-colors',
+                    isCurrent && 'bg-surface-muted/50',
+                    isUpcoming && 'opacity-60'
                   )}
                 >
-                  {/* Vertical line connector */}
-                  {index < ANALYSIS_STAGES.length - 1 && (
-                    <div
-                      className={cn(
-                        'absolute left-[11px] top-8 w-0.5 transition-colors',
-                        isCompleted ? 'bg-primary' : 'bg-border'
-                      )}
-                      style={{
-                        height: 'calc(100% + 1.5rem)',
-                      }}
-                      aria-hidden="true"
-                    />
-                  )}
-
-                  {/* Icon */}
-                  <div className="relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center">
+                  {/* Status indicator */}
+                  <div className="relative z-10 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
                     {isCompleted ? (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
                         <Check
-                          className="h-4 w-4 text-primary-foreground"
+                          className="h-3 w-3 text-primary-foreground"
                           aria-hidden="true"
                         />
                       </div>
                     ) : isCurrent ? (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-primary bg-primary/10">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-primary">
                         <Loader2
                           className={cn(
-                            'h-4 w-4 text-primary',
+                            'h-3 w-3 text-primary',
                             !prefersReducedMotion.current && 'animate-spin'
                           )}
                           aria-hidden="true"
                         />
                       </div>
                     ) : (
-                      <div className="h-6 w-6 rounded-full border-2 border-border bg-background" />
+                      <div className="h-5 w-5 rounded-full border-2 border-border bg-background" />
                     )}
                   </div>
 
                   {/* Step content */}
-                  <div className="flex-1 space-y-1 pb-6">
+                  <div className="flex-1 space-y-1">
                     <div
                       className={cn(
-                        'text-sm font-medium',
+                        'text-sm font-semibold',
                         isCompleted && 'text-foreground',
                         isCurrent && 'text-foreground',
                         isUpcoming && 'text-muted-foreground'
@@ -488,28 +441,6 @@ export function AnalysisRunExperience({
               )
             })}
           </ol>
-
-          {/* "What's happening now" panel */}
-          {currentStage && currentStage.signals && currentStage.signals.length > 0 && (
-            <div className="border-t border-border pt-6">
-              <div className="rounded-lg border bg-muted/50 p-4">
-                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Signals we're looking for
-                </h3>
-                <div
-                  className={cn(
-                    'min-h-[60px] text-sm text-foreground transition-opacity',
-                    !prefersReducedMotion.current && 'duration-200'
-                  )}
-                  style={{ opacity: signalOpacity }}
-                  aria-live="polite"
-                  aria-atomic="true"
-                >
-                  {currentStage.signals[currentSignalIndex]}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Screen reader status */}

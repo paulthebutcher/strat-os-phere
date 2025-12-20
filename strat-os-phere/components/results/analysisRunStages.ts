@@ -15,82 +15,82 @@ export interface StageConfig {
 export const ANALYSIS_STAGES: StageConfig[] = [
   {
     id: 'starting',
-    label: 'Preparing your analysis',
+    label: 'Initializing analysis',
     description:
-      "We're setting up the analytical framework and validating your inputs before diving in.",
+      'Validating inputs and preparing analytical framework.',
   },
   {
     id: 'gathering_inputs',
-    label: 'Grounding in your context',
+    label: 'Synthesizing market signals',
     description:
-      "We're anchoring the analysis in your goals, competitors, and the evidence you've provided.",
+      'Collecting and organizing evidence from competitors, market data, and customer signals.',
     signals: [
-      'What each competitor explicitly claims to do',
-      'What they implicitly optimize for',
-      'Where information is vague or missing',
+      'Competitor positioning claims',
+      'Implicit optimization patterns',
+      'Information gaps and ambiguities',
     ],
   },
   {
     id: 'analyzing_competitors',
-    label: 'Understanding what competitors actually offer',
+    label: 'Analyzing competitive landscape',
     description:
-      "We're separating positioning from reality by looking at features, constraints, pricing signals, and customer language.",
+      'Evaluating capabilities, constraints, and differentiation across competitors.',
     signals: [
-      'Capability overlaps vs. true differences',
-      'Feature gaps hidden behind similar language',
-      'Patterns competitors converge on',
+      'Capability overlaps versus true differences',
+      'Feature gaps masked by similar language',
+      'Convergence patterns in the market',
     ],
   },
   {
     id: 'deriving_jobs',
-    label: 'Deriving real Jobs to be Done',
+    label: 'Deriving Jobs to be Done',
     description:
-      "We're translating competitor behavior into concrete jobs customers are trying to accomplish — without buzzwords or abstraction.",
+      'Translating competitive behavior into concrete customer jobs.',
     signals: [
-      'Workarounds customers rely on',
-      'Jobs competitors partially serve',
-      'Moments where customers compromise',
+      'Customer workarounds in use',
+      'Partially-served jobs',
+      'Compromise moments',
     ],
   },
   {
     id: 'scoring_positioning',
-    label: 'Scoring competitive positioning',
+    label: 'Stress-testing differentiation',
     description:
-      "We're evaluating how well each competitor supports those jobs across key dimensions that actually matter in practice.",
+      'Evaluating competitive positioning across dimensions that matter.',
     signals: [
-      'Where strength is assumed but unsupported',
-      'Where small gaps compound into real friction',
-      'Which criteria truly differentiate outcomes',
+      'Assumed but unsupported strengths',
+      'Compounding friction points',
+      'Differentiating criteria',
     ],
   },
   {
     id: 'ranking_opportunities',
-    label: 'Identifying differentiation opportunities',
+    label: 'Ranking strategic opportunities',
     description:
-      "We're isolating opportunities where a new or improved product could meaningfully outperform what exists today.",
+      'Identifying and scoring opportunities for meaningful differentiation.',
     signals: [
-      'Jobs that matter but are underserved',
-      "Opportunities competitors can't easily copy",
-      'Leverage points for first experiments',
+      'Underserved high-importance jobs',
+      'Opportunities with competitive moats',
+      'First experiment leverage points',
     ],
   },
   {
     id: 'validating_outputs',
-    label: 'Pressure-testing the results',
+    label: 'Validating outputs',
     description:
-      "We're checking for internal consistency, specificity, and actionability — and removing anything hand-wavy.",
+      'Checking consistency, specificity, and actionability.',
   },
   {
     id: 'saving_artifacts',
-    label: 'Saving your analysis',
+    label: 'Saving artifacts',
     description:
-      'This ensures your results stay consistent and reusable.',
+      'Persisting analysis results to your workspace.',
   },
   {
     id: 'finalizing',
-    label: 'Preparing your highlights',
+    label: 'Finalizing',
     description:
-      "We're organizing the findings so you can quickly understand what matters — and what to do next.",
+      'Organizing findings for review.',
   },
 ]
 
@@ -98,10 +98,10 @@ export const ANALYSIS_STAGES: StageConfig[] = [
  * Sub-steps for saving_artifacts stage
  */
 export const SAVING_SUB_STEPS = [
-  'Saving Jobs to your workspace…',
+  'Saving Jobs…',
   'Saving Scorecard…',
   'Saving Opportunities…',
-  'Linking evidence and citations…',
+  'Linking evidence…',
 ] as const
 
 /**

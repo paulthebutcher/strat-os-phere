@@ -1,16 +1,3 @@
-/**
- * Differentiators Section
- * 
- * Design tokens used:
- * - surface-muted: Alternating section background
- * - accent-primary: Checkmark color and highlighted border
- * - danger: X mark color for contrast
- * - panel: Card styling with enhanced border for Plinth card
- * 
- * Enhanced with better visual contrast between the two cards.
- */
-import { X, Check } from "lucide-react"
-
 export function Differentiators() {
   const mostTools = [
     "Describe competitors",
@@ -26,42 +13,36 @@ export function Differentiators() {
   ]
 
   return (
-    <section className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-32 md:py-40">
-      <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
+    <section className="border-t border-border mx-auto max-w-5xl px-4 py-20 md:py-24">
+      <div className="mx-auto max-w-3xl space-y-12">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl text-center">
           Built for differentiation — not summaries
         </h2>
-      </div>
-      <div className="mx-auto mt-24 grid gap-8 md:grid-cols-2 lg:max-w-5xl">
-        <div className="panel p-8 md:p-10">
-          <h3 className="mb-8 text-2xl font-semibold text-text-primary">
-            Most tools
-          </h3>
-          <ul className="space-y-5">
-            {mostTools.map((item, index) => (
-              <li key={index} className="flex items-start gap-4">
-                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-danger/10">
-                  <X className="h-4 w-4 text-danger" />
-                </div>
-                <span className="text-base leading-relaxed text-text-secondary md:text-lg">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="panel border-2 border-accent-primary p-8 shadow-sm md:p-10">
-          <h3 className="mb-8 text-2xl font-semibold text-text-primary">
-            Plinth
-          </h3>
-          <ul className="space-y-5">
-            {plinth.map((item, index) => (
-              <li key={index} className="flex items-start gap-4">
-                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-primary/10">
-                  <Check className="h-4 w-4 text-accent-primary" />
-                </div>
-                <span className="text-base leading-relaxed text-text-secondary md:text-lg">{item}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="border border-border p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">
+              Most tools
+            </h3>
+            <ul className="space-y-3">
+              {mostTools.map((item, index) => (
+                <li key={index} className="text-sm text-muted-foreground">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="border border-primary p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">
+              Plinth
+            </h3>
+            <ul className="space-y-3">
+              {plinth.map((item, index) => (
+                <li key={index} className="text-sm text-foreground">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </section>

@@ -44,12 +44,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-[calc(100vh-57px)] bg-background">
-      <div className="mx-auto max-w-6xl px-4 py-10">
-        <main className="flex w-full flex-col items-stretch gap-8">
-          <header className="space-y-2">
-            <h1 className="text-3xl font-semibold text-foreground">Dashboard</h1>
+      <div className="mx-auto max-w-5xl px-4 py-12">
+        <main className="flex w-full flex-col items-stretch gap-10">
+          <header className="space-y-1">
+            <h1 className="text-2xl font-semibold text-foreground">Analyses</h1>
             <p className="text-sm text-muted-foreground">
-              Your strategy projects and analyses
+              Strategic decisions in progress
             </p>
           </header>
 
@@ -60,36 +60,49 @@ export default async function DashboardPage() {
           ) : (
             <section className="flex w-full flex-col gap-6">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-lg font-semibold text-foreground">Your analyses</h2>
+                <div className="flex-1" />
                 <Link href="/projects/new">
                   <Button type="button" size="sm">
-                    New +
+                    New analysis
                   </Button>
                 </Link>
               </div>
 
-              <div className="panel divide-y">
-                {projects.map((project) => (
-                  <Link
-                    key={project.id}
-                    href={`/projects/${project.id}/competitors`}
-                    className="flex items-center justify-between gap-4 px-6 py-4 transition-colors hover:bg-muted"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-base font-semibold text-foreground">
-                        {project.name}
-                      </p>
-                      {formatProjectSummary(project) ? (
-                        <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
-                          {formatProjectSummary(project)}
-                        </p>
-                      ) : null}
-                    </div>
-                    <span className="text-sm font-medium text-primary whitespace-nowrap">
-                      View →
-                    </span>
-                  </Link>
-                ))}
+              <div className="space-y-1">
+                {projects.map((project) => {
+                  const summary = formatProjectSummary(project)
+                  const market = project.market || 'Market not specified'
+                  const strategicQuestion = project.business_goal || project.name
+                  
+                  return (
+                    <Link
+                      key={project.id}
+                      href={`/projects/${project.id}/competitors`}
+                      className="block border-b border-border py-6 transition-colors hover:bg-surface-muted/50 first:pt-0"
+                    >
+                      <div className="flex items-start justify-between gap-6">
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div>
+                            <p className="text-base font-semibold text-foreground">
+                              {market}
+                            </p>
+                            <p className="mt-1 text-sm text-foreground">
+                              {strategicQuestion}
+                            </p>
+                          </div>
+                          {summary ? (
+                            <p className="text-sm text-muted-foreground line-clamp-1">
+                              {summary}
+                            </p>
+                          ) : null}
+                        </div>
+                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap shrink-0">
+                          →
+                        </span>
+                      </div>
+                    </Link>
+                  )
+                })}
               </div>
             </section>
           )}

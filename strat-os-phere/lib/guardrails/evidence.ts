@@ -7,6 +7,7 @@ import {
 } from '@/lib/data/evidenceSources'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { EVIDENCE_CACHE_TTL_HOURS } from '@/lib/constants'
+import { extractDomain } from '@/lib/utils/domain'
 
 export interface EvidenceQualityCheck {
   passes: boolean
@@ -52,12 +53,19 @@ export async function checkEvidenceQuality(
       evidenceSources = await getEvidenceSourcesByCompetitor(supabase, competitor.id)
     } catch {
       // Fallback to domain-based lookup if competitor_id approach fails
-      if (competitor.domain) {
-        evidenceSources = await getEvidenceSourcesForDomain(
-          supabase,
-          projectId,
-          competitor.domain
-        )
+      // Derive domain from competitor.url if available
+      const domain = extractDomain(competitor.url)
+      if (domain) {
+        try {
+          evidenceSources = await getEvidenceSourcesForDomain(
+            supabase,
+            projectId,
+            domain
+          )
+        } catch {
+          // If domain lookup also fails, use empty array
+          evidenceSources = []
+        }
       } else {
         evidenceSources = []
       }

@@ -1,26 +1,16 @@
-/**
- * CTA Band Section
- * 
- * Design tokens used:
- * - accent-primary: Primary button
- * - text-text-primary: Headline color
- * - surface: Card background
- * 
- * Strong visual separation with deliberate, confident presentation.
- */
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export function CTABand() {
   return (
-    <section className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-32 md:py-40">
-      <div className="mx-auto max-w-4xl text-center">
-        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
+    <section className="border-t border-border mx-auto max-w-5xl px-4 py-20 md:py-24">
+      <div className="mx-auto max-w-3xl text-center space-y-8">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
           Stop generating insights. Start making decisions.
         </h2>
-        <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link href="/dashboard">
-            <Button size="lg" className="w-full sm:w-auto">
+            <Button size="default">
               Generate an analysis
             </Button>
           </Link>
