@@ -1,10 +1,11 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/lib/supabase/server'
+import { headers, cookies } from 'next/headers'
+import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/server'
 import { getOrigin } from '@/lib/server/origin'
+import type { Database } from '@/lib/supabase/database.types'
 
 interface AuthActionResult {
   success: boolean
@@ -92,15 +93,29 @@ export async function signIn(email: string): Promise<AuthActionResult> {
     }
   }
 
-  // Default path: Use Supabase SDK
-  // Create direct Supabase client with PKCE flow explicitly
-  const supabase = createSupabaseClient(
+  // Default path: Use Supabase SDK with SSR cookie support for PKCE
+  // Create SSR client with cookie write support so PKCE verifier cookie is set
+  const cookieStore = await cookies()
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      auth: {
-        flowType: 'pkce'
-      }
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // the user's session.
+          }
+        },
+      },
     }
   )
 
@@ -110,7 +125,6 @@ export async function signIn(email: string): Promise<AuthActionResult> {
       origin,
       redirectUrl,
       emailRedirectTo: redirectUrl,
-      flowType: 'pkce',
       vercelEnv: process.env.VERCEL_ENV,
       xForwardedHost: forwardedHost,
       host: host,
@@ -125,11 +139,20 @@ export async function signIn(email: string): Promise<AuthActionResult> {
 
   // Log after signInWithOtp in dev/preview (for debugging)
   if (isDevOrPreview) {
+    // Log cookie names being set (names only) to confirm verifier cookie exists
+    const allCookies = cookieStore.getAll()
+    const cookieNames = allCookies.map(c => c.name)
+    const hasVerifierCookie = cookieNames.some(name => 
+      name.includes('code-verifier') || name.includes('pkce')
+    )
+    
     console.log('[signIn] After signInWithOtp', {
       origin,
       redirectUrl,
       hasData: !!data,
       dataKeys: data ? Object.keys(data).filter(k => k !== 'user' && !k.includes('token')) : null,
+      cookieNames,
+      hasVerifierCookie,
       error: error ? {
         message: error.message,
         code: error.code,
@@ -159,7 +182,7 @@ export async function signIn(email: string): Promise<AuthActionResult> {
 }
 
 export async function signOut() {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
   await supabase.auth.signOut()
   redirect('/login')
 }

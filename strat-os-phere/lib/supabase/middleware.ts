@@ -31,8 +31,8 @@ export async function updateSession(request: NextRequest) {
           // previously-set cookies/headers. Do not recreate the response.
           cookiesToSet.forEach(({ name, value, options }) => {
             // Merge with our auth cookie options to ensure 7-day maxAge
-            // This ensures token refresh also sets cookies with proper maxAge
-            const mergedOptions = mergeAuthCookieOptions(options)
+            // Pass cookie name to protect PKCE verifier cookies
+            const mergedOptions = mergeAuthCookieOptions(options, name)
             supabaseResponse.cookies.set(name, value, mergedOptions)
           })
         },
@@ -105,7 +105,8 @@ export async function updateSession(request: NextRequest) {
             : cookie.expires
       }
       // Re-apply merged options to ensure maxAge is always 7 days
-      const mergedOptions = mergeAuthCookieOptions(existingOptions)
+      // Pass cookie name to protect PKCE verifier cookies
+      const mergedOptions = mergeAuthCookieOptions(existingOptions, cookie.name)
       response.cookies.set(cookie.name, cookie.value, mergedOptions)
     })
   }

@@ -22,7 +22,8 @@ export async function createClient(): Promise<TypedSupabaseClient> {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
               // Merge with our auth cookie options to ensure 7-day maxAge
-              const mergedOptions = mergeAuthCookieOptions(options)
+              // Pass cookie name to protect PKCE verifier cookies
+              const mergedOptions = mergeAuthCookieOptions(options, name)
               cookieStore.set(name, value, mergedOptions)
             })
           } catch {
