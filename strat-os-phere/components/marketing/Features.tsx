@@ -40,32 +40,42 @@ const features = [
   },
 ]
 
+/**
+ * Features Section
+ * 
+ * Design tokens used:
+ * - panel: Card styling with subtle border and shadow
+ * - accent-primary: Icon container background (with opacity)
+ * - text-text-primary: Headline and feature title colors
+ * 
+ * Enhanced card styling with icon containers and improved spacing.
+ */
 export function Features() {
   return (
-    <section id="product" className="mx-auto max-w-6xl px-4 py-20">
+    <section id="product" className="mx-auto max-w-7xl px-4 py-24 md:py-32">
       <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-3xl font-semibold text-text-primary md:text-4xl">
+        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
           From landscape → leverage
         </h2>
-        <p className="mt-4 text-base text-text-secondary">
+        <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl">
           Plinth analyzes competitors through the lens of structure, evidence, and unmet jobs — not marketing claims.
         </p>
-        <p className="mt-4 text-sm font-medium text-text-primary">
+        <p className="mt-4 text-base font-semibold text-text-primary md:text-lg">
           No fluff. No guesswork.
         </p>
       </div>
-      <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature, index) => {
           const Icon = feature.icon
           return (
-            <div key={index} className="panel p-6">
-              <div className="mb-4">
-                <Icon className="h-6 w-6 text-text-primary" />
+            <div key={index} className="panel p-8 transition-shadow hover:shadow-md">
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-accent-primary/10">
+                <Icon className="h-6 w-6 text-accent-primary" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-text-primary">
+              <h3 className="mb-3 text-xl font-semibold text-text-primary">
                 {feature.title}
               </h3>
-              <p className="text-sm text-text-secondary leading-relaxed">
+              <p className="text-base leading-relaxed text-text-secondary">
                 {feature.description}
               </p>
             </div>

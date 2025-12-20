@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import type { Database } from '@/lib/supabase/database.types'
 import { mergeAuthCookieOptions } from '@/lib/supabase/cookie-options'
+import { logger } from '@/lib/logger'
 
 /**
  * Helper to copy all cookies from one response to another.
@@ -33,7 +34,6 @@ function applyCookies(fromResponse: NextResponse, toResponse: NextResponse) {
 }
 
 export async function GET(request: NextRequest) {
-  const requestId = crypto.randomUUID()
   const code = request.nextUrl.searchParams.get('code')
   const tokenHash = request.nextUrl.searchParams.get('token_hash')
   const type = request.nextUrl.searchParams.get('type')
@@ -48,28 +48,11 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Log request details (safe for prod - no secrets)
-  const requestUrl = `${request.nextUrl.pathname}${request.nextUrl.search ? '?' + request.nextUrl.search.replace(/code=[^&]*/, 'code=***').replace(/token_hash=[^&]*/, 'token_hash=***') : ''}`
-  
-  // Debug: log incoming cookie names (preview/dev only)
-  const isDevOrPreview = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview'
-  const incomingCookies = request.cookies.getAll()
-  const incomingCookieNames = incomingCookies.map(c => c.name)
-  const hasVerifierCookie = incomingCookieNames.some(name => 
-    name.includes('code-verifier') || name.includes('pkce')
-  )
-  
-  console.log('[auth/callback]', {
-    requestId,
-    url: requestUrl,
+  logger.auth.debug('Auth callback', {
     hasCode: !!code,
     hasTokenHash: !!tokenHash,
     type: type || null,
     next,
-    ...(isDevOrPreview && {
-      incomingCookieNames,
-      hasVerifierCookie,
-    }),
   })
 
   // Create a temporary response to capture cookies from Supabase
@@ -101,12 +84,9 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
-      console.error('[auth/callback]', {
-        requestId,
-        result: 'exchangeFailed',
+      logger.error('Auth code exchange failed', {
         error: error.message,
         code: error.code,
-        redirectTo: '/login',
       })
       const errorUrl = request.nextUrl.clone()
       errorUrl.pathname = '/login'
@@ -123,16 +103,9 @@ export async function GET(request: NextRequest) {
     // Copy all cookies from temp response (set by Supabase) to final redirect
     applyCookies(tempResponse, finalResponse)
 
-    // One-line log: host and final redirect target
-    const host = request.headers.get('host') || request.nextUrl.host
-    console.log(`[auth/callback] ${host} -> ${next}`)
-
-    console.log('[auth/callback]', {
-      requestId,
-      result: 'exchangeOk',
+    logger.auth.debug('Auth code exchange successful', {
       userId: data.user?.id,
       redirectTo: next,
-      cookieCount: finalResponse.cookies.getAll().length,
     })
 
     return finalResponse
@@ -146,12 +119,9 @@ export async function GET(request: NextRequest) {
     })
 
     if (error) {
-      console.error('[auth/callback]', {
-        requestId,
-        result: 'verifyFailed',
+      logger.error('OTP verification failed', {
         error: error.message,
         code: error.code,
-        redirectTo: '/login',
       })
       const errorUrl = request.nextUrl.clone()
       errorUrl.pathname = '/login'
@@ -168,29 +138,19 @@ export async function GET(request: NextRequest) {
     // Copy all cookies from temp response (set by Supabase) to final redirect
     applyCookies(tempResponse, finalResponse)
 
-    // One-line log: host and final redirect target
-    const host = request.headers.get('host') || request.nextUrl.host
-    console.log(`[auth/callback] ${host} -> ${next}`)
-
-    console.log('[auth/callback]', {
-      requestId,
-      result: 'verifyOk',
+    logger.auth.debug('OTP verification successful', {
       userId: data.user?.id,
       redirectTo: next,
-      cookieCount: finalResponse.cookies.getAll().length,
     })
 
     return finalResponse
   }
 
   // No valid auth parameters
-  console.warn('[auth/callback]', {
-    requestId,
-    result: 'missingParams',
+  logger.warn('Auth callback missing parameters', {
     hasCode: !!code,
     hasTokenHash: !!tokenHash,
     type: type || null,
-    redirectTo: '/login',
   })
 
   const loginUrl = request.nextUrl.clone()

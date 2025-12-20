@@ -2,10 +2,10 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from './database.types'
 import { mergeAuthCookieOptions } from './cookie-options'
+import { logger } from '@/lib/logger'
 
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const isDev = process.env.NODE_ENV === 'development'
 
   // Public routes that should always be allowed
   const publicRoutes = ['/', '/login', '/auth/callback']
@@ -51,36 +51,16 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthenticated = !!user
 
-  // Get session only in dev for logging (not needed for production)
-  let session = null
-  if (isDev) {
-    const {
-      data: { session: sessionData },
-    } = await supabase.auth.getSession()
-    session = sessionData
-
-    // Dev-only session debug info
-    const authCookies = request.cookies.getAll().filter((cookie) =>
-      cookie.name.startsWith('sb-') || cookie.name.includes('auth')
-    )
-    
-    console.log('[middleware]', {
-      path: pathname,
-      authed: isAuthenticated,
-      userId: user?.id,
-      isPublicRoute,
-      isProtectedRoute,
-      sessionExpiry: session?.expires_at
-        ? new Date(session.expires_at * 1000).toISOString()
-        : null,
-      cookieCount: authCookies.length,
-      cookieNames: authCookies.map((c) => c.name),
-    })
-
-    if (getUserError) {
-      console.warn('[middleware] getUser error:', getUserError.message)
-    }
+  if (getUserError) {
+    logger.auth.debug('getUser error in middleware', { error: getUserError.message })
   }
+
+  logger.auth.debug('Middleware session check', {
+    path: pathname,
+    authed: isAuthenticated,
+    isPublicRoute,
+    isProtectedRoute,
+  })
 
   // Helper to copy cookies from supabaseResponse to a redirect response
   // Ensures cookies (including maxAge) are preserved on redirects
