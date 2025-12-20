@@ -15,29 +15,47 @@ export async function signIn(email: string): Promise<AuthActionResult> {
   const redirectUrl = `${origin}/auth/callback?next=/dashboard`
 
   // Log origin and redirect URL in dev/preview (not production)
-  // VERCEL_ENV indicates preview deployments
   const isDevOrPreview = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview'
   if (isDevOrPreview) {
-    console.log('[signIn]', {
+    console.log('[signIn] Before signInWithOtp', {
       origin,
+      redirectUrl,
       emailRedirectTo: redirectUrl,
     })
   }
 
-  const { error } = await supabase.auth.signInWithOtp({
+  // Ensure exact call signature with options.emailRedirectTo
+  const { data, error } = await supabase.auth.signInWithOtp({
     email,
-    options: {
-      emailRedirectTo: redirectUrl,
-    },
+    options: { emailRedirectTo: redirectUrl }
   })
+
+  // Log after signInWithOtp in dev/preview (for debugging)
+  if (isDevOrPreview) {
+    console.log('[signIn] After signInWithOtp', {
+      origin,
+      redirectUrl,
+      hasData: !!data,
+      dataKeys: data ? Object.keys(data).filter(k => k !== 'user' && !k.includes('token')) : null,
+      error: error ? {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+      } : null,
+    })
+  }
 
   if (error) {
     console.error('[signIn] Failed to send sign-in link', {
       error: error.message,
       code: error.code,
+      status: error.status,
       redirectUrl,
+      origin,
+      emailRedirectTo: redirectUrl,
     })
 
+    // Surface error to UI - includes redirect allowlist errors
     return { success: false, message: error.message }
   }
 
