@@ -11,29 +11,47 @@ interface AuthActionResult {
 }
 
 export async function signIn(email: string): Promise<AuthActionResult> {
-  // Use direct Supabase client to rule out wrapper behavior
+  const origin = await getOrigin()
+  const isPreview = process.env.VERCEL_ENV === 'preview'
+  
+  // Temporarily simplify redirect URL (no next query param)
+  let redirectUrl = `${origin}/auth/callback`
+  
+  // Add debug fingerprint in preview only to verify param propagation
+  if (isPreview) {
+    redirectUrl += '?src=staging-test-1'
+  }
+
+  // Create direct Supabase client with PKCE flow explicitly
   const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        flowType: 'pkce'
+      }
+    }
   )
-  
-  const origin = await getOrigin()
-  const redirectUrl = `${origin}/auth/callback?next=/dashboard`
 
   // Log origin and redirect URL in dev/preview (not production)
-  const isDevOrPreview = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview'
+  const isDevOrPreview = process.env.NODE_ENV === 'development' || isPreview
   if (isDevOrPreview) {
     console.log('[signIn] Before signInWithOtp', {
       origin,
       redirectUrl,
       emailRedirectTo: redirectUrl,
+      redirectTo: redirectUrl,
+      flowType: 'pkce',
     })
   }
 
-  // Ensure exact call signature with options.emailRedirectTo
+  // Pass both redirect keys to signInWithOtp for bulletproof propagation
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: redirectUrl }
+    options: { 
+      emailRedirectTo: redirectUrl,
+      redirectTo: redirectUrl
+    } as any // Type cast to allow both redirect keys
   })
 
   // Log after signInWithOtp in dev/preview (for debugging)
