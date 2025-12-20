@@ -18,22 +18,23 @@
 
 :root {
   /* Backgrounds */
-  --background: 0 0% 99%; /* Off-white / very light gray */
-  --surface: 0 0% 100%; /* Pure white for cards/panels */
-  --surface-muted: 0 0% 97%; /* Muted surface for subtle sections */
+  --background: 0 0% 24%; /* Gunmetal #3C3C3C - app background */
+  --surface: 0 0% 96%; /* White Smoke #F5F5F5 - cards/panels */
+  --surface-muted: 0 0% 94%; /* Slightly darker White Smoke for subtle sections */
 
   /* Text */
-  --text-primary: 220 13% 18%; /* Dark gray (not pure black) */
-  --text-secondary: 220 8% 46%; /* Secondary text */
-  --text-muted: 220 5% 64%; /* Muted text for labels/helpers */
+  --text-primary: 0 0% 96%; /* White Smoke text on Gunmetal background */
+  --text-secondary: 0 0% 75%; /* Medium gray for secondary text */
+  --text-muted: 0 0% 60%; /* Muted text for labels/helpers */
 
   /* Borders */
-  --border-subtle: 220 13% 91%; /* Subtle borders */
-  --border-strong: 220 13% 80%; /* Stronger borders for emphasis */
+  --border-subtle: 0 0% 40%; /* Subtle borders on Gunmetal */
+  --border-strong: 0 0% 50%; /* Stronger borders for emphasis */
+  --border-surface: 0 0% 75%; /* Borders on White Smoke surfaces for better contrast */
 
   /* Accents */
-  --accent-primary: 217 91% 60%; /* Desaturated blue for primary actions */
-  --accent-secondary: 217 33% 17%; /* Dark slate for secondary emphasis */
+  --accent-primary: 358 100% 68%; /* Coral #FF5A5F - primary brand/action color */
+  --accent-secondary: 186 90% 29%; /* Teal #087E8B - accent color for secondary actions */
 
   /* States */
   --success: 142 71% 45%; /* Success state */
@@ -44,22 +45,22 @@
   --foreground: var(--text-primary);
   --text: var(--text-primary);
   --card: var(--surface);
-  --card-foreground: var(--text-primary);
+  --card-foreground: 0 0% 24%; /* Gunmetal text on White Smoke cards */
   --popover: var(--surface);
-  --popover-foreground: var(--text-primary);
+  --popover-foreground: 0 0% 24%; /* Gunmetal text on White Smoke popovers */
   
   /* Interaction colors */
-  --primary: var(--accent-primary);
-  --primary-foreground: 0 0% 100%;
-  --secondary: 220 13% 96%;
-  --secondary-foreground: var(--text-primary);
-  --accent: var(--accent-primary);
-  --accent-foreground: 0 0% 100%;
+  --primary: var(--accent-primary); /* Coral */
+  --primary-foreground: 0 0% 100%; /* White text on Coral buttons */
+  --secondary: var(--accent-secondary); /* Teal */
+  --secondary-foreground: 0 0% 100%; /* White text on Teal buttons */
+  --accent: 336 35% 64%; /* Old Rose #C1839F - tertiary accent for badges/highlights */
+  --accent-foreground: 0 0% 100%; /* White text on Old Rose */
   --muted: var(--surface-muted);
   --muted-foreground: var(--text-secondary);
   --border: var(--border-subtle);
   --input: var(--surface);
-  --ring: var(--accent-primary);
+  --ring: var(--accent-primary); /* Coral focus ring */
   --destructive: var(--danger);
   --destructive-foreground: 0 0% 100%;
 
@@ -81,20 +82,21 @@
 }
 
 .dark {
-  /* Dark mode - professional and restrained */
-  --background: 220 13% 8%;
-  --surface: 220 13% 11%;
-  --surface-muted: 220 13% 14%;
+  /* Dark mode - slightly darker than default Gunmetal */
+  --background: 0 0% 18%; /* Darker than Gunmetal for true dark mode */
+  --surface: 0 0% 24%; /* Gunmetal for cards in dark mode */
+  --surface-muted: 0 0% 22%; /* Slightly lighter than background */
 
-  --text-primary: 220 13% 95%;
-  --text-secondary: 220 8% 65%;
-  --text-muted: 220 5% 50%;
+  --text-primary: 0 0% 96%; /* White Smoke text */
+  --text-secondary: 0 0% 75%; /* Medium gray for secondary text */
+  --text-muted: 0 0% 60%; /* Muted text */
 
-  --border-subtle: 220 13% 20%;
-  --border-strong: 220 13% 30%;
+  --border-subtle: 0 0% 35%; /* Subtle borders */
+  --border-strong: 0 0% 45%; /* Stronger borders */
+  --border-surface: 0 0% 70%; /* Borders on surfaces in dark mode */
 
-  --accent-primary: 217 91% 65%;
-  --accent-secondary: 217 33% 85%;
+  --accent-primary: 358 100% 68%; /* Coral - same as default */
+  --accent-secondary: 186 90% 29%; /* Teal - same as default */
 
   --success: 142 71% 55%;
   --warning: 38 92% 60%;
@@ -107,19 +109,19 @@
   --popover: var(--surface);
   --popover-foreground: var(--text-primary);
   
-  --primary: var(--accent-primary);
-  --primary-foreground: 220 13% 8%;
-  --secondary: 220 13% 16%;
-  --secondary-foreground: var(--text-primary);
-  --accent: var(--accent-primary);
-  --accent-foreground: 220 13% 8%;
+  --primary: var(--accent-primary); /* Coral */
+  --primary-foreground: 0 0% 100%; /* White text on Coral */
+  --secondary: var(--accent-secondary); /* Teal */
+  --secondary-foreground: 0 0% 100%; /* White text on Teal */
+  --accent: 336 35% 64%; /* Old Rose */
+  --accent-foreground: 0 0% 100%; /* White text on Old Rose */
   --muted: var(--surface-muted);
   --muted-foreground: var(--text-secondary);
   --border: var(--border-subtle);
   --input: var(--surface);
-  --ring: var(--accent-primary);
+  --ring: var(--accent-primary); /* Coral focus ring */
   --destructive: var(--danger);
-  --destructive-foreground: 220 13% 8%;
+  --destructive-foreground: 0 0% 100%;
 }
 
 @theme inline {
@@ -135,6 +137,7 @@
   
   --color-border-subtle: hsl(var(--border-subtle));
   --color-border-strong: hsl(var(--border-strong));
+  --color-border-surface: hsl(var(--border-surface));
   
   --color-accent-primary: hsl(var(--accent-primary));
   --color-accent-secondary: hsl(var(--accent-secondary));
@@ -229,13 +232,32 @@
 @layer components {
   /* Card / Panel surfaces */
   .panel {
-    @apply rounded-md border border-border-subtle bg-surface;
+    @apply rounded-md border bg-surface;
+    border-color: hsl(var(--border-surface));
     box-shadow: none;
   }
 
   .panel-muted {
-    @apply rounded-md border border-border-subtle bg-surface-muted;
+    @apply rounded-md border bg-surface-muted;
+    border-color: hsl(var(--border-surface));
     box-shadow: none;
+  }
+
+  /* Ensure text inside panels uses card-foreground color */
+  .panel h1,
+  .panel h2,
+  .panel h3,
+  .panel h4,
+  .panel p {
+    color: hsl(var(--card-foreground));
+  }
+
+  .panel-muted h1,
+  .panel-muted h2,
+  .panel-muted h3,
+  .panel-muted h4,
+  .panel-muted p {
+    color: hsl(var(--card-foreground));
   }
 
   /* Tab primitives */
@@ -264,7 +286,7 @@
   }
 
   .table td {
-    @apply px-4 py-3 text-sm text-text-primary border-b border-border-subtle;
+    @apply px-4 py-3 text-sm text-card-foreground border-b border-border-subtle;
   }
 
   .table tbody tr {

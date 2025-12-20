@@ -1,5 +1,6 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { buildTargetUrls } from '@/lib/extract/targets'
 import { fetchAndExtract } from '@/lib/extract/fetchAndExtract'
 import { buildEvidenceMessages } from '@/lib/prompts/evidence'
@@ -16,16 +17,21 @@ import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 
-interface GenerateEvidenceRequest {
-  projectId: string
-  competitorName: string
-  domainOrUrl: string
-}
+// Request validation schema
+const GenerateEvidenceRequestSchema = z.object({
+  projectId: z.string().min(1, 'projectId is required'),
+  competitorName: z.string().min(1, 'competitorName is required'),
+  domainOrUrl: z.string().min(1, 'domainOrUrl is required'),
+})
 
 interface GenerateEvidenceResponse {
-  success: boolean
-  draft?: EvidenceDraft
-  error?: string
+  ok: true
+  draft: EvidenceDraft
+}
+
+interface GenerateEvidenceError {
+  ok: false
+  error: string
 }
 
 /**
@@ -58,15 +64,29 @@ export async function POST(request: Request) {
   try {
     logger.info('[evidence/generate] Starting evidence generation')
 
-    const body = (await request.json()) as GenerateEvidenceRequest
-    const { projectId, competitorName, domainOrUrl } = body
-
-    if (!projectId || !competitorName || !domainOrUrl) {
+    // Parse and validate request body
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch (error) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
+        { ok: false, error: 'Invalid JSON in request body' } as GenerateEvidenceError,
         { status: 400 }
       )
     }
+
+    const validationResult = GenerateEvidenceRequestSchema.safeParse(body)
+    if (!validationResult.success) {
+      const errorMessage = validationResult.error.errors
+        .map((e) => `${e.path.join('.')}: ${e.message}`)
+        .join(', ')
+      return NextResponse.json(
+        { ok: false, error: `Validation failed: ${errorMessage}` } as GenerateEvidenceError,
+        { status: 400 }
+      )
+    }
+
+    const { projectId, competitorName, domainOrUrl } = validationResult.data
 
     const supabase = await createClient()
     const {
@@ -75,7 +95,7 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
+        { ok: false, error: 'Not authenticated' } as GenerateEvidenceError,
         { status: 401 }
       )
     }
@@ -155,9 +175,9 @@ export async function POST(request: Request) {
 
     if (sources.length === 0) {
       return NextResponse.json({
-        success: false,
+        ok: false,
         error: 'Could not extract any content from the provided domain. Please try manual entry.',
-      })
+      } as GenerateEvidenceError)
     }
 
     logger.info('[evidence/generate] Generating evidence draft from sources', {
@@ -189,15 +209,15 @@ export async function POST(request: Request) {
     if (!parseResult.ok) {
       logger.error('Failed to parse evidence draft', parseResult.error)
       return NextResponse.json({
-        success: false,
+        ok: false,
         error: `Failed to generate evidence draft: ${parseResult.error}`,
-      })
+      } as GenerateEvidenceError)
     }
 
     logger.info('[evidence/generate] Evidence draft generated successfully')
 
     const response: GenerateEvidenceResponse = {
-      success: true,
+      ok: true,
       draft: parseResult.data,
     }
 
@@ -206,14 +226,13 @@ export async function POST(request: Request) {
     logger.error('Failed to generate evidence draft', error)
     return NextResponse.json(
       {
-        success: false,
+        ok: false,
         error:
           error instanceof Error
             ? error.message
             : 'Failed to generate evidence draft. Please try again.',
-      },
+      } as GenerateEvidenceError,
       { status: 500 }
     )
   }
 }
-

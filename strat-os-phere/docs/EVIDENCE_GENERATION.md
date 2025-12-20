@@ -25,10 +25,12 @@ Users can now automatically generate structured evidence drafts for competitors 
    - Max 5 pages per competitor
    - Max 12,000 characters per page (truncated if needed)
 
-3. **Evidence Generation** (`lib/actions/generateEvidence.ts`)
-   - Orchestrates search → scrape → LLM generation flow
+3. **Evidence Generation** (`app/api/evidence/generate/route.ts`)
+   - API route that orchestrates search → scrape → LLM generation flow
    - Caches extracted sources for 24 hours
    - Returns structured evidence draft with citations
+   - Uses Zod validation for request body
+   - Returns `{ ok: true, draft }` or `{ ok: false, error }` response format
 
 4. **UI Components**
    - `EvidenceGenerator.tsx`: Search interface, results picker, generation button

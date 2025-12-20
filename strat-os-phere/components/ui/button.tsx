@@ -17,13 +17,13 @@ const buttonVariants = cva(
           "bg-danger text-destructive-foreground hover:bg-danger/90 border border-danger",
         // Secondary: outlined with border
         outline:
-          "border border-border-subtle bg-surface text-text-primary hover:bg-surface-muted",
+          "border border-surface bg-surface text-card-foreground hover:bg-surface-muted",
         // Secondary: filled muted
         secondary:
-          "bg-surface-muted text-text-primary hover:bg-surface-muted/80 border border-border-subtle",
+          "bg-surface-muted text-card-foreground hover:bg-surface-muted/80 border border-surface",
         // Ghost: minimal chrome, transparent background
         ghost:
-          "bg-transparent text-text-primary/80 hover:bg-surface-muted hover:text-text-primary border-transparent",
+          "bg-transparent text-text-primary/80 hover:bg-surface-muted hover:text-card-foreground border-transparent",
         // Link-style for inline actions
         link: "text-accent-primary underline-offset-4 hover:underline bg-transparent border-transparent p-0 h-auto",
       },

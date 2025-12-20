@@ -108,14 +108,16 @@ export function EvidenceGenerator({
         )
       }
 
-      const result = (await response.json()) as {
-        success: boolean
-        draft?: EvidenceDraft
-        error?: string
+      const result = (await response.json()) as
+        | { ok: true; draft: EvidenceDraft }
+        | { ok: false; error: string }
+
+      if (!result.ok) {
+        throw new Error(result.error || 'Failed to generate evidence draft')
       }
 
-      if (!result.success || !result.draft) {
-        throw new Error(result.error || 'Failed to generate evidence draft')
+      if (!result.draft) {
+        throw new Error('Failed to generate evidence draft: missing draft')
       }
 
       onDraftGenerated(result.draft)
