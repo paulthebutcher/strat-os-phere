@@ -129,27 +129,44 @@ export class MockSupabaseStore {
 }
 
 /**
+ * Type for awaitable query builder result that is both a Promise and chainable
+ */
+type AwaitableResult<T> = Promise<{ data: T; error: unknown | null }> & {
+  select: (...args: unknown[]) => AwaitableResult<unknown>
+  insert: (...args: unknown[]) => AwaitableResult<unknown>
+  update: (...args: unknown[]) => AwaitableResult<unknown>
+  delete: (...args: unknown[]) => AwaitableResult<unknown>
+  eq: (...args: unknown[]) => AwaitableResult<unknown>
+  in: (...args: unknown[]) => AwaitableResult<unknown>
+  order: (...args: unknown[]) => AwaitableResult<unknown>
+  single: () => AwaitableResult<unknown>
+  maybeSingle: () => AwaitableResult<unknown>
+}
+
+/**
  * Helper to create query chain mocks that work with the data layer patterns
  * Supabase query builders are awaitable, so we create a promise-like object
  */
 function createQueryBuilder(store: MockSupabaseStore, table: 'projects' | 'competitors' | 'artifacts') {
   // Helper to create an awaitable result
-  const createAwaitable = (data: any, error: any = null) => {
+  const createAwaitable = <T>(data: T, error: unknown | null = null): AwaitableResult<T> => {
     const result = Promise.resolve({ data, error })
     // Make it chainable by adding methods
-    return Object.assign(result, {
-      eq: vi.fn((column: string, value: any) => {
+    const awaitable = Object.assign(result, {
+      eq: vi.fn((column: string, value: unknown) => {
         // Store the filter for later use
-        (result as any)._lastFilter = { column, value }
+        ;(result as unknown as { _lastFilter?: { column: string; value: unknown } })._lastFilter = { column, value }
         return createAwaitable(data, error)
       }),
       order: vi.fn((column: string, options?: { ascending?: boolean }) => {
         // Store the sort for later use
-        (result as any)._lastOrder = { column, options }
+        ;(result as unknown as { _lastOrder?: { column: string; options?: { ascending?: boolean } } })._lastOrder = { column, options }
         return createAwaitable(data, error)
       }),
       single: vi.fn().mockResolvedValue({ data, error }),
     })
+    // Cast through unknown first to satisfy TypeScript (we only implement subset of methods)
+    return awaitable as unknown as AwaitableResult<T>
   }
 
   const chainable = {
