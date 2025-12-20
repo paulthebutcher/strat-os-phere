@@ -40,6 +40,7 @@ export interface CompetitorRow {
   name: string
   url: string | null
   evidence_text: string | null
+  evidence_citations: Json | null
   created_at: string
 }
 
@@ -48,9 +49,34 @@ export interface CompetitorInsert {
   name: string
   url?: string | null
   evidence_text?: string | null
+  evidence_citations?: Json | null
 }
 
 export type CompetitorUpdate = Partial<CompetitorInsert>
+
+export interface EvidenceSourceRow {
+  id: string
+  project_id: string
+  competitor_id: string | null
+  domain: string
+  url: string
+  extracted_text: string
+  page_title: string | null
+  extracted_at: string
+  created_at: string
+}
+
+export interface EvidenceSourceInsert {
+  project_id: string
+  competitor_id?: string | null
+  domain: string
+  url: string
+  extracted_text: string
+  page_title?: string | null
+  extracted_at?: string
+}
+
+export type EvidenceSourceUpdate = Partial<EvidenceSourceInsert>
 
 // Artifact storage for analysis outputs (and future extension types).
 // Database schema: { id, project_id, type, content_json(jsonb), created_at }
@@ -86,6 +112,12 @@ export type Database = {
         Row: CompetitorRow
         Insert: CompetitorInsert
         Update: CompetitorUpdate
+        Relationships: []
+      }
+      evidence_sources: {
+        Row: EvidenceSourceRow
+        Insert: EvidenceSourceInsert
+        Update: EvidenceSourceUpdate
         Relationships: []
       }
       artifacts: {

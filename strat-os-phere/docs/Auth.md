@@ -1,141 +1,209 @@
-# Authentication Configuration
+# Authentication
 
-This document describes the authentication setup for Plinth, including Supabase magic link authentication and 7-day session persistence.
+Magic link authentication with PKCE flow and 7-day session persistence.
 
-## Session Persistence
+## Magic Link PKCE Flow
 
-Plinth implements **7-day session persistence** for authenticated users. After signing in via magic link, users remain logged in for 7 days without needing another magic link, as long as they return within that window.
+1. **User enters email** → `signIn(email)` server action
+2. **Server calls** `supabase.auth.signInWithOtp()` with `emailRedirectTo`
+3. **Supabase sends email** with magic link containing `code` parameter
+4. **User clicks link** → redirects to `/auth/callback?code=...`
+5. **Callback exchanges code** → `supabase.auth.exchangeCodeForSession(code)`
+6. **Session cookies set** with 7-day `maxAge`
+7. **User redirected** to `/dashboard`
 
-### How It Works
+## Critical Implementation Notes
 
-1. **Initial Login**: When a user clicks a magic link, the auth callback (`/app/auth/callback/route.ts`) exchanges the code for a session and sets cookies with a `maxAge` of 7 days (604,800 seconds).
+### signInWithOtp MUST Use SSR Client
 
-2. **Cookie Configuration**: All Supabase auth cookies are set with:
-   - `httpOnly: true` - Prevents JavaScript access for security
-   - `secure: true` - HTTPS only in production (localhost works in development)
-   - `sameSite: "lax"` - CSRF protection
-   - `path: "/"` - Available across the entire app
-   - `maxAge: 604800` - 7 days in seconds
-
-3. **Automatic Token Refresh**: The middleware (`/lib/supabase/middleware.ts`) runs on every request and:
-   - Calls `supabase.auth.getUser()` which automatically refreshes tokens when needed
-   - Updates cookies with refreshed tokens, maintaining the 7-day maxAge
-   - Ensures users stay logged in as long as they visit within 7 days
-
-4. **Cookie Setting Locations**: Cookies are set with proper maxAge in:
-   - `/app/auth/callback/route.ts` - Initial login
-   - `/lib/supabase/middleware.ts` - Token refresh on subsequent requests
-   - `/lib/supabase/server.ts` - Server-side client creation
-
-## Supabase Project Settings
-
-### JWT Expiry
-
-The Supabase **JWT expiry** setting can remain at its default value (typically 1 hour). This controls how long the access token is valid, not the session duration. The session persists via refresh tokens stored in cookies with a 7-day maxAge.
-
-**Recommended**: Leave JWT expiry at default (1 hour). Our middleware automatically refreshes tokens before they expire.
-
-### Session Timeout
-
-Supabase does not have a separate "session timeout" setting that would override our 7-day cookie configuration. The session duration is controlled by:
-
-1. Our cookie `maxAge` setting (7 days)
-2. The refresh token expiry (typically 30 days by default in Supabase)
-
-**Important**: As long as users return within 7 days, their session will be refreshed and extended. If they don't return for more than 7 days, they'll need to sign in again.
-
-### Configuration Check
-
-To verify your Supabase project settings:
-
-1. Go to your Supabase Dashboard → Authentication → Settings
-2. Check **JWT expiry** - should be default (1 hour is fine)
-3. Check **Refresh token rotation** - can be enabled or disabled (doesn't affect our 7-day persistence)
-4. No other settings need to be changed
-
-## Testing Session Persistence
-
-### Manual Testing
-
-1. **Sign in** via magic link
-2. **Verify cookies** in browser DevTools:
-   - Open Application/Storage → Cookies
-   - Look for cookies starting with `sb-` or containing `auth`
-   - Check that `Max-Age` or `Expires` is approximately 7 days from now
-3. **Close browser completely** (not just the tab)
-4. **Reopen browser** and navigate to the app
-5. **Verify** you're still logged in (should redirect to `/dashboard` if on `/login`)
-
-### Dev-Only Debug Utility
-
-In development, the middleware logs session information on every request:
+The `signInWithOtp` call **must** use an SSR client wired to Next.js cookies so the PKCE verifier cookie is set:
 
 ```typescript
-[middleware] {
-  path: '/dashboard',
-  authed: true,
-  userId: '...',
-  sessionExpiry: '2024-01-08T12:00:00.000Z',
-  cookieCount: 3,
-  cookieNames: ['sb-xxx-auth-token', 'sb-xxx-auth-token-code-verifier', ...]
+// ✅ CORRECT (app/login/actions.ts)
+const cookieStore = await cookies()
+const supabase = createServerClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    cookies: {
+      getAll() { return cookieStore.getAll() },
+      setAll(cookiesToSet) { /* set cookies */ },
+    },
+  }
+)
+await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo } })
+```
+
+**Why**: The PKCE verifier cookie (`sb-xxx-auth-token-code-verifier`) must be set server-side during the OTP request. Without it, `exchangeCodeForSession` will fail with `auth-code-exchange-failed`.
+
+### PKCE Verifier Cookies Must NOT Have 7-Day maxAge
+
+PKCE verifier cookies are short-lived (typically 10 minutes) for security. The `mergeAuthCookieOptions` function protects these cookies:
+
+```typescript
+// lib/supabase/cookie-options.ts
+const isVerifierCookie = cookieName && (
+  cookieName.includes('code-verifier') || 
+  cookieName.includes('pkce')
+)
+
+if (isVerifierCookie) {
+  // Do NOT override maxAge for verifier cookies
+  return { ...existingOptions, maxAge: existingOptions?.maxAge }
 }
 ```
 
-You can also use the `getSessionDebugInfo()` utility from `/lib/supabase/session-debug.ts` in server components (dev-only):
+**Why**: Verifier cookies should expire quickly after code exchange. Forcing 7-day maxAge would be a security risk.
 
-```typescript
-import { getSessionDebugInfo } from '@/lib/supabase/session-debug'
+### Callback Route Expectations
 
-const debugInfo = await getSessionDebugInfo()
-// Returns session expiry, cookie maxAge, refresh status, etc.
+The callback route (`app/auth/callback/route.ts`) handles:
+
+1. **PKCE flow** (`code` parameter):
+   - Calls `exchangeCodeForSession(code)`
+   - Requires verifier cookie to be present
+   - Sets session cookies with 7-day maxAge
+
+2. **Legacy OTP flow** (`token_hash` + `type` parameters):
+   - Calls `verifyOtp({ token_hash, type })`
+   - Sets session cookies with 7-day maxAge
+
+3. **Redirect handling**:
+   - Validates `next` parameter (must be relative path)
+   - Defaults to `/dashboard`
+   - Copies cookies to redirect response
+
+### Middleware Route Protection
+
+Middleware (`lib/supabase/middleware.ts`) enforces:
+
+**Public routes** (always allowed):
+- `/`, `/login`, `/auth/callback`
+- `/api/*` (all API routes)
+
+**Protected routes** (require auth):
+- `/dashboard`, `/projects/*`
+
+**Behavior**:
+- Unauthenticated users on protected routes → redirect to `/login`
+- Authenticated users on `/login` or `/` → redirect to `/dashboard`
+- Session refresh happens automatically via `supabase.auth.getUser()`
+
+## Supabase Dashboard Settings
+
+### Site URL
+Set to production domain: `https://myplinth.com`
+
+**Note**: Magic links will use the correct origin based on where the login request originated (see origin handling below). The Site URL is only used as a fallback.
+
+### Redirect URL Allowlist
+
+Add patterns for all environments:
+
+**Production**:
+```
+https://myplinth.com/auth/callback
 ```
 
-### Automated Testing
+**Staging** (if using custom domain):
+```
+https://staging.myplinth.com/auth/callback
+```
 
-To test programmatically:
+**Preview** (Vercel):
+```
+https://*.vercel.app/auth/callback
+```
 
-1. Sign in and capture cookies
-2. Wait or manipulate cookie expiry
-3. Make a request and verify session is still valid
-4. Verify cookies are refreshed with new maxAge
+**Local** (optional, for testing):
+```
+http://localhost:3000/auth/callback
+```
 
-## Environment-Agnostic Configuration
+## Origin Handling
 
-The authentication system works across all environments without separate `.env` files and **does not rely on `NEXT_PUBLIC_SITE_URL`**:
+Origin is **request-derived** and does not rely on `NEXT_PUBLIC_SITE_URL`:
 
-- **Local Development**: `secure: false` allows cookies on `localhost`
-- **Vercel Preview**: Uses `x-forwarded-host` and `x-forwarded-proto` headers
-- **Vercel Production**: Same as preview, with `secure: true` for HTTPS
-- **Custom Staging Domains**: Automatically detected from request headers
+1. **Vercel Preview/Production**: Uses `x-forwarded-host` + `x-forwarded-proto` headers
+2. **Custom domains**: Uses `host` header + protocol detection
+3. **Local dev**: Falls back to `http://localhost:3000` if no headers
 
-The `getOrigin()` helper in `/lib/server/origin.ts` handles environment detection automatically by:
-1. Preferring `x-forwarded-proto` and `x-forwarded-host` headers (set by Vercel)
-2. Falling back to the `host` header if forwarded headers aren't available
-3. Using `https` on Vercel deployments, `http` otherwise
-4. Only falling back to `localhost:3000` in development if no headers are present
+See `lib/server/origin.ts` for implementation.
 
-**Important**: Origin is always computed from request headers. The Supabase Site URL setting in the Supabase dashboard should remain set to production (e.g., `https://myplinth.com`), but magic links will use the correct origin based on where the login request originated.
+**Why**: Enables preview deployments to work without config changes. Each environment uses its own origin automatically.
 
-## Troubleshooting
+## Known Failure Modes
 
-### Users getting logged out unexpectedly
+### `auth-code-exchange-failed`
 
-1. Check cookie `maxAge` in browser DevTools - should be ~604800 seconds
-2. Check middleware logs (dev) - verify `getUser()` is succeeding
-3. Verify Supabase project settings haven't changed
-4. Check that cookies aren't being blocked by browser settings
+**Meaning**: PKCE verifier cookie missing or expired.
 
-### Cookies not persisting
+**Causes**:
+- `signInWithOtp` not using SSR client (verifier cookie not set)
+- Verifier cookie expired (typically 10 minutes)
+- Browser blocking cookies
 
-1. Verify `secure: true` only in production (localhost needs `secure: false`)
-2. Check browser console for cookie errors
-3. Verify `sameSite: "lax"` isn't being blocked by browser
-4. Check that cookies are being set on response (not request)
+**Fix**:
+1. Verify `signInWithOtp` uses SSR client (see `app/login/actions.ts`)
+2. Check browser DevTools → Application → Cookies for verifier cookie
+3. Ensure cookies not blocked by browser settings
 
-### Token refresh not working
+### `redirect_to` Falling Back to Site URL
 
-1. Verify middleware is running (check logs)
-2. Check that `supabase.auth.getUser()` is being called
-3. Verify cookies are being updated with new maxAge on refresh
-4. Check Supabase project hasn't disabled refresh tokens
+**Meaning**: Supabase redirect URL not in allowlist.
 
+**Symptom**: Magic link redirects to production domain instead of preview/staging.
+
+**Fix**:
+1. Add redirect URL pattern to Supabase allowlist
+2. For preview: `https://*.vercel.app/auth/callback`
+3. For staging: `https://staging.myplinth.com/auth/callback`
+
+### Session Expires Unexpectedly
+
+**Meaning**: Cookie `maxAge` not set correctly.
+
+**Causes**:
+- Cookies set without `mergeAuthCookieOptions`
+- PKCE verifier cookie forced to 7-day maxAge (should be short-lived)
+
+**Fix**:
+1. Verify `mergeAuthCookieOptions` applied in:
+   - `app/auth/callback/route.ts`
+   - `lib/supabase/middleware.ts`
+   - `lib/supabase/server.ts`
+2. Check cookie `maxAge` in browser DevTools (should be ~604800 for session cookies)
+3. Ensure verifier cookies are NOT forced to 7-day maxAge
+
+## Session Persistence
+
+Sessions persist for **7 days** (604,800 seconds) via cookie `maxAge`:
+
+- **Initial login**: Callback route sets cookies with 7-day maxAge
+- **Token refresh**: Middleware refreshes tokens and maintains 7-day maxAge
+- **Automatic refresh**: Supabase SDK refreshes tokens before expiry
+
+**JWT expiry** (Supabase setting): Leave at default (1 hour). This controls access token validity, not session duration. Refresh tokens handle long-lived sessions.
+
+## Testing Auth
+
+### Manual Testing
+1. Sign in via magic link
+2. Check cookies in DevTools → Application → Cookies
+3. Verify `maxAge` is ~604800 for session cookies
+4. Close browser completely
+5. Reopen and navigate to app
+6. Should still be logged in
+
+### Debug Utilities
+
+**Dev-only session info** (`lib/supabase/session-debug.ts`):
+```typescript
+import { getSessionDebugInfo } from '@/lib/supabase/session-debug'
+const info = await getSessionDebugInfo()
+// Returns: session expiry, cookie maxAge, refresh status
+```
+
+**Debug endpoints**:
+- `/api/whoami` - Check auth state
+- `/api/debug/origin` - Inspect origin computation

@@ -8,6 +8,8 @@ import type {
   ArtifactRow,
   ArtifactInsert,
   ArtifactType,
+  EvidenceSourceRow,
+  EvidenceSourceInsert,
   Json,
 } from './database.types'
 
@@ -42,5 +44,8 @@ export type NewCompetitor = CompetitorInsert
 
 export type Artifact = ArtifactRow
 export type NewArtifact = ArtifactInsert
+
+export type EvidenceSource = EvidenceSourceRow
+export type NewEvidenceSource = EvidenceSourceInsert
 
 

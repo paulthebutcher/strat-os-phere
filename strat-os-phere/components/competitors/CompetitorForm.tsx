@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { EvidenceHelpers } from '@/components/competitors/EvidenceHelpers'
+import { EvidenceGenerator } from '@/components/competitors/EvidenceGenerator'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -13,6 +14,7 @@ import {
 } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { createCompetitorForProject } from '@/app/projects/[projectId]/competitors/actions'
+import type { EvidenceDraft } from '@/lib/schemas/evidenceDraft'
 
 function ConfidentialInfoDisclosure() {
   const [isOpen, setIsOpen] = useState(false)
@@ -146,6 +148,130 @@ export function CompetitorForm({
     })
   }
 
+  function handleDraftGenerated(draft: EvidenceDraft) {
+    // Format evidence draft into markdown with citations
+    const sections: string[] = []
+
+    // Positioning
+    if (draft.sections.positioning.bullets.length > 0) {
+      sections.push('## Positioning')
+      sections.push('')
+      draft.sections.positioning.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.positioning.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.positioning.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Pricing
+    if (draft.sections.pricing.bullets.length > 0) {
+      sections.push('## Pricing')
+      sections.push('')
+      draft.sections.pricing.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.pricing.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.pricing.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Target customers
+    if (draft.sections.target_customers.bullets.length > 0) {
+      sections.push('## Target Customers')
+      sections.push('')
+      draft.sections.target_customers.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.target_customers.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.target_customers.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Key features
+    if (draft.sections.key_features.bullets.length > 0) {
+      sections.push('## Key Features')
+      sections.push('')
+      draft.sections.key_features.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.key_features.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.key_features.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Integrations (optional)
+    if (draft.sections.integrations?.bullets.length) {
+      sections.push('## Integrations')
+      sections.push('')
+      draft.sections.integrations.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.integrations.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.integrations.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Enterprise signals (optional)
+    if (draft.sections.enterprise_signals?.bullets.length) {
+      sections.push('## Enterprise Signals')
+      sections.push('')
+      draft.sections.enterprise_signals.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.enterprise_signals.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.enterprise_signals.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    const formattedEvidence = sections.join('\n')
+
+    // Set competitor name and website if not already set
+    if (!name) {
+      setName(draft.competitor_name)
+    }
+    if (!website) {
+      setWebsite(`https://${draft.domain}`)
+    }
+
+    // Set evidence (truncate if needed)
+    if (formattedEvidence.length <= MAX_EVIDENCE_CHARS) {
+      setEvidence(formattedEvidence)
+    } else {
+      setEvidence(formattedEvidence.slice(0, MAX_EVIDENCE_CHARS))
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -243,6 +369,11 @@ export function CompetitorForm({
           </p>
         )}
       </header>
+
+      <EvidenceGenerator
+        projectId={projectId}
+        onDraftGenerated={handleDraftGenerated}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
