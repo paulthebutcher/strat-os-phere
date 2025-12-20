@@ -42,6 +42,22 @@ describe('Data Layer Integration Tests', () => {
       expect(project.created_at).toBeDefined()
     })
 
+    it('createProject normalizes optional nullable fields to null when omitted', async () => {
+      const input = {
+        user_id: userId,
+        name: 'Test Project',
+        market: 'Test Market',
+        target_customer: 'Test Customer',
+        // your_product, business_goal, geography are omitted
+      }
+
+      const project = await createProject(client, input)
+
+      expect(project.your_product).toBeNull()
+      expect(project.business_goal).toBeNull()
+      expect(project.geography).toBeNull()
+    })
+
     it('listProjectsForOwner returns projects for the owner', async () => {
       store.createProject({
         user_id: userId,
@@ -81,6 +97,25 @@ describe('Data Layer Integration Tests', () => {
       const project = await getProjectById(client, 'non-existent')
 
       expect(project).toBeNull()
+    })
+
+    it('store.createProject normalizes optional nullable fields to null', () => {
+      const project = store.createProject({
+        user_id: userId,
+        name: 'Test Project',
+        market: 'Test Market',
+        target_customer: 'Test Customer',
+        // your_product, business_goal, geography are omitted
+      })
+
+      expect(project.your_product).toBeNull()
+      expect(project.business_goal).toBeNull()
+      expect(project.geography).toBeNull()
+      // Verify the stored project also has null values
+      const retrieved = store.getProject(project.id)
+      expect(retrieved?.your_product).toBeNull()
+      expect(retrieved?.business_goal).toBeNull()
+      expect(retrieved?.geography).toBeNull()
     })
   })
 

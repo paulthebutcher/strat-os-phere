@@ -35,6 +35,10 @@ export class MockSupabaseStore {
     const project: ProjectRow = {
       id,
       ...data,
+      // Normalize optional nullable fields: undefined -> null
+      your_product: data.your_product ?? null,
+      business_goal: data.business_goal ?? null,
+      geography: data.geography ?? null,
       created_at: new Date().toISOString(),
     }
     this.projects.set(id, project)
@@ -57,6 +61,9 @@ export class MockSupabaseStore {
     const competitor: CompetitorRow = {
       id,
       ...data,
+      // Normalize optional nullable fields: undefined -> null
+      url: data.url ?? null,
+      evidence_text: data.evidence_text ?? null,
       created_at: new Date().toISOString(),
     }
     this.competitors.set(id, competitor)
