@@ -5,12 +5,15 @@
 
 export type ResultsV2Phase =
   | 'load_input'
+  | 'evidence_quality_check'
   | 'jobs_generate'
   | 'jobs_validate'
   | 'scorecard_generate'
   | 'scorecard_validate'
   | 'opportunities_generate'
   | 'opportunities_validate'
+  | 'strategic_bets_generate'
+  | 'strategic_bets_validate'
   | 'scoring_compute'
   | 'save_artifacts'
   | 'finalize'

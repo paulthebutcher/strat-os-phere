@@ -465,6 +465,9 @@ function mapProgressPhaseToState(
   if (phaseLower.includes('load_input') || phaseLower.includes('starting')) {
     return 'starting'
   }
+  if (phaseLower.includes('evidence_quality_check') || phaseLower.includes('evidence_quality')) {
+    return 'gathering_inputs'
+  }
   if (phaseLower.includes('gathering') || phaseLower.includes('input')) {
     return 'gathering_inputs'
   }
@@ -478,6 +481,9 @@ function mapProgressPhaseToState(
     return 'scoring_positioning'
   }
   if (phaseLower.includes('opportunities') && !phaseLower.includes('validate')) {
+    return 'ranking_opportunities'
+  }
+  if (phaseLower.includes('strategic_bets') && !phaseLower.includes('validate')) {
     return 'ranking_opportunities'
   }
   if (phaseLower.includes('validate')) {
