@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 
 import { CopySectionButton } from '@/components/results/CopySectionButton'
+import { createPageMetadata } from '@/lib/seo/metadata'
 import { RegenerateButton } from '@/components/results/RegenerateButton'
 import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
 import { AnalysisRunExperience } from '@/components/results/AnalysisRunExperience'
@@ -134,6 +136,22 @@ interface ResultsPageProps {
     generating?: string
     view?: string
   }>
+}
+
+export async function generateMetadata(props: ResultsPageProps): Promise<Metadata> {
+  const params = await props.params;
+  return createPageMetadata({
+    title: "Results — Plinth",
+    description:
+      "View your competitive analysis results: jobs to be done, scorecard, opportunities, and strategic bets. Strategy-grade insights for confident decision-making.",
+    path: `/projects/${params.projectId}/results`,
+    ogVariant: "results",
+    robots: {
+      index: false,
+      follow: false,
+    },
+    canonical: false,
+  });
 }
 
 export default async function ResultsPage(props: ResultsPageProps) {

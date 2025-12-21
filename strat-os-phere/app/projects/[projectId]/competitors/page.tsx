@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 
 import { CompetitorCard } from '@/components/competitors/CompetitorCard'
 import { CompetitorForm } from '@/components/competitors/CompetitorForm'
@@ -10,11 +11,28 @@ import {
   MIN_COMPETITORS_FOR_ANALYSIS,
 } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
+import { createPageMetadata } from '@/lib/seo/metadata'
 
 interface CompetitorsPageProps {
   params: Promise<{
     projectId: string
   }>
+}
+
+export async function generateMetadata(props: CompetitorsPageProps): Promise<Metadata> {
+  const params = await props.params;
+  return createPageMetadata({
+    title: "Competitors — Plinth",
+    description:
+      "Manage competitors for your competitive analysis. Add and configure competitors to build a comprehensive competitive landscape.",
+    path: `/projects/${params.projectId}/competitors`,
+    ogVariant: "competitors",
+    robots: {
+      index: false,
+      follow: false,
+    },
+    canonical: false,
+  });
 }
 
 export default async function CompetitorsPage(props: CompetitorsPageProps) {

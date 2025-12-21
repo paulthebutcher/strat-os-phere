@@ -4,6 +4,7 @@ import "./globals.css";
 import { Nav } from "@/components/layout/nav";
 import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { createClient } from "@/lib/supabase/server";
+import { createBaseMetadata } from "@/lib/seo/metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,10 +16,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Plinth",
-  description: "Strategic intelligence for product, strategy, and UX leaders",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return createBaseMetadata();
+}
 
 export default async function RootLayout({
   children,

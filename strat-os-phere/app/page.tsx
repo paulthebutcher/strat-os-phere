@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import type { Metadata } from "next"
 import { Hero } from "@/components/marketing/Hero"
 import { Problem } from "@/components/marketing/Problem"
 import { HowItWorks } from "@/components/marketing/HowItWorks"
@@ -9,6 +10,18 @@ import { Trust } from "@/components/marketing/Trust"
 import { SocialProof } from "@/components/marketing/SocialProof"
 import { CTABand } from "@/components/marketing/CTABand"
 import { Footer } from "@/components/marketing/Footer"
+import { createPageMetadata } from "@/lib/seo/metadata"
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata({
+    title: "Plinth — Strategy-grade competitive intelligence",
+    description:
+      "Turn competitive noise into clear, defensible positioning. A strategy workspace that helps teams see what competitors can't — and act on it. Strategy, grounded.",
+    path: "/",
+    ogVariant: "default",
+    canonical: true,
+  });
+}
 
 interface HomeProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>

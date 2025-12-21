@@ -1,7 +1,23 @@
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 
 import { createClient } from '@/lib/supabase/server'
 import { LoginForm } from './login-form'
+import { createPageMetadata } from '@/lib/seo/metadata'
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata({
+    title: "Sign in — Plinth",
+    description: "Sign in to your Plinth workspace. A quiet workspace for serious strategy work.",
+    path: "/login",
+    ogVariant: "default",
+    robots: {
+      index: false,
+      follow: true,
+    },
+    canonical: false,
+  });
+}
 
 export default async function LoginPage() {
   const supabase = await createClient()

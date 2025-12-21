@@ -1,10 +1,26 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 
 import { Button } from '@/components/ui/button'
 import { ProjectForm } from '@/components/project-form'
 import { listProjectsForOwner } from '@/lib/data/projects'
 import { createClient } from '@/lib/supabase/server'
+import { createPageMetadata } from '@/lib/seo/metadata'
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata({
+    title: "Dashboard — Plinth",
+    description: "Your Plinth workspace. Manage your competitive analysis projects.",
+    path: "/dashboard",
+    ogVariant: "default",
+    robots: {
+      index: false,
+      follow: false,
+    },
+    canonical: false,
+  });
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
