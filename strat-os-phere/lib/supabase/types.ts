@@ -12,6 +12,10 @@ import type {
   EvidenceSourceInsert,
   EvidenceSourceType,
   EvidenceSourceConfidence,
+  RiskPosture,
+  AmbitionLevel,
+  DecisionLevel,
+  InputConfidence,
   Json,
 } from './database.types'
 
@@ -27,6 +31,10 @@ export type {
   ArtifactType,
   EvidenceSourceType,
   EvidenceSourceConfidence,
+  RiskPosture,
+  AmbitionLevel,
+  DecisionLevel,
+  InputConfidence,
   Json,
 }
 

@@ -39,6 +39,13 @@ export class MockSupabaseStore {
       your_product: data.your_product ?? null,
       business_goal: data.business_goal ?? null,
       geography: data.geography ?? null,
+      primary_constraint: data.primary_constraint ?? null,
+      risk_posture: data.risk_posture ?? null,
+      ambition_level: data.ambition_level ?? null,
+      organizational_capabilities: data.organizational_capabilities ?? null,
+      decision_level: data.decision_level ?? null,
+      explicit_non_goals: data.explicit_non_goals ?? null,
+      input_confidence: data.input_confidence ?? null,
       created_at: new Date().toISOString(),
     }
     this.projects.set(id, project)

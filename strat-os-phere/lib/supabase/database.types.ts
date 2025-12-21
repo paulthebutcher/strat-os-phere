@@ -19,6 +19,13 @@ export interface ProjectRow {
   your_product: string | null
   business_goal: string | null
   geography: string | null
+  primary_constraint: string | null
+  risk_posture: RiskPosture | null
+  ambition_level: AmbitionLevel | null
+  organizational_capabilities: string | null
+  decision_level: DecisionLevel | null
+  explicit_non_goals: string | null
+  input_confidence: InputConfidence | null
   created_at: string
 }
 
@@ -30,6 +37,13 @@ export interface ProjectInsert {
   your_product?: string | null
   business_goal?: string | null
   geography?: string | null
+  primary_constraint?: string | null
+  risk_posture?: RiskPosture | null
+  ambition_level?: AmbitionLevel | null
+  organizational_capabilities?: string | null
+  decision_level?: DecisionLevel | null
+  explicit_non_goals?: string | null
+  input_confidence?: InputConfidence | null
 }
 
 export type ProjectUpdate = Partial<ProjectInsert>
@@ -64,6 +78,12 @@ export type EvidenceSourceType =
   | 'status'
 
 export type EvidenceSourceConfidence = 'low' | 'medium' | 'high'
+
+// Project decision-framing enums
+export type RiskPosture = 'near_term_traction' | 'long_term_defensibility' | 'balanced'
+export type AmbitionLevel = 'core_optimization' | 'adjacent_expansion' | 'category_redefinition'
+export type DecisionLevel = 'IC' | 'Director' | 'VP' | 'C-suite'
+export type InputConfidence = 'very_confident' | 'some_assumptions' | 'exploratory'
 
 export interface EvidenceSourceRow {
   id: string

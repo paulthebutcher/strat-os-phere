@@ -4,6 +4,12 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 import { createProject } from '@/lib/data/projects'
+import type {
+  RiskPosture,
+  AmbitionLevel,
+  DecisionLevel,
+  InputConfidence,
+} from '@/lib/supabase/types'
 
 interface CreateProjectPayload {
   name: string
@@ -12,6 +18,13 @@ interface CreateProjectPayload {
   product?: string
   goal?: string
   geography?: string
+  primaryConstraint?: string
+  riskPosture?: RiskPosture
+  ambitionLevel?: AmbitionLevel
+  organizationalCapabilities?: string
+  decisionLevel?: DecisionLevel
+  explicitNonGoals?: string
+  inputConfidence?: InputConfidence
 }
 
 interface CreateProjectResult {
@@ -41,6 +54,13 @@ export async function createProjectFromForm(
       your_product: payload.product ?? null,
       business_goal: payload.goal ?? null,
       geography: payload.geography ?? null,
+      primary_constraint: payload.primaryConstraint ?? null,
+      risk_posture: payload.riskPosture ?? null,
+      ambition_level: payload.ambitionLevel ?? null,
+      organizational_capabilities: payload.organizationalCapabilities ?? null,
+      decision_level: payload.decisionLevel ?? null,
+      explicit_non_goals: payload.explicitNonGoals ?? null,
+      input_confidence: payload.inputConfidence ?? null,
     })
 
     return { success: true, projectId: project.id }

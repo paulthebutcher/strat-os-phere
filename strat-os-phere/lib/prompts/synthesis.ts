@@ -86,6 +86,57 @@ export function buildSynthesisMessages(input: SynthesisPromptInput): Message[] {
     projectLines.push(`Geography: ${project.geography}`)
   }
 
+  if (project.primary_constraint) {
+    projectLines.push(`Primary constraint: ${project.primary_constraint}`)
+  }
+
+  if (project.risk_posture) {
+    const postureLabels: Record<string, string> = {
+      near_term_traction: 'Near-term traction',
+      long_term_defensibility: 'Long-term defensibility',
+      balanced: 'Balanced',
+    }
+    projectLines.push(
+      `Risk posture: ${postureLabels[project.risk_posture] || project.risk_posture}`
+    )
+  }
+
+  if (project.ambition_level) {
+    const ambitionLabels: Record<string, string> = {
+      core_optimization: 'Core optimization',
+      adjacent_expansion: 'Adjacent expansion',
+      category_redefinition: 'Category redefinition',
+    }
+    projectLines.push(
+      `Ambition level: ${ambitionLabels[project.ambition_level] || project.ambition_level}`
+    )
+  }
+
+  if (project.organizational_capabilities) {
+    projectLines.push(
+      `Organizational capabilities: ${project.organizational_capabilities}`
+    )
+  }
+
+  if (project.decision_level) {
+    projectLines.push(`Decision level: ${project.decision_level}`)
+  }
+
+  if (project.explicit_non_goals) {
+    projectLines.push(`Explicit non-goals: ${project.explicit_non_goals}`)
+  }
+
+  if (project.input_confidence) {
+    const confidenceLabels: Record<string, string> = {
+      very_confident: 'Very confident',
+      some_assumptions: 'Some assumptions',
+      exploratory: 'Exploratory',
+    }
+    projectLines.push(
+      `Input confidence: ${confidenceLabels[project.input_confidence] || project.input_confidence}`
+    )
+  }
+
   const userContent = [
     'TASK',
     'You are synthesizing across multiple competitor snapshots to produce a single MarketSynthesis JSON object.',
@@ -145,6 +196,8 @@ export function buildSynthesisMessages(input: SynthesisPromptInput): Message[] {
     '- suggested_angle should describe how to position or design our product to capture this opportunity.',
     '- risk_or_assumption should state the key bet, uncertainty, or dependency for this opportunity.',
     '- priority should be an integer rank (1 is highest priority) that reflects strategic importance; avoid ties when possible.',
+    '- Weight opportunities based on the risk_posture and ambition_level specified in project context.',
+    '- If explicit_non_goals are provided, ensure opportunities do not conflict with them.',
     '',
     'Recommended differentiation angles (3–5 items):',
     '- recommended_differentiation_angles must contain 3–5 items.',
@@ -156,6 +209,8 @@ export function buildSynthesisMessages(input: SynthesisPromptInput): Message[] {
     'GENERAL BEHAVIOR',
     '- Base all reasoning on the provided CompetitorSnapshot objects; do not assume facts that are not implied there.',
     '- When in doubt, express uncertainty in risk_or_assumption, watch_out_for, or similar fields rather than inventing confident claims.',
+    '- Respect all constraints, non-goals, and context provided in the project context.',
+    '- Weight recommendations based on risk_posture (prioritize near-term traction vs. long-term defensibility accordingly) and ambition_level (align with core optimization vs. category redefinition scope).',
   ].join('\n')
 
   return [getSystemStyleGuide(), { role: 'user', content: userContent }]

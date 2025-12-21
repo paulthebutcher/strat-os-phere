@@ -4,12 +4,26 @@
 import type { Message } from '@/lib/prompts/system'
 import { getSystemStyleGuide } from '@/lib/prompts/system'
 
+import type {
+  RiskPosture,
+  AmbitionLevel,
+  DecisionLevel,
+  InputConfidence,
+} from '@/lib/supabase/types'
+
 export interface ProjectContext {
   market: string
   target_customer: string
   your_product?: string | null
   business_goal?: string | null
   geography?: string | null
+  primary_constraint?: string | null
+  risk_posture?: RiskPosture | null
+  ambition_level?: AmbitionLevel | null
+  organizational_capabilities?: string | null
+  decision_level?: DecisionLevel | null
+  explicit_non_goals?: string | null
+  input_confidence?: InputConfidence | null
 }
 
 export interface CompetitorContext {
@@ -67,6 +81,57 @@ export function buildSnapshotMessages(input: SnapshotPromptInput): Message[] {
 
   if (project.geography) {
     projectLines.push(`Geography: ${project.geography}`)
+  }
+
+  if (project.primary_constraint) {
+    projectLines.push(`Primary constraint: ${project.primary_constraint}`)
+  }
+
+  if (project.risk_posture) {
+    const postureLabels: Record<string, string> = {
+      near_term_traction: 'Near-term traction',
+      long_term_defensibility: 'Long-term defensibility',
+      balanced: 'Balanced',
+    }
+    projectLines.push(
+      `Risk posture: ${postureLabels[project.risk_posture] || project.risk_posture}`
+    )
+  }
+
+  if (project.ambition_level) {
+    const ambitionLabels: Record<string, string> = {
+      core_optimization: 'Core optimization',
+      adjacent_expansion: 'Adjacent expansion',
+      category_redefinition: 'Category redefinition',
+    }
+    projectLines.push(
+      `Ambition level: ${ambitionLabels[project.ambition_level] || project.ambition_level}`
+    )
+  }
+
+  if (project.organizational_capabilities) {
+    projectLines.push(
+      `Organizational capabilities: ${project.organizational_capabilities}`
+    )
+  }
+
+  if (project.decision_level) {
+    projectLines.push(`Decision level: ${project.decision_level}`)
+  }
+
+  if (project.explicit_non_goals) {
+    projectLines.push(`Explicit non-goals: ${project.explicit_non_goals}`)
+  }
+
+  if (project.input_confidence) {
+    const confidenceLabels: Record<string, string> = {
+      very_confident: 'Very confident',
+      some_assumptions: 'Some assumptions',
+      exploratory: 'Exploratory',
+    }
+    projectLines.push(
+      `Input confidence: ${confidenceLabels[project.input_confidence] || project.input_confidence}`
+    )
   }
 
   const competitorLines: string[] = [`Name: ${competitor.name}`]

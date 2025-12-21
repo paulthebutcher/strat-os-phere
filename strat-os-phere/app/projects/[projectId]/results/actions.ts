@@ -116,6 +116,13 @@ export async function generateAnalysis(
       your_product: project.your_product,
       business_goal: project.business_goal,
       geography: project.geography,
+      primary_constraint: project.primary_constraint,
+      risk_posture: project.risk_posture,
+      ambition_level: project.ambition_level,
+      organizational_capabilities: project.organizational_capabilities,
+      decision_level: project.decision_level,
+      explicit_non_goals: project.explicit_non_goals,
+      input_confidence: project.input_confidence,
     }
 
     const snapshots: CompetitorSnapshot[] = []
