@@ -52,15 +52,17 @@ export async function POST(request: Request) {
 
     if (!result.ok) {
       // Map error codes to HTTP status codes
+      // Use 409 Conflict for prerequisite/missing dependencies (blocked state)
       const statusCode =
         result.error.code === 'PROJECT_NOT_FOUND_OR_FORBIDDEN'
           ? 403
           : result.error.code === 'UNAUTHENTICATED'
           ? 401
-          : result.error.code === 'INSUFFICIENT_COMPETITORS' ||
-            result.error.code === 'TOO_MANY_COMPETITORS' ||
-            result.error.code === 'MISSING_PROFILES' ||
+          : result.error.code === 'MISSING_COMPETITOR_PROFILES' ||
             result.error.code === 'NO_SNAPSHOTS'
+          ? 409 // Conflict: prerequisite missing, run is blocked
+          : result.error.code === 'INSUFFICIENT_COMPETITORS' ||
+            result.error.code === 'TOO_MANY_COMPETITORS'
           ? 400
           : 500
 

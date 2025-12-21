@@ -20,10 +20,61 @@ describe('ResultsV2Phase', () => {
     )
 
     expect(event.phase).toBe('evidence_quality_check')
+    expect(event.status).toBe('started') // Default status
     expect(event.message).toBe('Checking evidence quality...')
     expect(event.detail).toBe('Evidence quality check in progress')
     expect(event.runId).toBe('test-run-id')
     expect(event.timestamp).toBeDefined()
+  })
+
+  it('supports status field in progress events', () => {
+    const event1 = makeProgressEvent(
+      'test-run-id',
+      'jobs_generate',
+      'Starting jobs generation...',
+      {
+        status: 'started',
+      }
+    )
+    expect(event1.status).toBe('started')
+
+    const event2 = makeProgressEvent(
+      'test-run-id',
+      'jobs_generate',
+      'Processing competitor 2 of 5...',
+      {
+        status: 'progress',
+        meta: {
+          current: 2,
+          total: 5,
+          substep: 'competitor_analysis',
+        },
+      }
+    )
+    expect(event2.status).toBe('progress')
+    expect(event2.meta?.current).toBe(2)
+    expect(event2.meta?.total).toBe(5)
+    expect(event2.meta?.substep).toBe('competitor_analysis')
+
+    const event3 = makeProgressEvent(
+      'test-run-id',
+      'jobs_generate',
+      'Jobs generation complete',
+      {
+        status: 'completed',
+      }
+    )
+    expect(event3.status).toBe('completed')
+  })
+
+  it('defaults to started status when status is not provided', () => {
+    const event = makeProgressEvent(
+      'test-run-id',
+      'load_input',
+      'Loading data...',
+      {}
+    )
+    expect(event.status).toBe('started')
   })
 
   it('includes all expected phases', () => {

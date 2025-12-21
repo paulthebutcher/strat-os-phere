@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
         const initialEvent = {
           runId: '',
           phase: 'load_input' as const,
+          status: 'started' as const,
           message: 'Starting generation...',
           timestamp: new Date().toISOString(),
         }
@@ -96,7 +97,10 @@ export async function GET(request: NextRequest) {
             formatCompletionEventSSE(result.runId, result.artifactIds, result.signals)
           )
         } else {
-          sendEvent(formatErrorEventSSE(runId || '', result.error))
+          // Use 'blocked' status for prerequisite errors, 'failed' for others
+          const isBlocked = result.error.code === 'MISSING_COMPETITOR_PROFILES' ||
+                           result.error.code === 'NO_SNAPSHOTS'
+          sendEvent(formatErrorEventSSE(runId || '', result.error, isBlocked ? 'blocked' : 'failed'))
         }
       } catch (error) {
         sendEvent(

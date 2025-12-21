@@ -18,9 +18,12 @@ export type ResultsV2Phase =
   | 'save_artifacts'
   | 'finalize'
 
+export type ProgressStatus = 'started' | 'progress' | 'completed' | 'failed' | 'blocked'
+
 export interface ProgressEvent {
   runId: string
   phase: ResultsV2Phase
+  status: ProgressStatus // Phase status: started (phase begins), progress (substep update), completed (phase done), failed/blocked (error)
   message: string // User-facing status line
   detail?: string // Optional secondary line for context
   percent?: number // 0-100 (only if meaningful)
@@ -34,6 +37,12 @@ export interface ProgressEvent {
     writesDone?: number
     writesTotal?: number
     durationMs?: number
+    // Substep tracking for phases with multiple steps (e.g., processing multiple competitors)
+    substep?: string // e.g., 'pricing', 'reviews', 'changelog', 'jobs', 'docs', 'status'
+    current?: number // Current item index (1-based)
+    total?: number // Total items to process
+    competitorId?: string // ID of competitor being processed
+    competitorName?: string // Name of competitor being processed
   }
 }
 
@@ -43,12 +52,14 @@ export interface ProgressCallback {
 
 /**
  * Create a progress event with consistent formatting
+ * Defaults to 'started' status unless explicitly set
  */
 export function makeProgressEvent(
   runId: string,
   phase: ResultsV2Phase,
   message: string,
   options?: {
+    status?: ProgressStatus
     detail?: string
     percent?: number
     meta?: ProgressEvent['meta']
@@ -57,6 +68,7 @@ export function makeProgressEvent(
   return {
     runId,
     phase,
+    status: options?.status ?? 'started',
     message,
     detail: options?.detail,
     percent: options?.percent,
@@ -99,12 +111,14 @@ export function formatCompletionEventSSE(
  */
 export function formatErrorEventSSE(
   runId: string,
-  error: { code: string; message: string }
+  error: { code: string; message: string },
+  status: ProgressStatus = 'failed'
 ): string {
   const event = {
     runId,
     phase: 'finalize' as ResultsV2Phase,
-    message: 'Generation failed',
+    status,
+    message: status === 'blocked' ? 'Generation paused' : 'Generation failed',
     detail: error.message,
     timestamp: new Date().toISOString(),
     error,

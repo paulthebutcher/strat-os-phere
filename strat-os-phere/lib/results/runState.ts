@@ -30,6 +30,7 @@ export interface AnalysisRunStateMachine {
   error?: {
     message: string
     technicalDetails?: string
+    isBlocked?: boolean // true if error is due to missing prerequisites (blocked state)
   }
   startedAt?: number
   completedAt?: number

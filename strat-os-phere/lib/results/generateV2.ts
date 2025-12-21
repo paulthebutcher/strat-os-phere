@@ -7,6 +7,11 @@ import {
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { createArtifact, listArtifacts } from '@/lib/data/artifacts'
 import { getProjectById } from '@/lib/data/projects'
+import {
+  assertHasCompetitors,
+  assertHasCompetitorProfiles,
+} from '@/lib/results/prerequisites'
+import { AppError, isAppError } from '@/lib/errors'
 import { callLLM } from '@/lib/llm/callLLM'
 import type { ProjectContext } from '@/lib/prompts/snapshot'
 import { buildJtbdMessages, JTBD_SCHEMA_SHAPE } from '@/lib/prompts/jtbd'
@@ -104,7 +109,26 @@ export interface GenerateResultsV2Options {
 }
 
 /**
- * Generate Results v2 artifacts (JTBD, Opportunities, Scoring Matrix)
+ * Generate Results v2 artifacts (JTBD, Opportunities, Scoring Matrix, Strategic Bets)
+ * 
+ * Prerequisites (enforced via assertHasCompetitorProfiles):
+ * - Competitor profiles artifact must exist (type='profiles')
+ * - Profiles artifact must contain at least one snapshot
+ * 
+ * This function assumes profiles have already been generated via generateAnalysis().
+ * The prerequisite checks ensure the pipeline cannot "run ahead" if profiles are missing.
+ * 
+ * Pipeline phases (in order):
+ * 1. load_input - Load project and competitor data
+ * 2. evidence_quality_check - Check evidence quality guardrails
+ * 3. jobs_generate + jobs_validate - Generate and validate JTBD
+ * 4. scorecard_generate + scorecard_validate - Generate and validate scoring matrix
+ * 5. opportunities_generate + opportunities_validate - Generate and validate opportunities
+ * 6. strategic_bets_generate + strategic_bets_validate - Generate and validate strategic bets
+ * 7. scoring_compute - Compute deterministic scores
+ * 8. save_artifacts - Persist all artifacts
+ * 9. finalize - Complete run
+ * 
  * This is the canonical generation function - should only be called from the API route
  */
 export async function generateResultsV2(
@@ -138,6 +162,24 @@ export async function generateResultsV2(
       })
     )
 
+    // Prerequisite check: must have competitors
+    try {
+      await assertHasCompetitors(supabase, projectId)
+    } catch (error) {
+      if (isAppError(error)) {
+        const competitors = await listCompetitorsForProject(supabase, projectId)
+        return {
+          ok: false,
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+          details: { competitorCount: competitors.length },
+        }
+      }
+      throw error
+    }
+
     const competitors = await listCompetitorsForProject(supabase, projectId)
     const competitorCount = competitors.length
 
@@ -147,17 +189,6 @@ export async function generateResultsV2(
         meta: { competitorCount },
       })
     )
-
-    if (competitorCount < MIN_COMPETITORS_FOR_ANALYSIS) {
-      return {
-        ok: false,
-        error: {
-          code: 'INSUFFICIENT_COMPETITORS',
-          message: 'Add at least 3 competitors to generate results.',
-        },
-        details: { competitorCount },
-      }
-    }
 
     if (competitorCount > MAX_COMPETITORS_PER_PROJECT) {
       return {
@@ -194,17 +225,46 @@ export async function generateResultsV2(
       )
     }
 
-    // Load existing artifacts
+    // Prerequisite check: must have competitor profiles before proceeding
+    // This ensures the pipeline cannot "run ahead" if prerequisites are missing
+    try {
+      await assertHasCompetitorProfiles(supabase, projectId)
+    } catch (error) {
+      if (isAppError(error)) {
+        const competitors = await listCompetitorsForProject(supabase, projectId)
+        const artifacts = await listArtifacts(supabase, { projectId })
+        const profilesArtifact = artifacts.find((a) => a.type === 'profiles')
+        return {
+          ok: false,
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+          details: {
+            competitorCount: competitors.length,
+            profilesFoundCount: profilesArtifact ? 1 : 0,
+          },
+        }
+      }
+      throw error
+    }
+
+    // Load existing artifacts (profiles guaranteed to exist after prerequisite check)
     const artifacts = await listArtifacts(supabase, { projectId })
     const profilesArtifact = artifacts.find((a) => a.type === 'profiles')
     const synthesisArtifact = artifacts.find((a) => a.type === 'synthesis')
 
     if (!profilesArtifact) {
+      // This should not happen due to prerequisite check, but handle defensively
       return {
         ok: false,
         error: {
-          code: 'MISSING_PROFILES',
-          message: 'Competitor profiles are required. Please generate analysis first.',
+          code: 'MISSING_COMPETITOR_PROFILES',
+          message: 'Competitor profiles are required before live market signals and scoring can run.',
+        },
+        details: {
+          competitorCount,
+          profilesFoundCount: 0,
         },
       }
     }
@@ -221,6 +281,11 @@ export async function generateResultsV2(
         error: {
           code: 'NO_SNAPSHOTS',
           message: 'No competitor snapshots found in profiles artifact.',
+        },
+        details: {
+          competitorCount,
+          profilesFoundCount: 1,
+          snapshotCount: 0,
         },
       }
     }
@@ -288,6 +353,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'jobs_generate', 'Jobs draft complete', {
+        status: 'progress',
         detail: 'Validating structure...',
         meta: { llmCallsDone: 1, llmCallsTotal: 3 },
       })
@@ -314,6 +380,7 @@ export async function generateResultsV2(
       repairCount += 1
       onProgress?.(
         makeProgressEvent(runId, 'jobs_validate', 'Repairing invalid JSON...', {
+          status: 'progress',
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
           meta: { repairsUsed: repairCount },
         })
@@ -367,6 +434,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'jobs_validate', 'Jobs validated', {
+        status: 'completed',
         detail: `${jtbdParsed.data.jobs.length} jobs extracted`,
         meta: {
           durationMs: Math.round(tJobsEnd - tJobsStart),
@@ -435,6 +503,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'scorecard_generate', 'Scorecard draft complete', {
+        status: 'progress',
         detail: 'Validating structure...',
         meta: { llmCallsDone: 2, llmCallsTotal: 3 },
       })
@@ -461,6 +530,7 @@ export async function generateResultsV2(
       repairCount += 1
       onProgress?.(
         makeProgressEvent(runId, 'scorecard_validate', 'Repairing invalid JSON...', {
+          status: 'progress',
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
           meta: { repairsUsed: repairCount },
         })
@@ -535,6 +605,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'scorecard_validate', 'Scorecard validated', {
+        status: 'completed',
         detail: `${scoringParsed.data.criteria.length} criteria defined`,
         meta: {
           durationMs: Math.round(tScorecardEnd - tScorecardStart),
@@ -612,6 +683,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'opportunities_generate', 'Opportunities draft complete', {
+        status: 'progress',
         detail: 'Validating structure...',
         meta: { llmCallsDone: 3, llmCallsTotal: 3 },
       })
@@ -640,6 +712,7 @@ export async function generateResultsV2(
       repairCount += 1
       onProgress?.(
         makeProgressEvent(runId, 'opportunities_validate', 'Repairing invalid JSON...', {
+          status: 'progress',
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
           meta: { repairsUsed: repairCount },
         })
@@ -697,6 +770,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'opportunities_validate', 'Opportunities validated', {
+        status: 'completed',
         detail: `${opportunitiesParsed.data.opportunities.length} opportunities ranked`,
         meta: {
           durationMs: Math.round(tOpportunitiesEnd - tOpportunitiesStart),
@@ -800,6 +874,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'strategic_bets_generate', 'Strategic bets draft complete', {
+        status: 'progress',
         detail: 'Validating structure...',
         meta: { llmCallsDone: 4, llmCallsTotal: 4 },
       })
@@ -828,6 +903,7 @@ export async function generateResultsV2(
       repairCount += 1
       onProgress?.(
         makeProgressEvent(runId, 'strategic_bets_validate', 'Repairing invalid JSON...', {
+          status: 'progress',
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
           meta: { repairsUsed: repairCount },
         })
@@ -898,6 +974,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'strategic_bets_validate', 'Strategic bets validated', {
+        status: 'completed',
         detail: `${strategicBetsParsed.data.bets.length} strategic bets generated`,
         meta: {
           durationMs: Math.round(tStrategicBetsEnd - tStrategicBetsStart),
@@ -956,6 +1033,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'scoring_compute', 'Scores computed', {
+        status: 'completed',
         detail: 'All deterministic scores calculated',
       })
     )
@@ -999,6 +1077,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
+        status: 'progress',
         detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
         meta: { writesDone: 1, writesTotal: 4 },
       })
@@ -1012,6 +1091,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
+        status: 'progress',
         detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
         meta: { writesDone: 2, writesTotal: 4 },
       })
@@ -1025,6 +1105,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
+        status: 'progress',
         detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
         meta: { writesDone: 3, writesTotal: 4 },
       })
@@ -1038,6 +1119,7 @@ export async function generateResultsV2(
 
     onProgress?.(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
+        status: 'completed',
         detail: 'This lets you regenerate without losing history',
         meta: { writesDone: 4, writesTotal: 4 },
       })
@@ -1047,6 +1129,7 @@ export async function generateResultsV2(
     const tTotal = performance.now() - t0
     onProgress?.(
       makeProgressEvent(runId, 'finalize', 'Finalizing artifacts for copy/export...', {
+        status: 'completed',
         detail: 'Indexing results for fast reuse',
         meta: {
           artifactCount: 4,
@@ -1067,6 +1150,22 @@ export async function generateResultsV2(
       signals,
     }
   } catch (error) {
+    // If it's an AppError from prerequisites, convert it to the expected format
+    if (isAppError(error)) {
+      logger.error('Prerequisite check failed in generateResultsV2', {
+        code: error.code,
+        message: error.message,
+      })
+      return {
+        ok: false,
+        error: {
+          code: error.code,
+          message: error.message,
+        },
+        details: error.cause as Record<string, unknown> | undefined,
+      }
+    }
+
     logger.error('Unhandled error in generateResultsV2', error)
 
     return {

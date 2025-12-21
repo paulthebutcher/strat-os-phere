@@ -38,6 +38,9 @@ export function AnalysisRunExperience({
   const [currentSavingSubStep, setCurrentSavingSubStep] = useState(0)
   const [currentSignalIndex, setCurrentSignalIndex] = useState(0)
   const [signalOpacity, setSignalOpacity] = useState(1)
+  const [latestProgressByPhase, setLatestProgressByPhase] = useState<
+    Map<string, { message: string; detail?: string; meta?: unknown }>
+  >(new Map())
   const prefersReducedMotion = useRef(false)
   const simulatorIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
@@ -89,10 +92,27 @@ export function AnalysisRunExperience({
       eventSource.addEventListener('progress', (event) => {
         try {
           const data = JSON.parse(event.data)
-          // Map backend progress phases to our states
-          const mappedState = mapProgressPhaseToState(data.phase)
-          if (mappedState) {
-            setMachine((m) => transitionTo(m, mappedState))
+          const phase = data.phase as string
+          const status = data.status as 'started' | 'progress' | 'completed' | 'failed' | 'blocked' | undefined
+
+          // Store latest progress event per phase for substep display
+          setLatestProgressByPhase((prev) => {
+            const next = new Map(prev)
+            next.set(phase, {
+              message: data.message || '',
+              detail: data.detail,
+              meta: data.meta,
+            })
+            return next
+          })
+
+          // Only transition state machine on phase start or completion
+          // For 'progress' status, we update the display but don't create duplicate phases
+          if (status === 'started' || status === 'completed') {
+            const mappedState = mapProgressPhaseToState(phase)
+            if (mappedState) {
+              setMachine((m) => transitionTo(m, mappedState))
+            }
           }
         } catch (err) {
           console.error('Failed to parse progress event:', err)
@@ -114,6 +134,9 @@ export function AnalysisRunExperience({
           const messageEvent = event as MessageEvent
           if (messageEvent.data) {
             const data = JSON.parse(messageEvent.data)
+            const isBlocked = data.status === 'blocked' || 
+                            data.error?.code === 'MISSING_COMPETITOR_PROFILES' ||
+                            data.error?.code === 'NO_SNAPSHOTS'
             eventSource.close()
             eventSourceRef.current = null
             if (simulatorIntervalRef.current) {
@@ -121,8 +144,9 @@ export function AnalysisRunExperience({
             }
             setMachine((m) =>
               setError(m, {
-                message: data.error?.message || 'Generation failed',
+                message: data.error?.message || (isBlocked ? 'Generation paused' : 'Generation failed'),
                 technicalDetails: data.error?.code,
+                isBlocked,
               })
             )
           }
@@ -171,10 +195,13 @@ export function AnalysisRunExperience({
         setMachine((m) => transitionTo(m, 'complete'))
         onComplete?.()
       } else {
+        const isBlocked = result.error?.code === 'MISSING_COMPETITOR_PROFILES' ||
+                         result.error?.code === 'NO_SNAPSHOTS'
         setMachine((m) =>
           setError(m, {
-            message: result.error?.message || 'Generation failed',
+            message: result.error?.message || (isBlocked ? 'Generation paused' : 'Generation failed'),
             technicalDetails: result.error?.code,
+            isBlocked,
           })
         )
       }
@@ -269,6 +296,10 @@ export function AnalysisRunExperience({
 
   // Error state
   if (machine.currentState === 'error') {
+    const isBlocked = machine.error?.isBlocked ?? false
+    const errorCode = machine.error?.technicalDetails
+    const isMissingProfiles = errorCode === 'MISSING_COMPETITOR_PROFILES' || errorCode === 'NO_SNAPSHOTS'
+    
     // Determine which phases completed based on timestamps
     const completedPhases = machine.timestamps
       .filter((ts) => ts.state !== 'error' && ts.state !== 'idle')
@@ -281,21 +312,36 @@ export function AnalysisRunExperience({
         <main className="flex w-full max-w-2xl flex-col gap-6">
           <div className="panel flex flex-col gap-6 p-8">
             <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
-                <AlertCircle className="h-5 w-5 text-destructive" />
+              <div className={cn(
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+                isBlocked ? "bg-orange-500/10" : "bg-destructive/10"
+              )}>
+                <AlertCircle className={cn(
+                  "h-5 w-5",
+                  isBlocked ? "text-orange-600" : "text-destructive"
+                )} />
               </div>
               <div className="flex-1 space-y-4">
                 <div>
                   <h1 className="text-2xl font-semibold text-foreground">
-                    {hasPartialResults ? 'Analysis partially completed' : 'Something interrupted the analysis'}
+                    {isBlocked && isMissingProfiles
+                      ? 'Analysis paused — competitor profiles missing'
+                      : hasPartialResults
+                      ? 'Analysis partially completed'
+                      : 'Something interrupted the analysis'}
                   </h1>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {machine.error?.message ||
                       `We weren't able to complete this run. Your inputs are safe, and nothing was lost.`}
                   </p>
+                  {isBlocked && isMissingProfiles && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Competitor profiles are the foundation for analysis. Please generate profiles before running the full pipeline.
+                    </p>
+                  )}
                 </div>
 
-                {hasPartialResults && (
+                {hasPartialResults && !isBlocked && (
                   <div className="rounded-md border border-border bg-muted/50 p-4">
                     <p className="text-sm font-medium text-foreground mb-2">
                       Completed phases:
@@ -326,25 +372,48 @@ export function AnalysisRunExperience({
                 )}
 
                 <div className="flex flex-wrap items-center gap-3">
-                  {hasPartialResults && (
-                    <Button
-                      onClick={() => {
-                        router.push(`/projects/${projectId}/results?view=results`)
-                        router.refresh()
-                      }}
-                    >
-                      Continue with partial results
-                    </Button>
+                  {isBlocked && isMissingProfiles ? (
+                    <>
+                      <Button
+                        onClick={() => {
+                          router.push(`/projects/${projectId}/competitors`)
+                          router.refresh()
+                        }}
+                      >
+                        Generate competitor profiles
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push(`/projects/${projectId}`)}
+                      >
+                        Back to project
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      {hasPartialResults && !isBlocked && (
+                        <Button
+                          onClick={() => {
+                            router.push(`/projects/${projectId}/results?view=results`)
+                            router.refresh()
+                          }}
+                        >
+                          Continue with partial results
+                        </Button>
+                      )}
+                      {!isBlocked && (
+                        <Button onClick={startGeneration}>
+                          {hasPartialResults ? 'Retry failed phase' : 'Try again'}
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        onClick={() => router.push(`/projects/${projectId}`)}
+                      >
+                        Back to project
+                      </Button>
+                    </>
                   )}
-                  <Button onClick={startGeneration}>
-                    {hasPartialResults ? 'Retry failed phase' : 'Try again'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => router.push(`/projects/${projectId}`)}
-                  >
-                    Back to projects
-                  </Button>
                 </div>
               </div>
             </div>
