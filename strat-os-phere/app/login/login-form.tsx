@@ -60,14 +60,14 @@ export function LoginForm() {
       {message && (
         <div className="space-y-1">
           <p
-            className={`text-sm font-medium ${
-              isError ? 'text-destructive' : 'text-primary'
+            className={`text-sm ${
+              isError ? 'text-danger' : 'text-accent-primary'
             }`}
           >
             {message}
           </p>
           {isError && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-text-muted">
               If this is a redirect URL error, check Supabase allowlist settings.
             </p>
           )}

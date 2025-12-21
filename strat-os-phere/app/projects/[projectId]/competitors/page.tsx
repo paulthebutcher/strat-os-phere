@@ -55,8 +55,8 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               Step 2 · Competitors
             </p>
-            <h1 className="text-2xl font-semibold text-foreground">{project.name}</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1>{project.name}</h1>
+            <p className="text-sm text-text-secondary">
               Add real alternatives so Plinth can generate a sharp,
               exec-ready landscape summary.
             </p>

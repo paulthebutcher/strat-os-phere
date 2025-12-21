@@ -1,3 +1,13 @@
+/**
+ * How It Works Section
+ * 
+ * Design tokens used:
+ * - surface-muted: Alternating section background
+ * - accent-primary: Step number badge background
+ * - panel: Card styling for each step
+ * 
+ * Enhanced with larger step badges and better visual hierarchy.
+ */
 export function HowItWorks() {
   const steps = [
     {
@@ -28,28 +38,33 @@ export function HowItWorks() {
   ]
 
   return (
-    <section id="how-it-works" className="border-t border-border mx-auto max-w-5xl px-4 py-20 md:py-24">
-      <div className="mx-auto max-w-3xl space-y-12">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl text-center">
-          How Plinth thinks through your market
+    <section id="how-it-works" className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-24 md:py-32">
+      <div className="mx-auto max-w-3xl text-center">
+        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
+          A structured strategy workflow
         </h2>
-        <div className="space-y-6">
-          {steps.map((step, index) => (
-            <div key={index} className="flex gap-4">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center border border-border bg-surface text-sm font-semibold text-foreground">
-                {step.number}
-              </div>
-              <div className="flex-1 space-y-1">
-                <h3 className="text-base font-semibold text-foreground">
-                  {step.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {step.description}
-                </p>
+      </div>
+      <div className="mx-auto mt-20 max-w-4xl space-y-6">
+        {steps.map((step, index) => (
+          <div
+            key={index}
+            className="panel flex flex-col gap-6 p-8 transition-shadow hover:shadow-md sm:flex-row sm:items-start md:p-10"
+          >
+            <div className="flex shrink-0">
+              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-accent-primary text-primary-foreground shadow-sm">
+                <span className="text-2xl font-bold">{step.number}</span>
               </div>
             </div>
-          ))}
-        </div>
+            <div className="flex-1">
+              <h3 className="mb-3 text-2xl font-semibold text-text-primary">
+                {step.title}
+              </h3>
+              <p className="text-base leading-relaxed text-text-secondary md:text-lg">
+                {step.description}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   )

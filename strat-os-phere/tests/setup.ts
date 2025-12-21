@@ -1,9 +1,6 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
-// Mock server-only module (allows server-side code to be imported in tests)
-vi.mock('server-only', () => ({}))
-
 // Mock Next.js router
 vi.mock('next/navigation', async () => {
   const actual = await vi.importActual('next/navigation')

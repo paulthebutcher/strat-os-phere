@@ -17,25 +17,41 @@ const principles = [
   },
 ]
 
+/**
+ * Trust Section
+ * 
+ * Design tokens used:
+ * - surface-muted: Alternating section background
+ * - accent-primary: Icon container background
+ * - panel: Card styling with hover effects
+ * 
+ * Enhanced with icon containers and improved spacing.
+ */
 export function Trust() {
   return (
-    <section className="border-t border-border mx-auto max-w-5xl px-4 py-20 md:py-24">
-      <div className="mx-auto max-w-3xl space-y-12">
-        <div className="text-center space-y-3">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-            Built with care
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Plinth is designed to support good strategy — not shortcuts.
-          </p>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {principles.map((principle, index) => (
-            <div key={index} className="space-y-2">
-              <h3 className="text-sm font-semibold text-foreground">
+    <section className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-24 md:py-32">
+      <div className="mx-auto max-w-3xl text-center">
+        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
+          Built with care
+        </h2>
+        <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl">
+          Plinth is designed to support good strategy — not shortcuts.
+        </p>
+      </div>
+      <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {principles.map((principle, index) => {
+          const Icon = principle.icon
+          return (
+            <div key={index} className="panel p-8 text-center transition-shadow hover:shadow-md">
+              <div className="mb-6 flex justify-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-accent-primary/10">
+                  <Icon className="h-7 w-7 text-accent-primary" />
+                </div>
+              </div>
+              <h3 className="mb-3 text-lg font-semibold text-text-primary md:text-xl">
                 {principle.title}
               </h3>
-              <p className="text-xs leading-relaxed text-muted-foreground">
+              <p className="text-base leading-relaxed text-text-secondary">
                 {principle.description}
               </p>
             </div>
