@@ -8,6 +8,7 @@ import type { RunErrorState } from './runTypes'
 export type AnalysisRunState =
   | 'idle'
   | 'starting'
+  | 'checking_profiles'
   | 'gathering_inputs'
   | 'analyzing_competitors'
   | 'deriving_jobs'
@@ -97,6 +98,7 @@ export function getStateIndex(state: AnalysisRunState): number {
   const orderedStates: AnalysisRunState[] = [
     'idle',
     'starting',
+    'checking_profiles',
     'gathering_inputs',
     'analyzing_competitors',
     'deriving_jobs',

@@ -201,6 +201,47 @@ export async function generateResultsV2(
       }
     }
 
+    // Phase: check_profiles - Early prerequisite gate
+    // Must happen before any downstream phases to prevent misleading progress
+    onProgress?.(
+      makeProgressEvent(runId, 'check_profiles', 'Checking competitor profiles...', {
+        status: 'started',
+      })
+    )
+
+    try {
+      await assertHasCompetitorProfiles(supabase, projectId)
+      onProgress?.(
+        makeProgressEvent(runId, 'check_profiles', 'Competitor profiles verified', {
+          status: 'completed',
+          detail: 'Profiles are ready for analysis',
+        })
+      )
+    } catch (error) {
+      if (isAppError(error)) {
+        const artifacts = await listArtifacts(supabase, { projectId })
+        const profilesArtifact = artifacts.find((a) => a.type === 'profiles')
+        onProgress?.(
+          makeProgressEvent(runId, 'check_profiles', 'Competitor profiles missing', {
+            status: 'blocked',
+            detail: error.message,
+          })
+        )
+        return {
+          ok: false,
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+          details: {
+            competitorCount,
+            profilesFoundCount: profilesArtifact ? 1 : 0,
+          },
+        }
+      }
+      throw error
+    }
+
     // Phase: evidence_quality_check (Guardrail Phase 1)
     onProgress?.(
       makeProgressEvent(runId, 'evidence_quality_check', 'Checking evidence quality...', {})
@@ -223,30 +264,6 @@ export async function generateResultsV2(
           detail: `Quality: ${evidenceQualityCheck.confidence}, Decay: ${(evidenceQualityCheck.decayFactor * 100).toFixed(0)}%`,
         })
       )
-    }
-
-    // Prerequisite check: must have competitor profiles before proceeding
-    // This ensures the pipeline cannot "run ahead" if prerequisites are missing
-    try {
-      await assertHasCompetitorProfiles(supabase, projectId)
-    } catch (error) {
-      if (isAppError(error)) {
-        const competitors = await listCompetitorsForProject(supabase, projectId)
-        const artifacts = await listArtifacts(supabase, { projectId })
-        const profilesArtifact = artifacts.find((a) => a.type === 'profiles')
-        return {
-          ok: false,
-          error: {
-            code: error.code,
-            message: error.message,
-          },
-          details: {
-            competitorCount: competitors.length,
-            profilesFoundCount: profilesArtifact ? 1 : 0,
-          },
-        }
-      }
-      throw error
     }
 
     // Load existing artifacts (profiles guaranteed to exist after prerequisite check)

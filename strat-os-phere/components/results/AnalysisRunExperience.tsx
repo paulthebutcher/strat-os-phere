@@ -108,6 +108,25 @@ export function AnalysisRunExperience({
             return next
           })
 
+          // Handle blocked status - transition to error state
+          if (status === 'blocked') {
+            const mappedState = mapProgressPhaseToState(phase)
+            if (mappedState) {
+              // Transition to the blocked phase first, then error
+              setMachine((m) => {
+                const withState = transitionTo(m, mappedState)
+                const error: RunErrorState = {
+                  kind: 'blocked',
+                  message: data.message || 'Generation paused',
+                  technicalDetails: data.error?.code || phase,
+                  code: data.error?.code,
+                }
+                return setError(withState, error)
+              })
+            }
+            return
+          }
+
           // Only transition state machine on phase start or completion
           // For 'progress' status, we update the display but don't create duplicate phases
           if (status === 'started' || status === 'completed') {
@@ -220,10 +239,11 @@ export function AnalysisRunExperience({
     }
   }
 
-  // Time-based simulator for stages
+  // Time-based simulator for stages (fallback if EventSource fails)
   const startSimulator = () => {
     const stages: AnalysisRunState[] = [
       'starting',
+      'checking_profiles',
       'gathering_inputs',
       'analyzing_competitors',
       'deriving_jobs',
@@ -573,34 +593,68 @@ export function AnalysisRunExperience({
 
 /**
  * Map backend progress phases to our state machine states
+ * This ensures the UI progress list matches the backend pipeline phases
  */
 function mapProgressPhaseToState(
   phase: string
 ): AnalysisRunState | null {
   const phaseLower = phase.toLowerCase()
   
-  if (phaseLower.includes('load_input') || phaseLower.includes('starting')) {
+  // Exact phase matches take precedence
+  if (phaseLower === 'load_input') {
     return 'starting'
   }
-  if (phaseLower.includes('evidence_quality_check') || phaseLower.includes('evidence_quality')) {
+  if (phaseLower === 'check_profiles') {
+    return 'checking_profiles'
+  }
+  if (phaseLower === 'evidence_quality_check') {
     return 'gathering_inputs'
   }
-  if (phaseLower.includes('gathering') || phaseLower.includes('input')) {
+  if (phaseLower === 'jobs_generate' || phaseLower === 'jobs_validate') {
+    return 'deriving_jobs'
+  }
+  if (phaseLower === 'scorecard_generate' || phaseLower === 'scorecard_validate') {
+    return 'scoring_positioning'
+  }
+  if (phaseLower === 'opportunities_generate' || phaseLower === 'opportunities_validate') {
+    return 'ranking_opportunities'
+  }
+  if (phaseLower === 'strategic_bets_generate' || phaseLower === 'strategic_bets_validate') {
+    return 'forming_strategic_bets'
+  }
+  if (phaseLower === 'scoring_compute') {
+    return 'validating_outputs'
+  }
+  if (phaseLower === 'save_artifacts') {
+    return 'saving_artifacts'
+  }
+  if (phaseLower === 'finalize') {
+    return 'finalizing'
+  }
+  
+  // Fallback to fuzzy matching for backwards compatibility
+  if (phaseLower.includes('starting') || phaseLower.includes('load')) {
+    return 'starting'
+  }
+  if (phaseLower.includes('profiles')) {
+    return 'checking_profiles'
+  }
+  if (phaseLower.includes('evidence')) {
     return 'gathering_inputs'
   }
   if (phaseLower.includes('competitor') || phaseLower.includes('snapshot')) {
     return 'analyzing_competitors'
   }
-  if (phaseLower.includes('jobs') && !phaseLower.includes('validate')) {
+  if (phaseLower.includes('jobs')) {
     return 'deriving_jobs'
   }
   if (phaseLower.includes('scorecard') || phaseLower.includes('scoring')) {
     return 'scoring_positioning'
   }
-  if (phaseLower.includes('opportunities') && !phaseLower.includes('validate')) {
+  if (phaseLower.includes('opportunities')) {
     return 'ranking_opportunities'
   }
-  if (phaseLower.includes('strategic_bets') && !phaseLower.includes('validate')) {
+  if (phaseLower.includes('strategic_bets') || phaseLower.includes('bets')) {
     return 'forming_strategic_bets'
   }
   if (phaseLower.includes('validate')) {

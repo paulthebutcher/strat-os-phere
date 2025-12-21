@@ -15,9 +15,15 @@ export interface StageConfig {
 export const ANALYSIS_STAGES: StageConfig[] = [
   {
     id: 'starting',
-    label: 'Reviewing live competitor signals',
+    label: 'Preparing analysis',
     description:
       'Validating inputs and preparing analytical framework.',
+  },
+  {
+    id: 'checking_profiles',
+    label: 'Checking competitor profiles',
+    description:
+      'Verifying competitor profiles are ready for analysis.',
   },
   {
     id: 'gathering_inputs',
@@ -32,7 +38,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'analyzing_competitors',
-    label: 'Reviewing live competitor signals',
+    label: 'Analyzing competitive landscape',
     description:
       'Evaluating capabilities, constraints, and differentiation across competitors.',
     signals: [
