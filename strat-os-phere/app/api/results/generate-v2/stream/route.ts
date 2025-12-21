@@ -97,10 +97,12 @@ export async function GET(request: NextRequest) {
             formatCompletionEventSSE(result.runId, result.artifactIds, result.signals)
           )
         } else {
-          // Use 'blocked' status for prerequisite errors, 'failed' for others
-          const isBlocked = result.error.code === 'MISSING_COMPETITOR_PROFILES' ||
-                           result.error.code === 'NO_SNAPSHOTS'
-          sendEvent(formatErrorEventSSE(runId || '', result.error, isBlocked ? 'blocked' : 'failed'))
+          // Determine error kind from error code
+          const kind = result.error.code === 'MISSING_COMPETITOR_PROFILES' ||
+                      result.error.code === 'NO_SNAPSHOTS'
+            ? 'blocked' as const
+            : 'failed' as const
+          sendEvent(formatErrorEventSSE(runId || '', result.error, kind))
         }
       } catch (error) {
         sendEvent(

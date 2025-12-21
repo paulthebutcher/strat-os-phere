@@ -3,6 +3,8 @@
  * Tracks the current stage and manages transitions
  */
 
+import type { RunErrorState } from './runTypes'
+
 export type AnalysisRunState =
   | 'idle'
   | 'starting'
@@ -27,11 +29,7 @@ export interface StageTimestamp {
 export interface AnalysisRunStateMachine {
   currentState: AnalysisRunState
   timestamps: StageTimestamp[]
-  error?: {
-    message: string
-    technicalDetails?: string
-    isBlocked?: boolean // true if error is due to missing prerequisites (blocked state)
-  }
+  error: RunErrorState | null
   startedAt?: number
   completedAt?: number
 }
@@ -43,6 +41,7 @@ export function createStateMachine(): AnalysisRunStateMachine {
   return {
     currentState: 'idle',
     timestamps: [],
+    error: null,
   }
 }
 
@@ -83,7 +82,7 @@ export function transitionTo(
  */
 export function setError(
   machine: AnalysisRunStateMachine,
-  error: { message: string; technicalDetails?: string }
+  error: RunErrorState
 ): AnalysisRunStateMachine {
   return {
     ...transitionTo(machine, 'error'),

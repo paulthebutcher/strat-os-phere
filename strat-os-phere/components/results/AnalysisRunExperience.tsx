@@ -12,6 +12,8 @@ import {
   setError,
   getStateIndex,
 } from '@/lib/results/runState'
+import type { RunErrorState } from '@/lib/results/runTypes'
+import { getErrorKindFromCode } from '@/lib/results/runTypes'
 import {
   ANALYSIS_STAGES,
   SAVING_SUB_STEPS,
@@ -134,21 +136,23 @@ export function AnalysisRunExperience({
           const messageEvent = event as MessageEvent
           if (messageEvent.data) {
             const data = JSON.parse(messageEvent.data)
-            const isBlocked = data.status === 'blocked' || 
-                            data.error?.code === 'MISSING_COMPETITOR_PROFILES' ||
-                            data.error?.code === 'NO_SNAPSHOTS'
+            // Determine error kind from status or error code
+            const kind = data.status === 'blocked' 
+              ? 'blocked' as const
+              : getErrorKindFromCode(data.error?.code)
+            
             eventSource.close()
             eventSourceRef.current = null
             if (simulatorIntervalRef.current) {
               clearInterval(simulatorIntervalRef.current)
             }
-            setMachine((m) =>
-              setError(m, {
-                message: data.error?.message || (isBlocked ? 'Generation paused' : 'Generation failed'),
-                technicalDetails: data.error?.code,
-                isBlocked,
-              })
-            )
+            const error: RunErrorState = {
+              kind,
+              message: data.error?.message || (kind === 'blocked' ? 'Generation paused' : 'Generation failed'),
+              technicalDetails: data.error?.code,
+              code: data.error?.code,
+            }
+            setMachine((m) => setError(m, error))
           }
         } catch (err) {
           // Connection error - fallback to POST
@@ -195,25 +199,24 @@ export function AnalysisRunExperience({
         setMachine((m) => transitionTo(m, 'complete'))
         onComplete?.()
       } else {
-        const isBlocked = result.error?.code === 'MISSING_COMPETITOR_PROFILES' ||
-                         result.error?.code === 'NO_SNAPSHOTS'
-        setMachine((m) =>
-          setError(m, {
-            message: result.error?.message || (isBlocked ? 'Generation paused' : 'Generation failed'),
-            technicalDetails: result.error?.code,
-            isBlocked,
-          })
-        )
+        const kind = getErrorKindFromCode(result.error?.code)
+        const error: RunErrorState = {
+          kind,
+          message: result.error?.message || (kind === 'blocked' ? 'Generation paused' : 'Generation failed'),
+          technicalDetails: result.error?.code,
+          code: result.error?.code,
+        }
+        setMachine((m) => setError(m, error))
       }
     } catch (err) {
-      setMachine((m) =>
-        setError(m, {
-          message:
-            err instanceof Error
-              ? err.message
-              : 'Unexpected error while generating results.',
-        })
-      )
+      const error: RunErrorState = {
+        kind: 'failed',
+        message:
+          err instanceof Error
+            ? err.message
+            : 'Unexpected error while generating results.',
+      }
+      setMachine((m) => setError(m, error))
     }
   }
 
@@ -296,9 +299,15 @@ export function AnalysisRunExperience({
 
   // Error state
   if (machine.currentState === 'error') {
-    const isBlocked = machine.error?.isBlocked ?? false
-    const errorCode = machine.error?.technicalDetails
+    const error = machine.error
+    if (!error) {
+      // Should not happen, but handle defensively
+      return null
+    }
+
+    const errorCode = error.technicalDetails || error.code
     const isMissingProfiles = errorCode === 'MISSING_COMPETITOR_PROFILES' || errorCode === 'NO_SNAPSHOTS'
+    const isBlocked = error.kind === 'blocked'
     
     // Determine which phases completed based on timestamps
     const completedPhases = machine.timestamps
@@ -331,7 +340,7 @@ export function AnalysisRunExperience({
                       : 'Something interrupted the analysis'}
                   </h1>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {machine.error?.message ||
+                    {error.message ||
                       `We weren't able to complete this run. Your inputs are safe, and nothing was lost.`}
                   </p>
                   {isBlocked && isMissingProfiles && (
@@ -360,13 +369,13 @@ export function AnalysisRunExperience({
                   </div>
                 )}
 
-                {machine.error?.technicalDetails && process.env.NODE_ENV === 'development' && (
+                {error.technicalDetails && process.env.NODE_ENV === 'development' && (
                   <details className="rounded-md border border-border bg-muted/50 p-3">
                     <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
                       Technical details
                     </summary>
                     <p className="mt-2 text-xs font-mono text-muted-foreground">
-                      {machine.error.technicalDetails}
+                      {error.technicalDetails}
                     </p>
                   </details>
                 )}
