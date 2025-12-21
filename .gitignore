@@ -31,3 +31,7 @@ Thumbs.db
 # Vercel
 .vercel
 
+
+# Ignore npm lockfile + old node_modules
+package-lock.json
+strat-os-phere/node_modules_old_*

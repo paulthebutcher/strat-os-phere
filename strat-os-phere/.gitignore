@@ -42,3 +42,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ignore npm lockfile + old node_modules
+package-lock.json
+strat-os-phere/node_modules_old_*
