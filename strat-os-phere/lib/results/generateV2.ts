@@ -9,9 +9,10 @@ import { createArtifact, listArtifacts } from '@/lib/data/artifacts'
 import { getProjectById } from '@/lib/data/projects'
 import {
   assertHasCompetitors,
-  assertHasCompetitorProfiles,
   COMPETITOR_PROFILE_ARTIFACT_TYPES,
 } from '@/lib/results/prerequisites'
+import { checkCompetitorProfileStatus } from '@/lib/results/competitorProfiles'
+import { generateCompetitorProfiles } from '@/lib/results/generateCompetitorProfiles'
 import { AppError, isAppError } from '@/lib/errors'
 import { callLLM } from '@/lib/llm/callLLM'
 import type { ProjectContext } from '@/lib/prompts/snapshot'
@@ -112,23 +113,23 @@ export interface GenerateResultsV2Options {
 /**
  * Generate Results v2 artifacts (JTBD, Opportunities, Scoring Matrix, Strategic Bets)
  * 
- * Prerequisites (enforced via assertHasCompetitorProfiles):
- * - Competitor profiles artifact must exist (type='profiles')
- * - Profiles artifact must contain at least one snapshot
+ * Prerequisites:
+ * - At least one competitor must exist for the project
  * 
- * This function assumes profiles have already been generated via generateAnalysis().
- * The prerequisite checks ensure the pipeline cannot "run ahead" if profiles are missing.
+ * Auto-remediation:
+ * - If competitor profiles are missing, they will be automatically generated
  * 
  * Pipeline phases (in order):
  * 1. load_input - Load project and competitor data
- * 2. evidence_quality_check - Check evidence quality guardrails
- * 3. jobs_generate + jobs_validate - Generate and validate JTBD
- * 4. scorecard_generate + scorecard_validate - Generate and validate scoring matrix
- * 5. opportunities_generate + opportunities_validate - Generate and validate opportunities
- * 6. strategic_bets_generate + strategic_bets_validate - Generate and validate strategic bets
- * 7. scoring_compute - Compute deterministic scores
- * 8. save_artifacts - Persist all artifacts
- * 9. finalize - Complete run
+ * 2. competitor_profiles - Generate competitor profiles if missing (auto-remediation)
+ * 3. evidence_quality_check - Check evidence quality guardrails
+ * 4. jobs_generate + jobs_validate - Generate and validate JTBD
+ * 5. scorecard_generate + scorecard_validate - Generate and validate scoring matrix
+ * 6. opportunities_generate + opportunities_validate - Generate and validate opportunities
+ * 7. strategic_bets_generate + strategic_bets_validate - Generate and validate strategic bets
+ * 8. scoring_compute - Compute deterministic scores
+ * 9. save_artifacts - Persist all artifacts
+ * 10. finalize - Complete run
  * 
  * This is the canonical generation function - should only be called from the API route
  */
@@ -202,45 +203,80 @@ export async function generateResultsV2(
       }
     }
 
-    // Phase: check_profiles - Early prerequisite gate
-    // Must happen before any downstream phases to prevent misleading progress
-    onProgress?.(
-      makeProgressEvent(runId, 'check_profiles', 'Checking competitor profiles...', {
-        status: 'started',
-      })
-    )
+    // Phase: competitor_profiles - Auto-generate profiles if missing
+    // Check if profiles exist, and generate them automatically if they don't
+    const profileStatus = await checkCompetitorProfileStatus(supabase, projectId)
+    
+    if (profileStatus.missingProfiles) {
+      if (profileStatus.competitorsCount === 0) {
+        // No competitors to generate profiles for
+        return {
+          ok: false,
+          error: {
+            code: 'NO_COMPETITORS',
+            message: 'Add at least one competitor to run analysis.',
+          },
+          details: { competitorCount: 0 },
+        }
+      }
 
-    try {
-      await assertHasCompetitorProfiles(supabase, projectId)
+      // Auto-generate profiles
       onProgress?.(
-        makeProgressEvent(runId, 'check_profiles', 'Competitor profiles verified', {
-          status: 'completed',
-          detail: 'Profiles are ready for analysis',
+        makeProgressEvent(runId, 'competitor_profiles', 'Generating competitor profiles', {
+          status: 'started',
+          detail: 'Summarizing what each competitor offers today, with citations.',
         })
       )
-    } catch (error) {
-      if (isAppError(error)) {
-        // Pass through diagnostic details from the prerequisite check
-        const diagnosticDetails = error.cause as Record<string, unknown> | undefined
+
+      logger.info('Auto-generating competitor profiles', {
+        runId,
+        projectId,
+        competitorsCount: profileStatus.competitorsCount,
+        existingProfilesCount: profileStatus.profilesCount,
+      })
+
+      const profilesResult = await generateCompetitorProfiles(
+        supabase,
+        projectId,
+        runId,
+        onProgress
+      )
+
+      if (!profilesResult.ok) {
+        // Profile generation failed - pause with error
         onProgress?.(
-          makeProgressEvent(runId, 'check_profiles', 'Competitor profiles missing', {
-            status: 'blocked',
-            detail: error.message,
+          makeProgressEvent(runId, 'competitor_profiles', 'Failed to generate competitor profiles', {
+            status: 'failed',
+            detail: profilesResult.error.message,
           })
         )
         return {
           ok: false,
           error: {
-            code: error.code,
-            message: error.message,
+            code: profilesResult.error.code,
+            message: profilesResult.error.message,
           },
-          details: diagnosticDetails || {
-            competitorCount,
-            profilesFoundCount: 0,
+          details: profilesResult.details || {
+            competitorCount: profileStatus.competitorsCount,
           },
         }
       }
-      throw error
+
+      // Profiles generated successfully, continue
+      logger.info('Competitor profiles auto-generated successfully', {
+        runId,
+        projectId,
+        profilesArtifactId: profilesResult.profilesArtifactId,
+      })
+    } else {
+      // Profiles already exist, skip phase quickly
+      onProgress?.(
+        makeProgressEvent(runId, 'competitor_profiles', 'Competitor profiles verified', {
+          status: 'completed',
+          detail: `${profileStatus.profilesCount} profile${profileStatus.profilesCount !== 1 ? 's' : ''} ready for analysis`,
+          meta: { profilesCount: profileStatus.profilesCount },
+        })
+      )
     }
 
     // Phase: evidence_quality_check (Guardrail Phase 1)
@@ -267,7 +303,7 @@ export async function generateResultsV2(
       )
     }
 
-    // Load existing artifacts (profiles guaranteed to exist after prerequisite check)
+    // Load existing artifacts (profiles guaranteed to exist after auto-generation phase)
     const artifacts = await listArtifacts(supabase, { projectId })
     // Use the constant to find profile artifacts (for consistency and future extensibility)
     const profilesArtifact = artifacts.find((a) =>

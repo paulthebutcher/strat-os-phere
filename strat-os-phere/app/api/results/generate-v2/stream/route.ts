@@ -99,7 +99,9 @@ export async function GET(request: NextRequest) {
         } else {
           // Determine error kind from error code
           const kind = result.error.code === 'MISSING_COMPETITOR_PROFILES' ||
-                      result.error.code === 'NO_SNAPSHOTS'
+                      result.error.code === 'NO_SNAPSHOTS' ||
+                      result.error.code === 'SNAPSHOT_VALIDATION_FAILED' ||
+                      result.error.code === 'NO_COMPETITORS'
             ? 'blocked' as const
             : 'failed' as const
           // Include details in error for diagnostics

@@ -59,8 +59,10 @@ export async function POST(request: Request) {
           : result.error.code === 'UNAUTHENTICATED'
           ? 401
           : result.error.code === 'MISSING_COMPETITOR_PROFILES' ||
-            result.error.code === 'NO_SNAPSHOTS'
-          ? 409 // Conflict: prerequisite missing, run is blocked
+            result.error.code === 'NO_SNAPSHOTS' ||
+            result.error.code === 'SNAPSHOT_VALIDATION_FAILED' ||
+            result.error.code === 'NO_COMPETITORS'
+          ? 409 // Conflict: prerequisite missing or profile generation failed, run is blocked
           : result.error.code === 'INSUFFICIENT_COMPETITORS' ||
             result.error.code === 'TOO_MANY_COMPETITORS'
           ? 400

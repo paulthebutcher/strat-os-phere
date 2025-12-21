@@ -21,9 +21,9 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'checking_profiles',
-    label: 'Checking competitor profiles',
+    label: 'Generating competitor profiles',
     description:
-      'Verifying competitor profiles are ready for analysis.',
+      'Summarizing what each competitor offers today, with citations.',
   },
   {
     id: 'gathering_inputs',

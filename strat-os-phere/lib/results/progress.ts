@@ -5,7 +5,7 @@
 
 export type ResultsV2Phase =
   | 'load_input'
-  | 'check_profiles'
+  | 'competitor_profiles'
   | 'evidence_quality_check'
   | 'jobs_generate'
   | 'jobs_validate'

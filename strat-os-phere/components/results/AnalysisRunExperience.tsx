@@ -108,16 +108,21 @@ export function AnalysisRunExperience({
             return next
           })
 
-          // Handle blocked status - transition to error state
-          if (status === 'blocked') {
+          // Handle blocked or failed status - transition to error state
+          if (status === 'blocked' || status === 'failed') {
             const mappedState = mapProgressPhaseToState(phase)
             if (mappedState) {
-              // Transition to the blocked phase first, then error
+              // Transition to the blocked/failed phase first, then error
               setMachine((m) => {
                 const withState = transitionTo(m, mappedState)
+                // Determine error kind from phase and code
+                const isProfileError = phase === 'competitor_profiles' || 
+                  data.error?.code === 'SNAPSHOT_VALIDATION_FAILED' ||
+                  data.error?.code === 'NO_COMPETITORS'
+                const errorKind = status === 'blocked' || isProfileError ? 'blocked' as const : 'failed' as const
                 const error: RunErrorState = {
-                  kind: 'blocked',
-                  message: data.message || 'Generation paused',
+                  kind: errorKind,
+                  message: data.message || (status === 'blocked' ? 'Generation paused' : 'Generation failed'),
                   technicalDetails: data.error?.code || phase,
                   code: data.error?.code,
                 }
@@ -168,11 +173,26 @@ export function AnalysisRunExperience({
             // Format diagnostic details for display
             const details = data.error?.details || {}
             let diagnosticInfo: string | undefined
-            if (kind === 'blocked' && (data.error?.code === 'MISSING_COMPETITOR_PROFILES' || data.error?.code === 'NO_SNAPSHOTS')) {
-              const competitorCount = details.competitorCount as number | undefined
-              const profilesCount = details.profilesFoundCount as number | undefined
-              const foundTypes = details.foundTypes as string[] | undefined
-              diagnosticInfo = `Found ${competitorCount ?? '?'} competitors, ${profilesCount ?? 0} profile artifact(s)${foundTypes && foundTypes.length > 0 ? `. Types found: ${foundTypes.join(', ')}` : ''}`
+            const errorCode = data.error?.code
+            if (kind === 'blocked' && (
+              errorCode === 'MISSING_COMPETITOR_PROFILES' || 
+              errorCode === 'NO_SNAPSHOTS' ||
+              errorCode === 'SNAPSHOT_VALIDATION_FAILED' ||
+              errorCode === 'NO_COMPETITORS'
+            )) {
+              if (errorCode === 'SNAPSHOT_VALIDATION_FAILED') {
+                const competitorName = details.competitorName as string | undefined
+                diagnosticInfo = competitorName 
+                  ? `Failed to validate snapshot for "${competitorName}". Check competitor evidence.`
+                  : 'Failed to validate competitor snapshot. Check competitor evidence.'
+              } else if (errorCode === 'NO_COMPETITORS') {
+                diagnosticInfo = 'No competitors found. Add at least one competitor to run analysis.'
+              } else {
+                const competitorCount = details.competitorCount as number | undefined
+                const profilesCount = details.profilesFoundCount as number | undefined
+                const foundTypes = details.foundTypes as string[] | undefined
+                diagnosticInfo = `Found ${competitorCount ?? '?'} competitors, ${profilesCount ?? 0} profile artifact(s)${foundTypes && foundTypes.length > 0 ? `. Types found: ${foundTypes.join(', ')}` : ''}`
+              }
             }
             
             const error: RunErrorState = {
@@ -336,8 +356,12 @@ export function AnalysisRunExperience({
     }
 
     const errorCode = error.technicalDetails || error.code
-    const isMissingProfiles = errorCode === 'MISSING_COMPETITOR_PROFILES' || errorCode === 'NO_SNAPSHOTS'
-    const isBlocked = error.kind === 'blocked'
+    const isProfileGenerationError = 
+      errorCode === 'MISSING_COMPETITOR_PROFILES' || 
+      errorCode === 'NO_SNAPSHOTS' ||
+      errorCode === 'SNAPSHOT_VALIDATION_FAILED' ||
+      errorCode === 'NO_COMPETITORS'
+    const isBlocked = error.kind === 'blocked' || errorCode === 'SNAPSHOT_VALIDATION_FAILED' || errorCode === 'NO_COMPETITORS'
     
     // Determine which phases completed based on timestamps
     const completedPhases = machine.timestamps
@@ -363,8 +387,8 @@ export function AnalysisRunExperience({
               <div className="flex-1 space-y-4">
                 <div>
                   <h1 className="text-2xl font-semibold text-foreground">
-                    {isBlocked && isMissingProfiles
-                      ? 'Analysis paused — competitor profiles missing'
+                    {isBlocked && isProfileGenerationError
+                      ? 'Analysis paused — couldn\'t generate competitor profiles'
                       : hasPartialResults
                       ? 'Analysis partially completed'
                       : 'Something interrupted the analysis'}
@@ -373,9 +397,9 @@ export function AnalysisRunExperience({
                     {error.message ||
                       `We weren't able to complete this run. Your inputs are safe, and nothing was lost.`}
                   </p>
-                  {isBlocked && isMissingProfiles && (
+                  {isBlocked && isProfileGenerationError && (
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Competitor profiles are the foundation for analysis. Please generate profiles before running the full pipeline.
+                      We'll keep everything else ready. Retry to generate profiles, or edit competitors if something is wrong.
                     </p>
                   )}
                 </div>
@@ -399,8 +423,8 @@ export function AnalysisRunExperience({
                   </div>
                 )}
 
-                {/* Diagnostic details for profiles missing error */}
-                {isBlocked && isMissingProfiles && error.technicalDetails && (
+                {/* Diagnostic details for profile generation error */}
+                {isBlocked && isProfileGenerationError && error.technicalDetails && (
                   <div className="rounded-md border border-border bg-muted/50 p-4">
                     <p className="text-sm font-medium text-foreground mb-2">
                       Diagnostic information:
@@ -408,9 +432,11 @@ export function AnalysisRunExperience({
                     <p className="text-sm text-muted-foreground">
                       {error.technicalDetails.includes('Found') 
                         ? error.technicalDetails 
-                        : error.code === 'MISSING_COMPETITOR_PROFILES'
-                        ? 'No profile artifacts found. Please generate competitor profiles first.'
-                        : 'Profile artifacts exist but contain no valid snapshots.'}
+                        : error.code === 'SNAPSHOT_VALIDATION_FAILED'
+                        ? 'Failed to validate competitor snapshot. Check competitor evidence and try again.'
+                        : error.code === 'NO_COMPETITORS'
+                        ? 'No competitors found. Add at least one competitor to run analysis.'
+                        : 'Profile generation failed. Check competitor data and try again.'}
                     </p>
                   </div>
                 )}
@@ -433,18 +459,24 @@ export function AnalysisRunExperience({
                 )}
 
                 <div className="flex flex-wrap items-center gap-3">
-                  {isBlocked && isMissingProfiles ? (
+                  {isBlocked && isProfileGenerationError ? (
                     <>
                       <Button
+                        onClick={startGeneration}
+                      >
+                        Retry profile generation
+                      </Button>
+                      <Button
+                        variant="outline"
                         onClick={() => {
                           router.push(`/projects/${projectId}/competitors`)
                           router.refresh()
                         }}
                       >
-                        Generate competitor profiles
+                        Edit competitors
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         onClick={() => router.push(`/projects/${projectId}`)}
                       >
                         Back to project
@@ -636,7 +668,7 @@ function mapProgressPhaseToState(
   if (phaseLower === 'load_input') {
     return 'starting'
   }
-  if (phaseLower === 'check_profiles') {
+  if (phaseLower === 'competitor_profiles') {
     return 'checking_profiles'
   }
   if (phaseLower === 'evidence_quality_check') {

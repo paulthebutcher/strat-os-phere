@@ -27,7 +27,9 @@ export interface RunErrorState {
 export function getErrorKindFromCode(code?: string): RunErrorKind {
   if (
     code === 'MISSING_COMPETITOR_PROFILES' ||
-    code === 'NO_SNAPSHOTS'
+    code === 'NO_SNAPSHOTS' ||
+    code === 'SNAPSHOT_VALIDATION_FAILED' ||
+    code === 'NO_COMPETITORS'
   ) {
     return 'blocked'
   }
