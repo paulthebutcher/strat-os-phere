@@ -112,7 +112,7 @@ export function formatCompletionEventSSE(
  */
 export function formatErrorEventSSE(
   runId: string,
-  error: { code: string; message: string },
+  error: { code: string; message: string; details?: Record<string, unknown> },
   status: ProgressStatus = 'failed'
 ): string {
   const event = {
@@ -122,7 +122,10 @@ export function formatErrorEventSSE(
     message: status === 'blocked' ? 'Generation paused' : 'Generation failed',
     detail: error.message,
     timestamp: new Date().toISOString(),
-    error,
+    error: {
+      ...error,
+      details: error.details,
+    },
   }
   return `event: error\ndata: ${JSON.stringify(event)}\n\n`
 }

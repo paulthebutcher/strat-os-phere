@@ -10,6 +10,7 @@ import { getProjectById } from '@/lib/data/projects'
 import {
   assertHasCompetitors,
   assertHasCompetitorProfiles,
+  COMPETITOR_PROFILE_ARTIFACT_TYPES,
 } from '@/lib/results/prerequisites'
 import { AppError, isAppError } from '@/lib/errors'
 import { callLLM } from '@/lib/llm/callLLM'
@@ -219,8 +220,8 @@ export async function generateResultsV2(
       )
     } catch (error) {
       if (isAppError(error)) {
-        const artifacts = await listArtifacts(supabase, { projectId })
-        const profilesArtifact = artifacts.find((a) => a.type === 'profiles')
+        // Pass through diagnostic details from the prerequisite check
+        const diagnosticDetails = error.cause as Record<string, unknown> | undefined
         onProgress?.(
           makeProgressEvent(runId, 'check_profiles', 'Competitor profiles missing', {
             status: 'blocked',
@@ -233,9 +234,9 @@ export async function generateResultsV2(
             code: error.code,
             message: error.message,
           },
-          details: {
+          details: diagnosticDetails || {
             competitorCount,
-            profilesFoundCount: profilesArtifact ? 1 : 0,
+            profilesFoundCount: 0,
           },
         }
       }
@@ -268,7 +269,10 @@ export async function generateResultsV2(
 
     // Load existing artifacts (profiles guaranteed to exist after prerequisite check)
     const artifacts = await listArtifacts(supabase, { projectId })
-    const profilesArtifact = artifacts.find((a) => a.type === 'profiles')
+    // Use the constant to find profile artifacts (for consistency and future extensibility)
+    const profilesArtifact = artifacts.find((a) =>
+      COMPETITOR_PROFILE_ARTIFACT_TYPES.includes(a.type as typeof COMPETITOR_PROFILE_ARTIFACT_TYPES[number])
+    )
     const synthesisArtifact = artifacts.find((a) => a.type === 'synthesis')
 
     if (!profilesArtifact) {

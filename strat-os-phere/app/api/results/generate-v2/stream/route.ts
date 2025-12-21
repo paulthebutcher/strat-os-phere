@@ -102,7 +102,11 @@ export async function GET(request: NextRequest) {
                       result.error.code === 'NO_SNAPSHOTS'
             ? 'blocked' as const
             : 'failed' as const
-          sendEvent(formatErrorEventSSE(runId || '', result.error, kind))
+          // Include details in error for diagnostics
+          sendEvent(formatErrorEventSSE(runId || '', {
+            ...result.error,
+            details: result.details,
+          }, kind))
         }
       } catch (error) {
         sendEvent(

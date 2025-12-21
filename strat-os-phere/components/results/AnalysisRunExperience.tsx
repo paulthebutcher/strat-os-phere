@@ -165,10 +165,20 @@ export function AnalysisRunExperience({
             if (simulatorIntervalRef.current) {
               clearInterval(simulatorIntervalRef.current)
             }
+            // Format diagnostic details for display
+            const details = data.error?.details || {}
+            let diagnosticInfo: string | undefined
+            if (kind === 'blocked' && (data.error?.code === 'MISSING_COMPETITOR_PROFILES' || data.error?.code === 'NO_SNAPSHOTS')) {
+              const competitorCount = details.competitorCount as number | undefined
+              const profilesCount = details.profilesFoundCount as number | undefined
+              const foundTypes = details.foundTypes as string[] | undefined
+              diagnosticInfo = `Found ${competitorCount ?? '?'} competitors, ${profilesCount ?? 0} profile artifact(s)${foundTypes && foundTypes.length > 0 ? `. Types found: ${foundTypes.join(', ')}` : ''}`
+            }
+            
             const error: RunErrorState = {
               kind,
               message: data.error?.message || (kind === 'blocked' ? 'Generation paused' : 'Generation failed'),
-              technicalDetails: data.error?.code,
+              technicalDetails: diagnosticInfo || data.error?.code,
               code: data.error?.code,
             }
             setMachine((m) => setError(m, error))
@@ -389,14 +399,36 @@ export function AnalysisRunExperience({
                   </div>
                 )}
 
-                {error.technicalDetails && process.env.NODE_ENV === 'development' && (
+                {/* Diagnostic details for profiles missing error */}
+                {isBlocked && isMissingProfiles && error.technicalDetails && (
+                  <div className="rounded-md border border-border bg-muted/50 p-4">
+                    <p className="text-sm font-medium text-foreground mb-2">
+                      Diagnostic information:
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {error.technicalDetails.includes('Found') 
+                        ? error.technicalDetails 
+                        : error.code === 'MISSING_COMPETITOR_PROFILES'
+                        ? 'No profile artifacts found. Please generate competitor profiles first.'
+                        : 'Profile artifacts exist but contain no valid snapshots.'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Dev-only debug panel */}
+                {process.env.NODE_ENV === 'development' && error.technicalDetails && (
                   <details className="rounded-md border border-border bg-muted/50 p-3">
                     <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-                      Technical details
+                      Debug details (dev only)
                     </summary>
-                    <p className="mt-2 text-xs font-mono text-muted-foreground">
-                      {error.technicalDetails}
-                    </p>
+                    <div className="mt-2 space-y-2">
+                      <p className="text-xs font-mono text-muted-foreground">
+                        Code: {error.code || 'N/A'}
+                      </p>
+                      <p className="text-xs font-mono text-muted-foreground">
+                        Details: {error.technicalDetails}
+                      </p>
+                    </div>
                   </details>
                 )}
 
