@@ -13,23 +13,25 @@ import { X, Check } from "lucide-react"
 
 export function Differentiators() {
   const mostTools = [
-    "Describe competitors",
-    "Repeat market language",
-    "Optimize for completeness",
+    "Summarize marketing pages",
+    "Generate generic insights",
+    "Lack evidence trail",
+    "Don't force decisions",
   ]
 
   const plinth = [
-    "Surfaces structural gaps",
-    "Focuses on unmet jobs",
-    "Prioritizes what competitors can't do",
-    "Produces decisions you can defend in a room full of skeptics",
+    "Live market signals: pricing, changelogs, reviews, docs, jobs, status pages",
+    "Evidence-backed with citations: full audit trail you can validate",
+    "Deterministic scoring + explainers: repeatable, defensible",
+    "Opinionated output formats: forces tradeoffs and clarity",
+    "Built for senior strategy workflows: copyable artifacts ready for VP+ decisions",
   ]
 
   return (
     <section className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-24 md:py-32">
       <div className="mx-auto max-w-3xl text-center">
         <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
-          Built for differentiation — not summaries
+          Why Plinth vs generic research
         </h2>
       </div>
       <div className="mx-auto mt-20 grid gap-8 md:grid-cols-2 lg:max-w-5xl">

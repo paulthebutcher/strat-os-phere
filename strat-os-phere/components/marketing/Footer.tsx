@@ -21,7 +21,7 @@ export function Footer() {
               Plinth
             </h3>
             <p className="max-w-md text-base leading-relaxed text-text-secondary">
-              A strategy workspace for finding unfair advantage.
+              A decision engine for senior Product/UX strategy. Turn competitor signals into decision-ready outputs.
             </p>
           </div>
           <div>

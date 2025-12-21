@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { getOrigin } from "@/lib/server/origin";
 
 const SITE_NAME = "Plinth";
-const DEFAULT_TITLE = "Plinth — Strategy-grade competitive intelligence";
+const DEFAULT_TITLE = "Plinth — Competitive analysis that ends in a decision";
 const DEFAULT_DESCRIPTION =
-  "Turn competitive noise into clear, defensible positioning. A strategy workspace for teams who see what competitors can't — and act on it.";
+  "Turn competitor signals into decision-ready outputs: Jobs-to-be-Done, scorecards, opportunities, and Strategic Bets—backed by live evidence and citations.";
 
 /**
  * Generates the base URL for metadata.

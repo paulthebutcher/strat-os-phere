@@ -15,10 +15,10 @@ export function Problem() {
     <section id="problem" className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-24 md:py-32">
       <div className="mx-auto max-w-4xl">
         <h2 className="text-center text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
-          Competitive analysis is broken.
+          Competitive analysis is either too shallow or too slow.
         </h2>
         <p className="mt-6 text-center text-lg leading-relaxed text-text-secondary md:text-xl">
-          Most tools summarize what already exists. They tell you who's out there — not how to win.
+          Marketing slides lack depth. Weeks of research lack speed. And "we learned a lot" isn't a decision.
         </p>
         <div className="mt-16 grid gap-4 md:grid-cols-3">
           <div className="panel p-6 md:p-8">
@@ -28,7 +28,7 @@ export function Problem() {
               </div>
             </div>
             <p className="text-base leading-relaxed text-text-secondary md:text-lg">
-              Everything looks like table stakes
+              Too shallow: marketing slides don't reveal structural gaps
             </p>
           </div>
           <div className="panel p-6 md:p-8">
@@ -38,7 +38,7 @@ export function Problem() {
               </div>
             </div>
             <p className="text-base leading-relaxed text-text-secondary md:text-lg">
-              Insights are generic and hard to act on
+              Too slow: weeks of research while decisions wait
             </p>
           </div>
           <div className="panel p-6 md:p-8">
@@ -48,12 +48,12 @@ export function Problem() {
               </div>
             </div>
             <p className="text-base leading-relaxed text-text-secondary md:text-lg">
-              Teams spend weeks synthesizing decks that go stale immediately
+              No shared frame: teams argue because there's no evidence trail or decision forcing function
             </p>
           </div>
         </div>
         <p className="mt-12 text-center text-lg font-semibold text-text-primary md:text-xl">
-          Plinth is built for a different outcome.
+          Plinth gives you decision-ready outputs in minutes, not weeks.
         </p>
       </div>
     </section>

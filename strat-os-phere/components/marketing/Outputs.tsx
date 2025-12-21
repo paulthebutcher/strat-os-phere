@@ -4,34 +4,59 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 const outputs = [
   {
-    id: "competitor-profiles",
-    label: "Competitor Profiles",
-    title: "Competitor Profiles",
-    description: "Evidence-backed positioning, value props, capabilities, and risks. See how competitors actually position themselves, not just what they claim.",
-  },
-  {
-    id: "market-themes",
-    label: "Market Themes",
-    title: "Market Themes",
-    description: "What's converging, what's commoditized, what's over-served. Understand the structural patterns across the competitive landscape.",
-  },
-  {
-    id: "positioning-map",
-    label: "Positioning Map",
-    title: "Positioning Map",
-    description: "How competitors cluster — and where space still exists. A text-based view of the competitive landscape that reveals opportunities.",
-  },
-  {
     id: "jobs-to-be-done",
-    label: "Jobs To Be Done",
-    title: "Jobs To Be Done",
-    description: "Specific jobs customers need done that competitors don't support. Find unmet needs that represent real differentiation opportunities.",
+    label: "Jobs-to-be-Done",
+    title: "Jobs-to-be-Done + Opportunity Scores",
+    description: "Specific jobs customers need done, scored by frequency and dissatisfaction. Each job includes an opportunity score you can act on.",
+    bullets: [
+      "Jobs extracted from public evidence (reviews, docs, changelogs)",
+      "Opportunity scores based on frequency and unmet need",
+      "Ready to prioritize your roadmap or positioning",
+    ],
+  },
+  {
+    id: "scorecard",
+    label: "Scorecard",
+    title: "Weighted Scorecard + Bar Chart",
+    description: "Compare competitors across weighted criteria with a visual bar chart. See where you win, where you lag, and where gaps exist.",
+    bullets: [
+      "Weighted scoring matrix across multiple criteria",
+      "Visual bar chart for quick comparison",
+      "Deterministic scoring with explainers for repeatability",
+    ],
   },
   {
     id: "opportunities",
-    label: "Opportunities & Angles",
-    title: "Opportunities & Angles",
-    description: "Ranked, defensible paths to differentiation. Strategic angles grounded in evidence that you can act on with confidence.",
+    label: "Opportunities",
+    title: "Differentiation Opportunities",
+    description: "Ranked opportunities for differentiation, each with first experiments you can run. Grounded in evidence, not assumptions.",
+    bullets: [
+      "Ranked by leverage and defensibility",
+      "First experiments suggested for each opportunity",
+      "Evidence-backed with citations you can validate",
+    ],
+  },
+  {
+    id: "strategic-bets",
+    label: "Strategic Bets",
+    title: "Strategic Bets",
+    description: "Decision forcing function: what you'd have to say no to, and why competitors won't easily follow. Forces tradeoffs and creates clarity.",
+    bullets: [
+      "What to say no to (and why)",
+      "Why rivals won't follow (structural barriers)",
+      "Defensible with evidence trail",
+    ],
+  },
+  {
+    id: "evidence",
+    label: "Evidence & Citations",
+    title: "Evidence & Citations",
+    description: "Every output includes citations to public sources: pricing pages, changelogs, reviews, docs, jobs, status pages. Full audit trail.",
+    bullets: [
+      "Citations for every claim and insight",
+      "Public sources only: pricing, changelogs, reviews, docs, jobs, status",
+      "You can validate and trace every decision",
+    ],
   },
 ]
 
@@ -50,10 +75,10 @@ export function Outputs() {
     <section id="outputs" className="mx-auto max-w-7xl px-4 py-24 md:py-32">
       <div className="mx-auto max-w-3xl text-center">
         <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
-          What you actually get
+          Decision-ready outputs
         </h2>
         <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl">
-          Everything is exportable, copyable, and ready for real work.
+          Everything is copyable, exportable, and ready to use in your strategy work. No buzzwords—just actionable insights.
         </p>
       </div>
       <div className="mt-20">
@@ -72,9 +97,21 @@ export function Outputs() {
                   <h3 className="mb-4 text-2xl font-semibold text-text-primary md:text-3xl">
                     {output.title}
                   </h3>
-                  <p className="mb-8 text-base leading-relaxed text-text-secondary md:text-lg">
+                  <p className="mb-6 text-base leading-relaxed text-text-secondary md:text-lg">
                     {output.description}
                   </p>
+                  {output.bullets && (
+                    <ul className="mb-8 space-y-3">
+                      {output.bullets.map((bullet, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <svg className="mt-0.5 h-5 w-5 shrink-0 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span className="text-base leading-relaxed text-text-secondary md:text-lg">{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 {/* Placeholder mockup */}
                 <div className="border-t border-border-subtle bg-surface-muted">
@@ -96,7 +133,7 @@ export function Outputs() {
                         </svg>
                       </div>
                       <p className="text-sm font-medium text-text-muted">
-                        {output.title} mockup placeholder
+                        {output.title} output preview
                       </p>
                     </div>
                   </div>

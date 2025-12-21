@@ -12,28 +12,23 @@ export function HowItWorks() {
   const steps = [
     {
       number: "1",
-      title: "Ingests live market signals",
-      description: "Pricing, changelogs, reviews, jobs, docs — not just marketing pages",
+      title: "Frame the decision",
+      description: "Define your market, customer, constraints, and confidence level",
     },
     {
       number: "2",
-      title: "Separates claims from reality",
-      description: "Flags gaps between what competitors say and what users experience",
+      title: "Add competitors",
+      description: "Provide URLs or names. Plinth generates evidence automatically",
     },
     {
       number: "3",
-      title: "Surfaces unmet demand",
-      description: "Jobs scored by frequency and dissatisfaction",
+      title: "Plinth pulls live signals",
+      description: "Pricing, changelogs, reviews, docs, jobs, status pages — not just marketing pages",
     },
     {
       number: "4",
-      title: "Ranks strategic opportunities",
-      description: "Based on leverage, not feature parity",
-    },
-    {
-      number: "5",
-      title: "Frames real bets",
-      description: "What you'd have to say no to — and why competitors won't easily follow",
+      title: "Get decision-ready outputs",
+      description: "Jobs-to-be-Done, Scorecard, Opportunities, and Strategic Bets — all with evidence and citations",
     },
   ]
 
@@ -41,8 +36,11 @@ export function HowItWorks() {
     <section id="how-it-works" className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-24 md:py-32">
       <div className="mx-auto max-w-3xl text-center">
         <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
-          A structured strategy workflow
+          How it works
         </h2>
+        <p className="mt-4 text-base text-text-secondary md:text-lg">
+          Everything is backed by evidence with citations you can validate
+        </p>
       </div>
       <div className="mx-auto mt-20 max-w-4xl space-y-6">
         {steps.map((step, index) => (

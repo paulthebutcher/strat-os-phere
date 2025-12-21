@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   // Variant-specific content
   const variantConfig = {
     default: {
-      headline: "Strategy-grade competitive intelligence",
+      headline: "Competitive analysis that ends in a decision",
       badge: null,
     },
     results: {
