@@ -25,19 +25,21 @@ import { MAX_EVIDENCE_CHARS } from '@/lib/constants'
 import { logger } from '@/lib/logger'
 import type { ProgressCallback } from '@/lib/results/progress'
 
-export interface GenerateCompetitorProfilesResult {
-  ok: true
-  runId: string
-  profilesArtifactId: string
-  snapshots: CompetitorSnapshot[]
-} | {
-  ok: false
-  error: {
-    code: string
-    message: string
-  }
-  details?: Record<string, unknown>
-}
+export type GenerateCompetitorProfilesResult =
+  | {
+      ok: true
+      runId: string
+      profilesArtifactId: string
+      snapshots: CompetitorSnapshot[]
+    }
+  | {
+      ok: false
+      error: {
+        code: string
+        message: string
+      }
+      details?: Record<string, unknown>
+    }
 
 function summarizeValidationError(error: string | undefined): string | undefined {
   if (!error) return undefined
