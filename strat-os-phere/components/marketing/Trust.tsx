@@ -1,17 +1,23 @@
+import { Shield, Lock, Eye, Target } from "lucide-react"
+
 const principles = [
   {
+    icon: Shield,
     title: "Public evidence only",
     description: "Uses only public, user-provided evidence",
   },
   {
+    icon: Lock,
     title: "No private data scraping",
     description: "Clear guardrails around confidential information",
   },
   {
+    icon: Eye,
     title: "Transparent outputs",
     description: "Explainable, defensible insights you can trust",
   },
   {
+    icon: Target,
     title: "Built for good strategy",
     description: "Designed to support good strategy — not shortcuts",
   },
@@ -55,8 +61,8 @@ export function Trust() {
                 {principle.description}
               </p>
             </div>
-          ))}
-        </div>
+          )
+        })}
       </div>
     </section>
   )

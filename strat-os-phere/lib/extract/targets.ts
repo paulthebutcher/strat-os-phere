@@ -1,15 +1,11 @@
+import "server-only";
+import { MAX_PAGES_PER_COMPETITOR } from '@/lib/constants'
+import type { EvidenceSourceType } from '@/lib/supabase/types'
+
 /**
  * Build a list of target URLs to scrape for a competitor
  * Generates common page paths based on the domain
  */
-
-export interface TargetUrl {
-  url: string
-  label: string // e.g., "Homepage", "Pricing", "Features"
-}
-
-import { MAX_PAGES_PER_COMPETITOR } from '@/lib/constants'
-import type { EvidenceSourceType } from '@/lib/supabase/types'
 
 export interface TargetUrl {
   url: string

@@ -46,21 +46,6 @@ const outputs = [
  * Enhanced with placeholder mockups and improved tab styling.
  */
 export function Outputs() {
-  const outputs = [
-    {
-      title: "Jobs to Be Done",
-      description: "Clear, specific jobs grounded in unmet demand — not generic personas.",
-    },
-    {
-      title: "Competitive Scorecards",
-      description: "Weighted comparisons that reveal where differences actually matter.",
-    },
-    {
-      title: "Strategic Opportunities",
-      description: "Ranked opportunities that force clarity on tradeoffs, required capabilities, and defensibility.",
-    },
-  ]
-
   return (
     <section id="outputs" className="mx-auto max-w-7xl px-4 py-24 md:py-32">
       <div className="mx-auto max-w-3xl text-center">
@@ -119,7 +104,7 @@ export function Outputs() {
               </div>
             </TabsContent>
           ))}
-        </div>
+        </Tabs>
       </div>
     </section>
   )

@@ -34,25 +34,6 @@ const audiences = [
  * Enhanced with icon containers and improved card styling.
  */
 export function WhoItsFor() {
-  const audiences = [
-    {
-      title: "VP Product",
-      description: "Defend roadmap bets",
-    },
-    {
-      title: "Head of UX / Design",
-      description: "Turn research into direction",
-    },
-    {
-      title: "Strategy teams",
-      description: "Align execs around tradeoffs",
-    },
-    {
-      title: "Founders",
-      description: "Place focused bets before scaling",
-    },
-  ]
-
   return (
     <section className="mx-auto max-w-7xl px-4 py-24 md:py-32">
       <div className="mx-auto max-w-3xl text-center">
@@ -80,8 +61,8 @@ export function WhoItsFor() {
                 {audience.description}
               </p>
             </div>
-          ))}
-        </div>
+          )
+        })}
       </div>
     </section>
   )
