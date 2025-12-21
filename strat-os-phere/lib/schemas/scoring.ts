@@ -6,9 +6,9 @@ import { z } from 'zod'
 export const ScoringCriterionSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  description: z.string().min(1).optional().default(''),
+  description: z.string().default(''), // Always returns string, defaults to empty if missing
   weight: z.number().int().min(1).max(5).default(3),
-  how_to_score: z.string().min(1).optional().default(''), // Rubric for scoring
+  how_to_score: z.string().default(''), // Rubric for scoring, always returns string
 })
 
 /**

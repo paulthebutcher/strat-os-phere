@@ -298,7 +298,7 @@ export async function generateResultsV2(
       )
     )
 
-    let jtbdParsed = safeParseLLMJson<JtbdArtifactContent>(
+    let jtbdParsed = safeParseLLMJson(
       jtbdResponse.text,
       JtbdArtifactContentSchema
     )
@@ -330,7 +330,7 @@ export async function generateResultsV2(
 
       jtbdResponse = repairResponse
 
-      jtbdParsed = safeParseLLMJson<JtbdArtifactContent>(
+      jtbdParsed = safeParseLLMJson(
         repairResponse.text,
         JtbdArtifactContentSchema
       )
@@ -445,7 +445,7 @@ export async function generateResultsV2(
       )
     )
 
-    let scoringParsed = safeParseLLMJson<ScoringMatrixArtifactContent>(
+    let scoringParsed = safeParseLLMJson(
       scoringResponse.text,
       ScoringMatrixArtifactContentSchema
     )
@@ -477,7 +477,7 @@ export async function generateResultsV2(
 
       scoringResponse = repairResponse
 
-      scoringParsed = safeParseLLMJson<ScoringMatrixArtifactContent>(
+      scoringParsed = safeParseLLMJson(
         repairResponse.text,
         ScoringMatrixArtifactContentSchema
       )
@@ -624,7 +624,7 @@ export async function generateResultsV2(
       )
     )
 
-    let opportunitiesParsed = safeParseLLMJson<OpportunitiesArtifactContent>(
+    let opportunitiesParsed = safeParseLLMJson(
       opportunitiesResponse.text,
       OpportunitiesArtifactContentSchema
     )
@@ -660,7 +660,7 @@ export async function generateResultsV2(
 
       opportunitiesResponse = repairResponse
 
-      opportunitiesParsed = safeParseLLMJson<OpportunitiesArtifactContent>(
+      opportunitiesParsed = safeParseLLMJson(
         repairResponse.text,
         OpportunitiesArtifactContentSchema
       )
@@ -812,7 +812,7 @@ export async function generateResultsV2(
       )
     )
 
-    let strategicBetsParsed = safeParseLLMJson<StrategicBetsArtifactContent>(
+    let strategicBetsParsed = safeParseLLMJson(
       strategicBetsResponse.text,
       StrategicBetsArtifactContentSchema
     )
@@ -848,7 +848,7 @@ export async function generateResultsV2(
 
       strategicBetsResponse = repairResponse
 
-      strategicBetsParsed = safeParseLLMJson<StrategicBetsArtifactContent>(
+      strategicBetsParsed = safeParseLLMJson(
         repairResponse.text,
         StrategicBetsArtifactContentSchema
       )

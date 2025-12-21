@@ -170,7 +170,7 @@ export async function generateAnalysis(
         snapshotUsageTotals.totalTokens += snapshotResponse.usage.totalTokens ?? 0
       }
 
-      let parsedSnapshot = safeParseLLMJson<CompetitorSnapshot>(
+      let parsedSnapshot = safeParseLLMJson(
         snapshotResponse.text,
         CompetitorSnapshotSchema
       )
@@ -202,7 +202,7 @@ export async function generateAnalysis(
           snapshotUsageTotals.totalTokens += repairResponse.usage.totalTokens ?? 0
         }
 
-        const repaired = safeParseLLMJson<CompetitorSnapshot>(
+        const repaired = safeParseLLMJson(
           repairResponse.text,
           CompetitorSnapshotSchema
         )
@@ -246,7 +246,7 @@ export async function generateAnalysis(
       maxTokens: 2_400,
     })
 
-    let synthesisParsed = safeParseLLMJson<MarketSynthesis>(
+    let synthesisParsed = safeParseLLMJson(
       synthesisResponse.text,
       MarketSynthesisSchema
     )
@@ -274,7 +274,7 @@ export async function generateAnalysis(
 
       synthesisResponse = repairResponse
 
-      synthesisParsed = safeParseLLMJson<MarketSynthesis>(
+      synthesisParsed = safeParseLLMJson(
         repairResponse.text,
         MarketSynthesisSchema
       )

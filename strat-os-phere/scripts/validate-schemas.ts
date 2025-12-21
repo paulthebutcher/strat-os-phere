@@ -1,17 +1,17 @@
 /* eslint-disable no-console */
 
-import type { ZodSchema } from 'zod'
+import type { ZodTypeAny } from 'zod'
 
 import { CompetitorSnapshotSchema } from '@/lib/schemas/competitorSnapshot'
 import { MarketSynthesisSchema } from '@/lib/schemas/marketSynthesis'
 import { safeParseLLMJson } from '@/lib/schemas/safeParseLLMJson'
 
-function runSample<T>(
+function runSample(
   label: string,
-  schema: ZodSchema<T>,
+  schema: ZodTypeAny,
   text: string
 ): void {
-  const result = safeParseLLMJson<T>(text, schema)
+  const result = safeParseLLMJson(text, schema)
 
   if (result.ok) {
     console.log(`${label}: OK`)

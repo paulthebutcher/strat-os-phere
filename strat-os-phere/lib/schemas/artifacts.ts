@@ -95,7 +95,7 @@ export type ArtifactContent =
 
 export function getArtifactContentSchema(
   type: ArtifactType
-): z.ZodType<ArtifactContent> {
+): z.ZodTypeAny {
   switch (type) {
     case 'profiles':
       return ProfilesArtifactContentSchema
@@ -119,9 +119,9 @@ export function getArtifactContentSchema(
 export function validateArtifactContent(
   type: ArtifactType,
   value: unknown
-): ReturnType<z.ZodType<ArtifactContent>['safeParse']> {
+): z.SafeParseReturnType<unknown, ArtifactContent> {
   const schema = getArtifactContentSchema(type)
-  return schema.safeParse(value)
+  return schema.safeParse(value) as z.SafeParseReturnType<unknown, ArtifactContent>
 }
 
 

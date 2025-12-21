@@ -1,4 +1,4 @@
-import type { ZodIssue, ZodSchema } from 'zod'
+import { z, type ZodIssue, type ZodTypeAny } from 'zod'
 
 export type SafeParseLLMJsonSuccess<T> = {
   ok: true
@@ -50,10 +50,10 @@ function extractJson(text: string): { extracted: string | null; raw: string } {
   return { extracted: null, raw }
 }
 
-export function safeParseLLMJson<T>(
+export function safeParseLLMJson<S extends ZodTypeAny>(
   text: string,
-  schema: ZodSchema<T>
-): SafeParseLLMJsonResult<T> {
+  schema: S
+): SafeParseLLMJsonResult<z.infer<S>> {
   const { extracted, raw } = extractJson(text)
 
   if (!extracted) {
@@ -110,11 +110,11 @@ export function safeParseLLMJson<T>(
   }
 }
 
-export function validateOrExplain<T>(
-  schema: ZodSchema<T>,
+export function validateOrExplain<S extends ZodTypeAny>(
+  schema: S,
   text: string
-): T | string {
-  const result = safeParseLLMJson<T>(text, schema)
+): z.infer<S> | string {
+  const result = safeParseLLMJson(text, schema)
 
   if (result.ok) {
     return result.data
