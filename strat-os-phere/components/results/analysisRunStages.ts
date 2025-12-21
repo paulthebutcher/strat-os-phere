@@ -15,13 +15,13 @@ export interface StageConfig {
 export const ANALYSIS_STAGES: StageConfig[] = [
   {
     id: 'starting',
-    label: 'Initializing analysis',
+    label: 'Reviewing live competitor signals',
     description:
       'Validating inputs and preparing analytical framework.',
   },
   {
     id: 'gathering_inputs',
-    label: 'Synthesizing market signals',
+    label: 'Reviewing live competitor signals',
     description:
       'Collecting and organizing evidence from competitors, market data, and customer signals.',
     signals: [
@@ -32,7 +32,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'analyzing_competitors',
-    label: 'Analyzing competitive landscape',
+    label: 'Reviewing live competitor signals',
     description:
       'Evaluating capabilities, constraints, and differentiation across competitors.',
     signals: [
@@ -43,7 +43,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'deriving_jobs',
-    label: 'Deriving Jobs to be Done',
+    label: 'Extracting customer jobs and struggles',
     description:
       'Translating competitive behavior into concrete customer jobs.',
     signals: [
@@ -54,7 +54,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'scoring_positioning',
-    label: 'Stress-testing differentiation',
+    label: 'Scoring competitive capabilities',
     description:
       'Evaluating competitive positioning across dimensions that matter.',
     signals: [
@@ -65,13 +65,24 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'ranking_opportunities',
-    label: 'Ranking strategic opportunities',
+    label: 'Identifying differentiation opportunities',
     description:
       'Identifying and scoring opportunities for meaningful differentiation.',
     signals: [
       'Underserved high-importance jobs',
       'Opportunities with competitive moats',
       'First experiment leverage points',
+    ],
+  },
+  {
+    id: 'forming_strategic_bets',
+    label: 'Forming strategic bets',
+    description:
+      'Converting opportunities into decision-ready commitments.',
+    signals: [
+      'Explicit tradeoffs and constraints',
+      'Required capabilities',
+      'Falsifiable experiments',
     ],
   },
   {
@@ -88,7 +99,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'finalizing',
-    label: 'Finalizing',
+    label: 'Finalizing recommendations',
     description:
       'Organizing findings for review.',
   },
@@ -101,7 +112,7 @@ export const SAVING_SUB_STEPS = [
   'Saving Jobs…',
   'Saving Scorecard…',
   'Saving Opportunities…',
-  'Linking evidence…',
+  'Saving Strategic Bets…',
 ] as const
 
 /**

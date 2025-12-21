@@ -148,11 +148,13 @@ export default async function ResultsPage(props: ResultsPageProps) {
     frame?: string
     generating?: string
     view?: string
+    new?: string
   }
   const tabParam = searchParamsObj.tab ?? undefined
   const frameParam = searchParamsObj.frame ?? undefined
   const isGenerating = searchParamsObj.generating === 'true'
   const viewResults = searchParamsObj.view === 'results'
+  const showNewBadge = searchParamsObj.new === 'true'
 
   const activeTab: TabId =
     (TABS.find((tab) => tab.id === tabParam)?.id as TabId | undefined) ??
@@ -284,6 +286,11 @@ export default async function ResultsPage(props: ResultsPageProps) {
                   Generated <span className="font-medium text-foreground">{formattedGeneratedAt}</span>
                 </span>
               ) : null}
+              {showNewBadge && (
+                <Badge variant="default" className="text-xs">
+                  New insights generated
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-muted-foreground max-w-2xl">
               Insights derived from publicly available information from the past 90 days, including marketing materials, reviews, pricing, changelogs, and documentation.
@@ -1406,11 +1413,11 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
             Strategic Bets not yet generated
           </h2>
           <p className="text-sm text-muted-foreground">
-            Turn analysis into commitment-ready decisions.
+            Strategic bets are generated as part of the full analysis. Generate analysis to create strategic bets along with jobs, scorecard, and opportunities.
           </p>
           <GenerateResultsV2Button
             projectId={projectId}
-            label="Generate Strategic Bets"
+            label="Generate Analysis"
           />
         </div>
       </section>

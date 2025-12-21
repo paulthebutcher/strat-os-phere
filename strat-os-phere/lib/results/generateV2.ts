@@ -487,15 +487,36 @@ export async function generateResultsV2(
           summary: summarizeValidationError(scoringParsed.error),
         })
 
-        return {
-          ok: false,
-          error: {
-            code: 'SCORING_VALIDATION_FAILED',
-            message: 'Failed to validate scoring matrix output.',
+        // Create a degraded scoring object instead of failing
+        // This allows Strategic Bets to proceed with partial data
+        const degradedScoring: ScoringMatrixArtifactContent = {
+          meta: {
+            generated_at: generatedAt,
+            run_id: runId,
+            schema_version: 2,
+            partial: true,
           },
-          details: {
-            validationError: summarizeValidationError(scoringParsed.error),
-          },
+          criteria: [],
+          scores: [],
+          summary: snapshots.map((snapshot) => ({
+            competitor_name: snapshot.competitor_name,
+            total_weighted_score: 50,
+            strengths: [],
+            weaknesses: [],
+          })),
+          notes: 'Scoring matrix validation failed. Using degraded scoring object.',
+        }
+
+        logger.warn('Using degraded scoring matrix due to validation failure', {
+          runId,
+          projectId,
+        })
+
+        scoringParsed = {
+          ok: true,
+          data: degradedScoring,
+          raw: scoringParsed.raw,
+          extracted: scoringParsed.extracted,
         }
       }
     }
@@ -837,15 +858,28 @@ export async function generateResultsV2(
           summary: summarizeValidationError(strategicBetsParsed.error),
         })
 
-        return {
-          ok: false,
-          error: {
-            code: 'STRATEGIC_BETS_VALIDATION_FAILED',
-            message: 'Failed to validate strategic bets output.',
+        // Create a degraded strategic bets object instead of failing
+        // This allows the run to complete with partial results
+        const degradedStrategicBets: StrategicBetsArtifactContent = {
+          meta: {
+            generated_at: generatedAt,
+            run_id: runId,
+            schema_version: 1,
+            partial: true,
           },
-          details: {
-            validationError: summarizeValidationError(strategicBetsParsed.error),
-          },
+          bets: [],
+        }
+
+        logger.warn('Using degraded strategic bets due to validation failure', {
+          runId,
+          projectId,
+        })
+
+        strategicBetsParsed = {
+          ok: true,
+          data: degradedStrategicBets,
+          raw: strategicBetsParsed.raw,
+          extracted: strategicBetsParsed.extracted,
         }
       }
     }

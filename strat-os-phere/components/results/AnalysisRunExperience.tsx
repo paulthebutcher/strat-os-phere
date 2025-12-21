@@ -199,6 +199,7 @@ export function AnalysisRunExperience({
       'deriving_jobs',
       'scoring_positioning',
       'ranking_opportunities',
+      'forming_strategic_bets',
       'validating_outputs',
       'saving_artifacts',
       'finalizing',
@@ -268,6 +269,13 @@ export function AnalysisRunExperience({
 
   // Error state
   if (machine.currentState === 'error') {
+    // Determine which phases completed based on timestamps
+    const completedPhases = machine.timestamps
+      .filter((ts) => ts.state !== 'error' && ts.state !== 'idle')
+      .map((ts) => ts.state)
+    
+    const hasPartialResults = completedPhases.length > 0
+
     return (
       <div className="flex min-h-[calc(100vh-57px)] items-center justify-center bg-background px-4">
         <main className="flex w-full max-w-2xl flex-col gap-6">
@@ -279,13 +287,32 @@ export function AnalysisRunExperience({
               <div className="flex-1 space-y-4">
                 <div>
                   <h1 className="text-2xl font-semibold text-foreground">
-                    Something interrupted the analysis
+                    {hasPartialResults ? 'Analysis partially completed' : 'Something interrupted the analysis'}
                   </h1>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {machine.error?.message ||
                       `We weren't able to complete this run. Your inputs are safe, and nothing was lost.`}
                   </p>
                 </div>
+
+                {hasPartialResults && (
+                  <div className="rounded-md border border-border bg-muted/50 p-4">
+                    <p className="text-sm font-medium text-foreground mb-2">
+                      Completed phases:
+                    </p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      {completedPhases.map((phase, idx) => {
+                        const stage = getStageConfig(phase)
+                        return (
+                          <li key={idx} className="flex items-center gap-2">
+                            <Check className="h-3 w-3 text-primary" />
+                            {stage?.label || phase}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )}
 
                 {machine.error?.technicalDetails && process.env.NODE_ENV === 'development' && (
                   <details className="rounded-md border border-border bg-muted/50 p-3">
@@ -299,7 +326,19 @@ export function AnalysisRunExperience({
                 )}
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <Button onClick={startGeneration}>Try again</Button>
+                  {hasPartialResults && (
+                    <Button
+                      onClick={() => {
+                        router.push(`/projects/${projectId}/results?view=results`)
+                        router.refresh()
+                      }}
+                    >
+                      Continue with partial results
+                    </Button>
+                  )}
+                  <Button onClick={startGeneration}>
+                    {hasPartialResults ? 'Retry failed phase' : 'Try again'}
+                  </Button>
                   <Button
                     variant="ghost"
                     onClick={() => router.push(`/projects/${projectId}`)}
@@ -335,12 +374,12 @@ export function AnalysisRunExperience({
                 <Button
                   onClick={() => {
                     onViewResults?.()
-                    router.push(`/projects/${projectId}/results?view=results`)
+                    router.push(`/projects/${projectId}/results?view=results&tab=strategic_bets&new=true`)
                     router.refresh()
                   }}
                   className="w-full sm:w-auto"
                 >
-                  View analysis
+                  View full analysis
                 </Button>
                 <Button
                   variant="outline"
@@ -484,7 +523,7 @@ function mapProgressPhaseToState(
     return 'ranking_opportunities'
   }
   if (phaseLower.includes('strategic_bets') && !phaseLower.includes('validate')) {
-    return 'ranking_opportunities'
+    return 'forming_strategic_bets'
   }
   if (phaseLower.includes('validate')) {
     return 'validating_outputs'

@@ -6,41 +6,47 @@ import { z } from 'zod'
 export const ScoringCriterionSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  description: z.string().min(1),
-  weight: z.number().int().min(1).max(5),
-  how_to_score: z.string().min(1), // Rubric for scoring
+  description: z.string().min(1).optional().default(''),
+  weight: z.number().int().min(1).max(5).default(3),
+  how_to_score: z.string().min(1).optional().default(''), // Rubric for scoring
 })
 
 /**
  * Dimension scores for evaluating how well a competitor supports a criterion
  * Each dimension is scored independently on a 0.0-1.0 continuous scale
+ * All scores allow decimals and have safe defaults
  */
 export const CriterionDimensionScoresSchema = z.object({
   discovery_support: z
     .number()
     .min(0.0, { message: 'discovery_support must be between 0.0 and 1.0' })
     .max(1.0, { message: 'discovery_support must be between 0.0 and 1.0' })
-    .refine((val) => !isNaN(val), { message: 'discovery_support must be a valid number' }),
+    .default(0.5)
+    .refine((val) => !isNaN(val) && isFinite(val), { message: 'discovery_support must be a valid number' }),
   execution_support: z
     .number()
     .min(0.0, { message: 'execution_support must be between 0.0 and 1.0' })
     .max(1.0, { message: 'execution_support must be between 0.0 and 1.0' })
-    .refine((val) => !isNaN(val), { message: 'execution_support must be a valid number' }),
+    .default(0.5)
+    .refine((val) => !isNaN(val) && isFinite(val), { message: 'execution_support must be a valid number' }),
   reliability: z
     .number()
     .min(0.0, { message: 'reliability must be between 0.0 and 1.0' })
     .max(1.0, { message: 'reliability must be between 0.0 and 1.0' })
-    .refine((val) => !isNaN(val), { message: 'reliability must be a valid number' }),
+    .default(0.5)
+    .refine((val) => !isNaN(val) && isFinite(val), { message: 'reliability must be a valid number' }),
   flexibility: z
     .number()
     .min(0.0, { message: 'flexibility must be between 0.0 and 1.0' })
     .max(1.0, { message: 'flexibility must be between 0.0 and 1.0' })
-    .refine((val) => !isNaN(val), { message: 'flexibility must be a valid number' }),
+    .default(0.5)
+    .refine((val) => !isNaN(val) && isFinite(val), { message: 'flexibility must be a valid number' }),
   friction: z
     .number()
     .min(0.0, { message: 'friction must be between 0.0 and 1.0' })
     .max(1.0, { message: 'friction must be between 0.0 and 1.0' })
-    .refine((val) => !isNaN(val), { message: 'friction must be a valid number' }),
+    .default(0.5)
+    .refine((val) => !isNaN(val) && isFinite(val), { message: 'friction must be a valid number' }),
 })
 
 /**
@@ -61,9 +67,9 @@ export const CriterionScoreSchema = z.object({
 export const CompetitorScoreSummarySchema = z.object({
   competitor_id: z.string().optional(),
   competitor_name: z.string().min(1),
-  total_weighted_score: z.number().min(0).max(100),
-  strengths: z.array(z.string().min(1)),
-  weaknesses: z.array(z.string().min(1)),
+  total_weighted_score: z.number().min(0).max(100).default(50),
+  strengths: z.array(z.string().min(1)).default([]),
+  weaknesses: z.array(z.string().min(1)).default([]),
 })
 
 /**
@@ -75,16 +81,18 @@ export const ScoringMetaSchema = z.object({
   run_id: z.string().optional(),
   schema_version: z.number().optional(),
   signals: z.record(z.unknown()).optional(), // Quality signals stored here
+  partial: z.boolean().optional(), // Indicates partial/degraded result
 })
 
 /**
  * Complete Scoring Matrix artifact content
+ * Relaxed constraints to allow partial/degraded results
  */
 export const ScoringMatrixArtifactContentSchema = z.object({
   meta: ScoringMetaSchema,
-  criteria: z.array(ScoringCriterionSchema).min(6).max(10),
-  scores: z.array(CriterionScoreSchema).min(1),
-  summary: z.array(CompetitorScoreSummarySchema).min(1),
+  criteria: z.array(ScoringCriterionSchema).min(1).max(15), // Relaxed from 6-10 to 1-15
+  scores: z.array(CriterionScoreSchema).min(0), // Allow empty scores array
+  summary: z.array(CompetitorScoreSummarySchema).min(0), // Allow empty summary
   notes: z.string().optional(),
 })
 

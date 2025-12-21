@@ -11,6 +11,7 @@ export type AnalysisRunState =
   | 'deriving_jobs'
   | 'scoring_positioning'
   | 'ranking_opportunities'
+  | 'forming_strategic_bets'
   | 'validating_outputs'
   | 'saving_artifacts'
   | 'finalizing'
@@ -101,6 +102,7 @@ export function getStateIndex(state: AnalysisRunState): number {
     'deriving_jobs',
     'scoring_positioning',
     'ranking_opportunities',
+    'forming_strategic_bets',
     'validating_outputs',
     'saving_artifacts',
     'finalizing',

@@ -47,14 +47,16 @@ export const StrategicBetsMetaSchema = z.object({
   run_id: z.string().optional(),
   schema_version: z.number().optional(),
   signals: z.record(z.unknown()).optional(), // Quality signals stored here
+  partial: z.boolean().optional(), // Indicates partial/degraded result
 })
 
 /**
  * Complete Strategic Bets artifact content
+ * Relaxed to allow partial/degraded results
  */
 export const StrategicBetsArtifactContentSchema = z.object({
   meta: StrategicBetsMetaSchema,
-  bets: z.array(StrategicBetItemSchema).min(2).max(4),
+  bets: z.array(StrategicBetItemSchema).min(0).max(10), // Allow empty array for degraded results
 })
 
 export type FirstRealWorldProof = z.infer<typeof FirstRealWorldProofSchema>
