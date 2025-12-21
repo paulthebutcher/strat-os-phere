@@ -31,6 +31,7 @@ export interface ProgressEvent {
   timestamp: string
   meta?: {
     competitorCount?: number
+    profilesCount?: number
     artifactCount?: number
     llmCallsDone?: number
     llmCallsTotal?: number
@@ -44,6 +45,8 @@ export interface ProgressEvent {
     total?: number // Total items to process
     competitorId?: string // ID of competitor being processed
     competitorName?: string // Name of competitor being processed
+    // Allow additional meta fields for extensibility
+    [key: string]: unknown
   }
 }
 
