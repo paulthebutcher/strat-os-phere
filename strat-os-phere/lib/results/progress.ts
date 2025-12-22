@@ -4,8 +4,8 @@
  */
 
 // Import from centralized constants to prevent drift
-import { RESULTS_V2_PHASES, type ResultsV2Phase } from '@/lib/constants/types'
-export { RESULTS_V2_PHASES, type ResultsV2Phase }
+import { RESULTS_V2_PHASES, RESULTS_V2_PHASE_LIST, type ResultsV2Phase } from '@/lib/constants/types'
+export { RESULTS_V2_PHASES, RESULTS_V2_PHASE_LIST, type ResultsV2Phase }
 
 export type ProgressStatus = 'started' | 'progress' | 'completed' | 'failed' | 'blocked'
 
