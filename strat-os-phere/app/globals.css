@@ -38,6 +38,31 @@
   --accent-primary: 230 60% 45%; /* Deep indigo - authoritative */
   --accent-secondary: 0 0% 60%; /* Neutral gray for secondary actions */
   
+  /* Brand colors - RGB format for gradient support */
+  --brand-600: 79 70 229; /* Indigo */
+  --brand-700: 67 56 202; /* Deeper indigo */
+  --accent-500: 34 211 238; /* Cyan */
+  --accent-600: 6 182 212; /* Deeper cyan */
+  
+  /* Surfaces - RGB format for plinth utility classes */
+  --bg-page: 255 255 255; /* Pure white page background */
+  --bg-surface: 249 250 251; /* Subtle gray surface */
+  --bg-surface-tint: 238 242 255; /* Indigo tint */
+  --bg-surface-tint-2: 236 254 255; /* Cyan tint */
+  
+  /* Borders - RGB format */
+  --border-subtle-rgb: 226 232 240; /* Light gray */
+  --border-strong-rgb: 203 213 225; /* Stronger gray */
+  
+  /* Semantic colors - RGB format */
+  --success-rgb: 16 185 129; /* Success green */
+  --warning-rgb: 245 158 11; /* Warning amber */
+  --danger-rgb: 239 68 68; /* Danger red */
+  --info-rgb: 59 130 246; /* Info blue */
+  
+  /* Focus ring - RGB format */
+  --ring-rgb: var(--accent-500); /* Cyan for focus */
+  
   /* Marketing theme - Gradients and accents */
   --marketing-gradient-start: 230 60% 50%; /* Indigo */
   --marketing-gradient-end: 280 50% 55%; /* Purple */
@@ -50,6 +75,7 @@
   --success: 142 60% 40%; /* Success - muted, not celebratory */
   --warning: 38 80% 45%; /* Warning - clear but not alarming */
   --danger: 0 70% 50%; /* Danger - direct, not dramatic */
+  --info: 217 91% 60%; /* Info - informational blue */
 
   /* Semantic aliases (for compatibility with existing components) */
   --foreground: var(--text-primary); /* Near-black text */
@@ -71,6 +97,7 @@
   --border: var(--border-subtle);
   --input: var(--surface); /* White input backgrounds */
   --ring: var(--accent-primary); /* Deep indigo focus ring */
+  --ring-rgb: var(--accent-500); /* Cyan focus ring (RGB) */
   --destructive: var(--danger);
   --destructive-foreground: 0 0% 100%;
 
@@ -120,6 +147,15 @@
   --success: 142 71% 55%;
   --warning: 38 92% 60%;
   --danger: 0 84% 65%;
+  --info: 217 91% 70%;
+
+  /* Dark mode RGB tokens */
+  --bg-page: 3 7 18;
+  --bg-surface: 15 23 42;
+  --bg-surface-tint: 30 27 75;
+  --bg-surface-tint-2: 8 51 68;
+  --border-subtle-rgb: 51 65 85;
+  --border-strong-rgb: 71 85 105;
 
   --foreground: var(--text-primary);
   --text: var(--text-primary);
@@ -164,6 +200,7 @@
   --color-success: hsl(var(--success));
   --color-warning: hsl(var(--warning));
   --color-danger: hsl(var(--danger));
+  --color-info: hsl(var(--info));
 
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
@@ -195,6 +232,7 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+  --color-ring-rgb: rgb(var(--ring-rgb));
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -303,6 +341,17 @@
     font-size: var(--font-size-sm);
     line-height: var(--line-height-normal);
     color: hsl(var(--text-secondary));
+  }
+  
+  /* Links - Brand color on hover */
+  a:not([class]) {
+    color: hsl(var(--accent-primary));
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  a:not([class]):hover {
+    color: rgb(var(--brand-600));
   }
   
   /* System states - Loading, empty, error */
@@ -436,5 +485,54 @@
   
   .marketing-accent-border-purple {
     border-top: 3px solid hsl(var(--marketing-gradient-end));
+  }
+  
+  /* Plinth surface utility classes */
+  .plinth-page {
+    background: rgb(var(--bg-page));
+  }
+  
+  .plinth-surface {
+    background: rgb(var(--bg-surface));
+  }
+  
+  .plinth-card {
+    background: rgb(var(--bg-page));
+    border: 1px solid rgb(var(--border-subtle-rgb));
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .plinth-card:hover {
+    border-color: rgb(var(--border-strong-rgb));
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  .plinth-focus {
+    outline: 2px solid rgba(var(--ring-rgb) / 0.45);
+    outline-offset: 2px;
+  }
+  
+  .plinth-gradient {
+    background: linear-gradient(
+      135deg,
+      rgb(var(--brand-600)) 0%,
+      rgb(var(--accent-500)) 100%
+    );
+  }
+  
+  .plinth-gradient-soft {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--brand-600) / 0.10) 0%,
+      rgba(var(--accent-500) / 0.10) 100%
+    );
+  }
+  
+  .plinth-surface-tint {
+    background: rgb(var(--bg-surface-tint));
+  }
+  
+  .plinth-surface-tint-2 {
+    background: rgb(var(--bg-surface-tint-2));
   }
 }

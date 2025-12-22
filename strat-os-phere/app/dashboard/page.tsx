@@ -54,11 +54,11 @@ export default async function DashboardPage() {
     : null
 
   return (
-    <div className="min-h-[calc(100vh-57px)] bg-background">
+    <div className="min-h-[calc(100vh-57px)] plinth-surface">
       <div className="mx-auto max-w-7xl px-4 py-12">
         <main className="flex w-full flex-col items-stretch gap-8">
           {/* Header Bar */}
-          <header className="flex items-start justify-between gap-4">
+          <header className="flex items-start justify-between gap-4 plinth-gradient-soft rounded-lg p-6">
             <div className="space-y-1">
               <h1 className="text-2xl font-semibold text-foreground">Projects</h1>
               <p className="text-sm text-muted-foreground">
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
               </p>
             </div>
             <Link href="/projects/new">
-              <Button size="sm">New analysis</Button>
+              <Button size="sm" variant="brand">New analysis</Button>
             </Link>
           </header>
 

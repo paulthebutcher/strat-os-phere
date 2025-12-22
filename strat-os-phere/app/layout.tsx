@@ -33,10 +33,10 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased plinth-page`}
       >
         {user ? <Nav /> : <MarketingNav />}
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen">
           {children}
         </div>
       </body>

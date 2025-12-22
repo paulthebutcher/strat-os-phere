@@ -24,7 +24,7 @@ export function StatusPill({
   const config = {
     success: {
       icon: CheckCircle2,
-      badgeVariant: 'default' as const,
+      badgeVariant: 'success' as const,
     },
     warning: {
       icon: AlertCircle,
@@ -36,7 +36,7 @@ export function StatusPill({
     },
     info: {
       icon: Clock,
-      badgeVariant: 'secondary' as const,
+      badgeVariant: 'info' as const,
     },
     pending: {
       icon: Clock,

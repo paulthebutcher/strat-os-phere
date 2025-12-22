@@ -15,7 +15,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const relativeDate = formatRelativeDate(project.lastTouchedAt)
 
   return (
-    <div className="border border-border rounded-lg p-4 bg-background hover:bg-muted/50 transition-colors">
+    <div className="plinth-card p-4">
       <div className="flex items-start justify-between gap-4 mb-3">
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold text-foreground mb-1">

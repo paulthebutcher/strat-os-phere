@@ -11,7 +11,7 @@ interface ContinuePanelProps {
 
 export function ContinuePanel({ project }: ContinuePanelProps) {
   return (
-    <div className="border border-border rounded-lg p-4 bg-muted/30">
+    <div className="plinth-surface-tint border border-border rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-foreground">Continue</h3>
       </div>
