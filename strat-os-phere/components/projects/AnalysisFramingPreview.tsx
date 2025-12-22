@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 import type {
   RiskPosture,
   AmbitionLevel,
@@ -160,61 +161,61 @@ export function AnalysisFramingPreview({
   }
 
   return (
-    <div className="panel sticky top-4 h-fit">
-      <div className="space-y-6">
+    <div className="panel h-fit">
+      <div className="space-y-6 p-6">
         <div>
-          <h3 className="text-sm font-semibold text-foreground mb-4">
+          <h3 className="text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-300 uppercase mb-4">
             Analysis framing
           </h3>
-          <div className="space-y-3 text-sm">
+          <div className="space-y-4 text-sm">
             <div>
-              <div className="text-xs text-muted-foreground mb-0.5">
+              <div className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">
                 We'll analyze
               </div>
-              <div className="font-medium text-foreground">
+              <div className="font-semibold text-foreground leading-relaxed">
                 {formatValue(formState.marketCategory)}
               </div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground mb-0.5">For</div>
-              <div className="font-medium text-foreground">
+              <div className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">For</div>
+              <div className="font-semibold text-foreground leading-relaxed">
                 {formatValue(formState.targetCustomer)}
               </div>
             </div>
             {formState.goal && (
               <div>
-                <div className="text-xs text-muted-foreground mb-0.5">
+                <div className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">
                   To achieve
                 </div>
-                <div className="font-medium text-foreground">
+                <div className="font-semibold text-foreground leading-relaxed">
                   {formatValue(formState.goal)}
                 </div>
               </div>
             )}
             {formState.primaryConstraint && (
               <div>
-                <div className="text-xs text-muted-foreground mb-0.5">Under</div>
-                <div className="font-medium text-foreground">
+                <div className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Under</div>
+                <div className="font-semibold text-foreground leading-relaxed">
                   {formatConstraint(formState.primaryConstraint)}
                 </div>
               </div>
             )}
             {formState.ambitionLevel && (
               <div>
-                <div className="text-xs text-muted-foreground mb-0.5">
+                <div className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">
                   Ambition
                 </div>
-                <div className="font-medium text-foreground">
+                <div className="font-semibold text-foreground leading-relaxed">
                   {formatAmbitionLevel(formState.ambitionLevel)}
                 </div>
               </div>
             )}
             {formState.inputConfidence && (
               <div>
-                <div className="text-xs text-muted-foreground mb-0.5">
+                <div className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">
                   Confidence
                 </div>
-                <div className="font-medium text-foreground">
+                <div className="font-semibold text-foreground leading-relaxed">
                   {formatInputConfidence(formState.inputConfidence)}
                 </div>
               </div>
@@ -223,46 +224,49 @@ export function AnalysisFramingPreview({
         </div>
 
         <div className="border-t border-border pt-4">
-          <h4 className="text-xs font-semibold text-foreground mb-3">
+          <h4 className="text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-300 uppercase mb-3">
             Quality meter
           </h4>
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
                 Market specificity
               </span>
-              <span
+              <Badge
+                variant={marketQuality.level === 'strong' ? 'default' : marketQuality.level === 'good' ? 'secondary' : 'muted'}
                 className={cn(
                   'text-xs font-medium',
-                  qualityColor(marketQuality.level)
+                  marketQuality.level === 'needs_detail' && 'border-amber-300 text-amber-700 dark:text-amber-400'
                 )}
               >
                 {marketQuality.label}
-              </span>
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
                 Customer clarity
               </span>
-              <span
+              <Badge
+                variant={customerQuality.level === 'strong' ? 'default' : customerQuality.level === 'good' ? 'secondary' : 'muted'}
                 className={cn(
                   'text-xs font-medium',
-                  qualityColor(customerQuality.level)
+                  customerQuality.level === 'needs_detail' && 'border-amber-300 text-amber-700 dark:text-amber-400'
                 )}
               >
                 {customerQuality.label}
-              </span>
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">Goal clarity</span>
-              <span
+              <Badge
+                variant={goalQuality.level === 'strong' ? 'default' : goalQuality.level === 'good' ? 'secondary' : 'muted'}
                 className={cn(
                   'text-xs font-medium',
-                  qualityColor(goalQuality.level)
+                  goalQuality.level === 'needs_detail' && 'border-amber-300 text-amber-700 dark:text-amber-400'
                 )}
               >
                 {goalQuality.label}
-              </span>
+              </Badge>
             </div>
           </div>
         </div>

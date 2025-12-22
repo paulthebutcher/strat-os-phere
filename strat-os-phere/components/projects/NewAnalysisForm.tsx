@@ -2,12 +2,14 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { CheckCircle2, TrendingUp, FileText } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Collapsible } from '@/components/ui/collapsible'
 import { Badge } from '@/components/ui/badge'
+import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { PasteExtraction } from '@/components/projects/PasteExtraction'
 import { AnalysisFramingPreview } from '@/components/projects/AnalysisFramingPreview'
 import { ExpertNote } from '@/components/shared/ExpertNote'
@@ -56,6 +58,7 @@ export function NewAnalysisForm({
     explicitNonGoals: '',
     inputConfidence: '' as InputConfidence | '',
   })
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [extractedValues, setExtractedValues] = useState<{
@@ -163,6 +166,7 @@ export function NewAnalysisForm({
   }
 
   function handleTemplateSelect(template: AnalysisTemplate) {
+    setSelectedTemplateId(template.id)
     setFormState((prev) => ({
       ...prev,
       name: template.values.name,
@@ -175,6 +179,7 @@ export function NewAnalysisForm({
   }
 
   function handleQuickFill() {
+    setSelectedTemplateId(null)
     setFormState((prev) => ({
       ...prev,
       name: GYM_QUICK_FILL.name,
@@ -321,68 +326,98 @@ export function NewAnalysisForm({
     formState.goal.trim().length > 0
 
   return (
-    <div className="w-full max-w-7xl mx-auto">
-      <div className="mb-6 space-y-2">
-        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-        {description ? (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        ) : null}
+    <div className="w-full max-w-6xl mx-auto px-6">
+      {/* Hero Header */}
+      <div className="mb-8">
+        <div className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 border border-border rounded-xl shadow-sm px-6 py-6 mb-6">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">{title}</h1>
+          <p className="text-sm text-muted-foreground mb-4">
+            Turn public competitor signals into ranked, defensible opportunities.
+          </p>
+          <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-border/50">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="text-xs font-medium text-foreground">Ranked opportunities</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="text-xs font-medium text-foreground">Evidence & recency</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="text-xs font-medium text-foreground">Actionable next steps</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* What you'll get section */}
-      <div className="mb-6 rounded-lg border border-border bg-muted/30 px-4 py-3">
-        <p className="text-sm font-semibold text-foreground mb-2">What you'll get:</p>
-        <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-          <li>Ranked opportunities with defensible evidence</li>
-          <li>Confidence & recency signals</li>
-          <li>Actionable next steps</li>
-        </ul>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left column: Form */}
-        <div className="lg:col-span-2">
-          <div className="panel w-full px-6 py-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Templates section */}
-              <div className="space-y-3">
+        <div className="lg:col-span-8 space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Step 1: Template Selection */}
+            <SurfaceCard className="p-6">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">
-                    Start with a template
-                  </p>
-                  <Button
+                  <div>
+                    <p className="text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-300 uppercase mb-1">
+                      Step 1 — Choose a starting point
+                    </p>
+                    <p className="text-sm font-semibold text-foreground">
+                      Start with a template
+                    </p>
+                  </div>
+                  <button
                     type="button"
-                    variant="outline"
-                    size="sm"
                     onClick={handleQuickFill}
+                    className="rounded-full text-xs px-3 py-1.5 border border-border bg-background hover:bg-muted/50 transition-colors font-medium text-foreground"
                   >
                     Quick fill: Gym management
-                  </Button>
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {ANALYSIS_TEMPLATES.map((template) => (
-                    <button
-                      key={template.id}
-                      type="button"
-                      onClick={() => handleTemplateSelect(template)}
-                      className="text-left rounded-lg border border-border bg-background p-3 hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="text-sm font-semibold text-foreground mb-1">
-                        {template.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {template.description}
-                      </div>
-                    </button>
-                  ))}
+                  {ANALYSIS_TEMPLATES.map((template) => {
+                    const isSelected = selectedTemplateId === template.id
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => handleTemplateSelect(template)}
+                        className={`text-left rounded-lg border p-4 transition-all ${
+                          isSelected
+                            ? 'border-indigo-400 ring-2 ring-indigo-100 dark:ring-indigo-900/30 bg-indigo-50/30 dark:bg-indigo-950/20'
+                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm bg-background'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-1">
+                          <div className="text-sm font-semibold text-foreground">
+                            {template.name}
+                          </div>
+                          {isSelected && (
+                            <CheckCircle2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0 ml-2" />
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {template.description}
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
+            </SurfaceCard>
 
-              {/* Paste extraction with improved UI */}
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-foreground">
-                  Have context already? Paste it here (optional)
-                </label>
+            {/* Paste Context Section */}
+            <SurfaceCard className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-300 mb-1">
+                    Paste context
+                  </p>
+                  <label className="text-sm font-medium text-foreground">
+                    Have context already? Paste it here (optional)
+                  </label>
+                </div>
                 <PasteExtraction
                   onExtract={handleExtractedValues}
                   currentValues={{
@@ -412,8 +447,15 @@ export function NewAnalysisForm({
                   </div>
                 )}
               </div>
+            </SurfaceCard>
 
+            {/* Core Fields Section */}
+            <SurfaceCard className="p-6">
               <div className="space-y-4">
+                <p className="text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-300 mb-1">
+                  Core fields
+                </p>
+                <div className="space-y-4">
                 <div className="space-y-2">
                   <label
                     htmlFor="name"
@@ -634,8 +676,12 @@ export function NewAnalysisForm({
                     </p>
                   </div>
                 </div>
+                </div>
               </div>
+            </SurfaceCard>
 
+            {/* Sharpen Analysis Section */}
+            <SurfaceCard className="p-6">
               <Collapsible
                 title="Sharpen analysis"
                 description="Optional constraints, context, and calibration to improve output quality"
@@ -796,30 +842,32 @@ export function NewAnalysisForm({
                   </div>
                 </div>
               </Collapsible>
+            </SurfaceCard>
 
-              {error ? (
-                <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2">
-                  <p className="text-sm font-medium text-destructive" role="alert">
-                    {error}
-                  </p>
-                </div>
-              ) : null}
-
-              <div className="flex items-center justify-between gap-4 pt-2">
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-destructive">*</span> Required fields
+            {error ? (
+              <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2">
+                <p className="text-sm font-medium text-destructive" role="alert">
+                  {error}
                 </p>
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Creating...' : 'Create analysis'}
-                </Button>
               </div>
-            </form>
-          </div>
+            ) : null}
+
+            <div className="flex items-center justify-between gap-4 pt-2">
+              <p className="text-xs text-muted-foreground">
+                <span className="text-destructive">*</span> Required fields
+              </p>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Creating...' : 'Create analysis'}
+              </Button>
+            </div>
+          </form>
         </div>
 
-        {/* Right column: Preview */}
-        <div className="lg:col-span-1">
-          <AnalysisFramingPreview formState={formState} />
+        {/* Right column: Sticky Preview */}
+        <div className="lg:col-span-4">
+          <div className="lg:sticky lg:top-20">
+            <AnalysisFramingPreview formState={formState} />
+          </div>
         </div>
       </div>
     </div>

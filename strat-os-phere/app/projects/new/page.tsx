@@ -14,8 +14,8 @@ export default async function NewProjectPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-center justify-center px-4">
-      <main className="flex w-full flex-col items-center gap-8 py-10">
+    <div className="min-h-[calc(100vh-57px)]">
+      <main className="w-full py-8">
         <NewAnalysisForm />
       </main>
     </div>
