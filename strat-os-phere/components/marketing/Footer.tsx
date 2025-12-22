@@ -6,6 +6,7 @@
 import Link from "next/link"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
+import { Logo } from "@/components/brand/Logo"
 
 export function Footer() {
   return (
@@ -13,9 +14,9 @@ export function Footer() {
       <div className="mx-auto max-w-[1200px] px-4 py-16 md:py-20">
         <div className="grid gap-12 md:grid-cols-4">
           <div className="md:col-span-2">
-            <h3 className={cn("mb-4", brand.typeScale.subhead, "text-text-primary")}>
-              Plinth
-            </h3>
+            <div className={cn("mb-4", brand.typeScale.subhead, "text-text-primary")}>
+              <Logo variant="lockup" size="md" />
+            </div>
             <p className={cn("max-w-md", brand.typeScale.body, "text-text-secondary")}>
               A decision engine for senior Product/UX strategy. Turn competitor signals into decision-ready outputs.
             </p>

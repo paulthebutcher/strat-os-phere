@@ -80,8 +80,8 @@ export async function createBaseMetadata(): Promise<Metadata> {
       follow: true,
     },
     icons: {
-      icon: "/favicon.ico",
-      apple: "/apple-touch-icon.png",
+      icon: "/brand/plinth-logo.png",
+      apple: "/brand/plinth-logo.png",
     },
   };
 }

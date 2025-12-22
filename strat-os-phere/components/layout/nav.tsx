@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
-import { PlinthMark } from '@/components/graphics'
+import { Logo } from '@/components/brand/Logo'
 import { HelpDrawer } from '@/components/guidance/HelpDrawer'
 
 export async function Nav() {
@@ -20,13 +20,12 @@ export async function Nav() {
     <nav className="sticky top-0 z-50 border-b border-border bg-surface">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-8">
-          <Link
+          <Logo
             href="/dashboard"
-            className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors"
-          >
-            <PlinthMark className="w-5 h-5" />
-            <span className="hidden sm:inline">Plinth</span>
-          </Link>
+            variant="lockup"
+            size="sm"
+            className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
+          />
           <div className="hidden items-center gap-4 md:flex">
             <Link
               href="/dashboard"

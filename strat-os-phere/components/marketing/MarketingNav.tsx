@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { HelpDrawer } from "@/components/guidance/HelpDrawer"
+import { Logo } from "@/components/brand/Logo"
 
 export function MarketingNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -13,12 +14,13 @@ export function MarketingNav() {
   return (
     <nav className="sticky top-0 z-50 border-b bg-surface/80 backdrop-blur-md shadow-sm">
       <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-4">
-        <Link
+        <Logo
           href="/"
+          variant="lockup"
+          size="md"
+          priority
           className="text-lg font-bold text-foreground hover:text-primary transition-colors"
-        >
-          Plinth
-        </Link>
+        />
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-8 md:flex">
