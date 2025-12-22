@@ -32,7 +32,7 @@ export function StatusPill({
     },
     error: {
       icon: XCircle,
-      badgeVariant: 'destructive' as const,
+      badgeVariant: 'danger' as const,
     },
     info: {
       icon: Clock,

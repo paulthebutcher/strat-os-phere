@@ -1,7 +1,26 @@
 import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
+import { Badge, type BadgeProps } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { ReactNode } from 'react'
+
+// Extract the Badge variant type from BadgeProps
+type BadgeVariant = BadgeProps['variant']
+
+/**
+ * Maps status badge variants to Badge component variants
+ * Converts "destructive" to "danger" to match Badge's allowed variants
+ */
+function toBadgeVariant(v: string | null | undefined): BadgeVariant {
+  if (v === 'destructive') {
+    return 'danger'
+  }
+  // Type guard: check if v is a valid Badge variant
+  const validVariants: BadgeVariant[] = ['default', 'success', 'secondary', 'primary', 'warning', 'danger']
+  if (v && validVariants.includes(v as BadgeVariant)) {
+    return v as BadgeVariant
+  }
+  return 'default'
+}
 
 interface ResultsHeaderProps {
   title: string
@@ -65,7 +84,7 @@ export function ResultsHeader({
               </div>
             ))}
             {statusBadge && (
-              <Badge variant={statusBadge.variant || 'default'} className="text-xs">
+              <Badge variant={toBadgeVariant(statusBadge.variant)} className="text-xs">
                 {statusBadge.label}
               </Badge>
             )}
