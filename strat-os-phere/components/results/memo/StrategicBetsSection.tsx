@@ -51,7 +51,7 @@ export function StrategicBetsSection({
               No Strategic Bets yet. Regenerate analysis to create them.
             </p>
             <Button asChild variant="outline">
-              <a href={`/projects/${projectId}/results?tab=strategic_bets`}>
+              <a href={`/projects/${projectId}/results`}>
                 Generate Strategic Bets
               </a>
             </Button>

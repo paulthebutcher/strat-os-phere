@@ -411,7 +411,7 @@ export function AnalysisRunExperience({
         completed={true}
         onViewResults={() => {
           onViewResults?.()
-          router.push(`/projects/${projectId}/results?view=results&tab=strategic_bets&new=true`)
+          router.push(`/projects/${projectId}/results?new=true`)
           router.refresh()
         }}
       />

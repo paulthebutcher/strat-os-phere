@@ -25,12 +25,19 @@ export async function generateMetadata(props: StrategicBetsPageProps): Promise<M
   })
 }
 
+/**
+ * DEPRECATED: Legacy strategic-bets route
+ * 
+ * Redirects to the canonical results route.
+ * Strategic bets are now shown as part of the main results view.
+ * 
+ * Canonical route: /projects/[projectId]/results
+ */
 export default async function StrategicBetsPage(props: StrategicBetsPageProps) {
   const params = await props.params
   const projectId = params.projectId
   
-  // Temporary redirect to results page with tab parameter
-  // TODO: Extract section components and render properly
-  redirect(`/projects/${projectId}/results?tab=strategic_bets`)
+  // Redirect to canonical results route
+  redirect(`/projects/${projectId}/results`)
 }
 

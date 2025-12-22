@@ -25,12 +25,19 @@ export async function generateMetadata(props: JobsPageProps): Promise<Metadata> 
   })
 }
 
+/**
+ * DEPRECATED: Legacy jobs route
+ * 
+ * Redirects to the canonical results route.
+ * Jobs to be done are now shown as part of the main results view.
+ * 
+ * Canonical route: /projects/[projectId]/results
+ */
 export default async function JobsPage(props: JobsPageProps) {
   const params = await props.params
   const projectId = params.projectId
   
-  // Temporary redirect to results page with tab parameter
-  // TODO: Extract section components and render properly
-  redirect(`/projects/${projectId}/results?tab=jobs`)
+  // Redirect to canonical results route
+  redirect(`/projects/${projectId}/results`)
 }
 
