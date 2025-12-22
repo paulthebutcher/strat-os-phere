@@ -42,6 +42,8 @@ function ConfidentialInfoDisclosure() {
 interface CompetitorFormProps {
   projectId: string
   existingCount: number
+  onSuccess?: () => void
+  compact?: boolean
 }
 
 type EvidenceQuality = 'empty' | 'too-short' | 'good' | 'long'
@@ -56,6 +58,8 @@ function getEvidenceQuality(length: number): EvidenceQuality {
 export function CompetitorForm({
   projectId,
   existingCount,
+  onSuccess,
+  compact = false,
 }: CompetitorFormProps) {
   const router = useRouter()
   const storageKey = `competitor-form-draft-${projectId}`
@@ -311,6 +315,13 @@ export function CompetitorForm({
           // Ignore localStorage errors
         }
         router.refresh()
+        // Call onSuccess callback if provided (e.g., to close drawer)
+        if (onSuccess) {
+          // Small delay to allow success message to be visible
+          setTimeout(() => {
+            onSuccess()
+          }, 500)
+        }
       }
     } catch (err) {
       // Surface any unexpected client-side or network errors
@@ -341,36 +352,38 @@ export function CompetitorForm({
       : 'text-text-secondary'
 
   return (
-    <section className="panel px-6 py-5">
-      <header className="mb-5 space-y-2">
-        <p className="text-xs uppercase tracking-wide text-text-secondary">
-          Step 2
-        </p>
-        <h2 className="text-lg font-semibold text-foreground">
-          {isFirstCompetitor
-            ? 'Add competitors to map the landscape'
-            : 'Add another competitor'}
-        </h2>
-        {isFirstCompetitor ? (
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Add a handful of real alternatives so the analysis has something
-              concrete to compare against.
-            </p>
-            <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground" role="list">
-              <li>Add 3–7 competitors</li>
-              <li>Paste public homepage, pricing, or feature copy</li>
-              <li>Generate an exec-ready landscape summary</li>
-            </ul>
-            <EvidenceHelpers className="mt-2" />
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            You can add up to {MAX_COMPETITORS_PER_PROJECT} competitors per
-            analysis. Remaining slots: {competitorsRemaining}.
+    <section className={compact ? "space-y-4" : "panel px-6 py-5"}>
+      {!compact && (
+        <header className="mb-5 space-y-2">
+          <p className="text-xs uppercase tracking-wide text-text-secondary">
+            Step 2
           </p>
-        )}
-      </header>
+          <h2 className="text-lg font-semibold text-foreground">
+            {isFirstCompetitor
+              ? 'Add competitors to map the landscape'
+              : 'Add another competitor'}
+          </h2>
+          {isFirstCompetitor ? (
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Add a handful of real alternatives so the analysis has something
+                concrete to compare against.
+              </p>
+              <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground" role="list">
+                <li>Add 3–7 competitors</li>
+                <li>Paste public homepage, pricing, or feature copy</li>
+                <li>Generate an exec-ready landscape summary</li>
+              </ul>
+              <EvidenceHelpers className="mt-2" />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              You can add up to {MAX_COMPETITORS_PER_PROJECT} competitors per
+              analysis. Remaining slots: {competitorsRemaining}.
+            </p>
+          )}
+        </header>
+      )}
 
       <EvidenceGenerator
         projectId={projectId}
