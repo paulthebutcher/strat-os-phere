@@ -22,6 +22,9 @@ import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import type { NormalizedCitation } from '@/lib/results/evidence'
 import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
+import { OpportunityPlaybook } from '@/components/results/OpportunityPlaybook'
+import { OpportunityExperiments } from '@/components/results/OpportunityExperiments'
+import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 
 /**
  * Presenter input shape - simple DTO that doesn't depend on internal schemas
@@ -202,6 +205,7 @@ export function ResultsPresenter({
         opportunities={opportunities}
         citations={allCitations}
         opportunitiesV3={opportunitiesV3}
+        profiles={profiles}
         cta={cta}
       />
     )
@@ -256,6 +260,7 @@ function OpportunitiesV3Presenter({
   opportunities,
   citations,
   opportunitiesV3,
+  profiles,
   cta,
 }: {
   mode: 'project' | 'sample'
@@ -264,9 +269,25 @@ function OpportunitiesV3Presenter({
   opportunities: ResultsPresenterOpportunity[]
   citations: NormalizedCitation[]
   opportunitiesV3: OpportunityV3ArtifactContent
+  profiles?: { snapshots: unknown[] } | null
   cta?: ResultsPresenterProps['cta']
 }) {
   const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')
+  
+  // Extract competitor names from profiles (with type safety)
+  const competitors = (profiles?.snapshots || [])
+    .filter((snapshot): snapshot is CompetitorSnapshot => {
+      return (
+        typeof snapshot === 'object' &&
+        snapshot !== null &&
+        'competitor_name' in snapshot &&
+        typeof (snapshot as CompetitorSnapshot).competitor_name === 'string'
+      )
+    })
+    .map((snapshot) => ({
+      name: snapshot.competitor_name,
+      signals: snapshot.proof_points?.map((pp) => pp.claim) || [],
+    }))
   
   // Apply compression if feature flag is enabled
   let opportunitiesToRender = opportunitiesV3.opportunities
@@ -448,6 +469,17 @@ function OpportunitiesV3Presenter({
                     )}
                   </div>
                 )}
+
+                {/* Steal This Playbook */}
+                <OpportunityPlaybook
+                  opportunity={opp}
+                  competitors={competitors}
+                />
+
+                {/* Recommended Experiments */}
+                <OpportunityExperiments
+                  opportunity={opp}
+                />
 
                 {opp.experiments && opp.experiments.length > 0 && (
                   <div>
