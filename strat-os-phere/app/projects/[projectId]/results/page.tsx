@@ -16,6 +16,13 @@ import { ContrastSummary } from '@/components/results/ContrastSummary'
 import { LineageLink } from '@/components/results/LineageLink'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Collapsible } from '@/components/ui/collapsible'
+import { WhyNowChip } from '@/components/results/WhyNowChip'
+import {
+  getOpportunityScore,
+  getWhyNowSignals,
+  getDecisionFrame,
+} from '@/lib/results/opportunityUx'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
@@ -1447,7 +1454,7 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
           <p className="text-sm text-muted-foreground">
-            Opportunities will appear here after analysis is generated.
+            No opportunities yet — generate results to see your first strategic bet.
           </p>
           <GenerateResultsV2Button
             projectId={projectId}
@@ -1459,12 +1466,85 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
   }
 
   // Sort by score descending
-  const sortedOpportunities = [...opportunities.opportunities].sort(
-    (a, b) => b.scoring.total - a.scoring.total
-  )
+  const sortedOpportunities = [...opportunities.opportunities].sort((a, b) => {
+    const scoreA = getOpportunityScore(a) ?? 0
+    const scoreB = getOpportunityScore(b) ?? 0
+    return scoreB - scoreA
+  })
+
+  // Get top opportunity for "If you did only one thing" panel
+  const topOpportunity = sortedOpportunities[0]
+  const topScore = getOpportunityScore(topOpportunity)
+
+  // Build panel content for copy
+  const panelContentLines = [
+    '# If you did only one thing in the next 90 days',
+    '',
+    'A single bet that maximizes learning and leverage.',
+    '',
+    `## ${topOpportunity.title}`,
+    '',
+    topOpportunity.one_liner,
+    '',
+  ]
+
+  // Add rationale (use one_liner or derive from description)
+  const rationale = topOpportunity.one_liner || topOpportunity.proposed_move || ''
+  if (rationale) {
+    panelContentLines.push('**Rationale:**', rationale, '')
+  }
+
+  // Add first experiment
+  if (topOpportunity.experiments && topOpportunity.experiments.length > 0) {
+    panelContentLines.push('**First experiment:**', topOpportunity.experiments[0].hypothesis || topOpportunity.experiments[0].smallest_test || '')
+  } else {
+    panelContentLines.push('**First experiment:** Run a small validation test to confirm customer interest and feasibility.')
+  }
+
+  const panelContent = panelContentLines.join('\n')
 
   return (
     <section className="space-y-6">
+      {/* "If you did only one thing" panel */}
+      <article className="panel p-6 border-2 border-primary/20">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-foreground mb-1">
+              If you did only one thing in the next 90 days
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              A single bet that maximizes learning and leverage.
+            </p>
+          </div>
+          <CopySectionButton content={panelContent} label="Copy" />
+        </div>
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-base font-semibold text-foreground mb-1">
+              {topOpportunity.title}
+            </h3>
+            {topScore !== null && (
+              <Badge variant="primary" className="mb-2">
+                Score: {topScore}/100
+              </Badge>
+            )}
+            <p className="text-sm text-foreground leading-relaxed mt-2">
+              {rationale}
+            </p>
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+              First experiment
+            </h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {topOpportunity.experiments && topOpportunity.experiments.length > 0
+                ? topOpportunity.experiments[0].hypothesis || topOpportunity.experiments[0].smallest_test || 'Run a small validation test to confirm customer interest and feasibility.'
+                : 'Run a small validation test to confirm customer interest and feasibility.'}
+            </p>
+          </div>
+        </div>
+      </article>
+
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
         <p className="text-sm text-muted-foreground leading-relaxed">
@@ -1472,7 +1552,11 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
         </p>
       </div>
 
-      {sortedOpportunities.map((opp, index) => (
+      {sortedOpportunities.map((opp, index) => {
+        const whyNowSignals = getWhyNowSignals(opp)
+        const decisionFrame = getDecisionFrame(opp)
+        
+        return (
         <article key={opp.id || index} className="panel p-6 space-y-6">
           <header className="space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -1480,43 +1564,59 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
                 <h2 className="text-xl font-semibold text-foreground leading-tight">{opp.title}</h2>
                 <p className="mt-2 text-sm text-foreground leading-relaxed">{opp.one_liner}</p>
               </div>
-              <Badge variant="primary" className="shrink-0 text-base px-3 py-1">
-                {opp.scoring.total}/100
-              </Badge>
+              {getOpportunityScore(opp) !== null && (
+                <Badge variant="primary" className="shrink-0 text-base px-3 py-1">
+                  {getOpportunityScore(opp)}/100
+                </Badge>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
               <span>
                 <span className="font-medium text-foreground">Customer:</span> {opp.customer}
               </span>
             </div>
+            
+            {/* Why Now strip */}
+            {whyNowSignals.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mr-1">
+                  Why now:
+                </span>
+                {whyNowSignals.map((signal, signalIndex) => (
+                  <WhyNowChip key={signalIndex} signal={signal} />
+                ))}
+              </div>
+            )}
           </header>
 
           {/* Score Breakdown */}
-          <div className="border-t border-b border-border py-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-              Score Breakdown
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(opp.scoring.breakdown).map(([key, value]) => (
-                <div key={key}>
-                  <div className="text-xs text-muted-foreground mb-1">
-                    {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-muted rounded-full h-2">
-                      <div
-                        className="bg-primary h-2 rounded-full"
-                        style={{ width: `${(value / 10) * 100}%` }}
-                      />
+          {'scoring' in opp && typeof opp.scoring === 'object' && opp.scoring !== null && 'breakdown' in opp.scoring && typeof opp.scoring.breakdown === 'object' && opp.scoring.breakdown !== null && (
+            <div className="border-t border-b border-border py-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+                Score Breakdown
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(opp.scoring.breakdown).map(([key, value]) => (
+                  <div key={key}>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                     </div>
-                    <span className="text-sm font-medium text-foreground w-8 text-right">
-                      {value.toFixed(1)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-muted rounded-full h-2">
+                        <div
+                          className="bg-primary h-2 rounded-full"
+                          style={{ width: `${(typeof value === 'number' ? value / 10 : 0) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-foreground w-8 text-right">
+                        {typeof value === 'number' ? value.toFixed(1) : '0.0'}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Main Content */}
           <div className="space-y-5 text-sm">
@@ -1571,45 +1671,48 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
               </div>
             ) : null}
 
-            {/* Tradeoffs */}
-            <div className="grid gap-4 md:grid-cols-3 border-t border-b border-border pt-4 pb-4">
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                  What We Say No To
-                </h3>
-                <ul className="space-y-2">
-                  {opp.tradeoffs.what_we_say_no_to.map((item, itemIndex) => (
-                    <li key={itemIndex} className="text-sm text-foreground leading-relaxed">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+            {/* Decision Frame - Collapsible */}
+            <Collapsible
+              title="Decision frame"
+              description={decisionFrame.isDerived ? 'Draft (UI-derived)' : undefined}
+              defaultOpen={false}
+            >
+              <div className="grid gap-4 md:grid-cols-3 border-t border-b border-border pt-4 pb-4">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                    What we'd say no to
+                  </h3>
+                  <ul className="space-y-2">
+                    {decisionFrame.noTo.map((item, itemIndex) => (
+                      <li key={itemIndex} className="text-sm text-foreground leading-relaxed">
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                    Capability we'd have to build
+                  </h3>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {decisionFrame.capability}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                    Why competitors won't follow easily
+                  </h3>
+                  <p className="text-sm text-foreground leading-relaxed">
+                    {decisionFrame.defensibility}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                  Capability Forced
-                </h3>
-                <ul className="space-y-2">
-                  {opp.tradeoffs.capability_forced.map((capability, capIndex) => (
-                    <li key={capIndex} className="text-sm text-foreground leading-relaxed">
-                      {capability}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                  Why Competitors Won't Follow
-                </h3>
-                <ul className="space-y-2">
-                  {opp.tradeoffs.why_competitors_wont_follow.map((reason, reasonIndex) => (
-                    <li key={reasonIndex} className="text-sm text-foreground leading-relaxed">
-                      {reason}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+              {decisionFrame.isDerived && (
+                <p className="text-xs text-muted-foreground italic mt-2">
+                  Note: This decision frame is UI-derived from available opportunity data. It will be persisted in future schema updates.
+                </p>
+              )}
+            </Collapsible>
 
             {/* Experiments */}
             {opp.experiments?.length ? (
@@ -1634,7 +1737,8 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
             ) : null}
           </div>
         </article>
-      ))}
+        )
+      })}
     </section>
   )
 }
