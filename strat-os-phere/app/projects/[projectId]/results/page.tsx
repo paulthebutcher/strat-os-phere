@@ -25,6 +25,9 @@ import { ResultsPageShell } from '@/components/results/ResultsPageShell'
 import { ResultsHeader } from '@/components/results/ResultsHeader'
 import { SectionCard } from '@/components/results/SectionCard'
 import { ProgressiveRevealWrapper } from '@/components/results/ProgressiveRevealWrapper'
+import { DecisionConfidenceSummary } from '@/components/results/DecisionConfidenceSummary'
+import { DecisionConfidencePanel } from '@/components/results/DecisionConfidencePanel'
+import { HardToCopyCallout } from '@/components/results/HardToCopyCallout'
 import {
   getOpportunityScore,
   getWhyNowSignals,
@@ -275,17 +278,15 @@ export default async function ResultsPage(props: ResultsPageProps) {
   if (!project) {
     notFound()
   }
-
-  // After null check, project is non-null
-  // TypeScript doesn't recognize notFound() never returns, so we narrow explicitly
-  const ownedProject = project as NonNullable<typeof project>
-
-  if (ownedProject.user_id !== authenticatedUser.id) {
+  
+  // TypeScript doesn't recognize notFound() never returns, so we use non-null assertion
+  // after the guard (safe because we've already checked for null)
+  if (project!.user_id !== authenticatedUser.id) {
     notFound()
   }
   
   // After both checks, project is guaranteed to be non-null and owned by the user
-  const verifiedProject = ownedProject
+  const verifiedProject = project!
 
   const [competitors, artifacts] = await Promise.all([
     listCompetitorsForProject(supabase, projectId),
