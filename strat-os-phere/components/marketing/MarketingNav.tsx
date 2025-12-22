@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { HelpDrawer } from "@/components/guidance/HelpDrawer"
 
 export function MarketingNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -42,6 +43,7 @@ export function MarketingNav() {
             Login
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-primary to-[hsl(var(--marketing-gradient-end))] opacity-0 transition-opacity group-hover:opacity-100" />
           </Link>
+          <HelpDrawer />
           <Link href="/dashboard">
             <Button size="sm" className="shadow-sm hover:shadow-md transition-shadow">
               Try Plinth
@@ -89,6 +91,9 @@ export function MarketingNav() {
             >
               Login
             </Link>
+            <div className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
+              <HelpDrawer />
+            </div>
             <Link href="/dashboard" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
               <Button size="sm" className="w-full">
                 Try Plinth

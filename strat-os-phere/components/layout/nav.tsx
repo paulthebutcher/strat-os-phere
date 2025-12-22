@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
 import { PlinthMark } from '@/components/graphics'
+import { HelpDrawer } from '@/components/guidance/HelpDrawer'
 
 export async function Nav() {
   const supabase = await createClient()
@@ -55,6 +56,7 @@ export async function Nav() {
               {user.email}
             </span>
           )}
+          <HelpDrawer />
           <form action={signOut}>
             <Button type="submit" variant="ghost" size="sm">
               Sign out

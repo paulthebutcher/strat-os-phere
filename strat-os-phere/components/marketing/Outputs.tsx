@@ -3,10 +3,12 @@
  * 
  * Enhanced with brand tokens for consistent styling and enterprise-grade appearance.
  */
+import Link from "next/link"
 import { Target, Lightbulb, TrendingUp, FileText } from "lucide-react"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
 import { OpportunitiesIllustration, Backdrop } from "@/components/graphics"
+import { Button } from "@/components/ui/button"
 
 const outputs = [
   {
@@ -53,11 +55,23 @@ export function Outputs() {
       <Backdrop variant="section" density="subtle" />
       <div className="mx-auto max-w-3xl text-center relative z-10">
         <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
-          What you get
+          What you'll walk away with
         </h2>
         <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
           Everything is copyable, exportable, and ready to use in your strategy work. No buzzwords—just actionable insights backed by evidence.
         </p>
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <p className={cn("text-sm", "text-text-secondary")}>
+            <strong className="text-text-primary">Evidence</strong> → <strong className="text-text-primary">Opportunities</strong> → <strong className="text-text-primary">Bets</strong>
+          </p>
+        </div>
+        <div className="mt-8">
+          <Link href="/samples">
+            <Button variant="outline" size="sm" className="border-2">
+              See a sample
+            </Button>
+          </Link>
+        </div>
       </div>
       <div className="mt-20 relative z-10">
         {/* Opportunities illustration for opportunities card */}

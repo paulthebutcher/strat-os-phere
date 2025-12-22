@@ -46,7 +46,7 @@ export function HowItWorks() {
     <section id="how-it-works" className={cn("mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
       <div className="mx-auto max-w-3xl text-center">
         <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
-          How it works
+          How Plinth works in 3 steps
         </h2>
         <p className={cn("mt-4", brand.typeScale.body, "text-text-secondary")}>
           Everything is backed by evidence with citations you can validate

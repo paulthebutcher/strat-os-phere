@@ -9,6 +9,8 @@ import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
 import { createClient } from '@/lib/supabase/server'
 import { OpportunitiesContent } from '@/components/results/OpportunitiesContent'
 import { ShareButton } from '@/components/results/ShareButton'
+import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { TourLink } from '@/components/guidance/TourLink'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -60,12 +62,14 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
   const { opportunitiesV3, opportunitiesV2, profiles, strategicBets, jtbd } = normalized
 
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-      <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-        <div className="flex items-center justify-end">
-          <ShareButton projectId={projectId} />
-        </div>
-        <OpportunitiesContent
+    <PageGuidanceWrapper pageId="results">
+      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
+        <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
+          <div className="flex items-center justify-between">
+            <TourLink />
+            <ShareButton projectId={projectId} />
+          </div>
+          <OpportunitiesContent
           projectId={projectId}
           opportunitiesV3={opportunitiesV3?.content}
           opportunitiesV2={opportunitiesV2?.content}
@@ -75,6 +79,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
         />
       </main>
     </div>
+    </PageGuidanceWrapper>
   )
 }
 

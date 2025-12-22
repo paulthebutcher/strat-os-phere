@@ -15,6 +15,8 @@ import { listArtifacts } from '@/lib/data/artifacts'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
 import { DataRecencyNote } from '@/components/shared/DataRecencyNote'
 import Link from 'next/link'
+import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { TourLink } from '@/components/guidance/TourLink'
 
 interface CompetitorsPageProps {
   params: Promise<{
@@ -84,25 +86,24 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
   const effectiveCompetitorCount = normalized.competitorCount ?? competitorCount
 
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-      <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-        <header className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Step 2 · Competitors
-            </p>
-            <h1>{project.name}</h1>
-            <p className="text-sm text-text-secondary">
-              Add real alternatives so Plinth can generate a sharp,
-              exec-ready landscape summary.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              <Link href="/help#competitors" className="text-primary underline hover:text-primary/80">
-                Need help?
-              </Link>
-            </p>
-            <DataRecencyNote />
-          </div>
+    <PageGuidanceWrapper pageId="competitors">
+      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
+        <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
+          <header className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Step 2 · Competitors
+              </p>
+              <div className="flex items-center gap-2">
+                <h1>{project.name}</h1>
+              </div>
+              <p className="text-sm text-text-secondary">
+                Add real alternatives so Plinth can generate a sharp,
+                exec-ready landscape summary.
+              </p>
+              <TourLink />
+              <DataRecencyNote />
+            </div>
 
           <div className="flex flex-col items-start gap-2 text-left md:items-end md:text-right">
               <div className="text-xs text-muted-foreground">
@@ -132,6 +133,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
         />
       </main>
     </div>
+    </PageGuidanceWrapper>
   )
 }
 

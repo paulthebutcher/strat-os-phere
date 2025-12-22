@@ -13,6 +13,8 @@ import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { PasteExtraction } from '@/components/projects/PasteExtraction'
 import { AnalysisFramingPreview } from '@/components/projects/AnalysisFramingPreview'
 import { ExpertNote } from '@/components/shared/ExpertNote'
+import { WhyTooltip } from '@/components/guidance/WhyTooltip'
+import { TourLink } from '@/components/guidance/TourLink'
 import { Backdrop, ConfidenceBadgeIcon, RecencyBadgeIcon, CitationsBadgeIcon } from '@/components/graphics'
 import { createProjectFromForm } from '@/app/projects/actions'
 import {
@@ -333,10 +335,13 @@ export function NewAnalysisForm({
         <div className="relative bg-gradient-to-r from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 border border-border rounded-xl shadow-sm px-6 py-6 mb-6 overflow-hidden">
           <Backdrop variant="section" density="subtle" className="rounded-xl" />
           <div className="relative z-10">
-            <h1 className="text-2xl font-semibold text-foreground mb-2">{title}</h1>
-            <p className="text-sm text-muted-foreground mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+            </div>
+            <p className="text-sm text-muted-foreground mb-2">
               Turn public competitor signals into ranked, defensible opportunities.
             </p>
+            <TourLink />
             <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-border/50">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
@@ -700,6 +705,7 @@ export function NewAnalysisForm({
                       >
                         Primary constraint
                       </label>
+                      <WhyTooltip content="This helps Plinth prioritize tradeoffs the same way an exec review would. It focuses the analysis on constraints that matter most to your decision." />
                       <ExpertNote>
                         This helps Plinth prioritize tradeoffs the same way an
                         exec review would.
@@ -731,6 +737,7 @@ export function NewAnalysisForm({
                       <label className="text-sm font-semibold text-foreground">
                         Risk posture
                       </label>
+                      <WhyTooltip content="This shifts recommendations between near-term traction and long-term defensibility. Choose based on whether you need quick wins or sustainable competitive advantage." />
                       <ExpertNote>
                         This shifts recommendations between near-term traction
                         and long-term defensibility.
@@ -764,9 +771,12 @@ export function NewAnalysisForm({
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-sm font-semibold text-foreground">
-                      Ambition level
-                    </label>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-semibold text-foreground">
+                        Ambition level
+                      </label>
+                      <WhyTooltip content="This sets the scope of change: core optimization (improve existing), adjacent expansion (new segments), or category redefinition (create new category)." />
+                    </div>
                     <RadioGroup
                       name="ambitionLevel"
                       value={formState.ambitionLevel}
@@ -814,9 +824,12 @@ export function NewAnalysisForm({
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-sm font-semibold text-foreground">
-                      Input confidence
-                    </label>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-semibold text-foreground">
+                        Input confidence
+                      </label>
+                      <WhyTooltip content="This calibrates the analysis based on how certain you are about your inputs. Higher confidence leads to more definitive recommendations." />
+                    </div>
                     <RadioGroup
                       name="inputConfidence"
                       value={formState.inputConfidence}

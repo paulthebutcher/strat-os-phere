@@ -11,6 +11,8 @@ import { ProjectsEmptyState } from '@/components/projects/ProjectsEmptyState'
 import { ProjectsListClient } from '@/components/projects/ProjectsListClient'
 import { ContinuePanel } from '@/components/projects/ContinuePanel'
 import { Backdrop } from '@/components/graphics'
+import { DashboardPageClient } from '@/components/projects/DashboardPageClient'
+import { TourLink } from '@/components/guidance/TourLink'
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
@@ -55,22 +57,26 @@ export default async function DashboardPage() {
     : null
 
   return (
-    <div className="min-h-[calc(100vh-57px)] plinth-surface" data-testid="projects-page">
-      <div className="mx-auto max-w-7xl px-4 py-12">
-        <main className="flex w-full flex-col items-stretch gap-8">
-          {/* Header Bar */}
-          <header className="relative flex items-start justify-between gap-4 plinth-gradient-soft rounded-lg p-6 overflow-hidden">
-            <Backdrop variant="section" density="subtle" className="rounded-lg" />
-            <div className="space-y-1 relative z-10">
-              <h1 className="text-2xl font-semibold text-foreground">Projects</h1>
-              <p className="text-sm text-muted-foreground">
-                Create and manage analyses. Start new or resume recent work.
-              </p>
-            </div>
-            <Link href="/projects/new">
-              <Button size="sm" variant="brand">New analysis</Button>
-            </Link>
-          </header>
+    <DashboardPageClient>
+      <div className="min-h-[calc(100vh-57px)] plinth-surface" data-testid="projects-page">
+        <div className="mx-auto max-w-7xl px-4 py-12">
+          <main className="flex w-full flex-col items-stretch gap-8">
+            {/* Header Bar */}
+            <header className="relative flex items-start justify-between gap-4 plinth-gradient-soft rounded-lg p-6 overflow-hidden">
+              <Backdrop variant="section" density="subtle" className="rounded-lg" />
+              <div className="space-y-1 relative z-10">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-semibold text-foreground">Projects</h1>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Create and manage analyses. Start new or resume recent work.
+                </p>
+                <TourLink />
+              </div>
+              <Link href="/projects/new">
+                <Button size="sm" variant="brand">New analysis</Button>
+              </Link>
+            </header>
 
           {/* Quick Actions (subtle strip) */}
           {projectCards.length > 0 && (
@@ -99,6 +105,7 @@ export default async function DashboardPage() {
         </main>
       </div>
     </div>
+    </DashboardPageClient>
   )
 }
 
