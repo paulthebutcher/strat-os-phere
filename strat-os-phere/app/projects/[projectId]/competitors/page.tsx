@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
-import { AppShell } from '@/components/layout/AppShell'
 import { CompetitorCard } from '@/components/competitors/CompetitorCard'
 import { CompetitorForm } from '@/components/competitors/CompetitorForm'
 import { GenerateAnalysisButton } from '@/components/competitors/GenerateAnalysisButton'
@@ -88,16 +87,8 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
   const effectiveCompetitorCount = normalized.competitorCount ?? competitorCount
 
   return (
-    <AppShell
-      projectId={projectId}
-      projectName={project.name}
-      projectMarket={project.market}
-      hasArtifacts={hasAnyArtifacts}
-      competitorCount={competitorCount}
-      effectiveCompetitorCount={effectiveCompetitorCount}
-    >
-      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-        <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
+    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
+      <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
         <header className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -220,8 +211,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
           </section>
         )}
       </main>
-      </div>
-    </AppShell>
+    </div>
   )
 }
 

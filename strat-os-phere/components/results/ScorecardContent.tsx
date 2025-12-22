@@ -1,0 +1,164 @@
+'use client'
+
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
+import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
+import { SectionCard } from '@/components/results/SectionCard'
+import { CopySectionButton } from '@/components/results/CopySectionButton'
+import { formatScoringMatrixToMarkdown } from '@/lib/results/normalizeArtifacts'
+import type { ScoringMatrixArtifactContent } from '@/lib/schemas/scoring'
+
+interface ScorecardContentProps {
+  projectId: string
+  scoring: ScoringMatrixArtifactContent | null | undefined
+}
+
+export function ScorecardContent({ projectId, scoring }: ScorecardContentProps) {
+  if (!scoring) {
+    return (
+      <section className="space-y-6">
+        <SectionCard className="py-16">
+          <div className="w-full max-w-md space-y-6 text-center mx-auto">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-foreground">
+                Scorecard not yet generated
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Once analysis is complete, Plinth will generate a competitive scorecard evaluating competitors on key criteria.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <GenerateResultsV2Button
+                projectId={projectId}
+                label="Generate Analysis"
+              />
+              <Button asChild variant="outline" type="button">
+                <Link href={`/projects/${projectId}/competitors`}>
+                  Review inputs
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </SectionCard>
+      </section>
+    )
+  }
+
+  const copyContent = formatScoringMatrixToMarkdown(scoring)
+
+  // Use summary if available, otherwise calculate from scores
+  const sortedSummary = scoring.summary && scoring.summary.length > 0
+    ? [...scoring.summary].sort((a, b) => b.total_weighted_score - a.total_weighted_score)
+    : []
+
+  return (
+    <section className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Scorecard</h1>
+          <p className="text-sm text-muted-foreground">
+            Competitive evaluation on key criteria weighted by importance.
+          </p>
+        </div>
+        <CopySectionButton content={copyContent} label="Copy all" />
+      </div>
+
+      {scoring.criteria && scoring.criteria.length > 0 && (
+        <SectionCard>
+          <h2 className="text-xl font-semibold text-foreground mb-6">Criteria</h2>
+          <div className="space-y-6">
+            {scoring.criteria.map((criterion) => {
+              // Find scores for this criterion
+              const criterionScores = scoring.scores?.filter(s => s.criteria_id === criterion.id) || []
+              // Calculate average score from dimensions
+              const scoresWithAvg = criterionScores.map(s => {
+                const dims = s.dimensions
+                const avg = (dims.discovery_support + dims.execution_support + dims.reliability + dims.flexibility + (1 - dims.friction)) / 5
+                return {
+                  competitor: s.competitor_name,
+                  score: avg * 10, // Scale to 0-10 for display
+                }
+              })
+              
+              return (
+                <div key={criterion.id} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-semibold text-foreground">{criterion.name}</h3>
+                    <Badge variant="secondary" className="text-xs">
+                      Weight: {criterion.weight ?? 1}
+                    </Badge>
+                  </div>
+                  {scoresWithAvg.length > 0 && (
+                    <div className="space-y-2">
+                      {scoresWithAvg.map((s, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-sm">
+                          <span>{s.competitor}</span>
+                          <Badge variant="secondary">{s.score.toFixed(1)}/10</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </SectionCard>
+      )}
+
+      {sortedSummary.length > 0 && (
+        <SectionCard>
+          <h2 className="text-xl font-semibold text-foreground mb-6">Competitor breakdown</h2>
+          <div className="space-y-6">
+            {sortedSummary.map((summary, index) => (
+              <div key={index} className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-base font-semibold text-foreground">{summary.competitor_name}</h3>
+                  <Badge variant="primary">
+                    {summary.total_weighted_score.toFixed(1)}/100
+                  </Badge>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {summary.strengths.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Strengths
+                      </h4>
+                      <ul className="space-y-2">
+                        {summary.strengths.map((strength, strengthIndex) => (
+                          <li key={strengthIndex} className="text-sm text-foreground leading-relaxed">{strength}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {summary.weaknesses.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Weaknesses
+                      </h4>
+                      <ul className="space-y-2">
+                        {summary.weaknesses.map((weakness, weaknessIndex) => (
+                          <li key={weaknessIndex} className="text-sm text-foreground leading-relaxed">{weakness}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      )}
+
+      {scoring.notes && (
+        <SectionCard>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Notes</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">{scoring.notes}</p>
+        </SectionCard>
+      )}
+    </section>
+  )
+}
+

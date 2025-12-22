@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
-import { AppShell } from '@/components/layout/AppShell'
 import { ExecutiveSummary } from '@/components/results/ExecutiveSummary'
 import { AnalysisRunExperience } from '@/components/results/AnalysisRunExperience'
 import { createPageMetadata } from '@/lib/seo/metadata'
@@ -100,24 +99,19 @@ export default async function OverviewPage(props: OverviewPageProps) {
   }
 
   return (
-    <AppShell
-      projectId={projectId}
-      projectName={project.name}
-      projectMarket={project.market}
-      hasArtifacts={hasAnyArtifacts}
-      competitorCount={competitorCount}
-      effectiveCompetitorCount={effectiveCompetitorCount}
-    >
-      <ExecutiveSummary
-        projectId={projectId}
-        opportunitiesV3={opportunitiesV3?.content}
-        opportunitiesV2={opportunitiesV2?.content}
-        hasArtifacts={hasAnyArtifacts}
-        competitorCount={competitorCount}
-        effectiveCompetitorCount={effectiveCompetitorCount}
-        generatedAt={generatedAt}
-      />
-    </AppShell>
+    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
+      <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
+        <ExecutiveSummary
+          projectId={projectId}
+          opportunitiesV3={opportunitiesV3?.content}
+          opportunitiesV2={opportunitiesV2?.content}
+          hasArtifacts={hasAnyArtifacts}
+          competitorCount={competitorCount}
+          effectiveCompetitorCount={effectiveCompetitorCount}
+          generatedAt={generatedAt}
+        />
+      </main>
+    </div>
   )
 }
 

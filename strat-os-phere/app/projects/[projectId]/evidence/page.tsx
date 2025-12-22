@@ -3,25 +3,24 @@ import type { Metadata } from 'next'
 
 import { createPageMetadata } from '@/lib/seo/metadata'
 import { listArtifacts } from '@/lib/data/artifacts'
-import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { getProjectById } from '@/lib/data/projects'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
 import { createClient } from '@/lib/supabase/server'
-import { OpportunitiesContent } from '@/components/results/OpportunitiesContent'
+import { EvidenceContent } from '@/components/results/EvidenceContent'
 
-interface OpportunitiesPageProps {
+interface EvidencePageProps {
   params: Promise<{
     projectId: string
   }>
 }
 
-export async function generateMetadata(props: OpportunitiesPageProps): Promise<Metadata> {
+export async function generateMetadata(props: EvidencePageProps): Promise<Metadata> {
   const params = await props.params
   return createPageMetadata({
-    title: "Opportunities — Plinth",
+    title: "Evidence — Plinth",
     description:
-      "Strategic opportunities ranked by score with actionable experiments and proof points.",
-    path: `/projects/${params.projectId}/opportunities`,
+      "Evidence and citations supporting the competitive analysis.",
+    path: `/projects/${params.projectId}/evidence`,
     ogVariant: "default",
     robots: {
       index: false,
@@ -31,7 +30,7 @@ export async function generateMetadata(props: OpportunitiesPageProps): Promise<M
   })
 }
 
-export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
+export default async function EvidencePage(props: EvidencePageProps) {
   const params = await props.params
   const projectId = params.projectId
 
@@ -50,19 +49,14 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
     notFound()
   }
 
-  const [competitors, artifacts] = await Promise.all([
-    listCompetitorsForProject(supabase, projectId),
-    listArtifacts(supabase, { projectId }),
-  ])
-
+  const artifacts = await listArtifacts(supabase, { projectId })
   const normalized = normalizeResultsArtifacts(artifacts)
   const { opportunitiesV3, opportunitiesV2 } = normalized
 
   return (
     <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
       <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-        <OpportunitiesContent
-          projectId={projectId}
+        <EvidenceContent
           opportunitiesV3={opportunitiesV3?.content}
           opportunitiesV2={opportunitiesV2?.content}
         />
