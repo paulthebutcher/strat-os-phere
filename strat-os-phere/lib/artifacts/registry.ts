@@ -47,6 +47,11 @@ export const ARTIFACT_REGISTRY = {
     label: 'Opportunities',
     schemaName: 'OpportunityV3ArtifactContent',
   },
+  opportunities_v2_overlay: {
+    type: 'opportunities_v2_overlay',
+    label: 'Opportunities v2 Overlay',
+    schemaName: 'OpportunitiesV2Overlay',
+  },
   scoring_matrix: {
     type: 'scoring_matrix',
     label: 'Scoring Matrix',
@@ -56,6 +61,11 @@ export const ARTIFACT_REGISTRY = {
     type: 'strategic_bets',
     label: 'Strategic Bets',
     schemaName: 'StrategicBetsArtifactContent',
+  },
+  strategic_bets_v2_overlay: {
+    type: 'strategic_bets_v2_overlay',
+    label: 'Strategic Bets v2 Overlay',
+    schemaName: 'StrategicBetsV2Overlay',
   },
 } as const satisfies Record<string, ArtifactRegistryEntry>
 
@@ -70,8 +80,10 @@ export const ARTIFACT_TYPES = [
   'jtbd',
   'opportunities_v2',
   'opportunities_v3',
+  'opportunities_v2_overlay',
   'scoring_matrix',
   'strategic_bets',
+  'strategic_bets_v2_overlay',
 ] as const
 
 /**
@@ -124,8 +136,10 @@ export const ARTIFACT_SCHEMA_NAMES = [
   'JtbdArtifactContent',
   'OpportunitiesArtifactContent',
   'OpportunityV3ArtifactContent',
+  'OpportunitiesV2Overlay',
   'ScoringMatrixArtifactContent',
   'StrategicBetsArtifactContent',
+  'StrategicBetsV2Overlay',
 ] as const
 
 /**

@@ -5,8 +5,10 @@ import { MarketSynthesisSchema } from './marketSynthesis'
 import { JtbdArtifactContentSchema } from './jtbd'
 import { OpportunitiesArtifactContentSchema } from './opportunities'
 import { OpportunityV3ArtifactContentSchema } from './opportunityV3'
+import { OpportunitiesV2OverlaySchema } from './opportunitiesV2Overlay'
 import { ScoringMatrixArtifactContentSchema } from './scoring'
 import { StrategicBetsArtifactContentSchema } from './strategicBet'
+import { StrategicBetsV2OverlaySchema } from './strategicBetsV2Overlay'
 import { ARTIFACT_TYPES, type ArtifactType } from '@/lib/artifacts/registry'
 
 /**
@@ -66,6 +68,11 @@ export const OpportunitiesV3ArtifactSchema = z.object({
   content: OpportunityV3ArtifactContentSchema,
 })
 
+export const OpportunitiesV2OverlayArtifactSchema = z.object({
+  type: z.literal('opportunities_v2_overlay'),
+  content: OpportunitiesV2OverlaySchema,
+})
+
 export const ScoringMatrixArtifactSchema = z.object({
   type: z.literal('scoring_matrix'),
   content: ScoringMatrixArtifactContentSchema,
@@ -76,14 +83,21 @@ export const StrategicBetsArtifactSchema = z.object({
   content: StrategicBetsArtifactContentSchema,
 })
 
+export const StrategicBetsV2OverlayArtifactSchema = z.object({
+  type: z.literal('strategic_bets_v2_overlay'),
+  content: StrategicBetsV2OverlaySchema,
+})
+
 export const ArtifactSchema = z.discriminatedUnion('type', [
   ProfilesArtifactSchema,
   SynthesisArtifactSchema,
   JtbdArtifactSchema,
   OpportunitiesV2ArtifactSchema,
   OpportunitiesV3ArtifactSchema,
+  OpportunitiesV2OverlayArtifactSchema,
   ScoringMatrixArtifactSchema,
   StrategicBetsArtifactSchema,
+  StrategicBetsV2OverlayArtifactSchema,
 ])
 
 export type ProfilesArtifact = z.infer<typeof ProfilesArtifactSchema>
@@ -91,8 +105,10 @@ export type SynthesisArtifact = z.infer<typeof SynthesisArtifactSchema>
 export type JtbdArtifact = z.infer<typeof JtbdArtifactSchema>
 export type OpportunitiesV2Artifact = z.infer<typeof OpportunitiesV2ArtifactSchema>
 export type OpportunitiesV3Artifact = z.infer<typeof OpportunitiesV3ArtifactSchema>
+export type OpportunitiesV2OverlayArtifact = z.infer<typeof OpportunitiesV2OverlayArtifactSchema>
 export type ScoringMatrixArtifact = z.infer<typeof ScoringMatrixArtifactSchema>
 export type StrategicBetsArtifact = z.infer<typeof StrategicBetsArtifactSchema>
+export type StrategicBetsV2OverlayArtifact = z.infer<typeof StrategicBetsV2OverlayArtifactSchema>
 export type Artifact = z.infer<typeof ArtifactSchema>
 
 const ProfilesArtifactContentSchema = ProfilesArtifactSchema.shape.content
@@ -111,11 +127,17 @@ export type OpportunitiesV2ArtifactContent = z.infer<
 export type OpportunitiesV3ArtifactContent = z.infer<
   typeof OpportunityV3ArtifactContentSchema
 >
+export type OpportunitiesV2OverlayContent = z.infer<
+  typeof OpportunitiesV2OverlaySchema
+>
 export type ScoringMatrixArtifactContent = z.infer<
   typeof ScoringMatrixArtifactContentSchema
 >
 export type StrategicBetsArtifactContent = z.infer<
   typeof StrategicBetsArtifactContentSchema
+>
+export type StrategicBetsV2OverlayContent = z.infer<
+  typeof StrategicBetsV2OverlaySchema
 >
 
 export type ArtifactContent =
@@ -124,8 +146,10 @@ export type ArtifactContent =
   | JtbdArtifactContent
   | OpportunitiesV2ArtifactContent
   | OpportunitiesV3ArtifactContent
+  | OpportunitiesV2OverlayContent
   | ScoringMatrixArtifactContent
   | StrategicBetsArtifactContent
+  | StrategicBetsV2OverlayContent
 
 export function getArtifactContentSchema(
   type: ArtifactType
@@ -141,10 +165,14 @@ export function getArtifactContentSchema(
       return OpportunitiesArtifactContentSchema
     case 'opportunities_v3':
       return OpportunityV3ArtifactContentSchema
+    case 'opportunities_v2_overlay':
+      return OpportunitiesV2OverlaySchema
     case 'scoring_matrix':
       return ScoringMatrixArtifactContentSchema
     case 'strategic_bets':
       return StrategicBetsArtifactContentSchema
+    case 'strategic_bets_v2_overlay':
+      return StrategicBetsV2OverlaySchema
     default: {
       // TypeScript should prove this is unreachable if all cases are handled
       // If this errors, it means a new artifact type was added but not handled

@@ -147,7 +147,10 @@ export function ResultsMemo({
       />
       
       {/* Opportunities (inputs section) */}
-      <OpportunitiesSection opportunities={opportunities} />
+      <OpportunitiesSection
+        opportunities={opportunities}
+        projectId={projectId}
+      />
     </div>
   )
 }
