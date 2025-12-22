@@ -19,6 +19,15 @@ import { Backdrop, ConfidenceBadgeIcon, RecencyBadgeIcon, CitationsBadgeIcon } f
 import { createProjectFromForm } from '@/app/projects/actions'
 import { createCompetitorForProject } from '@/app/projects/[projectId]/competitors/actions'
 import { CompetitorRecommendations } from '@/components/projects/new/CompetitorRecommendations'
+import { CompetitorPicker, type CompetitorItem } from '@/components/projects/CompetitorPicker'
+import { FramingConfirmationCard } from '@/components/projects/FramingConfirmationCard'
+import { ExtractedFieldsPanel } from '@/components/projects/ExtractedFieldsPanel'
+import {
+  type ProposedFraming,
+  inferCompetitorNameFromUrl,
+  inferFramingFromText,
+  mergeFraming,
+} from '@/lib/projects/framing'
 import {
   ANALYSIS_TEMPLATES,
   FIELD_EXAMPLES,
@@ -93,6 +102,12 @@ export function NewAnalysisForm({
   const [recommending, setRecommending] = useState(false)
   const [scraping, setScraping] = useState(false)
   const [suggestedFields, setSuggestedFields] = useState<Set<string>>(new Set())
+  
+  // New UX flow states
+  const [proposedFraming, setProposedFraming] = useState<ProposedFraming | null>(null)
+  const [showFramingConfirmation, setShowFramingConfirmation] = useState(false)
+  const [competitors, setCompetitors] = useState<CompetitorItem[]>([])
+  const [generatingFraming, setGeneratingFraming] = useState(false)
 
   function handleExtractedValues(values: {
     name?: string
@@ -338,6 +353,151 @@ export function NewAnalysisForm({
     }
 
     return sections.join('\n')
+  }
+
+  /**
+   * Handle "Generate framing" - infer framing from URL and/or context text
+   */
+  async function handleGenerateFraming() {
+    if (!primaryUrl.trim() && !contextText.trim()) {
+      setError('Please enter a competitor URL or paste some context')
+      return
+    }
+
+    setGeneratingFraming(true)
+    setError(null)
+    setErrorDetails(null)
+
+    try {
+      // Start with client-side inference
+      let inferredFraming: ProposedFraming = {
+        market_category: null,
+        target_customer: null,
+        business_goal: null,
+        geography: null,
+        suggested_competitors: [],
+        confidence: {
+          market: 'low',
+          customer: 'low',
+          goal: 'low',
+        },
+      }
+
+      // Infer from context text if available
+      if (contextText.trim()) {
+        inferredFraming = inferFramingFromText(contextText.trim())
+      }
+
+      // Add primary competitor if URL is provided
+      if (primaryUrl.trim()) {
+        const competitorName = inferCompetitorNameFromUrl(primaryUrl.trim())
+        inferredFraming.suggested_competitors.push({
+          name: competitorName,
+          url: primaryUrl.trim(),
+        })
+        // Add to competitors list if not already there
+        if (!competitors.some((c) => c.url === primaryUrl.trim())) {
+          setCompetitors((prev) => [
+            ...prev,
+            { name: competitorName, url: primaryUrl.trim() },
+          ])
+        }
+      }
+
+      // Try to get API recommendations if available (non-blocking)
+      let apiFraming: ProposedFraming['market_category'] | null = null
+      try {
+        const response = await fetch('/api/projects/recommend-competitors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            primaryUrl: primaryUrl.trim() || undefined,
+            contextText: contextText.trim() || undefined,
+          }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.ok && data.framing) {
+            // Merge API framing with inferred
+            const merged = mergeFraming(data.framing, inferredFraming)
+            inferredFraming = merged
+
+            // Add suggested competitors from API
+            if (data.recommendations && data.recommendations.length > 0) {
+              inferredFraming.suggested_competitors = [
+                ...inferredFraming.suggested_competitors,
+                ...data.recommendations.map((r: CompetitorRecommendation) => ({
+                  name: r.name,
+                  url: r.url,
+                })),
+              ]
+            }
+          }
+        }
+      } catch (apiError) {
+        // Non-blocking: log but continue with client-side inference
+        console.warn('Failed to fetch API recommendations (non-blocking):', apiError)
+      }
+
+      setProposedFraming(inferredFraming)
+      setShowFramingConfirmation(true)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to generate framing. Please try again.'
+      )
+    } finally {
+      setGeneratingFraming(false)
+    }
+  }
+
+  /**
+   * Handle confirmation of proposed framing
+   */
+  function handleConfirmFraming(framing: ProposedFraming) {
+    // Populate form fields from confirmed framing
+    if (framing.market_category && !formState.marketCategory) {
+      setFormState((prev) => ({
+        ...prev,
+        marketCategory: framing.market_category!,
+      }))
+    }
+    if (framing.target_customer && !formState.targetCustomer) {
+      setFormState((prev) => ({
+        ...prev,
+        targetCustomer: framing.target_customer!,
+      }))
+    }
+    if (framing.business_goal && !formState.goal) {
+      setFormState((prev) => ({
+        ...prev,
+        goal: framing.business_goal!,
+      }))
+    }
+    if (framing.geography && !formState.geography) {
+      setFormState((prev) => ({
+        ...prev,
+        geography: framing.geography!,
+      }))
+    }
+
+    // Ensure primary competitor is in the list if URL was provided
+    if (primaryUrl.trim()) {
+      const competitorName = inferCompetitorNameFromUrl(primaryUrl.trim())
+      const alreadyAdded = competitors.some(
+        (c) => c.url === primaryUrl.trim() || c.name.toLowerCase() === competitorName.toLowerCase()
+      )
+      if (!alreadyAdded) {
+        setCompetitors((prev) => [
+          ...prev,
+          { name: competitorName, url: primaryUrl.trim() },
+        ])
+      }
+    }
+
+    setShowFramingConfirmation(false)
   }
 
   /**
@@ -832,8 +992,155 @@ export function NewAnalysisForm({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left column: Form */}
         <div className="lg:col-span-8 space-y-6">
-          {/* New Entry Points Section */}
-          {!showRecommendations && (
+          {/* Step 1: Start point (new UX flow) */}
+          {!showRecommendations && !showFramingConfirmation && (
+            <SurfaceCard className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-300 uppercase mb-1">
+                    Step 1 — Start point
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Enter a primary competitor URL and/or paste context. We'll infer the framing and suggest competitors.
+                  </p>
+                </div>
+
+                {/* Primary competitor URL */}
+                <div className="space-y-2">
+                  <label
+                    htmlFor="primaryUrl"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Primary competitor URL
+                    <span className="text-muted-foreground font-normal ml-1">(optional)</span>
+                  </label>
+                  <Input
+                    id="primaryUrl"
+                    type="url"
+                    value={primaryUrl}
+                    onChange={(e) => {
+                      setPrimaryUrl(e.target.value)
+                      setError(null)
+                      setErrorDetails(null)
+                    }}
+                    placeholder="https://example.com"
+                    disabled={generatingFraming}
+                    className="flex-1"
+                  />
+                </div>
+
+                {/* Free-form context */}
+                <div className="space-y-2">
+                  <label
+                    htmlFor="contextText"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Free-form context
+                    <span className="text-muted-foreground font-normal ml-1">(optional)</span>
+                  </label>
+                  <Textarea
+                    id="contextText"
+                    value={contextText}
+                    onChange={(e) => {
+                      setContextText(e.target.value)
+                      setError(null)
+                      setErrorDetails(null)
+                    }}
+                    placeholder="Paste notes, a doc excerpt, or a rough description..."
+                    rows={4}
+                    disabled={generatingFraming}
+                  />
+                </div>
+
+                {/* Generate framing button */}
+                <Button
+                  type="button"
+                  onClick={handleGenerateFraming}
+                  disabled={generatingFraming || (!primaryUrl.trim() && !contextText.trim())}
+                  className="w-full"
+                >
+                  {generatingFraming ? 'Generating framing...' : 'Generate framing'}
+                </Button>
+
+                {/* Extracted fields panel (shown after generation) */}
+                {proposedFraming && !showFramingConfirmation && (
+                  <ExtractedFieldsPanel
+                    values={{
+                      market_category: proposedFraming.market_category,
+                      target_customer: proposedFraming.target_customer,
+                      business_goal: proposedFraming.business_goal,
+                      geography: proposedFraming.geography,
+                    }}
+                    onUpdate={(updated) => {
+                      if (proposedFraming) {
+                        setProposedFraming({
+                          ...proposedFraming,
+                          ...updated,
+                        })
+                      }
+                    }}
+                  />
+                )}
+
+                {/* Error display */}
+                {error && (
+                  <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3" role="alert">
+                    <p className="text-sm font-medium text-destructive">{error}</p>
+                    {errorDetails && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Couldn't load suggestions. You can still add manually.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </SurfaceCard>
+          )}
+
+          {/* Framing confirmation card */}
+          {showFramingConfirmation && proposedFraming && (
+            <FramingConfirmationCard
+              framing={proposedFraming}
+              onConfirm={handleConfirmFraming}
+              onAdjust={() => setShowFramingConfirmation(false)}
+              onUpdate={(updated) => setProposedFraming(updated)}
+            />
+          )}
+
+          {/* Competitor picker (shown after framing confirmation or if skipping) */}
+          {(!showFramingConfirmation || competitors.length > 0) && !showRecommendations && (
+            <SurfaceCard className="p-6">
+              <CompetitorPicker
+                value={competitors}
+                onChange={setCompetitors}
+                suggested={proposedFraming?.suggested_competitors || []}
+                fetchSuggestions={async (query: string) => {
+                  try {
+                    const response = await fetch('/api/projects/recommend-competitors', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        contextText: query,
+                      }),
+                    })
+                    if (response.ok) {
+                      const data = await response.json()
+                      if (data.ok && data.recommendations) {
+                        return data.recommendations
+                      }
+                    }
+                    return []
+                  } catch (err) {
+                    console.warn('Failed to fetch suggestions (non-blocking):', err)
+                    return []
+                  }
+                }}
+              />
+            </SurfaceCard>
+          )}
+
+          {/* Legacy entry points (kept for backwards compatibility, hidden by default) */}
+          {false && !showRecommendations && (
             <div className="space-y-4">
               {/* Section A: Primary Competitor URL */}
               <SurfaceCard className="p-6">
@@ -880,19 +1187,19 @@ export function NewAnalysisForm({
                       {errorDetails && (
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
-                            {errorDetails.errorId && (
+                            {errorDetails?.errorId && (
                               <span className="font-mono">
-                                Error ID: <span className="font-semibold">{errorDetails.errorId}</span>
+                                Error ID: <span className="font-semibold">{errorDetails?.errorId}</span>
                               </span>
                             )}
-                            {errorDetails.status && (
+                            {errorDetails?.status && (
                               <span>
-                                Status: <span className="font-semibold">{errorDetails.status}</span>
+                                Status: <span className="font-semibold">{errorDetails?.status}</span>
                               </span>
                             )}
-                            {errorDetails.code && (
+                            {errorDetails?.code && (
                               <span>
-                                Code: <span className="font-semibold">{errorDetails.code}</span>
+                                Code: <span className="font-semibold">{errorDetails?.code}</span>
                               </span>
                             )}
                           </div>
@@ -957,19 +1264,19 @@ export function NewAnalysisForm({
                       {errorDetails && (
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
-                            {errorDetails.errorId && (
+                            {errorDetails?.errorId && (
                               <span className="font-mono">
-                                Error ID: <span className="font-semibold">{errorDetails.errorId}</span>
+                                Error ID: <span className="font-semibold">{errorDetails?.errorId}</span>
                               </span>
                             )}
-                            {errorDetails.status && (
+                            {errorDetails?.status && (
                               <span>
-                                Status: <span className="font-semibold">{errorDetails.status}</span>
+                                Status: <span className="font-semibold">{errorDetails?.status}</span>
                               </span>
                             )}
-                            {errorDetails.code && (
+                            {errorDetails?.code && (
                               <span>
-                                Code: <span className="font-semibold">{errorDetails.code}</span>
+                                Code: <span className="font-semibold">{errorDetails?.code}</span>
                               </span>
                             )}
                           </div>
