@@ -117,14 +117,9 @@ export type EvidenceSourceUpdate = Partial<EvidenceSourceInsert>
 
 // Artifact storage for analysis outputs (and future extension types).
 // Database schema: { id, project_id, type, content_json(jsonb), created_at }
-export type ArtifactType =
-  | 'profiles'
-  | 'synthesis'
-  | 'jtbd'
-  | 'opportunities_v2'
-  | 'opportunities_v3'
-  | 'scoring_matrix'
-  | 'strategic_bets'
+// Import from centralized constants to prevent drift
+import type { ArtifactType } from '@/lib/constants/types'
+export type { ArtifactType }
 
 export interface ArtifactRow {
   id: string

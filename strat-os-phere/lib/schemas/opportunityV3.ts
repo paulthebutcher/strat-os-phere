@@ -43,7 +43,7 @@ export const ScoringBreakdownSchema = z.object({
   feasibility: z.number().min(0).max(10),
   defensibility: z.number().min(0).max(10),
   competitor_gap: z.number().min(0).max(10),
-  recency_confidence: z.number().min(0).max(10),
+  recencyConfidence: z.number().min(0).max(10),
 })
 
 export type ScoringBreakdown = z.infer<typeof ScoringBreakdownSchema>
@@ -59,7 +59,7 @@ export const ScoringWeightsSchema = z
     feasibility: z.number().min(0).max(1),
     defensibility: z.number().min(0).max(1),
     competitor_gap: z.number().min(0).max(1),
-    recency_confidence: z.number().min(0).max(1),
+    recencyConfidence: z.number().min(0).max(1),
   })
   .refine(
     (weights) => {
@@ -70,7 +70,7 @@ export const ScoringWeightsSchema = z
         weights.feasibility +
         weights.defensibility +
         weights.competitor_gap +
-        weights.recency_confidence
+        weights.recencyConfidence
       return Math.abs(sum - 1.0) < 0.01 // Allow small floating point errors
     },
     { message: 'Weights must sum to 1.0' }

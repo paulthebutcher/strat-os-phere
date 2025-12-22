@@ -19,6 +19,11 @@ import {
   SAVING_SUB_STEPS,
   getStageConfig,
 } from './analysisRunStages'
+import { ThinkingModeOverlay } from '@/components/thinking/ThinkingModeOverlay'
+import {
+  mapBackendPhaseToStage,
+  getStageProgress,
+} from '@/lib/ui/thinkingStages'
 
 interface AnalysisRunExperienceProps {
   projectId: string
@@ -347,7 +352,15 @@ export function AnalysisRunExperience({
   const currentStage = getStageConfig(machine.currentState)
   const currentStateIndex = getStateIndex(machine.currentState)
 
-  // Error state
+  // Get latest progress message for display
+  const latestProgressEntry = Array.from(latestProgressByPhase.values()).pop()
+  const primaryMessage = latestProgressEntry?.message || undefined
+  const secondaryMessage = latestProgressEntry?.detail || undefined
+
+  // Map current state to thinking stage
+  const thinkingStageId = mapBackendPhaseToStage(primaryMessage, machine.currentState)
+
+  // Error state - use ThinkingModeOverlay
   if (machine.currentState === 'error') {
     const error = machine.error
     if (!error) {
@@ -370,296 +383,51 @@ export function AnalysisRunExperience({
     
     const hasPartialResults = completedPhases.length > 0
 
+    // Build error message
+    let errorMessage = error.message || 'Try again, or reduce competitors / evidence to speed things up.'
+    if (isBlocked && isProfileGenerationError) {
+      errorMessage = 'Add competitor profiles to continue. Check competitor evidence and try again.'
+    } else if (hasPartialResults) {
+      errorMessage = 'Some phases completed. Try again to finish the remaining steps.'
+    }
+
     return (
-      <div className="flex min-h-[calc(100vh-57px)] items-center justify-center bg-background px-4">
-        <main className="flex w-full max-w-2xl flex-col gap-6">
-          <div className="panel flex flex-col gap-6 p-8">
-            <div className="flex items-start gap-4">
-              <div className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-                isBlocked ? "bg-orange-500/10" : "bg-destructive/10"
-              )}>
-                <AlertCircle className={cn(
-                  "h-5 w-5",
-                  isBlocked ? "text-orange-600" : "text-destructive"
-                )} />
-              </div>
-              <div className="flex-1 space-y-4">
-                <div>
-                  <h1 className="text-2xl font-semibold text-foreground">
-                    {isBlocked && isProfileGenerationError
-                      ? "You're partway there"
-                      : hasPartialResults
-                      ? "You're partway there"
-                      : 'Something interrupted the analysis'}
-                  </h1>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {isBlocked && isProfileGenerationError
-                      ? 'We\'ve identified the opportunity space and initial signals. Add competitor profiles to pressure-test defensibility and confidence.'
-                      : hasPartialResults
-                      ? 'We\'ve completed some phases of the analysis. Review what\'s ready below, then retry to finish the remaining steps.'
-                      : error.message ||
-                        `We weren't able to complete this run. Your inputs are safe, and nothing was lost.`}
-                  </p>
-                </div>
-
-                {hasPartialResults && !isBlocked && (
-                  <div className="rounded-md border border-border bg-muted/50 p-4">
-                    <p className="text-sm font-medium text-foreground mb-2">
-                      ✓ What's already complete:
-                    </p>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      {completedPhases.map((phase, idx) => {
-                        const stage = getStageConfig(phase)
-                        return (
-                          <li key={idx} className="flex items-center gap-2">
-                            <Check className="h-3 w-3 text-primary" />
-                            {stage?.label || phase}
-                          </li>
-                        )
-                      })}
-                    </ul>
-                    <p className="text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
-                      <span className="font-medium text-foreground">What's needed next:</span> Retry to complete the remaining analysis phases.
-                    </p>
-                  </div>
-                )}
-
-                {/* Diagnostic details for profile generation error */}
-                {isBlocked && isProfileGenerationError && error.technicalDetails && (
-                  <div className="rounded-md border border-border bg-muted/50 p-4">
-                    <p className="text-sm font-medium text-foreground mb-2">
-                      Why this step matters:
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Competitor profiles help us identify vulnerabilities and defensibility gaps. Without them, we can't fully assess which opportunities are worth pursuing.
-                    </p>
-                    <p className="text-sm font-medium text-foreground mb-2">
-                      Diagnostic information:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {error.technicalDetails.includes('Found') 
-                        ? error.technicalDetails 
-                        : error.code === 'SNAPSHOT_VALIDATION_FAILED'
-                        ? 'Failed to validate competitor snapshot. Check competitor evidence and try again.'
-                        : error.code === 'NO_COMPETITORS'
-                        ? 'No competitors found. Add at least one competitor to run analysis.'
-                        : 'Profile generation failed. Check competitor data and try again.'}
-                    </p>
-                  </div>
-                )}
-
-                {/* Dev-only debug panel */}
-                {process.env.NODE_ENV === 'development' && error.technicalDetails && (
-                  <details className="rounded-md border border-border bg-muted/50 p-3">
-                    <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-                      Debug details (dev only)
-                    </summary>
-                    <div className="mt-2 space-y-2">
-                      <p className="text-xs font-mono text-muted-foreground">
-                        Code: {error.code || 'N/A'}
-                      </p>
-                      <p className="text-xs font-mono text-muted-foreground">
-                        Details: {error.technicalDetails}
-                      </p>
-                    </div>
-                  </details>
-                )}
-
-                <div className="flex flex-wrap items-center gap-3">
-                  {isBlocked && isProfileGenerationError ? (
-                    <>
-                      <Button
-                        onClick={startGeneration}
-                      >
-                        Retry profile generation
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          router.push(`/projects/${projectId}/competitors`)
-                          router.refresh()
-                        }}
-                      >
-                        Edit competitors
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() => router.push(`/projects/${projectId}`)}
-                      >
-                        Back to project
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      {hasPartialResults && !isBlocked && (
-                        <Button
-                          onClick={() => {
-                            router.push(`/projects/${projectId}/results?view=results`)
-                            router.refresh()
-                          }}
-                        >
-                          Continue with partial results
-                        </Button>
-                      )}
-                      {!isBlocked && (
-                        <Button onClick={startGeneration}>
-                          {hasPartialResults ? 'Retry failed phase' : 'Try again'}
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        onClick={() => router.push(`/projects/${projectId}`)}
-                      >
-                        Back to project
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
+      <ThinkingModeOverlay
+        isOpen={true}
+        error={{
+          message: errorMessage,
+          actionLabel: isBlocked && isProfileGenerationError ? 'Retry profile generation' : hasPartialResults ? 'Retry failed phase' : 'Try again',
+          onAction: startGeneration,
+        }}
+      />
     )
   }
 
-  // Complete state - Intentional action required
+  // Complete state - use ThinkingModeOverlay
   if (machine.currentState === 'complete') {
     return (
-      <div className="flex min-h-[calc(100vh-57px)] items-center justify-center bg-background px-4">
-        <main className="flex w-full max-w-2xl flex-col gap-8">
-          <div className="border border-border bg-surface p-8">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <h1 className="text-2xl font-semibold text-foreground">
-                  Analysis complete
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Strategic bets, opportunities, scorecard, and jobs are ready for review. Each insight includes citation-backed evidence and confidence-weighted scores.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button
-                  onClick={() => {
-                    onViewResults?.()
-                    router.push(`/projects/${projectId}/results?view=results&tab=strategic_bets&new=true`)
-                    router.refresh()
-                  }}
-                  className="w-full sm:w-auto"
-                >
-                  View full analysis
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push('/dashboard')}
-                  className="w-full sm:w-auto"
-                >
-                  Back to dashboard
-                </Button>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
+      <ThinkingModeOverlay
+        isOpen={true}
+        completed={true}
+        onViewResults={() => {
+          onViewResults?.()
+          router.push(`/projects/${projectId}/results?view=results&tab=strategic_bets&new=true`)
+          router.refresh()
+        }}
+      />
     )
   }
 
-  // In-progress state
-  const activeStageIndex = ANALYSIS_STAGES.findIndex(
-    (s) => s.id === machine.currentState
-  )
-
+  // In-progress state - use ThinkingModeOverlay
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-center justify-center bg-background px-4">
-      <main className="flex w-full max-w-3xl flex-col gap-10 py-12">
-        {/* Header - Minimal, progress is the main event */}
-        <header className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold text-foreground">
-            Generating analysis
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            This usually takes 1–2 minutes.
-          </p>
-        </header>
-
-        {/* Progress timeline - Main event */}
-        <div className="border border-border bg-surface">
-          <ol className="divide-y divide-border" aria-label="Analysis progress">
-            {ANALYSIS_STAGES.map((stage, index) => {
-              const isCompleted = index < activeStageIndex
-              const isCurrent = index === activeStageIndex
-              const isUpcoming = index > activeStageIndex
-
-              return (
-                <li
-                  key={stage.id}
-                  className={cn(
-                    'relative flex items-start gap-4 px-6 py-5 transition-colors',
-                    isCurrent && 'bg-surface-muted/50',
-                    isUpcoming && 'opacity-60'
-                  )}
-                >
-                  {/* Status indicator */}
-                  <div className="relative z-10 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
-                    {isCompleted ? (
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-                        <Check
-                          className="h-3 w-3 text-primary-foreground"
-                          aria-hidden="true"
-                        />
-                      </div>
-                    ) : isCurrent ? (
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-primary">
-                        <Loader2
-                          className={cn(
-                            'h-3 w-3 text-primary',
-                            !prefersReducedMotion.current && 'animate-spin'
-                          )}
-                          aria-hidden="true"
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-5 w-5 rounded-full border-2 border-border bg-background" />
-                    )}
-                  </div>
-
-                  {/* Step content */}
-                  <div className="flex-1 space-y-1">
-                    <div
-                      className={cn(
-                        'text-sm font-semibold',
-                        isCompleted && 'text-foreground',
-                        isCurrent && 'text-foreground',
-                        isUpcoming && 'text-muted-foreground'
-                      )}
-                    >
-                      {stage.label}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {stage.description}
-                    </div>
-                    {isCurrent && machine.currentState === 'saving_artifacts' && (
-                      <div className="mt-2 text-xs text-muted-foreground">
-                        {SAVING_SUB_STEPS[currentSavingSubStep]}
-                      </div>
-                    )}
-                  </div>
-                </li>
-              )
-            })}
-          </ol>
-        </div>
-
-        {/* Screen reader status */}
-        <div className="sr-only" aria-live="polite" aria-atomic="true">
-          {currentStage
-            ? `Step ${activeStageIndex + 1} of ${ANALYSIS_STAGES.length}: ${currentStage.label}. ${currentStage.description}`
-            : 'Analysis in progress'}
-        </div>
-      </main>
-    </div>
+    <ThinkingModeOverlay
+      isOpen={true}
+      stageId={thinkingStageId || undefined}
+      currentState={machine.currentState}
+      primaryMessage={primaryMessage}
+      secondaryMessage={secondaryMessage}
+      startedAt={machine.startedAt}
+    />
   )
 }
 

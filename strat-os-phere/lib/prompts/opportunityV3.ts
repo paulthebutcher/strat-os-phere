@@ -80,7 +80,7 @@ export const OPPORTUNITY_V3_SCHEMA_SHAPE = {
           feasibility: 'number (0-10)',
           defensibility: 'number (0-10)',
           competitor_gap: 'number (0-10)',
-          recency_confidence: 'number (0-10)',
+          recencyConfidence: 'number (0-10)',
         },
         weights: {
           customer_pain: 'number (0-1, decimal, must sum to 1.0)',
@@ -89,7 +89,7 @@ export const OPPORTUNITY_V3_SCHEMA_SHAPE = {
           feasibility: 'number (0-1)',
           defensibility: 'number (0-1)',
           competitor_gap: 'number (0-1)',
-          recency_confidence: 'number (0-1)',
+          recencyConfidence: 'number (0-1)',
         },
         explainability: [
           {

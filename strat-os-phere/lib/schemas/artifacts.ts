@@ -7,18 +7,13 @@ import { OpportunitiesArtifactContentSchema } from './opportunities'
 import { OpportunityV3ArtifactContentSchema } from './opportunityV3'
 import { ScoringMatrixArtifactContentSchema } from './scoring'
 import { StrategicBetsArtifactContentSchema } from './strategicBet'
+import { ARTIFACT_TYPES, type ArtifactType } from '@/lib/constants/types'
 
-export const ArtifactTypeSchema = z.enum([
-  'profiles',
-  'synthesis',
-  'jtbd',
-  'opportunities_v2',
-  'opportunities_v3',
-  'scoring_matrix',
-  'strategic_bets',
-])
+// Derive Zod schema from centralized constants
+export const ArtifactTypeSchema = z.enum(ARTIFACT_TYPES as [ArtifactType, ...ArtifactType[]])
 
-export type ArtifactType = z.infer<typeof ArtifactTypeSchema>
+// Re-export type from centralized location
+export type { ArtifactType }
 
 export const ProfilesArtifactSchema = z.object({
   type: z.literal('profiles'),

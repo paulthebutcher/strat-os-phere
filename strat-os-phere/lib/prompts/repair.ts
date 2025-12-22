@@ -3,15 +3,8 @@
 
 import type { Message } from '@/lib/prompts/system'
 import { getSystemStyleGuide } from '@/lib/prompts/system'
-
-export type RepairableSchemaName =
-  | 'CompetitorSnapshot'
-  | 'MarketSynthesis'
-  | 'JtbdArtifactContent'
-  | 'OpportunitiesArtifactContent'
-  | 'OpportunityV3ArtifactContent'
-  | 'ScoringMatrixArtifactContent'
-  | 'StrategicBetsArtifactContent'
+import type { RepairableSchemaName } from '@/lib/constants/types'
+export type { RepairableSchemaName }
 
 export interface RepairPromptParams {
   rawText: string

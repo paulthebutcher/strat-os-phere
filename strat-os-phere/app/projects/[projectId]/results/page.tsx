@@ -264,12 +264,20 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
   const project = await getProjectById(supabase, projectId)
 
-  if (!project || project.user_id !== authenticatedUser.id) {
+  if (!project) {
+    notFound()
+  }
+
+  // After null check, project is non-null
+  // TypeScript doesn't recognize notFound() never returns, so we narrow explicitly
+  const ownedProject = project as NonNullable<typeof project>
+
+  if (ownedProject.user_id !== authenticatedUser.id) {
     notFound()
   }
   
-  // TypeScript narrowing: project is non-null after notFound() check above
-  const verifiedProject = project!
+  // After both checks, project is guaranteed to be non-null and owned by the user
+  const verifiedProject = ownedProject
 
   const [competitors, artifacts] = await Promise.all([
     listCompetitorsForProject(supabase, projectId),
@@ -293,7 +301,8 @@ export default async function ResultsPage(props: ResultsPageProps) {
   } = normalized
 
   // Compute all boolean flags upfront
-  const hasProfiles = Boolean(profiles && profiles.snapshots.length > 0)
+  const snapshotsLength = profiles?.snapshots?.length ?? 0
+  const hasProfiles = snapshotsLength > 0
   const hasSynthesis = Boolean(synthesis?.synthesis)
   const hasJtbd = Boolean(jtbd?.content?.jobs?.length)
   const hasOpportunitiesV2 = Boolean(opportunitiesV2?.content?.opportunities?.length)
@@ -326,7 +335,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
   )
 
   const formattedGeneratedAt = generatedAt
-    ? new Date(generatedAt).toLocaleString(undefined, {
+    ? new Date(generatedAt as string).toLocaleString(undefined, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -664,7 +673,8 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
             {/* Recommended Next Steps Panel */}
             {opportunitiesV2?.content?.opportunities &&
-            opportunitiesV2.content.opportunities.length > 0 ? (
+            opportunitiesV2.content.opportunities.length > 0 &&
+            opportunitiesV2.content ? (
               <RecommendedNextStepsPanel
                 opportunities={opportunitiesV2.content}
                 projectId={verifiedProject.id}
@@ -1728,6 +1738,9 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
     return scoreB - scoreA
   })
 
+  // Compute aggregate confidence for summary
+  const aggregateConfidence = computeAggregateConfidence(sortedOpportunities)
+
   // Get top opportunity for "If you did only one thing" panel
   const topOpportunity = sortedOpportunities[0]
   const topScore = getOpportunityScore(topOpportunity)
@@ -1761,8 +1774,19 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
 
   return (
     <section className="space-y-6">
+      {/* Results header with progressive reveal message */}
+      <ProgressiveRevealWrapper section="top" storageKey="opportunities-progressive-reveal">
+        <div className="mb-4 rounded-lg bg-muted/30 border border-border p-4">
+          <p className="text-sm text-foreground font-medium mb-1">Results are ready</p>
+          <p className="text-sm text-muted-foreground">
+            Start with the top opportunity. Everything else supports why it's worth betting on.
+          </p>
+        </div>
+      </ProgressiveRevealWrapper>
+
       {/* "If you did only one thing" panel */}
-      <article className="panel p-6 border-2 border-primary/20">
+      <ProgressiveRevealWrapper section="top" storageKey="opportunities-progressive-reveal">
+        <article className="panel p-6 border-2 border-primary/20">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-foreground mb-1">
@@ -1803,6 +1827,7 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
           </div>
         </div>
       </article>
+      </ProgressiveRevealWrapper>
 
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
@@ -1815,9 +1840,23 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
         </p>
       </div>
 
-      {sortedOpportunities.map((opp, index) => {
+      {/* Decision Confidence Summary */}
+      <ProgressiveRevealWrapper section="top" storageKey="opportunities-progressive-reveal">
+        <DecisionConfidenceSummary
+          overallLevel={aggregateConfidence.overallLevel}
+          totalEvidenceCount={aggregateConfidence.totalEvidenceCount}
+          sourceTypes={aggregateConfidence.sourceTypes}
+          averageRecency={aggregateConfidence.averageRecency}
+        />
+      </ProgressiveRevealWrapper>
+
+      {/* Opportunities list */}
+      <ProgressiveRevealWrapper section="list" storageKey="opportunities-progressive-reveal">
+        <div className="space-y-6">
+          {sortedOpportunities.map((opp, index) => {
         const whyNowSignals = getWhyNowSignals(opp)
         const decisionFrame = getDecisionFrame(opp)
+        const confidence = computeDecisionConfidence(opp)
         
         return (
         <article key={opp.id || index} className="panel p-6 space-y-6 transition-all duration-150 hover:shadow-sm">
@@ -1854,6 +1893,12 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
               </div>
             )}
           </header>
+
+          {/* Decision Confidence Panel */}
+          <DecisionConfidencePanel confidence={confidence} />
+
+          {/* Hard to copy because - prominent callout */}
+          <HardToCopyCallout opportunity={opp} />
 
           {/* Score Breakdown */}
           {'scoring' in opp && typeof opp.scoring === 'object' && opp.scoring !== null && 'breakdown' in opp.scoring && typeof opp.scoring.breakdown === 'object' && opp.scoring.breakdown !== null && (
@@ -2005,6 +2050,8 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
         </article>
         )
       })}
+        </div>
+      </ProgressiveRevealWrapper>
     </section>
   )
 }

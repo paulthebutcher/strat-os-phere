@@ -83,14 +83,14 @@ function computeOpportunityV3TotalScore(
     breakdown.feasibility * weights.feasibility +
     breakdown.defensibility * weights.defensibility +
     breakdown.competitor_gap * weights.competitor_gap +
-    breakdown.recency_confidence * weights.recency_confidence
+    breakdown.recencyConfidence * weights.recencyConfidence
 
   // Scale to 0-100 and round to integer
   return Math.min(100, Math.max(0, Math.round(total * 10)))
 }
 
 /**
- * Compute recency_confidence from citations (0-10)
+ * Compute recencyConfidence from citations (0-10)
  * Higher if citations are within 90 days and include reviews/pricing/changelog
  */
 function computeRecencyConfidence(
@@ -446,13 +446,13 @@ export async function generateOpportunitiesV3(
       const jtbdId = opp.dependencies.linked_jtbd_ids?.[0]
       const stableId = opp.id || generateOpportunityId(opp.title, projectId, jtbdId)
 
-      // Compute recency_confidence from citations
+      // Compute recencyConfidence from citations
       const recencyConfidence = computeRecencyConfidence(opp.citations)
 
-      // Update breakdown with computed recency_confidence
+      // Update breakdown with computed recencyConfidence
       const updatedBreakdown = {
         ...opp.scoring.breakdown,
-        recency_confidence: recencyConfidence,
+        recencyConfidence: recencyConfidence,
       }
 
       // Compute total score deterministically

@@ -3,42 +3,9 @@
  * Provides real-time status updates during artifact generation
  */
 
-export type ResultsV2Phase =
-  | 'load_input'
-  | 'competitor_profiles'
-  | 'evidence_quality_check'
-  | 'jobs_generate'
-  | 'jobs_validate'
-  | 'scorecard_generate'
-  | 'scorecard_validate'
-  | 'opportunities_generate'
-  | 'opportunities_validate'
-  | 'strategic_bets_generate'
-  | 'strategic_bets_validate'
-  | 'scoring_compute'
-  | 'save_artifacts'
-  | 'finalize'
-
-/**
- * Canonical phase constants for ResultsV2Phase
- * Use these constants instead of raw strings to prevent typos and ensure type safety
- */
-export const RESULTS_V2_PHASES = {
-  LOAD_INPUT: 'load_input',
-  COMPETITOR_PROFILES: 'competitor_profiles',
-  EVIDENCE_QUALITY_CHECK: 'evidence_quality_check',
-  JOBS_GENERATE: 'jobs_generate',
-  JOBS_VALIDATE: 'jobs_validate',
-  SCORECARD_GENERATE: 'scorecard_generate',
-  SCORECARD_VALIDATE: 'scorecard_validate',
-  OPPORTUNITIES_GENERATE: 'opportunities_generate',
-  OPPORTUNITIES_VALIDATE: 'opportunities_validate',
-  STRATEGIC_BETS_GENERATE: 'strategic_bets_generate',
-  STRATEGIC_BETS_VALIDATE: 'strategic_bets_validate',
-  SCORING_COMPUTE: 'scoring_compute',
-  SAVE_ARTIFACTS: 'save_artifacts',
-  FINALIZE: 'finalize',
-} as const satisfies Record<string, ResultsV2Phase>
+// Import from centralized constants to prevent drift
+import { RESULTS_V2_PHASES, type ResultsV2Phase } from '@/lib/constants/types'
+export { RESULTS_V2_PHASES, type ResultsV2Phase }
 
 export type ProgressStatus = 'started' | 'progress' | 'completed' | 'failed' | 'blocked'
 
@@ -50,25 +17,9 @@ export interface ProgressEvent {
   detail?: string // Optional secondary line for context
   percent?: number // 0-100 (only if meaningful)
   timestamp: string
-  meta?: {
-    competitorCount?: number
-    profilesCount?: number
-    artifactCount?: number
-    llmCallsDone?: number
-    llmCallsTotal?: number
-    repairsUsed?: number
-    writesDone?: number
-    writesTotal?: number
-    durationMs?: number
-    // Substep tracking for phases with multiple steps (e.g., processing multiple competitors)
-    substep?: string // e.g., 'pricing', 'reviews', 'changelog', 'jobs', 'docs', 'status'
-    current?: number // Current item index (1-based)
-    total?: number // Total items to process
-    competitorId?: string // ID of competitor being processed
-    competitorName?: string // Name of competitor being processed
-    // Allow additional meta fields for extensibility
-    [key: string]: unknown
-  }
+  // Meta is flexible to allow adding fields without breaking builds
+  // Common fields: competitorCount, profilesCount, artifactCount, llmCallsDone, etc.
+  meta?: Record<string, unknown>
 }
 
 export interface ProgressCallback {
