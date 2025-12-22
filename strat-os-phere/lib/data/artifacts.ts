@@ -16,6 +16,11 @@ function getTypedClient(client: Client): SupabaseClient<Database> {
   return client as unknown as SupabaseClient<Database>
 }
 
+/**
+ * Create a new artifact in the database
+ * @returns ArtifactRow - the full database row including id, created_at, etc.
+ * Callers should use .id to get the string ID if only the ID is needed.
+ */
 export async function createArtifact(
   client: Client,
   input: NewArtifact

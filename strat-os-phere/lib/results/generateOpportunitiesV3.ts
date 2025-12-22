@@ -502,11 +502,13 @@ export async function generateOpportunitiesV3(
       opportunities: opportunitiesWithIds,
     }
 
-    const artifactId = await createArtifact(supabase, {
+    // createArtifact returns ArtifactRow; extract .id for the string ID
+    const artifact = await createArtifact(supabase, {
       project_id: projectId,
       type: 'opportunities_v3',
       content_json: opportunityV3Content,
     })
+    const artifactId: string = artifact.id
 
     onProgress?.(
       makeProgressEvent(runId, 'save_artifacts', 'Results saved', {
