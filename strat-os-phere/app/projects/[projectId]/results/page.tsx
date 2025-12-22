@@ -115,8 +115,8 @@ function assertNever(x: never): never {
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'opportunities_v3', label: 'Opportunities' },
-  { id: 'strategic_bets', label: 'Strategic Bets' },
   { id: 'opportunities_v2', label: 'Opportunities (v2)' },
+  { id: 'strategic_bets', label: 'Strategic Bets' },
   { id: 'scorecard', label: 'Scorecard' },
   { id: 'jobs', label: 'Jobs' },
   { id: 'themes', label: 'Themes' },
@@ -301,6 +301,15 @@ export default async function ResultsPage(props: ResultsPageProps) {
     ? opportunitiesV2Content 
     : null
 
+  /**
+   * Opportunity artifact picker: chooses the best available artifact
+   * Priority: opportunities_v3 > opportunities_v2 > null
+   * Returns the selected artifact content, version label, and availability flag
+   */
+  const opportunitiesArtifact = opportunitiesV3?.content ?? opportunitiesV2?.content ?? null
+  const artifactVersionLabel = opportunitiesV3?.content ? 'v3' : opportunitiesV2?.content ? 'v2' : null
+  const hasOpportunities = Boolean(opportunitiesArtifact)
+
   // Resolve tab using shared helper (deterministic, loop-proof)
   const tabAvailability: TabAvailability = {
     hasOpportunitiesV3,
@@ -468,7 +477,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
     },
     opportunities_v2: {
       label: 'Opportunities (v2)',
-      enabled: hasOpportunitiesV2,
+      enabled: true, // Always enabled for opportunities-first approach (will show empty state if no content)
       copyContent: opportunitiesV2Markdown,
       render: () => (
         <ProgressiveReveal order={2} enabled={hasOpportunitiesV2}>
@@ -482,7 +491,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
     },
     opportunities_v3: {
       label: 'Opportunities',
-      enabled: hasOpportunitiesV3,
+      enabled: true, // Always enabled for opportunities-first approach (will show empty state if no content)
       copyContent: opportunitiesV3Markdown,
       render: () => (
         <ProgressiveReveal order={0} enabled={hasOpportunitiesV3}>

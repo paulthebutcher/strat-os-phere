@@ -76,17 +76,21 @@ export function getAvailableTabs(availability: TabAvailability): TabId[] {
 
 /**
  * Computes the preferred default tab based on availability
- * Priority: opportunities_v3 > strategic_bets > opportunities_v2 > scorecard > jobs
+ * Priority: opportunities_v3 > opportunities_v2 > strategic_bets > scorecard > jobs
+ * Always prefers opportunities even if not available (will show empty state)
  */
 export function getPreferredDefaultTab(availability: TabAvailability): TabId {
+  // Always prefer opportunities first (opportunities-first approach)
   if (availability.hasOpportunitiesV3) {
     return 'opportunities_v3'
   }
-  if (availability.hasStrategicBets) {
-    return 'strategic_bets'
-  }
   if (availability.hasOpportunitiesV2) {
     return 'opportunities_v2'
+  }
+  // If no opportunities available, still default to opportunities_v3 to show empty state
+  // This ensures the page is always "opportunities-first"
+  if (availability.hasStrategicBets) {
+    return 'strategic_bets'
   }
   if (availability.hasScorecard) {
     return 'scorecard'
@@ -94,8 +98,8 @@ export function getPreferredDefaultTab(availability: TabAvailability): TabId {
   if (availability.hasJobs) {
     return 'jobs'
   }
-  // Fallback to a tab that should always be available if any artifacts exist
-  return 'profiles'
+  // Fallback: still prefer opportunities_v3 even if empty (will show empty state)
+  return 'opportunities_v3'
 }
 
 /**
@@ -134,7 +138,9 @@ export function resolveResultsTab(
   }
   
   // If tab is not available, use default
-  if (!availableTabs.includes(parsedTab)) {
+  // Exception: always allow opportunities_v3 and opportunities_v2 even if empty (for empty state)
+  const isOpportunitiesTab = parsedTab === 'opportunities_v3' || parsedTab === 'opportunities_v2'
+  if (!availableTabs.includes(parsedTab) && !isOpportunitiesTab) {
     return {
       tab: preferredDefault,
       isValid: false,
