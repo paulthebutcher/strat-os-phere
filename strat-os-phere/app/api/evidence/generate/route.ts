@@ -15,6 +15,9 @@ import { createClient } from '@/lib/supabase/server'
 import { MAX_PAGES_PER_COMPETITOR, EVIDENCE_CACHE_TTL_HOURS } from '@/lib/constants'
 import { logger } from '@/lib/logger'
 import { getSearchProvider } from '@/lib/search'
+import { FLAGS } from '@/lib/flags'
+import { fetchUrlsParallel, TOTAL_FETCH_BUDGET_MS_PER_COMPETITOR } from '@/lib/evidence/parallelFetch'
+import { performShortlist, DEFAULT_SHORTLIST_QUOTA } from '@/lib/evidence/shortlist'
 
 export const runtime = 'nodejs'
 
@@ -106,115 +109,229 @@ export async function POST(request: Request) {
 
     logger.info('[evidence/generate] Domain extracted', { domain, competitorName })
 
-    // Check for cached sources
-    const cachedSources = await getEvidenceSourcesForDomain(
-      supabase,
-      projectId,
-      domain
-    )
+    const fetchStartTime = Date.now()
 
-    let sources = cachedSources.filter((s) => isCacheValid(s.extracted_at))
+    // Use optimized path if flag is enabled
+    let sources: Awaited<ReturnType<typeof getEvidenceSourcesForDomain>>
 
-    if (sources.length === 0) {
-      // Need to fetch new sources
-      logger.info('[evidence/generate] No cache hit, fetching pages', { domain })
+    if (FLAGS.evidenceOptimize) {
+      logger.info('[evidence/generate] Using optimized evidence fetch', { domain })
 
+      // Build target URLs
       const targetUrls = buildTargetUrls(domain)
-      const extractionResults = await Promise.all(
-        targetUrls.slice(0, MAX_PAGES_PER_COMPETITOR).map(async (target, index) => {
-          logger.info(
-            `[evidence/generate] Fetching page ${index + 1}/${targetUrls.length}`,
-            { url: target.url, label: target.label }
-          )
+      const urlsToFetch = targetUrls.slice(0, MAX_PAGES_PER_COMPETITOR).map((t) => ({
+        url: t.url,
+        label: t.label,
+      }))
 
-          const extracted = await extractWithSourceType(target.url, target.label)
-
-          if (!extracted) {
-            logger.warn(`Failed to extract ${target.url}`)
-            return null
+      // Add review search URLs if available
+      try {
+        const searchProvider = getSearchProvider()
+        const reviewQuery = `${competitorName} reviews G2 Capterra Trustpilot`
+        const reviewResults = await searchProvider.search(reviewQuery, 2)
+        for (const review of reviewResults) {
+          if (review.url) {
+            urlsToFetch.push({ url: review.url, label: 'Review' })
           }
+        }
+      } catch (error) {
+        logger.warn('[evidence/generate] Review search failed', error)
+      }
 
-          // Store in database
+      // Parallel fetch with caching
+      const { results: fetchedPages, stats: fetchStats } = await fetchUrlsParallel(
+        supabase,
+        urlsToFetch,
+        {
+          budgetMs: TOTAL_FETCH_BUDGET_MS_PER_COMPETITOR,
+        }
+      )
+
+      logger.info('[evidence/generate] Fetch completed', {
+        total: fetchStats.total,
+        cacheHits: fetchStats.cacheHits,
+        cacheMisses: fetchStats.cacheMisses,
+        successes: fetchStats.successes,
+        failures: fetchStats.failures,
+        totalTimeMs: fetchStats.totalTimeMs,
+        cacheHitRate: fetchStats.total > 0 ? (fetchStats.cacheHits / fetchStats.total).toFixed(2) : '0.00',
+      })
+
+      // Two-pass shortlist
+      const shortlistStartTime = Date.now()
+      const { shortlisted, stats: shortlistStats } = await performShortlist(
+        supabase,
+        fetchedPages,
+        DEFAULT_SHORTLIST_QUOTA
+      )
+      const shortlistTimeMs = Date.now() - shortlistStartTime
+
+      logger.info('[evidence/generate] Shortlist completed', {
+        totalFetched: shortlistStats.totalFetched,
+        summariesGenerated: shortlistStats.summariesGenerated,
+        shortlistedCount: shortlistStats.shortlistedCount,
+        passATimeMs: shortlistStats.passATimeMs,
+        shortlistTimeMs,
+      })
+
+      // Convert shortlisted pages to evidence sources format
+      const extractionResults = await Promise.all(
+        shortlisted.map(async (page) => {
           try {
             const source = await createEvidenceSource(supabase, {
               project_id: projectId,
-              competitor_id: null, // Will be linked when competitor is created
+              competitor_id: null,
               domain,
-              url: extracted.url,
-              extracted_text: extracted.text,
-              page_title: extracted.title || null,
-              source_type: extracted.sourceType,
-              source_confidence: extracted.confidence,
-              source_date_range: extracted.dateRange || null,
+              url: page.url,
+              extracted_text: page.extracted.text,
+              page_title: page.title || page.extracted.title || null,
+              source_type: page.extracted.sourceType,
+              source_confidence: page.extracted.confidence,
+              source_date_range: page.extracted.dateRange || null,
               extracted_at: new Date().toISOString(),
             })
             return source
           } catch (error) {
-            logger.error(`Failed to store evidence source for ${target.url}`, error)
-            // Continue even if storage fails - we can still use the extracted content
+            logger.error(`Failed to store evidence source for ${page.url}`, error)
+            // Return a temporary source structure
             return {
-              id: `temp-${Date.now()}-${index}`,
+              id: `temp-${Date.now()}-${Math.random()}`,
               project_id: projectId,
               competitor_id: null,
               domain,
-              url: extracted.url,
-              extracted_text: extracted.text,
-              page_title: extracted.title || null,
-              source_type: extracted.sourceType,
-              source_confidence: extracted.confidence,
-              source_date_range: extracted.dateRange || null,
+              url: page.url,
+              extracted_text: page.extracted.text,
+              page_title: page.title || page.extracted.title || null,
+              source_type: page.extracted.sourceType,
+              source_confidence: page.extracted.confidence,
+              source_date_range: page.extracted.dateRange || null,
               extracted_at: new Date().toISOString(),
               created_at: new Date().toISOString(),
-            } as typeof sources[0]
+            } as Awaited<ReturnType<typeof getEvidenceSourcesForDomain>>[0]
           }
         })
       )
 
-      // Also search for reviews (limited to 2-3 results to stay within page limits)
-      try {
-        const searchProvider = getSearchProvider()
-        const reviewQuery = `${competitorName} reviews G2 Capterra Trustpilot`
-        logger.info('[evidence/generate] Searching for reviews', { query: reviewQuery })
-        
-        const reviewResults = await searchProvider.search(reviewQuery, 2)
-        
-        for (const review of reviewResults) {
-          if (review.url) {
-            const extracted = await extractWithSourceType(review.url)
-            if (extracted && extracted.sourceType === 'reviews') {
-              try {
-                const source = await createEvidenceSource(supabase, {
-                  project_id: projectId,
-                  competitor_id: null,
-                  domain,
-                  url: extracted.url,
-                  extracted_text: extracted.text,
-                  page_title: extracted.title || review.title || null,
-                  source_type: 'reviews',
-                  source_confidence: 'medium',
-                  source_date_range: null,
-                  extracted_at: new Date().toISOString(),
-                })
-                extractionResults.push(source)
-              } catch (error) {
-                logger.warn(`Failed to store review source: ${review.url}`, error)
+      sources = extractionResults.filter((s) => s !== null)
+      
+      const totalTimeMs = Date.now() - fetchStartTime
+      logger.info('[evidence/generate] Optimized path completed', {
+        totalTimeMs,
+        sourcesCount: sources.length,
+      })
+    } else {
+      // Legacy path (original implementation)
+      logger.info('[evidence/generate] Using legacy evidence fetch', { domain })
+
+      const cachedSources = await getEvidenceSourcesForDomain(
+        supabase,
+        projectId,
+        domain
+      )
+
+      sources = cachedSources.filter((s) => isCacheValid(s.extracted_at))
+
+      if (sources.length === 0) {
+        // Need to fetch new sources
+        logger.info('[evidence/generate] No cache hit, fetching pages', { domain })
+
+        const targetUrls = buildTargetUrls(domain)
+        const extractionResults = await Promise.all(
+          targetUrls.slice(0, MAX_PAGES_PER_COMPETITOR).map(async (target, index) => {
+            logger.info(
+              `[evidence/generate] Fetching page ${index + 1}/${targetUrls.length}`,
+              { url: target.url, label: target.label }
+            )
+
+            const extracted = await extractWithSourceType(target.url, target.label)
+
+            if (!extracted) {
+              logger.warn(`Failed to extract ${target.url}`)
+              return null
+            }
+
+            // Store in database
+            try {
+              const source = await createEvidenceSource(supabase, {
+                project_id: projectId,
+                competitor_id: null, // Will be linked when competitor is created
+                domain,
+                url: extracted.url,
+                extracted_text: extracted.text,
+                page_title: extracted.title || null,
+                source_type: extracted.sourceType,
+                source_confidence: extracted.confidence,
+                source_date_range: extracted.dateRange || null,
+                extracted_at: new Date().toISOString(),
+              })
+              return source
+            } catch (error) {
+              logger.error(`Failed to store evidence source for ${target.url}`, error)
+              // Continue even if storage fails - we can still use the extracted content
+              return {
+                id: `temp-${Date.now()}-${index}`,
+                project_id: projectId,
+                competitor_id: null,
+                domain,
+                url: extracted.url,
+                extracted_text: extracted.text,
+                page_title: extracted.title || null,
+                source_type: extracted.sourceType,
+                source_confidence: extracted.confidence,
+                source_date_range: extracted.dateRange || null,
+                extracted_at: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+              } as typeof sources[0]
+            }
+          })
+        )
+
+        // Also search for reviews (limited to 2-3 results to stay within page limits)
+        try {
+          const searchProvider = getSearchProvider()
+          const reviewQuery = `${competitorName} reviews G2 Capterra Trustpilot`
+          logger.info('[evidence/generate] Searching for reviews', { query: reviewQuery })
+          
+          const reviewResults = await searchProvider.search(reviewQuery, 2)
+          
+          for (const review of reviewResults) {
+            if (review.url) {
+              const extracted = await extractWithSourceType(review.url)
+              if (extracted && extracted.sourceType === 'reviews') {
+                try {
+                  const source = await createEvidenceSource(supabase, {
+                    project_id: projectId,
+                    competitor_id: null,
+                    domain,
+                    url: extracted.url,
+                    extracted_text: extracted.text,
+                    page_title: extracted.title || review.title || null,
+                    source_type: 'reviews',
+                    source_confidence: 'medium',
+                    source_date_range: null,
+                    extracted_at: new Date().toISOString(),
+                  })
+                  extractionResults.push(source)
+                } catch (error) {
+                  logger.warn(`Failed to store review source: ${review.url}`, error)
+                }
               }
             }
           }
+        } catch (error) {
+          // Don't fail if review search fails - it's optional
+          logger.warn('[evidence/generate] Review search failed', error)
         }
-      } catch (error) {
-        // Don't fail if review search fails - it's optional
-        logger.warn('[evidence/generate] Review search failed', error)
-      }
 
-      sources = extractionResults.filter(
-        (s): s is typeof sources[0] => s !== null
-      )
-    } else {
-      logger.info('[evidence/generate] Using cached sources', {
-        domain,
-        sourceCount: sources.length,
-      })
+        sources = extractionResults.filter(
+          (s): s is typeof sources[0] => s !== null
+        )
+      } else {
+        logger.info('[evidence/generate] Using cached sources', {
+          domain,
+          sourceCount: sources.length,
+        })
+      }
     }
 
     if (sources.length === 0) {

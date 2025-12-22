@@ -134,6 +134,38 @@ export interface EvidenceSourceInsert {
 
 export type EvidenceSourceUpdate = Partial<EvidenceSourceInsert>
 
+export interface EvidenceCacheRow {
+  id: string
+  normalized_url: string
+  content_hash: string
+  fetched_at: string
+  http_status: number | null
+  final_url: string | null
+  title: string | null
+  raw_text: string | null
+  extract_json: Json | null
+  summary_json: Json | null
+  summary_prompt_version: string | null
+  stale_after_days: number
+  created_at: string
+  updated_at: string
+}
+
+export interface EvidenceCacheInsert {
+  normalized_url: string
+  content_hash: string
+  http_status?: number | null
+  final_url?: string | null
+  title?: string | null
+  raw_text?: string | null
+  extract_json?: Json | null
+  summary_json?: Json | null
+  summary_prompt_version?: string | null
+  stale_after_days?: number
+}
+
+export type EvidenceCacheUpdate = Partial<EvidenceCacheInsert>
+
 // Artifact storage for analysis outputs (and future extension types).
 // Database schema: { id, project_id, type, content_json(jsonb), created_at }
 // Import from centralized constants to prevent drift
@@ -246,6 +278,12 @@ export type Database = {
         Row: AnalysisRunEventRow
         Insert: AnalysisRunEventInsert
         Update: AnalysisRunEventUpdate
+        Relationships: []
+      }
+      evidence_cache: {
+        Row: EvidenceCacheRow
+        Insert: EvidenceCacheInsert
+        Update: EvidenceCacheUpdate
         Relationships: []
       }
     }
