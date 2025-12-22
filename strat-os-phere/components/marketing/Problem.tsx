@@ -12,9 +12,9 @@ import { AlertCircle } from "lucide-react"
 
 export function Problem() {
   return (
-    <section id="problem" className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-24 md:py-32">
+    <section id="problem" className="bg-surface-muted/30 mx-auto max-w-[1200px] px-4 py-24 md:py-32">
       <div className="mx-auto max-w-4xl">
-        <h2 className="text-center text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
+        <h2 className="text-center text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
           Competitive analysis is either too shallow or too slow.
         </h2>
         <p className="mt-6 text-center text-lg leading-relaxed text-text-secondary md:text-xl">

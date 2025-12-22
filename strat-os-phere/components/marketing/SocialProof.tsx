@@ -10,9 +10,9 @@
  */
 export function SocialProof() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-24 md:py-32">
+    <section className="mx-auto max-w-[1200px] px-4 py-24 md:py-32">
       <div className="mx-auto max-w-4xl text-center">
-        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
+        <h2 className="text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
           Built for experienced strategists
         </h2>
         <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl">

@@ -13,9 +13,9 @@ import { Button } from "@/components/ui/button"
 
 export function CTABand() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-24 md:py-32">
+    <section className="mx-auto max-w-[1200px] px-4 py-24 md:py-32">
       <div className="relative mx-auto max-w-4xl overflow-hidden rounded-xl border-2 border-accent-primary/20 bg-gradient-to-br from-accent-primary/10 via-accent-primary/5 to-surface p-12 text-center shadow-lg md:p-16">
-        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
+        <h2 className="text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
           Make one strategic bet this week with confidence.
         </h2>
         <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl">
@@ -23,12 +23,12 @@ export function CTABand() {
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link href="/dashboard">
-            <Button size="lg" className="w-full sm:w-auto">
+            <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105">
               Start an analysis
             </Button>
           </Link>
-          <Link href="#outputs">
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-2">
+          <Link href="#sample-output">
+            <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
               View sample output
             </Button>
           </Link>

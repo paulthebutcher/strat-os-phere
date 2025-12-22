@@ -13,57 +13,55 @@
  */
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Zap, FileText, Target } from "lucide-react"
 
 export function Hero() {
   return (
-    <section className="relative mx-auto max-w-7xl px-4 py-24 md:py-32 lg:py-40">
-      {/* Subtle gradient background */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-surface-muted/50 via-background to-background" />
-      
+    <section className="relative mx-auto max-w-[1200px] px-4 py-24 md:py-32 lg:py-40">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           {/* Text content */}
           <div className="text-center lg:text-left">
-            <h1 className="text-5xl font-semibold tracking-tight text-text-primary md:text-6xl lg:text-7xl">
-              From competitors to Strategic Bets—grounded in live evidence.
+            <h1 className="text-5xl font-bold tracking-tight text-text-primary md:text-6xl lg:text-7xl">
+              <span className="marketing-gradient-text">Plinth</span>: decision engine for competitive strategy
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl lg:text-2xl">
-              Turn a small amount of context and competitor inputs into actionable outputs: Jobs-to-be-Done with opportunity scores, weighted scorecards, differentiation opportunities, and Strategic Bets—all backed by up-to-date public evidence with citations.
+              Turn live market signals into defensible strategic bets. Get Jobs-to-be-Done, scorecards, opportunities, and Strategic Bets—all backed by up-to-date public evidence with citations.
             </p>
-            <div className="mt-8 space-y-2">
-              <div className="flex items-center justify-center gap-2 text-sm text-text-secondary lg:justify-start md:text-base">
-                <svg className="h-4 w-4 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>JTBD + opportunity scores you can act on</span>
+            <div className="mt-8 space-y-3">
+              <div className="flex items-center justify-center gap-3 text-base text-text-secondary lg:justify-start">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
+                  <Zap className="h-5 w-5 text-accent-primary" />
+                </div>
+                <span className="font-medium">Live signals from pricing, changelogs, reviews, docs</span>
               </div>
-              <div className="flex items-center justify-center gap-2 text-sm text-text-secondary lg:justify-start md:text-base">
-                <svg className="h-4 w-4 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Weighted scorecard across competitors</span>
+              <div className="flex items-center justify-center gap-3 text-base text-text-secondary lg:justify-start">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
+                  <FileText className="h-5 w-5 text-accent-primary" />
+                </div>
+                <span className="font-medium">Every insight includes citations you can validate</span>
               </div>
-              <div className="flex items-center justify-center gap-2 text-sm text-text-secondary lg:justify-start md:text-base">
-                <svg className="h-4 w-4 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Strategic Bets: what to say no to + why rivals won't follow</span>
+              <div className="flex items-center justify-center gap-3 text-base text-text-secondary lg:justify-start">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
+                  <Target className="h-5 w-5 text-accent-primary" />
+                </div>
+                <span className="font-medium">Actionable experiments and bets, not just research</span>
               </div>
             </div>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start">
               <Link href="/dashboard">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Start an analysis
+                <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105">
+                  Generate an analysis
                 </Button>
               </Link>
-              <Link href="#outputs">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                  See a sample output
+              <Link href="#sample-output">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
+                  See a sample analysis
                 </Button>
               </Link>
             </div>
-            <p className="mt-4 text-sm text-text-muted">
-              Takes ~5 minutes. Uses public sources with citations.
+            <p className="mt-6 text-sm text-text-muted">
+              Built for VP+ Product & UX. No busywork inputs.
             </p>
           </div>
           

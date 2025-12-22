@@ -1,65 +1,3 @@
-"use client"
-
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-
-const outputs = [
-  {
-    id: "jobs-to-be-done",
-    label: "Jobs-to-be-Done",
-    title: "Jobs-to-be-Done + Opportunity Scores",
-    description: "Specific jobs customers need done, scored by frequency and dissatisfaction. Each job includes an opportunity score you can act on.",
-    bullets: [
-      "Jobs extracted from public evidence (reviews, docs, changelogs)",
-      "Opportunity scores based on frequency and unmet need",
-      "Ready to prioritize your roadmap or positioning",
-    ],
-  },
-  {
-    id: "scorecard",
-    label: "Scorecard",
-    title: "Weighted Scorecard + Bar Chart",
-    description: "Compare competitors across weighted criteria with a visual bar chart. See where you win, where you lag, and where gaps exist.",
-    bullets: [
-      "Weighted scoring matrix across multiple criteria",
-      "Visual bar chart for quick comparison",
-      "Deterministic scoring with explainers for repeatability",
-    ],
-  },
-  {
-    id: "opportunities",
-    label: "Opportunities",
-    title: "Differentiation Opportunities",
-    description: "Ranked opportunities for differentiation, each with first experiments you can run. Grounded in evidence, not assumptions.",
-    bullets: [
-      "Ranked by leverage and defensibility",
-      "First experiments suggested for each opportunity",
-      "Evidence-backed with citations you can validate",
-    ],
-  },
-  {
-    id: "strategic-bets",
-    label: "Strategic Bets",
-    title: "Strategic Bets",
-    description: "Decision forcing function: what you'd have to say no to, and why competitors won't easily follow. Forces tradeoffs and creates clarity.",
-    bullets: [
-      "What to say no to (and why)",
-      "Why rivals won't follow (structural barriers)",
-      "Defensible with evidence trail",
-    ],
-  },
-  {
-    id: "evidence",
-    label: "Evidence & Citations",
-    title: "Evidence & Citations",
-    description: "Every output includes citations to public sources: pricing pages, changelogs, reviews, docs, jobs, status pages. Full audit trail.",
-    bullets: [
-      "Citations for every claim and insight",
-      "Public sources only: pricing, changelogs, reviews, docs, jobs, status",
-      "You can validate and trace every decision",
-    ],
-  },
-]
-
 /**
  * Outputs Section
  * 
@@ -68,80 +6,93 @@ const outputs = [
  * - accent-primary: Active tab indicator
  * - surface-muted: Placeholder mockup background
  * 
- * Enhanced with placeholder mockups and improved tab styling.
+ * Enhanced with gallery grid layout with colored accent borders and iconography.
  */
+import { Target, BarChart3, Lightbulb, TrendingUp, FileText } from "lucide-react"
+
+const outputs = [
+  {
+    id: "opportunities",
+    title: "Opportunities",
+    description: "Ranked differentiation opportunities with first experiments you can run. Grounded in evidence, not assumptions.",
+    icon: Lightbulb,
+    borderColor: "marketing-accent-border-coral",
+    iconColor: "text-[hsl(var(--marketing-accent-coral))]",
+    iconBg: "bg-[hsl(var(--marketing-accent-coral)/0.1)]",
+  },
+  {
+    id: "scorecard",
+    title: "Scorecard",
+    description: "Weighted scorecard across competitors with visual bar chart. See where you win, where you lag, and where gaps exist.",
+    icon: BarChart3,
+    borderColor: "marketing-accent-border-indigo",
+    iconColor: "text-accent-primary",
+    iconBg: "bg-accent-primary/10",
+  },
+  {
+    id: "strategic-bets",
+    title: "Strategic Bets",
+    description: "Decision forcing function: what to say no to, and why competitors won't easily follow. Forces tradeoffs and creates clarity.",
+    icon: TrendingUp,
+    borderColor: "marketing-accent-border-purple",
+    iconColor: "text-[hsl(var(--marketing-gradient-end))]",
+    iconBg: "bg-[hsl(var(--marketing-gradient-end)/0.1)]",
+  },
+  {
+    id: "jobs-to-be-done",
+    title: "Jobs-to-be-Done",
+    description: "Specific jobs customers need done, scored by frequency and dissatisfaction. Each job includes an opportunity score you can act on.",
+    icon: Target,
+    borderColor: "marketing-accent-border-teal",
+    iconColor: "text-[hsl(var(--marketing-accent-teal))]",
+    iconBg: "bg-[hsl(var(--marketing-accent-teal)/0.1)]",
+  },
+  {
+    id: "evidence",
+    title: "Evidence & Citations",
+    description: "Every output includes citations to public sources: pricing pages, changelogs, reviews, docs, jobs, status pages. Full audit trail.",
+    icon: FileText,
+    borderColor: "marketing-accent-border-indigo",
+    iconColor: "text-accent-primary",
+    iconBg: "bg-accent-primary/10",
+  },
+]
+
 export function Outputs() {
   return (
-    <section id="outputs" className="mx-auto max-w-7xl px-4 py-24 md:py-32">
+    <section id="outputs" className="mx-auto max-w-[1200px] px-4 py-24 md:py-32">
       <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
-          Decision-ready outputs
+        <h2 className="text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
+          What you get
         </h2>
         <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl">
           Everything is copyable, exportable, and ready to use in your strategy work. No buzzwords—just actionable insights.
         </p>
       </div>
       <div className="mt-20">
-        <Tabs defaultValue={outputs[0].id} className="mx-auto max-w-5xl">
-          <TabsList className="mb-8 w-full justify-start overflow-x-auto border border-border-subtle bg-surface p-1.5">
-            {outputs.map((output) => (
-              <TabsTrigger key={output.id} value={output.id} className="px-6 py-2.5">
-                {output.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {outputs.map((output) => (
-            <TabsContent key={output.id} value={output.id} className="mt-8">
-              <div className="panel overflow-hidden border-2 border-border-subtle shadow-sm">
-                <div className="p-8 md:p-10">
-                  <h3 className="mb-4 text-2xl font-semibold text-text-primary md:text-3xl">
-                    {output.title}
-                  </h3>
-                  <p className="mb-6 text-base leading-relaxed text-text-secondary md:text-lg">
-                    {output.description}
-                  </p>
-                  {output.bullets && (
-                    <ul className="mb-8 space-y-3">
-                      {output.bullets.map((bullet, index) => (
-                        <li key={index} className="flex items-start gap-3">
-                          <svg className="mt-0.5 h-5 w-5 shrink-0 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span className="text-base leading-relaxed text-text-secondary md:text-lg">{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                {/* Placeholder mockup */}
-                <div className="border-t border-border-subtle bg-surface-muted">
-                  <div className="aspect-video flex items-center justify-center p-8">
-                    <div className="text-center">
-                      <div className="mx-auto mb-4 h-16 w-16 rounded-lg bg-accent-primary/10 flex items-center justify-center">
-                        <svg
-                          className="h-8 w-8 text-accent-primary"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                      </div>
-                      <p className="text-sm font-medium text-text-muted">
-                        {output.title} output preview
-                      </p>
-                    </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {outputs.map((output) => {
+            const Icon = output.icon
+            return (
+              <div
+                key={output.id}
+                className={`panel ${output.borderColor} relative flex flex-col p-6 transition-all hover:shadow-lg hover:scale-105`}
+              >
+                <div className="mb-4 flex shrink-0">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${output.iconBg} ${output.iconColor}`}>
+                    <Icon className="h-6 w-6" />
                   </div>
                 </div>
+                <h3 className="mb-3 text-xl font-bold text-text-primary">
+                  {output.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-text-secondary md:text-base">
+                  {output.description}
+                </p>
               </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+            )
+          })}
+        </div>
       </div>
     </section>
   )

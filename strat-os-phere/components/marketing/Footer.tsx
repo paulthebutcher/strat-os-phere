@@ -14,7 +14,7 @@ import Link from "next/link"
 export function Footer() {
   return (
     <footer className="border-t border-border-subtle bg-surface-muted">
-      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
+      <div className="mx-auto max-w-[1200px] px-4 py-16 md:py-20">
         <div className="grid gap-12 md:grid-cols-4">
           <div className="md:col-span-2">
             <h3 className="mb-4 text-xl font-semibold text-text-primary">

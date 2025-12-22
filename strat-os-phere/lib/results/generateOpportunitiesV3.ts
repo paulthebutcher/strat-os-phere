@@ -452,7 +452,7 @@ export async function generateOpportunitiesV3(
       // Update breakdown with computed recency_confidence
       const updatedBreakdown = {
         ...opp.scoring.breakdown,
-        recency_confidence,
+        recency_confidence: recencyConfidence,
       }
 
       // Compute total score deterministically

@@ -4,6 +4,7 @@ import { Hero } from "@/components/marketing/Hero"
 import { Problem } from "@/components/marketing/Problem"
 import { HowItWorks } from "@/components/marketing/HowItWorks"
 import { Outputs } from "@/components/marketing/Outputs"
+import { SampleOutput } from "@/components/marketing/SampleOutput"
 import { Differentiators } from "@/components/marketing/Differentiators"
 import { WhoItsFor } from "@/components/marketing/WhoItsFor"
 import { Trust } from "@/components/marketing/Trust"
@@ -53,6 +54,7 @@ export default async function Home(props: HomeProps) {
       <Hero />
       <Problem />
       <Outputs />
+      <SampleOutput />
       <HowItWorks />
       <Differentiators />
       <WhoItsFor />

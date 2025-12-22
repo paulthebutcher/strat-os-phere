@@ -28,9 +28,9 @@ export function Differentiators() {
   ]
 
   return (
-    <section className="bg-surface-muted/30 mx-auto max-w-7xl px-4 py-24 md:py-32">
+    <section className="bg-surface-muted/30 mx-auto max-w-[1200px] px-4 py-24 md:py-32">
       <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-4xl font-semibold tracking-tight text-text-primary md:text-5xl">
+        <h2 className="text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
           Why Plinth vs generic research
         </h2>
       </div>
