@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { ProjectShell } from '@/components/layout/ProjectShell'
+import { ProjectLayoutShell } from '@/components/layout/ProjectLayoutShell'
 import { getProjectById } from '@/lib/data/projects'
 import { createClient } from '@/lib/supabase/server'
 
@@ -30,15 +30,13 @@ export default async function ProjectLayout(props: ProjectLayoutProps) {
   }
 
   return (
-    <ProjectShell
-      project={{
-        id: project.id,
-        name: project.name,
-        market: project.market,
-      }}
+    <ProjectLayoutShell
+      projectId={project.id}
+      projectName={project.name}
+      subtitle={project.market}
     >
       {props.children}
-    </ProjectShell>
+    </ProjectLayoutShell>
   )
 }
 

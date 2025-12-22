@@ -1,17 +1,9 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { createPageMetadata } from '@/lib/seo/metadata'
-import { listArtifacts } from '@/lib/data/artifacts'
-import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { getProjectById } from '@/lib/data/projects'
-import { normalizeResultsArtifacts } from '@/lib/results/normalizeResults'
 import { createClient } from '@/lib/supabase/server'
-import { OpportunitiesContent } from '@/components/results/OpportunitiesContent'
-import { ResultsReadout } from '@/components/results/ResultsReadout'
-import { ShareButton } from '@/components/results/ShareButton'
-import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
-import { TourLink } from '@/components/guidance/TourLink'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -38,16 +30,19 @@ export async function generateMetadata(props: ResultsPageProps): Promise<Metadat
 }
 
 /**
- * Canonical Results entry point
+ * Legacy results route with tab support
  * 
- * This is the single canonical route for viewing project results.
- * It loads artifacts, normalizes them once, and renders the opportunities-first view.
- * 
- * Legacy URLs (like /opportunities, /results?tab=...) redirect here.
+ * Handles legacy /results?tab=xyz URLs and redirects to canonical routes.
+ * If no tab is specified, redirects to opportunities (canonical results view).
  */
 export default async function ResultsPage(props: ResultsPageProps) {
-  const params = await props.params
+  const [params, searchParams] = await Promise.all([
+    props.params,
+    props.searchParams ?? Promise.resolve({}),
+  ])
   const projectId = params.projectId
+  const searchParamsObj = (await searchParams) as { tab?: string } | undefined
+  const tab = searchParamsObj?.tab
 
   const supabase = await createClient()
   const {
@@ -64,44 +59,23 @@ export default async function ResultsPage(props: ResultsPageProps) {
     notFound()
   }
 
-  const [competitors, artifacts] = await Promise.all([
-    listCompetitorsForProject(supabase, projectId),
-    listArtifacts(supabase, { projectId }),
-  ])
+  // Map legacy tab values to canonical routes
+  const tabToRoute: Record<string, string> = {
+    overview: `/projects/${projectId}/overview`,
+    opportunities: `/projects/${projectId}/opportunities`,
+    strategic_bets: `/projects/${projectId}/opportunities`, // Strategic bets are shown in opportunities
+    jobs: `/projects/${projectId}/opportunities`, // Jobs are shown in opportunities
+    scorecard: `/projects/${projectId}/scorecard`,
+    competitors: `/projects/${projectId}/competitors`,
+    evidence: `/projects/${projectId}/evidence`,
+    settings: `/projects/${projectId}/settings`,
+  }
 
-  // Normalize artifacts once using the canonical normalization function
-  const normalized = normalizeResultsArtifacts(artifacts, projectId)
-  const { opportunities, strategicBets, profiles, jtbd } = normalized
+  // If a tab is specified, redirect to the canonical route
+  if (tab && tabToRoute[tab]) {
+    redirect(tabToRoute[tab])
+  }
 
-  return (
-    <PageGuidanceWrapper pageId="results">
-      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-        <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-          <div className="flex items-center justify-between">
-            <TourLink />
-            <ShareButton projectId={projectId} />
-          </div>
-          
-          {/* Executive Readout, Assumptions Map, and Assumptions Ledger */}
-          <ResultsReadout
-            projectId={projectId}
-            opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
-            opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
-            generatedAt={normalized.meta.lastGeneratedAt || undefined}
-            projectName={project?.name || undefined}
-          />
-
-          {/* Opportunities Content - primary view */}
-          <OpportunitiesContent
-            projectId={projectId}
-            opportunitiesV3={opportunities.v3?.content}
-            opportunitiesV2={opportunities.v2?.content}
-            profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
-            strategicBets={strategicBets?.content}
-            jtbd={jtbd?.content}
-          />
-        </main>
-      </div>
-    </PageGuidanceWrapper>
-  )
+  // Default: redirect to opportunities (canonical results view)
+  redirect(`/projects/${projectId}/opportunities`)
 }
