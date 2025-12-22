@@ -388,9 +388,9 @@ export function AnalysisRunExperience({
                 <div>
                   <h1 className="text-2xl font-semibold text-foreground">
                     {isBlocked && isProfileGenerationError
-                      ? 'You're partway there'
+                      ? "You're partway there"
                       : hasPartialResults
-                      ? 'You're partway there'
+                      ? "You're partway there"
                       : 'Something interrupted the analysis'}
                   </h1>
                   <p className="mt-2 text-sm text-muted-foreground">

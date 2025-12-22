@@ -23,7 +23,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
     id: 'checking_profiles',
     label: 'Identifying where competitors are vulnerable',
     description:
-      'Mapping each competitor's current positioning, capabilities, and gaps.',
+      "Mapping each competitor's current positioning, capabilities, and gaps.",
     signals: [
       'Competitor positioning claims',
       'Implicit optimization patterns',

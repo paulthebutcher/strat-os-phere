@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Collapsible } from '@/components/ui/collapsible'
 import { PasteExtraction } from '@/components/projects/PasteExtraction'
+import { ExpertNote } from '@/components/shared/ExpertNote'
 import { createProjectFromForm } from '@/app/projects/actions'
 import type {
   RiskPosture,
@@ -333,12 +334,17 @@ export function ProjectForm({
         >
           <div className="space-y-6 pt-2">
             <div className="space-y-2">
-              <label
-                htmlFor="primaryConstraint"
-                className="text-sm font-semibold text-foreground"
-              >
-                Strategic constraints
-              </label>
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="primaryConstraint"
+                  className="text-sm font-semibold text-foreground"
+                >
+                  Strategic constraints
+                </label>
+                <ExpertNote>
+                  This helps Plinth prioritize tradeoffs the same way an exec review would.
+                </ExpertNote>
+              </div>
               <Input
                 id="primaryConstraint"
                 name="primaryConstraint"
@@ -351,9 +357,14 @@ export function ProjectForm({
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-foreground">
-                Risk posture
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold text-foreground">
+                  Risk posture
+                </label>
+                <ExpertNote>
+                  This shifts recommendations between near-term traction and long-term defensibility.
+                </ExpertNote>
+              </div>
               <RadioGroup
                 name="riskPosture"
                 value={formState.riskPosture}

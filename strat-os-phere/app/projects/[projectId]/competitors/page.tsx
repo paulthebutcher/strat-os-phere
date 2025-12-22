@@ -15,6 +15,10 @@ import { createClient } from '@/lib/supabase/server'
 import { createPageMetadata } from '@/lib/seo/metadata'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
+import { SkeletonTable } from '@/components/shared/Skeletons'
+import { DataRecencyNote } from '@/components/shared/DataRecencyNote'
+import { EmptyState } from '@/components/shared/EmptyState'
+import Link from 'next/link'
 
 interface CompetitorsPageProps {
   params: Promise<{
@@ -88,7 +92,6 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
       projectId={projectId}
       projectName={project.name}
       projectMarket={project.market}
-      projectCustomer={project.customer}
       hasArtifacts={hasAnyArtifacts}
       competitorCount={competitorCount}
       effectiveCompetitorCount={effectiveCompetitorCount}
@@ -110,6 +113,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
                 Need help?
               </Link>
             </p>
+            <DataRecencyNote />
           </div>
 
           <div className="flex flex-col items-start gap-2 text-left md:items-end md:text-right">
@@ -132,22 +136,24 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
         </header>
 
         {competitorCount === 0 ? (
-          <section className="panel flex flex-col gap-4 p-6">
-            <div className="space-y-2">
-              <h2 className="text-base font-semibold text-foreground">Add competitors to map the landscape</h2>
-              <p className="text-sm text-muted-foreground">
-                Add a handful of real alternatives so the analysis has something concrete to compare against.
-              </p>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground" role="list">
-                <li>Add 3–7 competitors</li>
-                <li>Paste public website text (homepage/pricing/trust)</li>
-                <li>Generate exec-ready insights</li>
-              </ul>
-            </div>
-            <CompetitorForm
-              projectId={projectId}
-              existingCount={competitorCount}
+          <section className="space-y-6">
+            <EmptyState
+              title="Add competitors to map the landscape"
+              description="Add a handful of real alternatives so the analysis has something concrete to compare against."
+              footer={
+                <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground text-left" role="list">
+                  <li>Add 3–7 competitors</li>
+                  <li>Paste public website text (homepage/pricing/trust)</li>
+                  <li>Generate exec-ready insights</li>
+                </ul>
+              }
             />
+            <div className="panel p-6">
+              <CompetitorForm
+                projectId={projectId}
+                existingCount={competitorCount}
+              />
+            </div>
           </section>
         ) : competitorCount >= MAX_COMPETITORS_PER_PROJECT ? (
           <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.2fr)]">
@@ -162,6 +168,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
                   Current competitors
                 </h2>
               </div>
+              {/* Note: Loading skeletons would be added here if competitors were loaded asynchronously */}
               <div className="panel divide-y divide-border-subtle">
                 {competitors.map((competitor, index) => (
                   <CompetitorCard
@@ -197,6 +204,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
                   Current competitors
                 </h2>
               </div>
+              {/* Note: Loading skeletons would be added here if competitors were loaded asynchronously */}
               <div className="panel divide-y divide-border-subtle">
                 {competitors.map((competitor, index) => (
                   <CompetitorCard

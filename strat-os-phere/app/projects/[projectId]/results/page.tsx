@@ -17,6 +17,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Collapsible } from '@/components/ui/collapsible'
 import { WhyNowChip } from '@/components/results/WhyNowChip'
+import { ConfidenceEcho } from '@/components/shared/ConfidenceEcho'
+import { AssumptionBadge } from '@/components/shared/AssumptionBadge'
+import { ExpertNote } from '@/components/shared/ExpertNote'
+import { normalizeLabel } from '@/lib/utils/terminology'
 import {
   getOpportunityScore,
   getWhyNowSignals,
@@ -68,19 +72,47 @@ import {
   type ContrastSummary as ContrastSummaryType,
 } from '@/lib/results/diffHelpers'
 import { createClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import type { ReactNode } from 'react'
+import { RunRecapPanel } from '@/components/results/RunRecapPanel'
+import { FreshnessBadge } from '@/components/shared/FreshnessBadge'
+import { EmptyState } from '@/components/shared/EmptyState'
 
+/**
+ * Strongly typed tab IDs - single source of truth
+ * This prevents stringly-typed tab ids and ensures type safety
+ */
+const TAB_IDS = [
+  'profiles',
+  'themes',
+  'positioning',
+  'opportunities',
+  'angles',
+  'jobs',
+  'scorecard',
+  'opportunities_v2',
+  'opportunities_v3',
+  'strategic_bets',
+] as const
 
-type TabId =
-  | 'profiles'
-  | 'themes'
-  | 'positioning'
-  | 'opportunities'
-  | 'angles'
-  | 'jobs'
-  | 'scorecard'
-  | 'opportunities_v2'
-  | 'opportunities_v3'
-  | 'strategic_bets'
+type TabId = typeof TAB_IDS[number]
+
+/**
+ * Safely narrows a string value to a valid TabId
+ * Returns undefined if the value is not a valid tab ID
+ */
+function asTabId(value: string | null | undefined): TabId | undefined {
+  if (!value) return undefined
+  return TAB_IDS.includes(value as TabId) ? (value as TabId) : undefined
+}
+
+/**
+ * Assert never helper for exhaustiveness checking
+ */
+function assertNever(x: never): never {
+  throw new Error(`Unexpected value: ${x}`)
+}
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'opportunities_v3', label: 'Opportunities' },
@@ -203,7 +235,15 @@ export default async function ResultsPage(props: ResultsPageProps) {
     const queryString = queryParams.toString()
     redirect(`/projects/${projectId}/overview${queryString ? `?${queryString}` : ''}`)
   }
-}
+
+  // NOTE: Code below is currently unreachable due to redirects above
+  // This refactor maintains the tab rendering logic for maintainability
+  // and in case redirects are made conditional in the future
+
+  const frameParam = searchParamsObj.frame
+  const isGenerating = searchParamsObj.generating === 'true'
+  const viewResults = searchParamsObj.view === 'results'
+  const showNewBadge = searchParamsObj.new === 'true'
 
   const activeFrame: ResultsFrame =
     (frameParam as ResultsFrame | undefined) ?? 'jobs'
@@ -222,12 +262,17 @@ export default async function ResultsPage(props: ResultsPageProps) {
   if (!project || project.user_id !== user.id) {
     notFound()
   }
+  
+  // Type assertion: notFound() above ensures project is non-null
+  const verifiedProject = project!
 
   const [competitors, artifacts] = await Promise.all([
     listCompetitorsForProject(supabase, projectId),
     listArtifacts(supabase, { projectId }),
   ])
 
+  // Move all derived values to the top after data loading
+  // This prevents "used before declaration" errors
   const competitorCount = competitors.length
   const normalized = normalizeResultsArtifacts(artifacts)
   const {
@@ -242,11 +287,23 @@ export default async function ResultsPage(props: ResultsPageProps) {
     generatedAt,
   } = normalized
 
+  // Compute all boolean flags upfront
+  const hasProfiles = Boolean(profiles && profiles.snapshots.length > 0)
+  const hasSynthesis = Boolean(synthesis?.synthesis)
+  const hasJtbd = Boolean(jtbd?.content?.jobs?.length)
+  const hasOpportunitiesV2 = Boolean(opportunitiesV2?.content?.opportunities?.length)
+  const hasOpportunitiesV3 = Boolean(opportunitiesV3?.content?.opportunities?.length)
+  const hasScoringMatrix = Boolean(scoringMatrix?.content)
+  const hasStrategicBets = Boolean(strategicBets?.content?.bets?.length)
+  const hasAnyArtifacts = Boolean(
+    profiles || synthesis || jtbd || opportunitiesV2 || opportunitiesV3 || scoringMatrix || strategicBets
+  )
+
+  const effectiveCompetitorCount = normalized.competitorCount ?? competitorCount
+
   // Prefer opportunities_v3 if available, otherwise default to strategic_bets
-  const defaultTab: TabId = opportunitiesV3 ? 'opportunities_v3' : 'strategic_bets'
-  const activeTab: TabId =
-    (TABS.find((tab) => tab.id === tabParam)?.id as TabId | undefined) ??
-    defaultTab
+  const defaultTab: TabId = hasOpportunitiesV3 ? 'opportunities_v3' : 'strategic_bets'
+  const activeTab: TabId = asTabId(tabParam) ?? defaultTab
 
   // Get previous run artifacts for contrast
   const previousNormalized = getPreviousRunArtifacts(artifacts, runId)
@@ -262,11 +319,6 @@ export default async function ResultsPage(props: ResultsPageProps) {
       scorecard: previousNormalized.scorecard,
     }
   )
-  const hasAnyArtifacts = Boolean(
-    profiles || synthesis || jtbd || opportunitiesV2 || opportunitiesV3 || scoringMatrix || strategicBets
-  )
-  const effectiveCompetitorCount =
-    normalized.competitorCount ?? competitorCount
 
   const formattedGeneratedAt = generatedAt
     ? new Date(generatedAt).toLocaleString(undefined, {
@@ -285,40 +337,134 @@ export default async function ResultsPage(props: ResultsPageProps) {
     return <AnalysisRunExperience projectId={projectId} />
   }
 
+  // Format all markdown content upfront to avoid repeated formatting
   const profilesMarkdown = formatProfilesToMarkdown(profiles?.snapshots)
   const themesMarkdown = formatThemesToMarkdown(synthesis?.synthesis)
   const positioningMarkdown = formatPositioningToMarkdown(synthesis?.synthesis)
-  const opportunitiesMarkdown = formatOpportunitiesToMarkdown(
-    synthesis?.synthesis
-  )
+  const opportunitiesMarkdown = formatOpportunitiesToMarkdown(synthesis?.synthesis)
   const anglesMarkdown = formatAnglesToMarkdown(synthesis?.synthesis)
   const jtbdMarkdown = formatJtbdToMarkdown(jtbd?.content)
-  const opportunitiesV2Markdown = formatOpportunitiesV2ToMarkdown(
-    opportunitiesV2?.content
-  )
+  const opportunitiesV2Markdown = formatOpportunitiesV2ToMarkdown(opportunitiesV2?.content)
   const scoringMarkdown = formatScoringMatrixToMarkdown(scoringMatrix?.content)
   const strategicBetsMarkdown = formatStrategicBetsToMarkdown(strategicBets?.content)
+  const opportunitiesV3Markdown = formatOpportunitiesV3ToMarkdown(opportunitiesV3?.content)
 
-  const copyContent =
-    activeTab === 'profiles'
-      ? profilesMarkdown
-      : activeTab === 'themes'
-      ? themesMarkdown
-      : activeTab === 'positioning'
-      ? positioningMarkdown
-      : activeTab === 'opportunities'
-      ? opportunitiesMarkdown
-      : activeTab === 'angles'
-      ? anglesMarkdown
-      : activeTab === 'jobs'
-      ? jtbdMarkdown
-      : activeTab === 'opportunities_v2'
-      ? opportunitiesV2Markdown
-      : activeTab === 'strategic_bets'
-      ? strategicBetsMarkdown
-      : activeTab === 'opportunities_v3'
-      ? formatOpportunitiesV3ToMarkdown(opportunitiesV3?.content)
-      : scoringMarkdown
+  /**
+   * Panel registry pattern: Each tab has a dedicated render function
+   * This eliminates long ternary chains and prevents JSX delimiter errors
+   * by ensuring each panel returns a complete, balanced subtree.
+   * 
+   * Benefits:
+   * - Type-safe: TabId is strongly typed from TAB_IDS
+   * - No nested ternaries: Each render() returns complete JSX
+   * - Easy to maintain: Add/modify tabs in one place
+   * - Prevents "used before declaration" errors: All values computed upfront
+   */
+  const PANELS: Record<TabId, { 
+    label: string
+    enabled: boolean
+    copyContent: string
+    render: () => ReactNode
+  }> = {
+    profiles: {
+      label: 'Profiles',
+      enabled: hasProfiles,
+      copyContent: profilesMarkdown,
+      render: () => <ProfilesSection profiles={profiles} />,
+    },
+    themes: {
+      label: 'Themes',
+      enabled: hasSynthesis,
+      copyContent: themesMarkdown,
+      render: () => <ThemesSection synthesis={synthesis} />,
+    },
+    positioning: {
+      label: 'Positioning',
+      enabled: hasSynthesis,
+      copyContent: positioningMarkdown,
+      render: () => <PositioningSection synthesis={synthesis} />,
+    },
+    opportunities: {
+      label: 'Opportunities (Legacy)',
+      enabled: hasSynthesis,
+      copyContent: opportunitiesMarkdown,
+      render: () => <OpportunitiesSection synthesis={synthesis} />,
+    },
+    angles: {
+      label: 'Angles',
+      enabled: hasSynthesis,
+      copyContent: anglesMarkdown,
+      render: () => <AnglesSection synthesis={synthesis} />,
+    },
+    jobs: {
+      label: 'Jobs',
+      enabled: hasJtbd,
+      copyContent: jtbdMarkdown,
+      render: () => (
+        <ProgressiveReveal order={0} enabled={hasJtbd}>
+          <JtbdSection
+            jtbd={jtbd?.content}
+            projectId={verifiedProject.id}
+            frame={activeFrame}
+          />
+        </ProgressiveReveal>
+      ),
+    },
+    scorecard: {
+      label: 'Scorecard',
+      enabled: hasScoringMatrix,
+      copyContent: scoringMarkdown,
+      render: () => (
+        <ProgressiveReveal order={1} enabled={hasScoringMatrix}>
+          <ScoringSection scoring={scoringMatrix?.content} projectId={verifiedProject.id} />
+        </ProgressiveReveal>
+      ),
+    },
+    opportunities_v2: {
+      label: 'Opportunities (v2)',
+      enabled: hasOpportunitiesV2,
+      copyContent: opportunitiesV2Markdown,
+      render: () => (
+        <ProgressiveReveal order={2} enabled={hasOpportunitiesV2}>
+          <OpportunitiesV2Section
+            opportunities={opportunitiesV2?.content}
+            projectId={verifiedProject.id}
+            frame={activeFrame}
+          />
+        </ProgressiveReveal>
+      ),
+    },
+    opportunities_v3: {
+      label: 'Opportunities',
+      enabled: hasOpportunitiesV3,
+      copyContent: opportunitiesV3Markdown,
+      render: () => (
+        <ProgressiveReveal order={0} enabled={hasOpportunitiesV3}>
+          <OpportunitiesV3Section
+            opportunities={opportunitiesV3?.content}
+            projectId={verifiedProject.id}
+          />
+        </ProgressiveReveal>
+      ),
+    },
+    strategic_bets: {
+      label: normalizeLabel('Strategic Bets'), // Apply terminology normalization
+      enabled: hasStrategicBets,
+      copyContent: strategicBetsMarkdown,
+      render: () => (
+        <ProgressiveReveal order={3} enabled={hasStrategicBets}>
+          <StrategicBetsSection
+            strategicBets={strategicBets?.content}
+            projectId={verifiedProject.id}
+          />
+        </ProgressiveReveal>
+      ),
+    },
+  }
+
+  // Safety check: ensure activeTab exists in PANELS (should never happen, but defensive)
+  const activePanel = PANELS[activeTab] ?? PANELS[defaultTab]
+  const copyContent = activePanel.copyContent
 
   return (
     <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
@@ -326,7 +472,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
         <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:pb-8 border-b border-border">
           <div className="space-y-3">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-foreground tracking-tight">{project.name}</h1>
+              <h1 className="text-2xl font-semibold text-foreground tracking-tight">{verifiedProject.name}</h1>
               <p className="text-sm text-muted-foreground">
                 Competitive landscape analysis and strategic insights
               </p>
@@ -366,14 +512,14 @@ export default async function ResultsPage(props: ResultsPageProps) {
               </Link>
               <span aria-hidden="true" className="text-border">·</span>
               <Link
-                href={`/projects/${project.id}`}
+                href={`/projects/${verifiedProject.id}`}
                 className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
               >
                 Overview
               </Link>
               <span aria-hidden="true" className="text-border">·</span>
               <Link
-                href={`/projects/${project.id}/competitors`}
+                href={`/projects/${verifiedProject.id}/competitors`}
                 className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
               >
                 Competitors
@@ -383,18 +529,45 @@ export default async function ResultsPage(props: ResultsPageProps) {
             <div className="flex items-center gap-2">
               {hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
                 <RegenerateButton
-                  projectId={project.id}
+                  projectId={verifiedProject.id}
                   competitorCount={effectiveCompetitorCount}
                   label="Regenerate"
                 />
               ) : null}
               {!hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
-                <GenerateResultsV2Button projectId={project.id} label="Generate Analysis" />
+                <GenerateResultsV2Button projectId={verifiedProject.id} label="Generate Analysis" />
               ) : null}
             </div>
-            <ArtifactsDebugPanel projectId={project.id} />
+            <ArtifactsDebugPanel projectId={verifiedProject.id} />
           </div>
         </header>
+
+        {/* Confidence calibration echo - shows once at top of results */}
+        {hasAnyArtifacts && (
+          <div className="space-y-2">
+            <ConfidenceEcho inputConfidence={project.input_confidence} />
+            <div className="flex justify-end">
+              <AssumptionBadge
+                level={
+                  project.input_confidence === 'very_confident'
+                    ? 'high_confidence'
+                    : project.input_confidence === 'some_assumptions'
+                    ? 'some_assumptions'
+                    : project.input_confidence === 'exploratory'
+                    ? 'exploratory'
+                    : null
+                }
+                explanation={
+                  project.input_confidence === 'some_assumptions'
+                    ? 'Some inputs were inferred from available context'
+                    : project.input_confidence === 'exploratory'
+                    ? 'Recommendations are based on early-stage hypotheses'
+                    : undefined
+                }
+              />
+            </div>
+          </div>
+        )}
 
         {!hasAnyArtifacts ? (
           <section className="flex flex-col items-center justify-center py-16 px-6">
@@ -426,16 +599,23 @@ export default async function ResultsPage(props: ResultsPageProps) {
                   </>
                 )}
               </div>
-              <div className="pt-2">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
                   <GenerateResultsV2Button
-                    projectId={project.id}
+                    projectId={verifiedProject.id}
                     label="Generate Analysis"
                   />
                 ) : (
                   <Button asChild type="button" size="default">
-                    <Link href={`/projects/${project.id}/competitors`}>
+                    <Link href={`/projects/${verifiedProject.id}/competitors`}>
                       Add Competitors
+                    </Link>
+                  </Button>
+                )}
+                {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS && (
+                  <Button asChild variant="outline" type="button">
+                    <Link href={`/projects/${verifiedProject.id}/competitors`}>
+                      Review inputs
                     </Link>
                   </Button>
                 )}
@@ -444,6 +624,17 @@ export default async function ResultsPage(props: ResultsPageProps) {
           </section>
         ) : (
           <section className="flex flex-col gap-4">
+            {/* Run Recap Panel - shows what phases completed */}
+            <RunRecapPanel
+              projectId={verifiedProject.id}
+              hasJobs={hasJtbd}
+              hasScorecard={hasScoringMatrix}
+              hasOpportunities={hasOpportunitiesV2 || hasOpportunitiesV3}
+              hasStrategicBets={hasStrategicBets}
+              generatedAt={generatedAt}
+              defaultOpen={showNewBadge}
+            />
+
             {/* Post-generation highlight */}
             {(jtbd || opportunitiesV2 || scoringMatrix) && (
               <PostGenerationHighlight
@@ -471,7 +662,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
             opportunitiesV2.content.opportunities.length > 0 ? (
               <RecommendedNextStepsPanel
                 opportunities={opportunitiesV2.content}
-                projectId={project.id}
+                projectId={verifiedProject.id}
               />
             ) : null}
 
@@ -483,7 +674,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
                 {TABS.map((tab) => (
                   <Link
                     key={tab.id}
-                    href={`/projects/${project.id}/results?tab=${tab.id}${frameParam ? `&frame=${frameParam}` : ''}`}
+                    href={`/projects/${verifiedProject.id}/results?tab=${tab.id}${frameParam ? `&frame=${frameParam}` : ''}`}
                     className="tabs-trigger"
                     data-state={activeTab === tab.id ? 'active' : 'inactive'}
                     aria-current={activeTab === tab.id ? 'page' : undefined}
@@ -499,64 +690,12 @@ export default async function ResultsPage(props: ResultsPageProps) {
             {(activeTab === 'jobs' || activeTab === 'opportunities_v2') && (
               <ResultsFrameToggle
                 currentFrame={activeFrame}
-                projectId={project.id}
+                projectId={verifiedProject.id}
               />
             )}
 
-            {activeTab === 'profiles' ? (
-              <ProfilesSection profiles={profiles} />
-            ) : null}
-            {activeTab === 'themes' ? (
-              <ThemesSection synthesis={synthesis} />
-            ) : null}
-            {activeTab === 'positioning' ? (
-              <PositioningSection synthesis={synthesis} />
-            ) : null}
-            {activeTab === 'opportunities' ? (
-              <OpportunitiesSection synthesis={synthesis} />
-            ) : null}
-            {activeTab === 'angles' ? (
-              <AnglesSection synthesis={synthesis} />
-            ) : null}
-            {activeTab === 'jobs' ? (
-              <ProgressiveReveal order={0} enabled={Boolean(jtbd)}>
-                <JtbdSection
-                  jtbd={jtbd?.content}
-                  projectId={project.id}
-                  frame={activeFrame}
-                />
-              </ProgressiveReveal>
-            ) : null}
-            {activeTab === 'scorecard' ? (
-              <ProgressiveReveal order={1} enabled={Boolean(scoringMatrix)}>
-                <ScoringSection scoring={scoringMatrix?.content} projectId={project.id} />
-              </ProgressiveReveal>
-            ) : null}
-            {activeTab === 'opportunities_v2' ? (
-              <ProgressiveReveal order={2} enabled={Boolean(opportunitiesV2)}>
-                <OpportunitiesV2Section
-                  opportunities={opportunitiesV2?.content}
-                  projectId={project.id}
-                  frame={activeFrame}
-                />
-              </ProgressiveReveal>
-            ) : null}
-            {activeTab === 'opportunities_v3' ? (
-              <ProgressiveReveal order={0} enabled={Boolean(opportunitiesV3)}>
-                <OpportunitiesV3Section
-                  opportunities={opportunitiesV3?.content}
-                  projectId={project.id}
-                />
-              </ProgressiveReveal>
-            ) : null}
-            {activeTab === 'strategic_bets' ? (
-              <ProgressiveReveal order={3} enabled={Boolean(strategicBets)}>
-                <StrategicBetsSection
-                  strategicBets={strategicBets?.content}
-                  projectId={project.id}
-                />
-              </ProgressiveReveal>
-            ) : null}
+            {/* Render active panel using registry - eliminates long ternary chains */}
+            {activePanel.render()}
           </section>
         )}
       </main>
@@ -587,7 +726,7 @@ function ProfilesSection({ profiles }: ProfilesSectionProps) {
   return (
     <section className="space-y-6">
       {profiles.snapshots.map((snapshot, index) => (
-        <article key={`${snapshot.competitor_name}-${index}`} className="panel p-6">
+        <article key={`${snapshot.competitor_name}-${index}`} className="panel p-6 transition-all duration-150 hover:shadow-sm">
           <header className="mb-6 space-y-2">
             <h2 className="text-lg font-semibold text-foreground">
               {snapshot.competitor_name}
@@ -639,7 +778,7 @@ function ProfilesSection({ profiles }: ProfilesSectionProps) {
               {snapshot.proof_points?.length ? (
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-                    Evidence
+                    {normalizeLabel('Evidence')}
                   </h3>
                   <ul className="space-y-4">
                     {snapshot.proof_points.map((proof, proofIndex) => (
@@ -1050,16 +1189,23 @@ function JtbdSection({ jtbd, projectId, frame }: JtbdSectionProps) {
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
+          <h2 className="text-lg font-semibold text-foreground">
+            Jobs To Be Done not yet generated
+          </h2>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">What's needed:</span> Jobs To Be Done will appear here after analysis is generated.
+            Once analysis is complete, Plinth will identify what customers are trying to accomplish and where current solutions fall short.
           </p>
-          <p className="text-xs text-muted-foreground italic">
-            Jobs help identify what customers are trying to accomplish and where current solutions fall short.
-          </p>
-          <GenerateResultsV2Button
-            projectId={projectId}
-            label="Generate Analysis"
-          />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <GenerateResultsV2Button
+              projectId={projectId}
+              label="Generate Analysis"
+            />
+            <Button asChild variant="outline" type="button">
+              <Link href={`/projects/${projectId}/competitors`}>
+                Review inputs
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     )
@@ -1089,7 +1235,7 @@ function JtbdSection({ jtbd, projectId, frame }: JtbdSectionProps) {
             const job = item.job
             const lineage = getJtbdLineage(job, jtbd)
             return (
-              <article key={`${group.id}-${index}`} className="panel p-6">
+              <article key={`${group.id}-${index}`} className="panel p-6 transition-all duration-150 hover:shadow-sm">
                 <header className="mb-5 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <h2 className="text-base font-semibold text-foreground leading-snug">{job.job_statement}</h2>
@@ -1236,16 +1382,23 @@ function OpportunitiesV2Section({
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
+          <h2 className="text-lg font-semibold text-foreground">
+            Opportunities not yet generated
+          </h2>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">What's needed:</span> Opportunities will appear here after analysis is generated.
+            Once analysis is complete, Plinth will surface defensible opportunities ranked by impact, effort, and competitive moat strength.
           </p>
-          <p className="text-xs text-muted-foreground italic">
-            Opportunities identify defensible ways to win that force competitors to react.
-          </p>
-          <GenerateResultsV2Button
-            projectId={projectId}
-            label="Generate Analysis"
-          />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <GenerateResultsV2Button
+              projectId={projectId}
+              label="Generate Analysis"
+            />
+            <Button asChild variant="outline" type="button">
+              <Link href={`/projects/${projectId}/competitors`}>
+                Review inputs
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     )
@@ -1289,7 +1442,7 @@ function OpportunitiesV2Section({
               const opp = item.opportunity
               const lineage = getOpportunityLineage(opp, opportunities)
               return (
-                <article key={`${group.id}-${index}`} className="panel p-6">
+                <article key={`${group.id}-${index}`} className="panel p-6 transition-all duration-150 hover:shadow-sm">
                   <header className="mb-5 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <h2 className="text-base font-semibold text-foreground leading-snug">{opp.title}</h2>
@@ -1406,16 +1559,23 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
+          <h2 className="text-lg font-semibold text-foreground">
+            Competitive scorecard not yet generated
+          </h2>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">What's needed:</span> Competitive scorecard will appear here after analysis is generated.
+            Once analysis is complete, Plinth will evaluate competitors on key criteria that matter to buyers, weighted by importance.
           </p>
-          <p className="text-xs text-muted-foreground italic">
-            The scorecard evaluates competitors on key criteria that matter to buyers, weighted by importance.
-          </p>
-          <GenerateResultsV2Button
-            projectId={projectId}
-            label="Generate Analysis"
-          />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <GenerateResultsV2Button
+              projectId={projectId}
+              label="Generate Analysis"
+            />
+            <Button asChild variant="outline" type="button">
+              <Link href={`/projects/${projectId}/competitors`}>
+                Review inputs
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     )
@@ -1534,16 +1694,23 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
+          <h2 className="text-lg font-semibold text-foreground">
+            No opportunities generated yet
+          </h2>
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">What's needed:</span> No opportunities yet — generate results to see your first strategic bet.
+            Once inputs are confirmed, Plinth will surface defensible opportunities ranked by impact and confidence.
           </p>
-          <p className="text-xs text-muted-foreground italic">
-            Opportunities identify defensible ways to win that force competitors to react, ranked by impact and defensibility.
-          </p>
-          <GenerateResultsV2Button
-            projectId={projectId}
-            label="Generate Analysis"
-          />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <GenerateResultsV2Button
+              projectId={projectId}
+              label="Generate Analysis"
+            />
+            <Button asChild variant="outline" type="button">
+              <Link href={`/projects/${projectId}/competitors`}>
+                Review inputs
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     )
@@ -1648,7 +1815,7 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
         const decisionFrame = getDecisionFrame(opp)
         
         return (
-        <article key={opp.id || index} className="panel p-6 space-y-6">
+        <article key={opp.id || index} className="panel p-6 space-y-6 transition-all duration-150 hover:shadow-sm">
           <header className="space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
@@ -1739,7 +1906,7 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
             {opp.proof_points?.length ? (
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                  Proof Points
+                  {normalizeLabel('Proof Points')}
                 </h3>
                 <ul className="space-y-3">
                   {opp.proof_points.map((proof, proofIndex) => (
@@ -1847,21 +2014,23 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
-          <h2 className="text-xl font-semibold text-foreground">
-            Strategic Bets not yet generated
+          <h2 className="text-lg font-semibold text-foreground">
+            {normalizeLabel('Strategic Bets')} not yet generated
           </h2>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <p>
-              <span className="font-medium text-foreground">What's needed:</span> Strategic bets are generated as part of the full analysis. Generate analysis to create strategic bets along with jobs, scorecard, and opportunities.
-            </p>
-            <p className="text-xs italic">
-              Why this matters: Strategic bets convert opportunities into commitment-ready decisions with explicit tradeoffs and falsifiable experiments.
-            </p>
+          <p className="text-sm text-muted-foreground">
+            Once analysis is complete, Plinth will generate {normalizeLabel('strategic bets').toLowerCase()} along with jobs, scorecard, and opportunities. These convert opportunities into commitment-ready decisions with explicit tradeoffs.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <GenerateResultsV2Button
+              projectId={projectId}
+              label="Generate Analysis"
+            />
+            <Button asChild variant="outline" type="button">
+              <Link href={`/projects/${projectId}/competitors`}>
+                Review inputs
+              </Link>
+            </Button>
           </div>
-          <GenerateResultsV2Button
-            projectId={projectId}
-            label="Generate Analysis"
-          />
         </div>
       </section>
     )
@@ -1871,7 +2040,7 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
     <section className="space-y-6">
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
-        <h3 className="text-sm font-semibold text-foreground mb-1">Strategic Bets</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-1">{normalizeLabel('Strategic Bets')}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed mb-2">
           Concrete, commitment-ready decisions suitable for VP+ Product and UX leaders. Each bet forces explicit tradeoffs, requires specific capabilities, and includes a falsifiable experiment to validate or disconfirm.
         </p>
@@ -1887,7 +2056,7 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
         })
 
         return (
-          <article key={bet.id || index} className="panel p-6 space-y-6">
+          <article key={bet.id || index} className="panel p-6 space-y-6 transition-all duration-150 hover:shadow-sm">
             <header className="space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <h2 className="text-xl font-semibold text-foreground leading-tight">{bet.title}</h2>

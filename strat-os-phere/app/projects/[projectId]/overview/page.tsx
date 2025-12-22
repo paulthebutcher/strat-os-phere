@@ -104,7 +104,6 @@ export default async function OverviewPage(props: OverviewPageProps) {
       projectId={projectId}
       projectName={project.name}
       projectMarket={project.market}
-      projectCustomer={project.customer}
       hasArtifacts={hasAnyArtifacts}
       competitorCount={competitorCount}
       effectiveCompetitorCount={effectiveCompetitorCount}
