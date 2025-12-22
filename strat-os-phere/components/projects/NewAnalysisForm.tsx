@@ -71,6 +71,11 @@ export function NewAnalysisForm({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorDetails, setErrorDetails] = useState<{
+    errorId?: string
+    status?: number
+    code?: string
+  } | null>(null)
   const [extractedValues, setExtractedValues] = useState<{
     name?: string
     marketCategory?: string
@@ -341,11 +346,13 @@ export function NewAnalysisForm({
   async function handleAnalyzeUrl() {
     if (!primaryUrl.trim()) {
       setError('Please enter a competitor URL')
+      setErrorDetails(null)
       return
     }
 
     setRecommending(true)
     setError(null)
+    setErrorDetails(null)
 
     try {
       const response = await fetch('/api/projects/recommend-competitors', {
@@ -354,59 +361,85 @@ export function NewAnalysisForm({
         body: JSON.stringify({ primaryUrl: primaryUrl.trim() }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to get recommendations')
+      let data: unknown
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        // If JSON parsing fails, try to get text
+        const text = await response.text().catch(() => 'Unable to read response')
+        throw new Error(
+          `Failed to parse response (status ${response.status}): ${text.substring(0, 200)}`
+        )
       }
 
-      const data = (await response.json()) as
-        | { ok: true } & CompetitorRecommendationsResponse
-        | { ok: false; error: string }
+      // Handle both success and error response shapes
+      if (typeof data === 'object' && data !== null && 'ok' in data) {
+        if (data.ok === true) {
+          const successData = data as { ok: true } & CompetitorRecommendationsResponse
 
-      if (!data.ok) {
-        throw new Error(data.error || 'Failed to get recommendations')
+          // Auto-fill framing if available
+          const newSuggestedFields = new Set<string>()
+          const framing = successData.framing
+          if (framing) {
+            if (framing.projectName && !formState.name) {
+              setFormState((prev) => ({ ...prev, name: framing.projectName! }))
+              newSuggestedFields.add('name')
+            }
+            if (framing.market && !formState.marketCategory) {
+              setFormState((prev) => ({
+                ...prev,
+                marketCategory: framing.market!,
+              }))
+              newSuggestedFields.add('marketCategory')
+            }
+            if (framing.targetCustomer && !formState.targetCustomer) {
+              setFormState((prev) => ({
+                ...prev,
+                targetCustomer: framing.targetCustomer!,
+              }))
+              newSuggestedFields.add('targetCustomer')
+            }
+            if (framing.geography && !formState.geography) {
+              setFormState((prev) => ({ ...prev, geography: framing.geography! }))
+              newSuggestedFields.add('geography')
+            }
+            if (framing.businessGoal && !formState.goal) {
+              setFormState((prev) => ({ ...prev, goal: framing.businessGoal! }))
+              newSuggestedFields.add('goal')
+            }
+          }
+          setSuggestedFields(newSuggestedFields)
+
+          setRecommendations(successData.recommendations)
+          setShowRecommendations(true)
+          return
+        } else if (data.ok === false) {
+          const errorData = data as {
+            ok: false
+            error: { message: string; code: string; status: number }
+            errorId: string
+          }
+          setError(errorData.error.message)
+          setErrorDetails({
+            errorId: errorData.errorId,
+            status: errorData.error.status,
+            code: errorData.error.code,
+          })
+          return
+        }
       }
 
-      // Auto-fill framing if available
-      const newSuggestedFields = new Set<string>()
-      const framing = data.framing
-      if (framing) {
-        if (framing.projectName && !formState.name) {
-          setFormState((prev) => ({ ...prev, name: framing.projectName! }))
-          newSuggestedFields.add('name')
-        }
-        if (framing.market && !formState.marketCategory) {
-          setFormState((prev) => ({
-            ...prev,
-            marketCategory: framing.market!,
-          }))
-          newSuggestedFields.add('marketCategory')
-        }
-        if (framing.targetCustomer && !formState.targetCustomer) {
-          setFormState((prev) => ({
-            ...prev,
-            targetCustomer: framing.targetCustomer!,
-          }))
-          newSuggestedFields.add('targetCustomer')
-        }
-        if (framing.geography && !formState.geography) {
-          setFormState((prev) => ({ ...prev, geography: framing.geography! }))
-          newSuggestedFields.add('geography')
-        }
-        if (framing.businessGoal && !formState.goal) {
-          setFormState((prev) => ({ ...prev, goal: framing.businessGoal! }))
-          newSuggestedFields.add('goal')
-        }
-      }
-      setSuggestedFields(newSuggestedFields)
-
-      setRecommendations(data.recommendations)
-      setShowRecommendations(true)
+      // Fallback for unexpected response shape
+      throw new Error(
+        `Unexpected response format (status ${response.status})`
+      )
     } catch (err) {
-      setError(
+      const errorMessage =
         err instanceof Error
           ? err.message
           : 'Failed to get recommendations. Please try again.'
-      )
+      setError(errorMessage)
+      // Don't set errorDetails for network/parsing errors since we don't have them
     } finally {
       setRecommending(false)
     }
@@ -418,11 +451,13 @@ export function NewAnalysisForm({
   async function handleExtractAndRecommend() {
     if (!contextText.trim()) {
       setError('Please paste some context')
+      setErrorDetails(null)
       return
     }
 
     setRecommending(true)
     setError(null)
+    setErrorDetails(null)
 
     try {
       const response = await fetch('/api/projects/recommend-competitors', {
@@ -431,59 +466,85 @@ export function NewAnalysisForm({
         body: JSON.stringify({ contextText: contextText.trim() }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to get recommendations')
+      let data: unknown
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        // If JSON parsing fails, try to get text
+        const text = await response.text().catch(() => 'Unable to read response')
+        throw new Error(
+          `Failed to parse response (status ${response.status}): ${text.substring(0, 200)}`
+        )
       }
 
-      const data = (await response.json()) as
-        | { ok: true } & CompetitorRecommendationsResponse
-        | { ok: false; error: string }
+      // Handle both success and error response shapes
+      if (typeof data === 'object' && data !== null && 'ok' in data) {
+        if (data.ok === true) {
+          const successData = data as { ok: true } & CompetitorRecommendationsResponse
 
-      if (!data.ok) {
-        throw new Error(data.error || 'Failed to get recommendations')
+          // Auto-fill framing if available
+          const newSuggestedFields = new Set<string>()
+          const framing = successData.framing
+          if (framing) {
+            if (framing.projectName && !formState.name) {
+              setFormState((prev) => ({ ...prev, name: framing.projectName! }))
+              newSuggestedFields.add('name')
+            }
+            if (framing.market && !formState.marketCategory) {
+              setFormState((prev) => ({
+                ...prev,
+                marketCategory: framing.market!,
+              }))
+              newSuggestedFields.add('marketCategory')
+            }
+            if (framing.targetCustomer && !formState.targetCustomer) {
+              setFormState((prev) => ({
+                ...prev,
+                targetCustomer: framing.targetCustomer!,
+              }))
+              newSuggestedFields.add('targetCustomer')
+            }
+            if (framing.geography && !formState.geography) {
+              setFormState((prev) => ({ ...prev, geography: framing.geography! }))
+              newSuggestedFields.add('geography')
+            }
+            if (framing.businessGoal && !formState.goal) {
+              setFormState((prev) => ({ ...prev, goal: framing.businessGoal! }))
+              newSuggestedFields.add('goal')
+            }
+          }
+          setSuggestedFields(newSuggestedFields)
+
+          setRecommendations(successData.recommendations)
+          setShowRecommendations(true)
+          return
+        } else if (data.ok === false) {
+          const errorData = data as {
+            ok: false
+            error: { message: string; code: string; status: number }
+            errorId: string
+          }
+          setError(errorData.error.message)
+          setErrorDetails({
+            errorId: errorData.errorId,
+            status: errorData.error.status,
+            code: errorData.error.code,
+          })
+          return
+        }
       }
 
-      // Auto-fill framing if available
-      const newSuggestedFields = new Set<string>()
-      const framing = data.framing
-      if (framing) {
-        if (framing.projectName && !formState.name) {
-          setFormState((prev) => ({ ...prev, name: framing.projectName! }))
-          newSuggestedFields.add('name')
-        }
-        if (framing.market && !formState.marketCategory) {
-          setFormState((prev) => ({
-            ...prev,
-            marketCategory: framing.market!,
-          }))
-          newSuggestedFields.add('marketCategory')
-        }
-        if (framing.targetCustomer && !formState.targetCustomer) {
-          setFormState((prev) => ({
-            ...prev,
-            targetCustomer: framing.targetCustomer!,
-          }))
-          newSuggestedFields.add('targetCustomer')
-        }
-        if (framing.geography && !formState.geography) {
-          setFormState((prev) => ({ ...prev, geography: framing.geography! }))
-          newSuggestedFields.add('geography')
-        }
-        if (framing.businessGoal && !formState.goal) {
-          setFormState((prev) => ({ ...prev, goal: framing.businessGoal! }))
-          newSuggestedFields.add('goal')
-        }
-      }
-      setSuggestedFields(newSuggestedFields)
-
-      setRecommendations(data.recommendations)
-      setShowRecommendations(true)
+      // Fallback for unexpected response shape
+      throw new Error(
+        `Unexpected response format (status ${response.status})`
+      )
     } catch (err) {
-      setError(
+      const errorMessage =
         err instanceof Error
           ? err.message
           : 'Failed to get recommendations. Please try again.'
-      )
+      setError(errorMessage)
+      // Don't set errorDetails for network/parsing errors since we don't have them
     } finally {
       setRecommending(false)
     }
@@ -799,6 +860,7 @@ export function NewAnalysisForm({
                       onChange={(e) => {
                         setPrimaryUrl(e.target.value)
                         setError(null)
+                        setErrorDetails(null)
                       }}
                       placeholder="https://example.com"
                       disabled={recommending}
@@ -812,6 +874,42 @@ export function NewAnalysisForm({
                       {recommending ? 'Analyzing...' : 'Analyze this URL'}
                     </Button>
                   </div>
+                  {error && (primaryUrl.trim() || errorDetails) && (
+                    <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 space-y-2" role="alert">
+                      <p className="text-sm font-medium text-destructive">{error}</p>
+                      {errorDetails && (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                            {errorDetails.errorId && (
+                              <span className="font-mono">
+                                Error ID: <span className="font-semibold">{errorDetails.errorId}</span>
+                              </span>
+                            )}
+                            {errorDetails.status && (
+                              <span>
+                                Status: <span className="font-semibold">{errorDetails.status}</span>
+                              </span>
+                            )}
+                            {errorDetails.code && (
+                              <span>
+                                Code: <span className="font-semibold">{errorDetails.code}</span>
+                              </span>
+                            )}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAnalyzeUrl}
+                            disabled={recommending}
+                            className="mt-2"
+                          >
+                            Retry
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </SurfaceCard>
 
@@ -838,6 +936,7 @@ export function NewAnalysisForm({
                     onChange={(e) => {
                       setContextText(e.target.value)
                       setError(null)
+                      setErrorDetails(null)
                     }}
                     placeholder="Paste notes, a doc excerpt, or a rough description. We'll recommend competitor URLs to scrape."
                     rows={4}
@@ -852,6 +951,42 @@ export function NewAnalysisForm({
                   >
                     {recommending ? 'Extracting...' : 'Extract & recommend competitors'}
                   </Button>
+                  {error && (contextText.trim() || errorDetails) && (
+                    <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 space-y-2" role="alert">
+                      <p className="text-sm font-medium text-destructive">{error}</p>
+                      {errorDetails && (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                            {errorDetails.errorId && (
+                              <span className="font-mono">
+                                Error ID: <span className="font-semibold">{errorDetails.errorId}</span>
+                              </span>
+                            )}
+                            {errorDetails.status && (
+                              <span>
+                                Status: <span className="font-semibold">{errorDetails.status}</span>
+                              </span>
+                            )}
+                            {errorDetails.code && (
+                              <span>
+                                Code: <span className="font-semibold">{errorDetails.code}</span>
+                              </span>
+                            )}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleExtractAndRecommend}
+                            disabled={recommending}
+                            className="mt-2"
+                          >
+                            Retry
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </SurfaceCard>
             </div>
@@ -1396,10 +1531,46 @@ export function NewAnalysisForm({
             </SurfaceCard>
 
             {error ? (
-              <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2">
-                <p className="text-sm font-medium text-destructive" role="alert">
-                  {error}
-                </p>
+              <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 space-y-2" role="alert">
+                <p className="text-sm font-medium text-destructive">{error}</p>
+                {errorDetails && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                      {errorDetails.errorId && (
+                        <span className="font-mono">
+                          Error ID: <span className="font-semibold">{errorDetails.errorId}</span>
+                        </span>
+                      )}
+                      {errorDetails.status && (
+                        <span>
+                          Status: <span className="font-semibold">{errorDetails.status}</span>
+                        </span>
+                      )}
+                      {errorDetails.code && (
+                        <span>
+                          Code: <span className="font-semibold">{errorDetails.code}</span>
+                        </span>
+                      )}
+                    </div>
+                    {(errorDetails.errorId || errorDetails.status) && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (primaryUrl.trim()) {
+                            handleAnalyzeUrl()
+                          } else if (contextText.trim()) {
+                            handleExtractAndRecommend()
+                          }
+                        }}
+                        className="mt-2"
+                      >
+                        Retry
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             ) : null}
 
