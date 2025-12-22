@@ -1,77 +1,116 @@
-import { Shield, Lock, Eye, Clock } from "lucide-react"
+import { DollarSign, Star, Briefcase, FileCode, BookOpen } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
 
-const principles = [
+const sourceTypes = [
   {
-    icon: Shield,
-    title: "Public sources only",
-    description: "Uses public sources only; no logins, no scraping behind auth",
+    icon: DollarSign,
+    title: "Pricing",
+    description: "Pricing pages and plans",
   },
   {
-    icon: Eye,
-    title: "Citations included",
-    description: "Every output includes citations so you can validate",
+    icon: Star,
+    title: "Reviews",
+    description: "User reviews and ratings",
   },
   {
-    icon: Clock,
-    title: "Recency window",
-    description: "Focuses on recent signals (last 90 days) for current market dynamics",
+    icon: Briefcase,
+    title: "Jobs",
+    description: "Job postings and hiring",
   },
   {
-    icon: Lock,
-    title: "You control inputs",
-    description: "You can edit drafts before saving; you own your data",
+    icon: FileCode,
+    title: "Changelog",
+    description: "Product updates and releases",
+  },
+  {
+    icon: BookOpen,
+    title: "Docs",
+    description: "Documentation and guides",
   },
 ]
 
 /**
- * Trust Section
+ * Trust / Proof Band
  * 
- * Enhanced with brand tokens for consistent styling and enterprise-grade appearance.
+ * "Evidence-backed, not vibes" section showing source types, recency, and confidence.
  */
 export function Trust() {
   return (
-    <section className={cn(
-      "marketing-gradient-bg mx-auto max-w-[1200px] px-4 rounded-2xl",
-      brand.spacing.section
-    )}>
-      <div className="mx-auto max-w-3xl text-center">
-        <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
-          Trust & rigor
-        </h2>
-        <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
-          Explicit data boundaries and full transparency. You control what goes in, and you can validate what comes out.
-        </p>
-      </div>
-      <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {principles.map((principle, index) => {
-          const Icon = principle.icon
-          return (
-            <div
-              key={index}
-              className={cn(
-                "panel p-8 text-center transition-all hover:shadow-lg hover:scale-105",
-                brand.surface.base
-              )}
-            >
-              <div className="mb-6 flex justify-center">
-                <div className={cn(
-                  "flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br",
-                  "from-accent-primary/20 to-accent-primary/10 shadow-sm"
-                )}>
-                  <Icon className={cn("h-8 w-8", brand.primary.text)} />
+    <section id="trust" className={cn("mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
+      <div className="mx-auto max-w-4xl">
+        {/* Callout card with highlighted border */}
+        <div className={cn(
+          "panel relative overflow-hidden border-2 border-accent-primary/30",
+          "bg-gradient-to-br from-accent-primary/5 via-surface to-surface",
+          "p-8 md:p-12 shadow-lg"
+        )}>
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
+              Evidence-backed, not vibes
+            </h2>
+            <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
+              Every opportunity is grounded in public evidence with full citations you can validate.
+            </p>
+          </div>
+          
+          {/* Source types grid */}
+          <div className="mt-12 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {sourceTypes.map((source, index) => {
+              const Icon = source.icon
+              return (
+                <div
+                  key={index}
+                  className={cn(
+                    "panel p-4 text-center transition-all hover:shadow-md",
+                    "bg-surface border border-border-subtle",
+                    brand.surface.base
+                  )}
+                >
+                  <div className="mb-3 flex justify-center">
+                    <div className={cn(
+                      "flex h-12 w-12 items-center justify-center rounded-lg",
+                      "bg-accent-primary/10"
+                    )}>
+                      <Icon className={cn("h-6 w-6", brand.primary.text)} />
+                    </div>
+                  </div>
+                  <h3 className={cn("mb-1 text-sm font-semibold", "text-text-primary")}>
+                    {source.title}
+                  </h3>
+                  <p className={cn("text-xs text-text-secondary")}>
+                    {source.description}
+                  </p>
                 </div>
+              )
+            })}
+          </div>
+          
+          {/* Recency and confidence info */}
+          <div className="mt-10 space-y-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="flex items-center gap-2">
+                <Badge variant="info" className="text-xs">
+                  Evidence window: last 90 days (configurable)
+                </Badge>
               </div>
-              <h3 className={cn("mb-3", brand.typeScale.subhead, "text-text-primary")}>
-                {principle.title}
-              </h3>
-              <p className={cn("text-sm leading-relaxed text-text-secondary md:text-base")}>
-                {principle.description}
-              </p>
+              <div className="flex items-center gap-2">
+                <Badge variant="success" className="text-xs">
+                  Confidence increases with coverage + freshness
+                </Badge>
+              </div>
             </div>
-          )
-        })}
+            
+            {/* Disclaimer */}
+            <p className={cn(
+              "mt-6 text-center text-xs italic",
+              "text-text-muted"
+            )}>
+              Uses publicly available sources; may be incomplete.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   )

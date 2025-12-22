@@ -8,7 +8,7 @@ import { TrustChips } from "@/components/ui/TrustChips"
 import { Badge } from "@/components/ui/badge"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
-import { FileText, ExternalLink, X, ChevronRight } from "lucide-react"
+import { FileText, ExternalLink, X, ChevronRight, Search, TrendingUp } from "lucide-react"
 
 // Mock data for Incident Management / On-call industry
 const MOCK_SAMPLE = {
@@ -115,34 +115,70 @@ export function ArtifactPreviewHero() {
   )
 
   return (
-    <section className={cn("relative mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
+    <section className={cn(
+      "relative mx-auto max-w-[1200px] px-4",
+      "bg-gradient-to-b from-accent-primary/5 via-transparent to-transparent",
+      "rounded-2xl py-16 md:py-24",
+      brand.spacing.section
+    )}>
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16">
-          {/* Left side: Headline, subhead, CTAs, EvidenceBadge */}
+          {/* Left side: Headline, subhead, bullets, CTAs */}
           <div className="text-center lg:text-left">
             <h1 className={cn(brand.typeScale.headline, "text-text-primary")}>
-              Turn competitor reality into{" "}
-              <span className="marketing-gradient-text">ranked opportunities</span>.
+              Turn competitor noise into{" "}
+              <span className="marketing-gradient-text">defensible opportunities</span>.
             </h1>
             <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
-              Plinth scans public signals (pricing, reviews, changelogs, docs) and outputs defensible bets with citations.
+              Get ranked opportunities with scores and citations, backed by public evidence from the last 90 days.
             </p>
             
+            {/* 3 key bullets */}
+            <div className="mt-8 space-y-4">
+              <div className="flex items-start justify-center gap-3 text-base text-text-secondary lg:justify-start">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
+                  <Search className="h-5 w-5 text-accent-primary" />
+                </div>
+                <span className="font-medium">Scan public signals (pricing/reviews/jobs/changelog/docs)</span>
+              </div>
+              <div className="flex items-start justify-center gap-3 text-base text-text-secondary lg:justify-start">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
+                  <TrendingUp className="h-5 w-5 text-accent-primary" />
+                </div>
+                <span className="font-medium">Generate ranked opportunities with scores + citations</span>
+              </div>
+              <div className="flex items-start justify-center gap-3 text-base text-text-secondary lg:justify-start">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
+                  <FileText className="h-5 w-5 text-accent-primary" />
+                </div>
+                <span className="font-medium">Export a VP-ready narrative you can defend</span>
+              </div>
+            </div>
+            
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start">
-              <Link href="/dashboard">
+              <Link href="/projects/new">
                 <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105">
                   Run an analysis
                 </Button>
               </Link>
               <Link href="#sample-output">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
-                  View sample output
+                  See a sample
                 </Button>
               </Link>
             </div>
             
-            <div className="mt-8 flex justify-center lg:justify-start">
-              <EvidenceBadge evidenceWindowDays={90} confidenceLabel="High" />
+            {/* Trust badges */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+              <Badge variant="info" className="text-xs">
+                Evidence-backed
+              </Badge>
+              <Badge variant="info" className="text-xs">
+                90-day window
+              </Badge>
+              <Badge variant="info" className="text-xs">
+                Citations included
+              </Badge>
             </div>
           </div>
 

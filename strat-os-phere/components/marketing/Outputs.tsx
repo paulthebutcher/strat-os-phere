@@ -1,57 +1,48 @@
 /**
- * Outputs Section
+ * What You Get / Deliverables Section
  * 
  * Enhanced with brand tokens for consistent styling and enterprise-grade appearance.
  */
-import { Target, BarChart3, Lightbulb, TrendingUp, FileText } from "lucide-react"
+import { Target, Lightbulb, TrendingUp, FileText } from "lucide-react"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
 
 const outputs = [
   {
     id: "opportunities",
-    title: "Opportunities",
-    description: "Ranked differentiation opportunities with first experiments you can run. Grounded in evidence, not assumptions.",
-    icon: Lightbulb,
+    title: "Top opportunities (ranked)",
+    description: "Ranked differentiation opportunities with scores and confidence levels. Each opportunity includes why it matters and next steps.",
+    icon: TrendingUp,
     borderColor: "marketing-accent-border-coral",
     iconColor: "text-[hsl(var(--marketing-accent-coral))]",
     iconBg: "bg-[hsl(var(--marketing-accent-coral)/0.1)]",
   },
   {
-    id: "scorecard",
-    title: "Scorecard",
-    description: "Weighted scorecard across competitors with visual bar chart. See where you win, where you lag, and where gaps exist.",
-    icon: BarChart3,
+    id: "evidence",
+    title: "Defensible evidence pack (citations)",
+    description: "Every insight includes citations to public sources you can validate. Full audit trail with source types and recency.",
+    icon: FileText,
     borderColor: "marketing-accent-border-indigo",
     iconColor: "text-accent-primary",
     iconBg: "bg-accent-primary/10",
   },
   {
     id: "strategic-bets",
-    title: "Strategic Bets",
-    description: "Decision forcing function: what to say no to, and why competitors won't easily follow. Forces tradeoffs and creates clarity.",
-    icon: TrendingUp,
+    title: "Strategic bets + next steps",
+    description: "What to say no to and why competitors won't easily follow. Includes first experiments you can run to validate.",
+    icon: Target,
     borderColor: "marketing-accent-border-purple",
     iconColor: "text-[hsl(var(--marketing-gradient-end))]",
     iconBg: "bg-[hsl(var(--marketing-gradient-end)/0.1)]",
   },
   {
-    id: "jobs-to-be-done",
-    title: "Jobs-to-be-Done",
-    description: "Specific jobs customers need done, scored by frequency and dissatisfaction. Each job includes an opportunity score you can act on.",
-    icon: Target,
+    id: "positioning",
+    title: "Copy-ready positioning angles",
+    description: "Ready-to-use positioning statements and differentiation angles backed by evidence. Export and use in your strategy work.",
+    icon: Lightbulb,
     borderColor: "marketing-accent-border-teal",
     iconColor: "text-[hsl(var(--marketing-accent-teal))]",
     iconBg: "bg-[hsl(var(--marketing-accent-teal)/0.1)]",
-  },
-  {
-    id: "evidence",
-    title: "Evidence & Citations",
-    description: "Every output includes citations to public sources: pricing pages, changelogs, reviews, docs, jobs, status pages. Full audit trail.",
-    icon: FileText,
-    borderColor: "marketing-accent-border-indigo",
-    iconColor: "text-accent-primary",
-    iconBg: "bg-accent-primary/10",
   },
 ]
 
@@ -63,11 +54,11 @@ export function Outputs() {
           What you get
         </h2>
         <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
-          Everything is copyable, exportable, and ready to use in your strategy work. No buzzwords—just actionable insights.
+          Everything is copyable, exportable, and ready to use in your strategy work. No buzzwords—just actionable insights backed by evidence.
         </p>
       </div>
       <div className="mt-20">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2">
           {outputs.map((output) => {
             const Icon = output.icon
             return (

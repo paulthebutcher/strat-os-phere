@@ -54,7 +54,7 @@ export default async function DashboardPage() {
     : null
 
   return (
-    <div className="min-h-[calc(100vh-57px)] plinth-surface">
+    <div className="min-h-[calc(100vh-57px)] plinth-surface" data-testid="projects-page">
       <div className="mx-auto max-w-7xl px-4 py-12">
         <main className="flex w-full flex-col items-stretch gap-8">
           {/* Header Bar */}

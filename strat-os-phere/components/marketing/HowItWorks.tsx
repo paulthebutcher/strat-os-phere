@@ -3,38 +3,41 @@
  * 
  * Enhanced with brand tokens for consistent styling and enterprise-grade appearance.
  */
+import { Target, Search, TrendingUp } from "lucide-react"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
+
+const iconMap = {
+  target: Target,
+  search: Search,
+  trending: TrendingUp,
+}
 
 export function HowItWorks() {
   const steps = [
     {
       number: "1",
-      title: "Inputs",
-      description: "Define your market, customer, constraints, and confidence level. Add competitors by URL or name.",
+      title: "Define market, target customer, competitors",
+      description: "Set up your analysis by defining your market, target customer profile, and adding competitors by URL or name.",
       borderColor: "marketing-accent-border-indigo",
       gradient: "from-accent-primary to-accent-primary/80",
+      icon: "target",
     },
     {
       number: "2",
-      title: "Evidence",
-      description: "Plinth automatically pulls live signals: pricing, changelogs, reviews, docs, jobs, status pages — not just marketing pages.",
+      title: "Pull evidence from public sources (last 90 days)",
+      description: "Automatically scans pricing pages, reviews, job postings, changelogs, and documentation from the last 90 days.",
       borderColor: "marketing-accent-border-teal",
       gradient: "from-[hsl(var(--marketing-accent-teal))] to-[hsl(var(--marketing-accent-teal)/0.8)]",
+      icon: "search",
     },
     {
       number: "3",
-      title: "Opportunities",
-      description: "Get ranked differentiation opportunities with first experiments you can run, all backed by evidence.",
+      title: "Produce opportunities with confidence + citations",
+      description: "Get ranked opportunities with confidence scores and full citations. Every insight is defensible and traceable.",
       borderColor: "marketing-accent-border-coral",
       gradient: "from-[hsl(var(--marketing-accent-coral))] to-[hsl(var(--marketing-accent-coral)/0.8)]",
-    },
-    {
-      number: "4",
-      title: "Bets",
-      description: "Strategic Bets: what to say no to and why rivals won't follow. Decision-ready outputs with full citations.",
-      borderColor: "marketing-accent-border-purple",
-      gradient: "from-[hsl(var(--marketing-gradient-end))] to-[hsl(var(--marketing-gradient-end)/0.8)]",
+      icon: "trending",
     },
   ]
 
@@ -49,34 +52,37 @@ export function HowItWorks() {
         </p>
       </div>
       <div className="mx-auto mt-20 max-w-5xl">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {steps.map((step, index) => (
-            <div
-              key={index}
-              className={cn(
-                "panel",
-                step.borderColor,
-                "relative flex flex-col p-6 transition-all hover:shadow-lg hover:scale-105",
-                brand.surface.base
-              )}
-            >
-              <div className="mb-4 flex shrink-0">
-                <div className={cn(
-                  "flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br",
-                  step.gradient,
-                  "text-white shadow-md"
-                )}>
-                  <span className="text-xl font-bold">{step.number}</span>
+        <div className="grid gap-6 md:grid-cols-3">
+          {steps.map((step, index) => {
+            const Icon = iconMap[step.icon as keyof typeof iconMap]
+            return (
+              <div
+                key={index}
+                className={cn(
+                  "panel",
+                  step.borderColor,
+                  "relative flex flex-col p-6 transition-all hover:shadow-lg hover:scale-105",
+                  brand.surface.base
+                )}
+              >
+                <div className="mb-4 flex shrink-0">
+                  <div className={cn(
+                    "flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br",
+                    step.gradient,
+                    "text-white shadow-md"
+                  )}>
+                    {Icon && <Icon className="h-6 w-6" />}
+                  </div>
                 </div>
+                <h3 className={cn("mb-3", brand.typeScale.subhead, "text-text-primary")}>
+                  {step.title}
+                </h3>
+                <p className={cn("text-sm leading-relaxed text-text-secondary md:text-base")}>
+                  {step.description}
+                </p>
               </div>
-              <h3 className={cn("mb-3", brand.typeScale.subhead, "text-text-primary")}>
-                {step.title}
-              </h3>
-              <p className={cn("text-sm leading-relaxed text-text-secondary md:text-base")}>
-                {step.description}
-              </p>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

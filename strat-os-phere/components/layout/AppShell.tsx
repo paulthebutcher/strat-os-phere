@@ -72,6 +72,7 @@ export function AppShell({
       <Link
         key={item.id}
         href={href}
+        data-testid={`project-nav-item-${item.id}`}
         className={cn(
           'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
           'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
@@ -124,7 +125,7 @@ export function AppShell({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-3 space-y-1" aria-label="Project navigation">
+          <nav className="flex-1 p-3 space-y-1" aria-label="Project navigation" data-testid="project-nav">
             {visibleNavItems.map(renderNavLink)}
           </nav>
         </div>
@@ -190,7 +191,7 @@ export function AppShell({
               </div>
 
               {/* Navigation */}
-              <nav className="flex-1 p-3 space-y-1" aria-label="Project navigation">
+              <nav className="flex-1 p-3 space-y-1" aria-label="Project navigation" data-testid="project-nav">
                 {visibleNavItems.map(renderNavLink)}
               </nav>
             </div>

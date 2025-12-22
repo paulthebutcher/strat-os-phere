@@ -15,7 +15,7 @@ export function ResultsPageShell({
   className,
 }: ResultsPageShellProps) {
   return (
-    <div className={cn('flex min-h-[calc(100vh-57px)] items-start justify-center px-4 plinth-surface', className)}>
+    <div className={cn('flex min-h-[calc(100vh-57px)] items-start justify-center px-4 plinth-surface', className)} data-testid="results-page">
       <main className="flex w-full max-w-7xl flex-col gap-8 py-12">
         {children}
       </main>
