@@ -21,11 +21,19 @@ import { ConfidenceEcho } from '@/components/shared/ConfidenceEcho'
 import { AssumptionBadge } from '@/components/shared/AssumptionBadge'
 import { ExpertNote } from '@/components/shared/ExpertNote'
 import { normalizeLabel } from '@/lib/utils/terminology'
+import { ResultsPageShell } from '@/components/results/ResultsPageShell'
+import { ResultsHeader } from '@/components/results/ResultsHeader'
+import { SectionCard } from '@/components/results/SectionCard'
+import { ProgressiveRevealWrapper } from '@/components/results/ProgressiveRevealWrapper'
 import {
   getOpportunityScore,
   getWhyNowSignals,
   getDecisionFrame,
 } from '@/lib/results/opportunityUx'
+import {
+  computeDecisionConfidence,
+  computeAggregateConfidence,
+} from '@/lib/ui/decisionConfidence'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
@@ -315,6 +323,23 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
   const effectiveCompetitorCount = normalized.competitorCount ?? competitorCount
 
+  // Derive safe, non-null locals for opportunitiesV2 to avoid TS nullability errors
+  const opportunitiesV2Content = opportunitiesV2?.content ?? null
+  const opportunitiesV2List = opportunitiesV2Content?.opportunities ?? []
+  const shouldShowRecommendedNextSteps = opportunitiesV2List.length > 0
+  
+  // Type guard function to help TypeScript narrow the type
+  function hasOpportunitiesContent(
+    content: typeof opportunitiesV2Content
+  ): content is NonNullable<typeof opportunitiesV2Content> {
+    return content !== null && content.opportunities.length > 0
+  }
+  
+  // Safe reference for Recommended Next Steps panel (only set when content is valid)
+  const recommendedNextStepsContent = hasOpportunitiesContent(opportunitiesV2Content) 
+    ? opportunitiesV2Content 
+    : null
+
   // Prefer opportunities_v3 if available, otherwise default to strategic_bets
   const defaultTab: TabId = hasOpportunitiesV3 ? 'opportunities_v3' : 'strategic_bets'
   const activeTab: TabId = asTabId(tabParam) ?? defaultTab
@@ -480,112 +505,118 @@ export default async function ResultsPage(props: ResultsPageProps) {
   const activePanel = PANELS[activeTab] ?? PANELS[defaultTab]
   const copyContent = activePanel.copyContent
 
+  // Build metadata for header
+  const headerMetadata = [
+    {
+      label: `${effectiveCompetitorCount} competitors analyzed`,
+      value: '',
+    },
+    ...(formattedGeneratedAt
+      ? [
+          {
+            label: 'Generated',
+            value: formattedGeneratedAt,
+          },
+        ]
+      : []),
+  ]
+
+  // Build header actions
+  const headerActions = (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        {hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
+          <RegenerateButton
+            projectId={verifiedProject.id}
+            competitorCount={effectiveCompetitorCount}
+            label="Regenerate"
+          />
+        ) : null}
+        {!hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
+          <GenerateResultsV2Button projectId={verifiedProject.id} label="Generate Analysis" />
+        ) : null}
+      </div>
+      <ArtifactsDebugPanel projectId={verifiedProject.id} />
+    </div>
+  )
+
+  // Build header navigation
+  const headerNavigation = (
+    <nav className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground" aria-label="Project navigation">
+      <Link
+        href="/dashboard"
+        className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+      >
+        Dashboard
+      </Link>
+      <span aria-hidden="true" className="text-border">·</span>
+      <Link
+        href={`/projects/${verifiedProject.id}`}
+        className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+      >
+        Overview
+      </Link>
+      <span aria-hidden="true" className="text-border">·</span>
+      <Link
+        href={`/projects/${verifiedProject.id}/competitors`}
+        className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+      >
+        Competitors
+      </Link>
+    </nav>
+  )
+
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-      <main className="flex w-full max-w-5xl flex-col gap-8 py-12">
-        <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:pb-8 border-b border-border">
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-foreground tracking-tight">{verifiedProject.name}</h1>
-              <p className="text-sm text-muted-foreground">
-                Competitive landscape analysis and strategic insights
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span>
-                <span className="font-medium text-foreground">{effectiveCompetitorCount}</span> competitors analyzed
-              </span>
-              {formattedGeneratedAt ? (
-                <span>
-                  Generated <span className="font-medium text-foreground">{formattedGeneratedAt}</span>
-                </span>
-              ) : null}
-              {showNewBadge && (
-                <Badge variant="default" className="text-xs">
-                  New insights generated
-                </Badge>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground max-w-2xl">
-              Insights derived from publicly available information from the past 90 days, including marketing materials, reviews, pricing, changelogs, and documentation. Signals updated recently are weighted higher in confidence scores.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              <Link href="/help#results" className="text-primary underline hover:text-primary/80">
-                Need help?
-              </Link>
-            </p>
+    <ResultsPageShell>
+      <ResultsHeader
+        title="Results"
+        subtitle={`${verifiedProject.name} · Competitive landscape analysis and strategic insights`}
+        metadata={headerMetadata}
+        statusBadge={
+          showNewBadge
+            ? {
+                label: 'New insights generated',
+                variant: 'default',
+              }
+            : undefined
+        }
+        description="Insights derived from publicly available information from the past 90 days, including marketing materials, reviews, pricing, changelogs, and documentation. Signals updated recently are weighted higher in confidence scores."
+        helpLink="/help#results"
+        actions={headerActions}
+        navigation={headerNavigation}
+      />
+
+      {/* Confidence calibration echo - shows once at top of results */}
+      {hasAnyArtifacts && (
+        <div className="space-y-3">
+          <ConfidenceEcho inputConfidence={verifiedProject.input_confidence} />
+          <div className="flex justify-end">
+            <AssumptionBadge
+              level={
+                verifiedProject.input_confidence === 'very_confident'
+                  ? 'high_confidence'
+                  : verifiedProject.input_confidence === 'some_assumptions'
+                  ? 'some_assumptions'
+                  : verifiedProject.input_confidence === 'exploratory'
+                  ? 'exploratory'
+                  : null
+              }
+              explanation={
+                verifiedProject.input_confidence === 'some_assumptions'
+                  ? 'Some inputs were inferred from available context'
+                  : verifiedProject.input_confidence === 'exploratory'
+                  ? 'Recommendations are based on early-stage hypotheses'
+                  : undefined
+              }
+            />
           </div>
+        </div>
+      )}
 
-          <div className="flex flex-col items-start gap-3 text-left md:items-end md:text-right">
-            <nav className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground" aria-label="Project navigation">
-              <Link
-                href="/dashboard"
-                className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
-              >
-                Dashboard
-              </Link>
-              <span aria-hidden="true" className="text-border">·</span>
-              <Link
-                href={`/projects/${verifiedProject.id}`}
-                className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
-              >
-                Overview
-              </Link>
-              <span aria-hidden="true" className="text-border">·</span>
-              <Link
-                href={`/projects/${verifiedProject.id}/competitors`}
-                className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
-              >
-                Competitors
-              </Link>
-            </nav>
-
-            <div className="flex items-center gap-2">
-              {hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
-                <RegenerateButton
-                  projectId={verifiedProject.id}
-                  competitorCount={effectiveCompetitorCount}
-                  label="Regenerate"
-                />
-              ) : null}
-              {!hasAnyArtifacts && competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
-                <GenerateResultsV2Button projectId={verifiedProject.id} label="Generate Analysis" />
-              ) : null}
-            </div>
-            <ArtifactsDebugPanel projectId={verifiedProject.id} />
-          </div>
-        </header>
-
-        {/* Confidence calibration echo - shows once at top of results */}
-        {hasAnyArtifacts && (
-          <div className="space-y-2">
-            <ConfidenceEcho inputConfidence={verifiedProject.input_confidence} />
-            <div className="flex justify-end">
-              <AssumptionBadge
-                level={
-                  verifiedProject.input_confidence === 'very_confident'
-                    ? 'high_confidence'
-                    : verifiedProject.input_confidence === 'some_assumptions'
-                    ? 'some_assumptions'
-                    : verifiedProject.input_confidence === 'exploratory'
-                    ? 'exploratory'
-                    : null
-                }
-                explanation={
-                  verifiedProject.input_confidence === 'some_assumptions'
-                    ? 'Some inputs were inferred from available context'
-                    : verifiedProject.input_confidence === 'exploratory'
-                    ? 'Recommendations are based on early-stage hypotheses'
-                    : undefined
-                }
-              />
-            </div>
-          </div>
-        )}
-
-        {!hasAnyArtifacts ? (
-          <section className="flex flex-col items-center justify-center py-16 px-6">
-            <div className="w-full max-w-md space-y-4 text-center">
+      {!hasAnyArtifacts ? (
+        <SectionCard className="py-16">
+          <div className="w-full max-w-md space-y-6 text-center mx-auto">
+            <div className="space-y-4">
               <h2 className="text-xl font-semibold text-foreground">
                 Ready to generate your analysis
               </h2>
@@ -595,7 +626,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
                     <p>
                       ✓ You have {competitorCount} competitor{competitorCount !== 1 ? 's' : ''} configured
                     </p>
-                    <p>
+                    <p className="leading-relaxed">
                       <span className="font-medium text-foreground">What's next:</span> Generate your first analysis to view competitive insights, jobs to be done, and strategic opportunities.
                     </p>
                     <p className="text-xs italic">
@@ -604,7 +635,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
                   </>
                 ) : (
                   <>
-                    <p>
+                    <p className="leading-relaxed">
                       <span className="font-medium text-foreground">What's needed:</span> Add at least {MIN_COMPETITORS_FOR_ANALYSIS} competitors to begin analysis.
                     </p>
                     <p className="text-xs italic">
@@ -613,31 +644,32 @@ export default async function ResultsPage(props: ResultsPageProps) {
                   </>
                 )}
               </div>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
-                  <GenerateResultsV2Button
-                    projectId={verifiedProject.id}
-                    label="Generate Analysis"
-                  />
-                ) : (
-                  <Button asChild type="button" size="default">
-                    <Link href={`/projects/${verifiedProject.id}/competitors`}>
-                      Add Competitors
-                    </Link>
-                  </Button>
-                )}
-                {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS && (
-                  <Button asChild variant="outline" type="button">
-                    <Link href={`/projects/${verifiedProject.id}/competitors`}>
-                      Review inputs
-                    </Link>
-                  </Button>
-                )}
-              </div>
             </div>
-          </section>
-        ) : (
-          <section className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
+                <GenerateResultsV2Button
+                  projectId={verifiedProject.id}
+                  label="Generate Analysis"
+                />
+              ) : (
+                <Button asChild type="button" size="default">
+                  <Link href={`/projects/${verifiedProject.id}/competitors`}>
+                    Add Competitors
+                  </Link>
+                </Button>
+              )}
+              {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS && (
+                <Button asChild variant="outline" type="button">
+                  <Link href={`/projects/${verifiedProject.id}/competitors`}>
+                    Review inputs
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </div>
+        </SectionCard>
+      ) : (
+        <section className="flex flex-col gap-6">
             {/* Run Recap Panel - shows what phases completed */}
             <RunRecapPanel
               projectId={verifiedProject.id}
@@ -672,34 +704,36 @@ export default async function ResultsPage(props: ResultsPageProps) {
             )}
 
             {/* Recommended Next Steps Panel */}
-            {opportunitiesV2?.content?.opportunities &&
-            opportunitiesV2.content.opportunities.length > 0 &&
-            opportunitiesV2.content ? (
+            {recommendedNextStepsContent ? (
               <RecommendedNextStepsPanel
-                opportunities={opportunitiesV2.content}
+                opportunities={recommendedNextStepsContent!}
                 projectId={verifiedProject.id}
               />
+            ) : opportunitiesV2 === null ? (
+              <div className="text-sm text-muted-foreground text-center py-4">
+                <p>Opportunities will appear here after analysis is generated.</p>
+              </div>
             ) : null}
 
-            <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
-              <nav
-                className="tabs-list"
-                aria-label="Analysis sections"
-              >
-                {TABS.map((tab) => (
-                  <Link
-                    key={tab.id}
-                    href={`/projects/${verifiedProject.id}/results?tab=${tab.id}${frameParam ? `&frame=${frameParam}` : ''}`}
-                    className="tabs-trigger"
-                    data-state={activeTab === tab.id ? 'active' : 'inactive'}
-                    aria-current={activeTab === tab.id ? 'page' : undefined}
-                  >
-                    {tab.label}
-                  </Link>
-                ))}
-              </nav>
-              <CopySectionButton content={copyContent} label="Copy section" />
-            </div>
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-border">
+            <nav
+              className="tabs-list"
+              aria-label="Analysis sections"
+            >
+              {TABS.map((tab) => (
+                <Link
+                  key={tab.id}
+                  href={`/projects/${verifiedProject.id}/results?tab=${tab.id}${frameParam ? `&frame=${frameParam}` : ''}`}
+                  className="tabs-trigger"
+                  data-state={activeTab === tab.id ? 'active' : 'inactive'}
+                  aria-current={activeTab === tab.id ? 'page' : undefined}
+                >
+                  {tab.label}
+                </Link>
+              ))}
+            </nav>
+            <CopySectionButton content={copyContent} label="Copy section" />
+          </div>
 
             {/* Frame Toggle - only show for v2 tabs */}
             {(activeTab === 'jobs' || activeTab === 'opportunities_v2') && (
@@ -709,12 +743,11 @@ export default async function ResultsPage(props: ResultsPageProps) {
               />
             )}
 
-            {/* Render active panel using registry - eliminates long ternary chains */}
-            {activePanel.render()}
-          </section>
-        )}
-      </main>
-    </div>
+          {/* Render active panel using registry - eliminates long ternary chains */}
+          {activePanel.render()}
+        </section>
+      )}
+    </ResultsPageShell>
   )
 }
 
@@ -1558,11 +1591,11 @@ function OpportunitiesV2Section({
                 </article>
               )
             })}
-        </div>
-      ))}
-    </section>
-  )
-}
+          </div>
+        ))}
+      </section>
+    )
+  }
 
 interface ScoringSectionProps {
   scoring: ScoringMatrixArtifactContent | null | undefined
@@ -1572,15 +1605,17 @@ interface ScoringSectionProps {
 function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
   if (!scoring) {
     return (
-      <section className="flex flex-col items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md space-y-4 text-center">
-          <h2 className="text-lg font-semibold text-foreground">
-            Competitive scorecard not yet generated
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Once analysis is complete, Plinth will evaluate competitors on key criteria that matter to buyers, weighted by importance.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <SectionCard className="py-16">
+        <div className="w-full max-w-md space-y-6 text-center mx-auto">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-foreground">
+              Competitive scorecard not yet generated
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Once analysis is complete, Plinth will evaluate competitors on key criteria that matter to buyers, weighted by importance.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <GenerateResultsV2Button
               projectId={projectId}
               label="Generate Analysis"
@@ -1592,7 +1627,7 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
             </Button>
           </div>
         </div>
-      </section>
+      </SectionCard>
     )
   }
 
@@ -1606,26 +1641,28 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
   return (
     <section className="space-y-6">
       {/* Explainer */}
-      <div className="rounded-lg bg-muted/50 border border-border p-4">
-        <h3 className="text-sm font-semibold text-foreground mb-1">Scorecard</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Evaluates each competitor on key criteria that matter to buyers. Scores are weighted by importance (1–5), with total scores out of 100.
-        </p>
-        <p className="text-xs text-muted-foreground italic mt-2">
-          Signals: Live evidence from pricing, product, hiring, and positioning
-        </p>
-      </div>
+      <SectionCard>
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold text-foreground">Scorecard</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+            Evaluates each competitor on key criteria that matter to buyers. Scores are weighted by importance (1–5), with total scores out of 100.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Signals: Live evidence from pricing, product, hiring, and positioning
+          </p>
+        </div>
+      </SectionCard>
 
       {/* Bar Chart */}
       {sortedSummary.length > 0 ? (
-        <article className="panel p-6">
-          <h2 className="text-base font-semibold text-foreground mb-5">Score overview</h2>
+        <SectionCard>
+          <h2 className="text-xl font-semibold text-foreground mb-6">Score overview</h2>
           <CompetitorScoreBarChart data={sortedSummary} />
-        </article>
+        </SectionCard>
       ) : null}
       {scoring.criteria?.length ? (
-        <article className="panel p-6">
-          <h2 className="text-base font-semibold text-foreground mb-5">Evaluation criteria</h2>
+        <SectionCard>
+          <h2 className="text-xl font-semibold text-foreground mb-6">Evaluation criteria</h2>
           <div className="space-y-4">
             {scoring.criteria.map((criterion) => (
               <div key={criterion.id} className="space-y-2">
@@ -1640,12 +1677,12 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
               </div>
             ))}
           </div>
-        </article>
+        </SectionCard>
       ) : null}
 
       {sortedSummary.length ? (
-        <article className="panel p-6">
-          <h2 className="text-base font-semibold text-foreground mb-5">Competitor breakdown</h2>
+        <SectionCard>
+          <h2 className="text-xl font-semibold text-foreground mb-6">Competitor breakdown</h2>
           <div className="space-y-6">
             {sortedSummary.map((summary, index) => (
               <div key={index} className="space-y-4">
@@ -1686,14 +1723,14 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
               </div>
             ))}
           </div>
-        </article>
+        </SectionCard>
       ) : null}
 
       {scoring.notes ? (
-        <article className="panel p-6">
-          <h2 className="text-base font-semibold text-foreground mb-3">Notes</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">{scoring.notes}</p>
-        </article>
+        <SectionCard>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Notes</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">{scoring.notes}</p>
+        </SectionCard>
       ) : null}
     </section>
   )
@@ -1707,15 +1744,17 @@ interface OpportunitiesV3SectionProps {
 function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3SectionProps) {
   if (!opportunities || !opportunities.opportunities?.length) {
     return (
-      <section className="flex flex-col items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md space-y-4 text-center">
-          <h2 className="text-lg font-semibold text-foreground">
-            No opportunities generated yet
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Once inputs are confirmed, Plinth will surface defensible opportunities ranked by impact and confidence.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <SectionCard className="py-16">
+        <div className="w-full max-w-md space-y-6 text-center mx-auto">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-foreground">
+              No opportunities generated yet
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Once inputs are confirmed, Plinth will surface defensible opportunities ranked by impact and confidence.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <GenerateResultsV2Button
               projectId={projectId}
               label="Generate Analysis"
@@ -1727,7 +1766,7 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
             </Button>
           </div>
         </div>
-      </section>
+      </SectionCard>
     )
   }
 
@@ -1786,8 +1825,8 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
 
       {/* "If you did only one thing" panel */}
       <ProgressiveRevealWrapper section="top" storageKey="opportunities-progressive-reveal">
-        <article className="panel p-6 border-2 border-primary/20">
-        <div className="flex items-start justify-between gap-4 mb-4">
+        <SectionCard className="border-2 border-primary/20">
+          <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-foreground mb-1">
               If you did only one thing in the next 90 days
@@ -1826,19 +1865,21 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
             </p>
           </div>
         </div>
-      </article>
+      </SectionCard>
       </ProgressiveRevealWrapper>
 
       {/* Explainer */}
-      <div className="rounded-lg bg-muted/50 border border-border p-4">
-        <h3 className="text-sm font-semibold text-foreground mb-1">Opportunities</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-          A defensible way to win that forces competitors to react. Ranked opportunities with citation-backed proof points, deterministic score breakdowns, and actionable experiments. Each opportunity includes what makes it defensible and why competitors won't follow.
-        </p>
-        <p className="text-xs text-muted-foreground italic">
-          Score: Confidence-weighted likelihood of advantage over 12–18 months
-        </p>
-      </div>
+      <SectionCard>
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold text-foreground">Opportunities</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+            A defensible way to win that forces competitors to react. Ranked opportunities with citation-backed proof points, deterministic score breakdowns, and actionable experiments. Each opportunity includes what makes it defensible and why competitors won't follow.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Score: Confidence-weighted likelihood of advantage over 12–18 months
+          </p>
+        </div>
+      </SectionCard>
 
       {/* Decision Confidence Summary */}
       <ProgressiveRevealWrapper section="top" storageKey="opportunities-progressive-reveal">
@@ -1859,19 +1900,19 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
         const confidence = computeDecisionConfidence(opp)
         
         return (
-        <article key={opp.id || index} className="panel p-6 space-y-6 transition-all duration-150 hover:shadow-sm">
-          <header className="space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold text-foreground leading-tight">{opp.title}</h2>
-                <p className="mt-2 text-sm text-foreground leading-relaxed">{opp.one_liner}</p>
+        <SectionCard key={opp.id || index} className="space-y-6 transition-all duration-150 hover:shadow-sm">
+          <header className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-2xl font-semibold text-foreground leading-tight mb-2">{opp.title}</h2>
+                <p className="text-base text-foreground leading-relaxed">{opp.one_liner}</p>
               </div>
               {getOpportunityScore(opp) !== null && (
                 <div className="flex flex-col items-end gap-1 shrink-0">
-                  <Badge variant="primary" className="text-base px-3 py-1">
+                  <Badge variant="primary" className="text-base px-3 py-1.5">
                     {getOpportunityScore(opp)}/100
                   </Badge>
-                  <span className="text-xs text-muted-foreground">Based on multiple sources</span>
+                  <span className="text-xs text-muted-foreground">Score</span>
                 </div>
               )}
             </div>
@@ -1930,26 +1971,26 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
           )}
 
           {/* Main Content */}
-          <div className="space-y-5 text-sm">
+          <div className="space-y-6">
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                 Problem Today
               </h3>
-              <p className="text-foreground leading-relaxed">{opp.problem_today}</p>
+              <p className="text-sm text-foreground leading-relaxed max-w-3xl">{opp.problem_today}</p>
             </div>
 
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                 Proposed Move
               </h3>
-              <p className="text-foreground leading-relaxed">{opp.proposed_move}</p>
+              <p className="text-sm text-foreground leading-relaxed max-w-3xl">{opp.proposed_move}</p>
             </div>
 
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                 Why Now
               </h3>
-              <p className="text-foreground leading-relaxed">{opp.why_now}</p>
+              <p className="text-sm text-foreground leading-relaxed max-w-3xl">{opp.why_now}</p>
             </div>
 
             {/* Proof Points */}
@@ -2047,9 +2088,9 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
               </div>
             ) : null}
           </div>
-        </article>
-        )
-      })}
+        </SectionCard>
+          )
+        })}
         </div>
       </ProgressiveRevealWrapper>
     </section>
@@ -2064,15 +2105,17 @@ interface StrategicBetsSectionProps {
 function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSectionProps) {
   if (!strategicBets || !strategicBets.bets?.length) {
     return (
-      <section className="flex flex-col items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md space-y-4 text-center">
-          <h2 className="text-lg font-semibold text-foreground">
-            {normalizeLabel('Strategic Bets')} not yet generated
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Once analysis is complete, Plinth will generate {normalizeLabel('strategic bets').toLowerCase()} along with jobs, scorecard, and opportunities. These convert opportunities into commitment-ready decisions with explicit tradeoffs.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <SectionCard className="py-16">
+        <div className="w-full max-w-md space-y-6 text-center mx-auto">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-foreground">
+              {normalizeLabel('Strategic Bets')} not yet generated
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Once analysis is complete, Plinth will generate {normalizeLabel('strategic bets').toLowerCase()} along with jobs, scorecard, and opportunities. These convert opportunities into commitment-ready decisions with explicit tradeoffs.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <GenerateResultsV2Button
               projectId={projectId}
               label="Generate Analysis"
@@ -2084,7 +2127,7 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
             </Button>
           </div>
         </div>
-      </section>
+      </SectionCard>
     )
   }
 

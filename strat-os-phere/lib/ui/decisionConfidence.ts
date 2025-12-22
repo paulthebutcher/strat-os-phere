@@ -187,7 +187,8 @@ export function computeDecisionConfidence(
   if (evidenceCount === 0 && !hasScoreBreakdown) {
     level = 'exploratory'
     // Replace reasons with more appropriate messaging
-    reasons = ['Early signal']
+    reasons.length = 0
+    reasons.push('Early signal')
   }
 
   return {
