@@ -25,7 +25,12 @@ export function ResultsFrameToggle({
   const searchParams = useSearchParams()
 
   const handleFrameChange = (frame: ResultsFrame) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams?.toString() ?? '')
+    // Preserve tab parameter if present
+    const currentTab = searchParams?.get('tab')
+    if (currentTab) {
+      params.set('tab', currentTab)
+    }
     params.set('frame', frame)
     router.push(`/projects/${projectId}/results?${params.toString()}`)
   }

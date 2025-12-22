@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import type { Metadata } from "next"
-import { Hero } from "@/components/marketing/Hero"
+import { ArtifactPreviewHero } from "@/components/marketing/ArtifactPreviewHero"
 import { Problem } from "@/components/marketing/Problem"
 import { HowItWorks } from "@/components/marketing/HowItWorks"
 import { Outputs } from "@/components/marketing/Outputs"
@@ -51,7 +51,7 @@ export default async function Home(props: HomeProps) {
 
   return (
     <main className="marketing-landing">
-      <Hero />
+      <ArtifactPreviewHero />
       <Problem />
       <Outputs />
       <SampleOutput />

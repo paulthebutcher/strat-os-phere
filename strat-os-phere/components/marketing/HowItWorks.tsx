@@ -1,13 +1,11 @@
 /**
  * How It Works Section
  * 
- * Design tokens used:
- * - surface-muted: Alternating section background
- * - accent-primary: Step number badge background
- * - panel: Card styling for each step
- * 
- * Enhanced with 4-step timeline with numbered gradient chips and colored top borders.
+ * Enhanced with brand tokens for consistent styling and enterprise-grade appearance.
  */
+import { brand } from "@/lib/ui/brand"
+import { cn } from "@/lib/utils"
+
 export function HowItWorks() {
   const steps = [
     {
@@ -41,12 +39,12 @@ export function HowItWorks() {
   ]
 
   return (
-    <section id="how-it-works" className="mx-auto max-w-[1200px] px-4 py-24 md:py-32">
+    <section id="how-it-works" className={cn("mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
       <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
+        <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
           How it works
         </h2>
-        <p className="mt-4 text-base text-text-secondary md:text-lg">
+        <p className={cn("mt-4", brand.typeScale.body, "text-text-secondary")}>
           Everything is backed by evidence with citations you can validate
         </p>
       </div>
@@ -55,17 +53,26 @@ export function HowItWorks() {
           {steps.map((step, index) => (
             <div
               key={index}
-              className={`panel ${step.borderColor} relative flex flex-col p-6 transition-all hover:shadow-lg hover:scale-105`}
+              className={cn(
+                "panel",
+                step.borderColor,
+                "relative flex flex-col p-6 transition-all hover:shadow-lg hover:scale-105",
+                brand.surface.base
+              )}
             >
               <div className="mb-4 flex shrink-0">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br ${step.gradient} text-white shadow-md`}>
+                <div className={cn(
+                  "flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br",
+                  step.gradient,
+                  "text-white shadow-md"
+                )}>
                   <span className="text-xl font-bold">{step.number}</span>
                 </div>
               </div>
-              <h3 className="mb-3 text-xl font-bold text-text-primary">
+              <h3 className={cn("mb-3", brand.typeScale.subhead, "text-text-primary")}>
                 {step.title}
               </h3>
-              <p className="text-sm leading-relaxed text-text-secondary md:text-base">
+              <p className={cn("text-sm leading-relaxed text-text-secondary md:text-base")}>
                 {step.description}
               </p>
             </div>

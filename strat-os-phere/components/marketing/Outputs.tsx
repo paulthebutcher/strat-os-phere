@@ -1,14 +1,11 @@
 /**
  * Outputs Section
  * 
- * Design tokens used:
- * - panel: Card styling for output content
- * - accent-primary: Active tab indicator
- * - surface-muted: Placeholder mockup background
- * 
- * Enhanced with gallery grid layout with colored accent borders and iconography.
+ * Enhanced with brand tokens for consistent styling and enterprise-grade appearance.
  */
 import { Target, BarChart3, Lightbulb, TrendingUp, FileText } from "lucide-react"
+import { brand } from "@/lib/ui/brand"
+import { cn } from "@/lib/utils"
 
 const outputs = [
   {
@@ -60,12 +57,12 @@ const outputs = [
 
 export function Outputs() {
   return (
-    <section id="outputs" className="mx-auto max-w-[1200px] px-4 py-24 md:py-32">
+    <section id="outputs" className={cn("mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
       <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
+        <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
           What you get
         </h2>
-        <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl">
+        <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
           Everything is copyable, exportable, and ready to use in your strategy work. No buzzwords—just actionable insights.
         </p>
       </div>
@@ -76,17 +73,26 @@ export function Outputs() {
             return (
               <div
                 key={output.id}
-                className={`panel ${output.borderColor} relative flex flex-col p-6 transition-all hover:shadow-lg hover:scale-105`}
+                className={cn(
+                  "panel",
+                  output.borderColor,
+                  "relative flex flex-col p-6 transition-all hover:shadow-lg hover:scale-105",
+                  brand.surface.base
+                )}
               >
                 <div className="mb-4 flex shrink-0">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${output.iconBg} ${output.iconColor}`}>
+                  <div className={cn(
+                    "flex h-12 w-12 items-center justify-center rounded-lg",
+                    output.iconBg,
+                    output.iconColor
+                  )}>
                     <Icon className="h-6 w-6" />
                   </div>
                 </div>
-                <h3 className="mb-3 text-xl font-bold text-text-primary">
+                <h3 className={cn("mb-3", brand.typeScale.subhead, "text-text-primary")}>
                   {output.title}
                 </h3>
-                <p className="text-sm leading-relaxed text-text-secondary md:text-base">
+                <p className={cn("text-sm leading-relaxed text-text-secondary md:text-base")}>
                   {output.description}
                 </p>
               </div>

@@ -1,4 +1,6 @@
 import { Briefcase, Palette, Target } from "lucide-react"
+import { brand } from "@/lib/ui/brand"
+import { cn } from "@/lib/utils"
 
 const personas = [
   {
@@ -30,21 +32,16 @@ const personas = [
 /**
  * Who It's For Section
  * 
- * Design tokens used:
- * - panel: Card styling with hover effects
- * - accent-primary: Icon container background
- * - text-text-primary: Headline and title colors
- * 
- * Enhanced with 3 persona cards with color accents.
+ * Enhanced with brand tokens for consistent styling and enterprise-grade appearance.
  */
 export function WhoItsFor() {
   return (
-    <section className="mx-auto max-w-[1200px] px-4 py-24 md:py-32">
+    <section className={cn("mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
       <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-4xl font-bold tracking-tight text-text-primary md:text-5xl">
+        <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
           Who it's for
         </h2>
-        <p className="mt-6 text-lg leading-relaxed text-text-secondary md:text-xl">
+        <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
           Built for senior Product/UX strategy professionals who need decision-ready outputs, not research summaries.
         </p>
       </div>
@@ -52,16 +49,28 @@ export function WhoItsFor() {
         {personas.map((persona, index) => {
           const Icon = persona.icon
           return (
-            <div key={index} className={`panel ${persona.borderColor} relative flex flex-col p-8 transition-all hover:shadow-lg hover:scale-105`}>
+            <div
+              key={index}
+              className={cn(
+                "panel",
+                persona.borderColor,
+                "relative flex flex-col p-8 transition-all hover:shadow-lg hover:scale-105",
+                brand.surface.base
+              )}
+            >
               <div className="mb-6 flex justify-center">
-                <div className={`flex h-16 w-16 items-center justify-center rounded-xl ${persona.iconBg} ${persona.iconColor} shadow-sm`}>
+                <div className={cn(
+                  "flex h-16 w-16 items-center justify-center rounded-xl shadow-sm",
+                  persona.iconBg,
+                  persona.iconColor
+                )}>
                   <Icon className="h-8 w-8" />
                 </div>
               </div>
-              <h3 className="mb-4 text-xl font-bold text-text-primary md:text-2xl">
+              <h3 className={cn("mb-4", brand.typeScale.subhead, "text-text-primary")}>
                 {persona.title}
               </h3>
-              <p className="text-sm leading-relaxed text-text-secondary md:text-base">
+              <p className={cn("text-sm leading-relaxed text-text-secondary md:text-base")}>
                 {persona.description}
               </p>
             </div>

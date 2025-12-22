@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { CopySectionButton } from '@/components/results/CopySectionButton'
@@ -84,31 +84,18 @@ import {
   type ContrastSummary as ContrastSummaryType,
 } from '@/lib/results/diffHelpers'
 import { createClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { RunRecapPanel } from '@/components/results/RunRecapPanel'
 import { FreshnessBadge } from '@/components/shared/FreshnessBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
-
-/**
- * Strongly typed tab IDs - single source of truth
- * This prevents stringly-typed tab ids and ensures type safety
- */
-const TAB_IDS = [
-  'profiles',
-  'themes',
-  'positioning',
-  'opportunities',
-  'angles',
-  'jobs',
-  'scorecard',
-  'opportunities_v2',
-  'opportunities_v3',
-  'strategic_bets',
-] as const
-
-type TabId = typeof TAB_IDS[number]
+import {
+  type TabId,
+  resolveResultsTab,
+  type TabAvailability,
+  TAB_IDS,
+} from '@/lib/ui/resultsTab'
+import { logger } from '@/lib/logger'
 
 /**
  * Safely narrows a string value to a valid TabId
@@ -225,33 +212,6 @@ export default async function ResultsPage(props: ResultsPageProps) {
     new?: string
   }
   
-  // Backward compatibility: redirect to overview or appropriate route
-  // If there's a tab parameter, redirect to the appropriate route
-  const tabParam = searchParamsObj.tab
-  if (tabParam === 'opportunities_v3' || tabParam === 'opportunities' || tabParam === 'opportunities_v2') {
-    redirect(`/projects/${projectId}/opportunities${searchParamsObj.frame ? `?frame=${searchParamsObj.frame}` : ''}`)
-  } else if (tabParam === 'jobs') {
-    redirect(`/projects/${projectId}/jobs${searchParamsObj.frame ? `?frame=${searchParamsObj.frame}` : ''}`)
-  } else if (tabParam === 'scorecard') {
-    redirect(`/projects/${projectId}/scorecard`)
-  } else if (tabParam === 'strategic_bets') {
-    redirect(`/projects/${projectId}/strategic-bets`)
-  } else if (tabParam === 'profiles') {
-    redirect(`/projects/${projectId}/competitors`)
-  } else {
-    // Default: redirect to overview
-    const queryParams = new URLSearchParams()
-    if (searchParamsObj.generating === 'true') queryParams.set('generating', 'true')
-    if (searchParamsObj.view === 'results') queryParams.set('view', 'results')
-    if (searchParamsObj.new === 'true') queryParams.set('new', 'true')
-    const queryString = queryParams.toString()
-    redirect(`/projects/${projectId}/overview${queryString ? `?${queryString}` : ''}`)
-  }
-
-  // NOTE: Code below is currently unreachable due to redirects above
-  // This refactor maintains the tab rendering logic for maintainability
-  // and in case redirects are made conditional in the future
-
   const frameParam = searchParamsObj.frame
   const isGenerating = searchParamsObj.generating === 'true'
   const viewResults = searchParamsObj.view === 'results'
@@ -341,9 +301,55 @@ export default async function ResultsPage(props: ResultsPageProps) {
     ? opportunitiesV2Content 
     : null
 
-  // Prefer opportunities_v3 if available, otherwise default to strategic_bets
-  const defaultTab: TabId = hasOpportunitiesV3 ? 'opportunities_v3' : 'strategic_bets'
-  const activeTab: TabId = asTabId(tabParam) ?? defaultTab
+  // Resolve tab using shared helper (deterministic, loop-proof)
+  const tabAvailability: TabAvailability = {
+    hasOpportunitiesV3,
+    hasStrategicBets,
+    hasOpportunitiesV2,
+    hasJobs: hasJtbd,
+    hasScorecard: hasScoringMatrix,
+    hasProfiles,
+    hasSynthesis,
+  }
+  
+  const tabResolution = resolveResultsTab(searchParamsObj.tab, tabAvailability)
+  const activeTab = tabResolution.tab
+  
+  // Debug logging (dev only)
+  if (process.env.NODE_ENV !== 'production') {
+    logger.debug('Results page tab resolution', {
+      projectId,
+      tabParam: searchParamsObj.tab,
+      resolvedTab: activeTab,
+      isValid: tabResolution.isValid,
+      needsRedirect: tabResolution.needsRedirect,
+      availableTabs: Object.entries(tabAvailability)
+        .filter(([_, available]) => available)
+        .map(([key]) => key),
+    })
+  }
+  
+  // Canonical URL enforcement: redirect if tab is missing or invalid
+  if (tabResolution.needsRedirect) {
+    const canonicalParams = new URLSearchParams()
+    canonicalParams.set('tab', activeTab)
+    if (frameParam) canonicalParams.set('frame', frameParam)
+    if (isGenerating) canonicalParams.set('generating', 'true')
+    if (viewResults) canonicalParams.set('view', 'results')
+    if (showNewBadge) canonicalParams.set('new', 'true')
+    
+    const canonicalUrl = `/projects/${projectId}/results?${canonicalParams.toString()}`
+    
+    if (process.env.NODE_ENV !== 'production') {
+      logger.debug('Redirecting to canonical URL', {
+        from: `/projects/${projectId}/results${searchParamsObj.tab ? `?tab=${searchParamsObj.tab}` : ''}`,
+        to: canonicalUrl,
+        reason: tabResolution.isValid ? 'missing tab' : 'invalid tab',
+      })
+    }
+    
+    redirect(canonicalUrl)
+  }
 
   // Get previous run artifacts for contrast
   const previousNormalized = getPreviousRunArtifacts(artifacts, runId)
@@ -503,7 +509,8 @@ export default async function ResultsPage(props: ResultsPageProps) {
   }
 
   // Safety check: ensure activeTab exists in PANELS (should never happen, but defensive)
-  const activePanel = PANELS[activeTab] ?? PANELS[defaultTab]
+  // activeTab is guaranteed to be valid by resolveResultsTab, but we add a fallback for type safety
+  const activePanel = PANELS[activeTab] ?? PANELS[TABS[0]?.id ?? 'opportunities_v3']
   const copyContent = activePanel.copyContent
 
   // Build metadata for header
