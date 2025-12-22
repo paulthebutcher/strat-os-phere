@@ -75,4 +75,23 @@ export async function getProjectById(
   return data
 }
 
+export async function updateProjectRunFields(
+  client: Client,
+  projectId: string,
+  fields: {
+    latest_successful_run_id?: string | null
+    latest_run_id?: string | null
+  }
+): Promise<void> {
+  const typedClient = getTypedClient(client)
+  const { error } = await typedClient
+    .from('projects')
+    .update(fields)
+    .eq('id', projectId)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
 

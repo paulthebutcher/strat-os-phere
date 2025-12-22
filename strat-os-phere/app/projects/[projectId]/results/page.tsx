@@ -2,8 +2,18 @@ import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { createPageMetadata } from '@/lib/seo/metadata'
-import { getProjectById } from '@/lib/data/projects'
 import { createClient } from '@/lib/supabase/server'
+import { getProjectResults } from '@/lib/results/getProjectResults'
+import { normalizeResultsArtifacts } from '@/lib/results/normalizeResults'
+import { listCompetitorsForProject } from '@/lib/data/competitors'
+import { OpportunitiesContent } from '@/components/results/OpportunitiesContent'
+import { ResultsReadout } from '@/components/results/ResultsReadout'
+import { ShareButton } from '@/components/results/ShareButton'
+import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { TourLink } from '@/components/guidance/TourLink'
+import { RerunAnalysisButton } from '@/components/results/RerunAnalysisButton'
+import { RunHistoryDrawer } from '@/components/results/RunHistoryDrawer'
+import { listArtifacts } from '@/lib/data/artifacts'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -11,6 +21,7 @@ interface ResultsPageProps {
   }>
   searchParams?: Promise<{
     tab?: string
+    runId?: string
   }>
 }
 
@@ -30,10 +41,11 @@ export async function generateMetadata(props: ResultsPageProps): Promise<Metadat
 }
 
 /**
- * Legacy results route with tab support
+ * Canonical results route
  * 
- * Handles legacy /results?tab=xyz URLs and redirects to canonical routes.
- * If no tab is specified, redirects to opportunities (canonical results view).
+ * Shows saved results by default (latest successful run).
+ * Supports ?runId=... to view a specific run.
+ * Handles legacy ?tab=... URLs by redirecting to canonical routes.
  */
 export default async function ResultsPage(props: ResultsPageProps) {
   const [params, searchParams] = await Promise.all([
@@ -41,8 +53,9 @@ export default async function ResultsPage(props: ResultsPageProps) {
     props.searchParams ?? Promise.resolve({}),
   ])
   const projectId = params.projectId
-  const searchParamsObj = (await searchParams) as { tab?: string } | undefined
+  const searchParamsObj = (await searchParams) as { tab?: string; runId?: string } | undefined
   const tab = searchParamsObj?.tab
+  const runId = searchParamsObj?.runId
 
   const supabase = await createClient()
   const {
@@ -53,29 +66,93 @@ export default async function ResultsPage(props: ResultsPageProps) {
     notFound()
   }
 
-  const project = await getProjectById(supabase, projectId)
+  // Handle legacy tab redirects
+  if (tab) {
+    const tabToRoute: Record<string, string> = {
+      overview: `/projects/${projectId}/overview`,
+      opportunities: `/projects/${projectId}/results`,
+      strategic_bets: `/projects/${projectId}/results`,
+      jobs: `/projects/${projectId}/results`,
+      scorecard: `/projects/${projectId}/scorecard`,
+      competitors: `/projects/${projectId}/competitors`,
+      evidence: `/projects/${projectId}/evidence`,
+      settings: `/projects/${projectId}/settings`,
+    }
+    if (tabToRoute[tab]) {
+      redirect(tabToRoute[tab])
+    }
+  }
 
-  if (!project || project.user_id !== user.id) {
+  // Load project results
+  const results = await getProjectResults(supabase, projectId, runId)
+
+  if (results.project.user_id !== user.id) {
     notFound()
   }
 
-  // Map legacy tab values to canonical routes
-  const tabToRoute: Record<string, string> = {
-    overview: `/projects/${projectId}/overview`,
-    opportunities: `/projects/${projectId}/opportunities`,
-    strategic_bets: `/projects/${projectId}/opportunities`, // Strategic bets are shown in opportunities
-    jobs: `/projects/${projectId}/opportunities`, // Jobs are shown in opportunities
-    scorecard: `/projects/${projectId}/scorecard`,
-    competitors: `/projects/${projectId}/competitors`,
-    evidence: `/projects/${projectId}/evidence`,
-    settings: `/projects/${projectId}/settings`,
-  }
+  // Load competitors and all artifacts (for run history)
+  const [competitors, allArtifacts] = await Promise.all([
+    listCompetitorsForProject(supabase, projectId),
+    listArtifacts(supabase, { projectId }),
+  ])
 
-  // If a tab is specified, redirect to the canonical route
-  if (tab && tabToRoute[tab]) {
-    redirect(tabToRoute[tab])
-  }
+  // Normalize artifacts
+  const normalized = normalizeResultsArtifacts(results.artifacts, projectId)
+  const { opportunities, strategicBets, profiles, jtbd } = normalized
 
-  // Default: redirect to opportunities (canonical results view)
-  redirect(`/projects/${projectId}/opportunities`)
+  // Check if we have any artifacts to show
+  const hasArtifacts = results.artifacts.length > 0
+
+  return (
+    <PageGuidanceWrapper pageId="results">
+      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
+        <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
+          <div className="flex items-center justify-between">
+            <TourLink />
+            <div className="flex items-center gap-2">
+              {hasArtifacts && (
+                <>
+                  <RerunAnalysisButton projectId={projectId} />
+                  <RunHistoryDrawer projectId={projectId} artifacts={allArtifacts} />
+                </>
+              )}
+              <ShareButton projectId={projectId} />
+            </div>
+          </div>
+
+          {!hasArtifacts ? (
+            // Empty state: no successful run
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <h2 className="text-2xl font-semibold mb-2">No results yet</h2>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                Run an analysis to generate competitive insights and strategic opportunities.
+              </p>
+              <RerunAnalysisButton projectId={projectId} />
+            </div>
+          ) : (
+            <>
+              {/* Executive Readout, Assumptions Map, and Assumptions Ledger */}
+              <ResultsReadout
+                projectId={projectId}
+                opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
+                opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
+                generatedAt={normalized.meta.lastGeneratedAt || undefined}
+                projectName={results.project?.name || undefined}
+              />
+
+              {/* Opportunities Content - primary view */}
+              <OpportunitiesContent
+                projectId={projectId}
+                opportunitiesV3={opportunities.v3?.content}
+                opportunitiesV2={opportunities.v2?.content}
+                profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
+                strategicBets={strategicBets?.content}
+                jtbd={jtbd?.content}
+              />
+            </>
+          )}
+        </main>
+      </div>
+    </PageGuidanceWrapper>
+  )
 }

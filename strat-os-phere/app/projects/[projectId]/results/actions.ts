@@ -7,7 +7,7 @@ import {
 } from '@/lib/constants'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { createArtifact } from '@/lib/data/artifacts'
-import { getProjectById } from '@/lib/data/projects'
+import { getProjectById, updateProjectRunFields } from '@/lib/data/projects'
 import { callLLM } from '@/lib/llm/callLLM'
 import {
   COMPETITOR_SNAPSHOT_SCHEMA_SHAPE,
@@ -349,6 +349,12 @@ export async function generateAnalysis(
         },
         synthesis: synthesisParsed.data,
       },
+    })
+
+    // Update project with latest successful run (both artifacts created successfully)
+    await updateProjectRunFields(supabase, projectId, {
+      latest_successful_run_id: runId,
+      latest_run_id: runId,
     })
 
     return {

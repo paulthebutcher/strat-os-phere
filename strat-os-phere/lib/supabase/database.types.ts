@@ -33,6 +33,8 @@ export interface ProjectRow {
   market_context: string | null
   solution_idea: string | null
   decision_framing: Json | null
+  latest_successful_run_id: string | null
+  latest_run_id: string | null
   created_at: string
 }
 
@@ -58,6 +60,8 @@ export interface ProjectInsert {
   market_context?: string | null
   solution_idea?: string | null
   decision_framing?: Json | null
+  latest_successful_run_id?: string | null
+  latest_run_id?: string | null
 }
 
 export type ProjectUpdate = Partial<ProjectInsert>

@@ -24,17 +24,24 @@ export function toProjectCardModel(project: Project): ProjectCardModel {
   // Extract market
   const market = project.market || null
 
-  // Status: we don't have run status in the project data, so default to 'unknown'
-  // This is safe and doesn't assume fields that don't exist
-  const status: ProjectCardModel['status'] = 'unknown'
+  // Determine status based on latest_successful_run_id
+  // Check if latest_successful_run_id exists (may not be in type but could be in data)
+  const hasSuccessfulRun = 'latest_successful_run_id' in project && 
+    typeof (project as any).latest_successful_run_id === 'string' &&
+    (project as any).latest_successful_run_id !== null
 
-  // Primary action: default to project detail page
-  // If we had artifact count, we could route to results, but we don't fetch that
-  // to keep this UI-only and avoid extra queries
-  const primaryAction: ProjectCardModel['primaryAction'] = {
-    label: 'Open',
-    href: `/projects/${project.id}`,
-  }
+  const status: ProjectCardModel['status'] = hasSuccessfulRun ? 'ready' : 'draft'
+
+  // Primary action: route to results if successful run exists, otherwise to overview
+  const primaryAction: ProjectCardModel['primaryAction'] = hasSuccessfulRun
+    ? {
+        label: 'View results',
+        href: `/projects/${project.id}/results`,
+      }
+    : {
+        label: 'Run analysis',
+        href: `/projects/${project.id}/overview`,
+      }
 
   // Secondary action: link to competitors page for editing inputs
   const secondaryAction: ProjectCardModel['secondaryAction'] = {
@@ -45,11 +52,18 @@ export function toProjectCardModel(project: Project): ProjectCardModel {
   // Meta chips: status and recency
   const metaChips: ProjectCardModel['metaChips'] = []
   
-  // Add status chip (always add one for consistency)
-  metaChips.push({
-    label: 'Project',
-    tone: 'neutral',
-  })
+  // Add status chip based on run status
+  if (hasSuccessfulRun) {
+    metaChips.push({
+      label: 'Ready',
+      tone: 'good',
+    })
+  } else {
+    metaChips.push({
+      label: 'Draft',
+      tone: 'neutral',
+    })
+  }
 
   return {
     id: project.id,
