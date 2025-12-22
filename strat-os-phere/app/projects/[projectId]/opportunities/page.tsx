@@ -8,6 +8,7 @@ import { getProjectById } from '@/lib/data/projects'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
 import { createClient } from '@/lib/supabase/server'
 import { OpportunitiesContent } from '@/components/results/OpportunitiesContent'
+import { ResultsReadout } from '@/components/results/ResultsReadout'
 import { ShareButton } from '@/components/results/ShareButton'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
 import { TourLink } from '@/components/guidance/TourLink'
@@ -59,7 +60,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
   ])
 
   const normalized = normalizeResultsArtifacts(artifacts)
-  const { opportunitiesV3, opportunitiesV2, profiles, strategicBets, jtbd } = normalized
+  const { opportunitiesV3, opportunitiesV2, profiles, strategicBets, jtbd, generatedAt } = normalized
 
   return (
     <PageGuidanceWrapper pageId="results">
@@ -69,16 +70,27 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             <TourLink />
             <ShareButton projectId={projectId} />
           </div>
+          
+          {/* Executive Readout, Assumptions Map, and Assumptions Ledger */}
+          <ResultsReadout
+            projectId={projectId}
+            opportunitiesV3={opportunitiesV3?.content}
+            opportunitiesV2={opportunitiesV2?.content}
+            generatedAt={generatedAt}
+            projectName={project?.name || undefined}
+          />
+
+          {/* Existing Opportunities Content */}
           <OpportunitiesContent
-          projectId={projectId}
-          opportunitiesV3={opportunitiesV3?.content}
-          opportunitiesV2={opportunitiesV2?.content}
-          profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
-          strategicBets={strategicBets?.content}
-          jtbd={jtbd?.content}
-        />
-      </main>
-    </div>
+            projectId={projectId}
+            opportunitiesV3={opportunitiesV3?.content}
+            opportunitiesV2={opportunitiesV2?.content}
+            profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
+            strategicBets={strategicBets?.content}
+            jtbd={jtbd?.content}
+          />
+        </main>
+      </div>
     </PageGuidanceWrapper>
   )
 }
