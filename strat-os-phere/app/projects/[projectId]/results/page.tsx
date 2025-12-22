@@ -187,12 +187,6 @@ export default async function ResultsPage(props: ResultsPageProps) {
   const viewResults = searchParamsObj.view === 'results'
   const showNewBadge = searchParamsObj.new === 'true'
 
-  // Prefer opportunities_v3 if available, otherwise default to strategic_bets
-  const defaultTab = opportunitiesV3 ? 'opportunities_v3' : 'strategic_bets'
-  const activeTab: TabId =
-    (TABS.find((tab) => tab.id === tabParam)?.id as TabId | undefined) ??
-    defaultTab
-  
   const activeFrame: ResultsFrame =
     (frameParam as ResultsFrame | undefined) ?? 'jobs'
 
@@ -229,6 +223,12 @@ export default async function ResultsPage(props: ResultsPageProps) {
     runId,
     generatedAt,
   } = normalized
+
+  // Prefer opportunities_v3 if available, otherwise default to strategic_bets
+  const defaultTab: TabId = opportunitiesV3 ? 'opportunities_v3' : 'strategic_bets'
+  const activeTab: TabId =
+    (TABS.find((tab) => tab.id === tabParam)?.id as TabId | undefined) ??
+    defaultTab
 
   // Get previous run artifacts for contrast
   const previousNormalized = getPreviousRunArtifacts(artifacts, runId)
