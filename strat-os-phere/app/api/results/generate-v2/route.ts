@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
 import { generateResultsV2 } from '@/lib/results/generateV2'
+import { initializeRun } from '@/lib/results/progressWriter'
+
+// Generate run ID (same logic as in generateV2)
+function generateRunId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return (crypto as Crypto).randomUUID()
+  }
+  return `run_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`
+}
+import { updateProjectRunFields } from '@/lib/data/projects'
+import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 
@@ -9,8 +20,10 @@ export const runtime = 'nodejs'
  * POST /api/results/generate-v2
  * Canonical API route for generating Results v2 artifacts
  * 
+ * Returns immediately with runId, then runs generation in background.
+ * 
  * Request body: { projectId: string }
- * Response: { ok: true, runId: string, artifactIds: string[], signals: {...} } | { ok: false, error: {...} }
+ * Response: { ok: true, runId: string } | { ok: false, error: {...} }
  */
 export async function POST(request: Request) {
   try {
@@ -48,36 +61,50 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = await generateResultsV2(projectId, user.id, {})
+    // Generate run ID and create run record
+    const runId = generateRunId()
+    await initializeRun(supabase, projectId, runId)
 
-    if (!result.ok) {
-      // Map error codes to HTTP status codes
-      // Use 409 Conflict for prerequisite/missing dependencies (blocked state)
-      const statusCode =
-        result.error.code === 'PROJECT_NOT_FOUND_OR_FORBIDDEN'
-          ? 403
-          : result.error.code === 'UNAUTHENTICATED'
-          ? 401
-          : result.error.code === 'MISSING_COMPETITOR_PROFILES' ||
-            result.error.code === 'NO_SNAPSHOTS' ||
-            result.error.code === 'SNAPSHOT_VALIDATION_FAILED' ||
-            result.error.code === 'NO_COMPETITORS'
-          ? 409 // Conflict: prerequisite missing or profile generation failed, run is blocked
-          : result.error.code === 'INSUFFICIENT_COMPETITORS' ||
-            result.error.code === 'TOO_MANY_COMPETITORS'
-          ? 400
-          : 500
+    // Update project with latest run
+    await updateProjectRunFields(supabase, projectId, {
+      latest_run_id: runId,
+    })
 
-      return NextResponse.json(
-        {
-          ok: false,
-          error: result.error,
-        },
-        { status: statusCode }
-      )
-    }
+    // Start generation in background (fire and forget)
+    // Note: In production, this should use a proper job queue (e.g., Vercel Queue, BullMQ)
+    // For now, we use a fire-and-forget pattern. The generation will continue even if
+    // the HTTP request completes, but may be cancelled in serverless environments
+    // if the function times out. A proper queue is recommended for production.
+    generateResultsV2(projectId, user.id, { runId })
+      .then(async (result) => {
+        if (result.ok) {
+          // Update project with latest successful run
+          await updateProjectRunFields(supabase, projectId, {
+            latest_successful_run_id: runId,
+            latest_run_id: runId,
+          })
+          logger.info('Background generation completed', { runId, projectId })
+        } else {
+          logger.error('Background generation failed', {
+            runId,
+            projectId,
+            error: result.error,
+          })
+        }
+      })
+      .catch((error) => {
+        logger.error('Background generation error', {
+          runId,
+          projectId,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      })
 
-    return NextResponse.json(result)
+    // Return immediately with runId
+    return NextResponse.json({
+      ok: true,
+      runId,
+    })
   } catch (error) {
     return NextResponse.json(
       {

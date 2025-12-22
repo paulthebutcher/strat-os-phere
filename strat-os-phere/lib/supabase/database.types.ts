@@ -156,6 +156,58 @@ export interface ArtifactInsert {
 
 export type ArtifactUpdate = Partial<ArtifactInsert>
 
+// Analysis run status
+export type AnalysisRunStatus = 'queued' | 'running' | 'completed' | 'failed'
+
+// Analysis run event level
+export type AnalysisRunEventLevel = 'info' | 'warn' | 'error'
+
+export interface AnalysisRunRow {
+  id: string
+  project_id: string
+  status: AnalysisRunStatus
+  started_at: string | null
+  completed_at: string | null
+  last_heartbeat_at: string | null
+  current_phase: string | null
+  percent: number | null
+  error_message: string | null
+  created_at: string
+}
+
+export interface AnalysisRunInsert {
+  project_id: string
+  status?: AnalysisRunStatus
+  started_at?: string | null
+  completed_at?: string | null
+  last_heartbeat_at?: string | null
+  current_phase?: string | null
+  percent?: number | null
+  error_message?: string | null
+}
+
+export type AnalysisRunUpdate = Partial<AnalysisRunInsert>
+
+export interface AnalysisRunEventRow {
+  id: string
+  run_id: string
+  created_at: string
+  level: AnalysisRunEventLevel
+  phase: string | null
+  message: string
+  meta: Json | null
+}
+
+export interface AnalysisRunEventInsert {
+  run_id: string
+  level: AnalysisRunEventLevel
+  phase?: string | null
+  message: string
+  meta?: Json | null
+}
+
+export type AnalysisRunEventUpdate = Partial<AnalysisRunEventInsert>
+
 // Supabase generated-style Database type
 export type Database = {
   public: {
@@ -182,6 +234,18 @@ export type Database = {
         Row: ArtifactRow
         Insert: ArtifactInsert
         Update: ArtifactUpdate
+        Relationships: []
+      }
+      analysis_runs: {
+        Row: AnalysisRunRow
+        Insert: AnalysisRunInsert
+        Update: AnalysisRunUpdate
+        Relationships: []
+      }
+      analysis_run_events: {
+        Row: AnalysisRunEventRow
+        Insert: AnalysisRunEventInsert
+        Update: AnalysisRunEventUpdate
         Relationships: []
       }
     }

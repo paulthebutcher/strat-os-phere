@@ -4,6 +4,7 @@ import { signOut } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/brand/Logo'
 import { HelpDrawer } from '@/components/guidance/HelpDrawer'
+import { NavRunStatusChip } from '@/components/results/NavRunStatusChip'
 
 export async function Nav() {
   const supabase = await createClient()
@@ -50,6 +51,7 @@ export async function Nav() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <NavRunStatusChip />
           {user?.email && (
             <span className="hidden text-xs text-muted-foreground sm:inline-block">
               {user.email}

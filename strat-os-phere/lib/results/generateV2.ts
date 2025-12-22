@@ -70,6 +70,7 @@ import {
   type ProgressEvent,
   makeProgressEvent,
 } from '@/lib/results/progress'
+import { createProgressWriter, initializeRun } from './progressWriter'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 import type { MarketSynthesis } from '@/lib/schemas/marketSynthesis'
 
@@ -144,6 +145,26 @@ export async function generateResultsV2(
   try {
     const supabase = await createClient()
 
+    // Initialize run in database if not already done
+    // This allows the API to return immediately while generation continues
+    try {
+      await initializeRun(supabase, projectId, runId)
+    } catch (error) {
+      // If run already exists, that's fine - continue
+      logger.debug('Run may already exist', { runId, error: error instanceof Error ? error.message : String(error) })
+    }
+
+    // Create a combined progress callback that writes to DB and calls user callback
+    const dbProgressWriter = createProgressWriter(supabase, runId)
+    const combinedProgress: ProgressCallback = (event) => {
+      // Write to database (fire and forget)
+      dbProgressWriter(event).catch((err) => {
+        logger.error('Progress writer error', { runId, error: err instanceof Error ? err.message : String(err) })
+      })
+      // Call user callback if provided
+      onProgress?.(event)
+    }
+
     const project = await getProjectById(supabase, projectId)
 
     if (!project || project.user_id !== userId) {
@@ -158,7 +179,7 @@ export async function generateResultsV2(
 
     // Phase: load_input
     const t0 = performance.now()
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'load_input', 'Loading project data and competitors...', {
         meta: { competitorCount: 0 },
       })
@@ -185,7 +206,7 @@ export async function generateResultsV2(
     const competitors = await listCompetitorsForProject(supabase, projectId)
     const competitorCount = competitors.length
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'load_input', 'Project data loaded', {
         detail: `Found ${competitorCount} competitor${competitorCount !== 1 ? 's' : ''}`,
         meta: { competitorCount },
@@ -221,7 +242,7 @@ export async function generateResultsV2(
       }
 
       // Auto-generate profiles
-      onProgress?.(
+      combinedProgress(
         makeProgressEvent(runId, 'competitor_profiles', 'Generating competitor profiles', {
           status: 'started',
           detail: 'Summarizing what each competitor offers today, with citations.',
@@ -239,12 +260,12 @@ export async function generateResultsV2(
         supabase,
         projectId,
         runId,
-        onProgress
+        combinedProgress
       )
 
       if (!profilesResult.ok) {
         // Profile generation failed - pause with error
-        onProgress?.(
+        combinedProgress(
           makeProgressEvent(runId, 'competitor_profiles', 'Failed to generate competitor profiles', {
             status: 'failed',
             detail: profilesResult.error.message,
@@ -270,7 +291,7 @@ export async function generateResultsV2(
       })
     } else {
       // Profiles already exist, skip phase quickly
-      onProgress?.(
+      combinedProgress(
         makeProgressEvent(runId, 'competitor_profiles', 'Competitor profiles verified', {
           status: 'completed',
           detail: `${profileStatus.profilesCount} profile${profileStatus.profilesCount !== 1 ? 's' : ''} ready for analysis`,
@@ -280,7 +301,7 @@ export async function generateResultsV2(
     }
 
     // Phase: evidence_quality_check (Guardrail Phase 1)
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'evidence_quality_check', 'Checking evidence quality...', {})
     )
 
@@ -289,14 +310,14 @@ export async function generateResultsV2(
     // Block generation if evidence quality is too low (can be made configurable)
     // For now, we mark as low-confidence but allow generation
     if (!evidenceQualityCheck.passes) {
-      onProgress?.(
+      combinedProgress(
         makeProgressEvent(runId, 'evidence_quality_check', 'Evidence quality check completed', {
           detail: evidenceQualityCheck.reason || 'Low evidence quality detected',
         })
       )
       // Continue with generation but mark as low-confidence
     } else {
-      onProgress?.(
+      combinedProgress(
         makeProgressEvent(runId, 'evidence_quality_check', 'Evidence quality check passed', {
           detail: `Quality: ${evidenceQualityCheck.confidence}, Decay: ${(evidenceQualityCheck.decayFactor * 100).toFixed(0)}%`,
         })
@@ -382,7 +403,7 @@ export async function generateResultsV2(
 
     // Phase: jobs_generate
     const tJobsStart = performance.now()
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'jobs_generate',
@@ -408,7 +429,7 @@ export async function generateResultsV2(
       maxTokens: 2_400,
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'jobs_generate', 'Jobs draft complete', {
         status: 'progress',
         detail: 'Validating structure...',
@@ -417,7 +438,7 @@ export async function generateResultsV2(
     )
 
     // Phase: jobs_validate
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'jobs_validate',
@@ -435,7 +456,7 @@ export async function generateResultsV2(
 
     if (!jtbdParsed.ok) {
       repairCount += 1
-      onProgress?.(
+      combinedProgress(
         makeProgressEvent(runId, 'jobs_validate', 'Repairing invalid JSON...', {
           status: 'progress',
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
@@ -489,7 +510,7 @@ export async function generateResultsV2(
       durationMs: Math.round(tJobsEnd - tJobsStart),
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'jobs_validate', 'Jobs validated', {
         status: 'completed',
         detail: `${jtbdParsed.data.jobs.length} jobs extracted`,
@@ -532,7 +553,7 @@ export async function generateResultsV2(
 
     // Phase: scorecard_generate
     const tScorecardStart = performance.now()
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'scorecard_generate',
@@ -558,16 +579,16 @@ export async function generateResultsV2(
       maxTokens: 2_400,
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'scorecard_generate', 'Scorecard draft complete', {
         status: 'progress',
         detail: 'Validating structure...',
-        meta: { llmCallsDone: 2, llmCallsTotal: 3 },
+        meta: { llmCallsTotal: 3 },
       })
     )
 
     // Phase: scorecard_validate
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'scorecard_validate',
@@ -585,7 +606,7 @@ export async function generateResultsV2(
 
     if (!scoringParsed.ok) {
       repairCount += 1
-      onProgress?.(
+      combinedProgress(
         makeProgressEvent(runId, 'scorecard_validate', 'Repairing invalid JSON...', {
           status: 'progress',
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
@@ -660,7 +681,7 @@ export async function generateResultsV2(
       durationMs: Math.round(tScorecardEnd - tScorecardStart),
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'scorecard_validate', 'Scorecard validated', {
         status: 'completed',
         detail: `${scoringParsed.data.criteria.length} criteria defined`,
@@ -710,7 +731,7 @@ export async function generateResultsV2(
 
     // Phase: opportunities_generate
     const tOpportunitiesStart = performance.now()
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'opportunities_generate',
@@ -738,7 +759,7 @@ export async function generateResultsV2(
       maxTokens: 2_400,
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'opportunities_generate', 'Opportunities draft complete', {
         status: 'progress',
         detail: 'Validating structure...',
@@ -747,7 +768,7 @@ export async function generateResultsV2(
     )
 
     // Phase: opportunities_validate
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'opportunities_validate',
@@ -767,7 +788,7 @@ export async function generateResultsV2(
 
     if (!opportunitiesParsed.ok) {
       repairCount += 1
-      onProgress?.(
+      combinedProgress(
         makeProgressEvent(runId, 'opportunities_validate', 'Repairing invalid JSON...', {
           status: 'progress',
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
@@ -825,7 +846,7 @@ export async function generateResultsV2(
       durationMs: Math.round(tOpportunitiesEnd - tOpportunitiesStart),
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'opportunities_validate', 'Opportunities validated', {
         status: 'completed',
         detail: `${opportunitiesParsed.data.opportunities.length} opportunities ranked`,
@@ -836,7 +857,7 @@ export async function generateResultsV2(
     )
 
     // Phase: scoring_compute
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'scoring_compute',
@@ -898,7 +919,7 @@ export async function generateResultsV2(
 
     // Phase: strategic_bets_generate
     const tStrategicBetsStart = performance.now()
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'strategic_bets_generate',
@@ -929,7 +950,7 @@ export async function generateResultsV2(
       maxTokens: 2_400,
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'strategic_bets_generate', 'Strategic bets draft complete', {
         status: 'progress',
         detail: 'Validating structure...',
@@ -938,7 +959,7 @@ export async function generateResultsV2(
     )
 
     // Phase: strategic_bets_validate
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'strategic_bets_validate',
@@ -958,7 +979,7 @@ export async function generateResultsV2(
 
     if (!strategicBetsParsed.ok) {
       repairCount += 1
-      onProgress?.(
+      combinedProgress(
         makeProgressEvent(runId, 'strategic_bets_validate', 'Repairing invalid JSON...', {
           status: 'progress',
           detail: 'Model retrying due to invalid JSON (attempt 1/1)',
@@ -1029,7 +1050,7 @@ export async function generateResultsV2(
       durationMs: Math.round(tStrategicBetsEnd - tStrategicBetsStart),
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'strategic_bets_validate', 'Strategic bets validated', {
         status: 'completed',
         detail: `${strategicBetsParsed.data.bets.length} strategic bets generated`,
@@ -1088,7 +1109,7 @@ export async function generateResultsV2(
       bannedPatternPenalty: signals.bannedPatternPenalty,
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'scoring_compute', 'Scores computed', {
         status: 'completed',
         detail: 'All deterministic scores calculated',
@@ -1111,7 +1132,7 @@ export async function generateResultsV2(
     })
 
     // Phase: save_artifacts
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(
         runId,
         'save_artifacts',
@@ -1132,7 +1153,7 @@ export async function generateResultsV2(
       content_json: jtbdWithScores as any,
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
         status: 'progress',
         detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
@@ -1146,7 +1167,7 @@ export async function generateResultsV2(
       content_json: opportunitiesWithScores as any,
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
         status: 'progress',
         detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
@@ -1160,7 +1181,7 @@ export async function generateResultsV2(
       content_json: scoringWithComputedScores as any,
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
         status: 'progress',
         detail: 'Saving Jobs, Scorecard, Opportunities, and Strategic Bets',
@@ -1174,7 +1195,7 @@ export async function generateResultsV2(
       content_json: strategicBetsWithMeta as any,
     })
 
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'save_artifacts', 'Writing outputs to your workspace...', {
         status: 'completed',
         detail: 'This lets you regenerate without losing history',
@@ -1184,7 +1205,7 @@ export async function generateResultsV2(
 
     // Phase: finalize
     const tTotal = performance.now() - t0
-    onProgress?.(
+    combinedProgress(
       makeProgressEvent(runId, 'finalize', 'Finalizing artifacts for copy/export...', {
         status: 'completed',
         detail: 'Indexing results for fast reuse',
@@ -1207,6 +1228,22 @@ export async function generateResultsV2(
       signals,
     }
   } catch (error) {
+    // Mark run as failed in database
+    try {
+      const supabase = await createClient()
+      const { updateAnalysisRun } = await import('@/lib/data/runs')
+      await updateAnalysisRun(supabase, runId, {
+        status: 'failed',
+        error_message: error instanceof Error ? error.message : String(error),
+        completed_at: new Date().toISOString(),
+      })
+    } catch (dbError) {
+      logger.error('Failed to update run status on error', {
+        runId,
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+      })
+    }
+
     // If it's an AppError from prerequisites, convert it to the expected format
     if (isAppError(error)) {
       logger.error('Prerequisite check failed in generateResultsV2', {
