@@ -7,15 +7,18 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
+import { Backdrop } from "@/components/graphics"
 
 export function CTABand() {
   return (
-    <section className={cn("mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
+    <section className={cn("mx-auto max-w-[1200px] px-4 relative", brand.spacing.section)}>
       <div className={cn(
         "relative mx-auto max-w-4xl overflow-hidden rounded-xl border-2 border-accent-primary/20",
         "bg-gradient-to-br from-accent-primary/10 via-accent-primary/5 to-surface",
         "p-12 text-center shadow-lg md:p-16"
       )}>
+        <Backdrop variant="section" density="medium" className="rounded-xl" />
+        <div className="relative z-10">
         <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
           Make one strategic bet this week with confidence.
         </h2>
@@ -33,6 +36,7 @@ export function CTABand() {
               See a sample
             </Button>
           </Link>
+        </div>
         </div>
       </div>
     </section>

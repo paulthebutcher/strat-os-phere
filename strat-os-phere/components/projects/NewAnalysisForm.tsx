@@ -13,6 +13,7 @@ import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { PasteExtraction } from '@/components/projects/PasteExtraction'
 import { AnalysisFramingPreview } from '@/components/projects/AnalysisFramingPreview'
 import { ExpertNote } from '@/components/shared/ExpertNote'
+import { Backdrop, ConfidenceBadgeIcon, RecencyBadgeIcon, CitationsBadgeIcon } from '@/components/graphics'
 import { createProjectFromForm } from '@/app/projects/actions'
 import {
   ANALYSIS_TEMPLATES,
@@ -329,23 +330,26 @@ export function NewAnalysisForm({
     <div className="w-full max-w-6xl mx-auto px-6">
       {/* Hero Header */}
       <div className="mb-8">
-        <div className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 border border-border rounded-xl shadow-sm px-6 py-6 mb-6">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">{title}</h1>
-          <p className="text-sm text-muted-foreground mb-4">
-            Turn public competitor signals into ranked, defensible opportunities.
-          </p>
-          <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-border/50">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-xs font-medium text-foreground">Ranked opportunities</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-xs font-medium text-foreground">Evidence & recency</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-xs font-medium text-foreground">Actionable next steps</span>
+        <div className="relative bg-gradient-to-r from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 border border-border rounded-xl shadow-sm px-6 py-6 mb-6 overflow-hidden">
+          <Backdrop variant="section" density="subtle" className="rounded-xl" />
+          <div className="relative z-10">
+            <h1 className="text-2xl font-semibold text-foreground mb-2">{title}</h1>
+            <p className="text-sm text-muted-foreground mb-4">
+              Turn public competitor signals into ranked, defensible opportunities.
+            </p>
+            <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-border/50">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs font-medium text-foreground">Ranked opportunities</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <ConfidenceBadgeIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs font-medium text-foreground">Evidence & recency</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CitationsBadgeIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs font-medium text-foreground">Citations included</span>
+              </div>
             </div>
           </div>
         </div>

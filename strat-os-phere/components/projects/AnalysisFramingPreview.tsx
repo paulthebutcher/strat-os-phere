@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Backdrop } from '@/components/graphics'
 import type {
   RiskPosture,
   AmbitionLevel,
@@ -161,8 +162,9 @@ export function AnalysisFramingPreview({
   }
 
   return (
-    <div className="panel h-fit">
-      <div className="space-y-6 p-6">
+    <div className="panel h-fit relative overflow-hidden">
+      <Backdrop variant="card" density="subtle" />
+      <div className="space-y-6 p-6 relative z-10">
         <div>
           <h3 className="text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-300 uppercase mb-4">
             Analysis framing

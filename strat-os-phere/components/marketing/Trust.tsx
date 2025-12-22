@@ -2,6 +2,7 @@ import { DollarSign, Star, Briefcase, FileCode, BookOpen } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
+import { EvidenceConfidenceIllustration, Backdrop } from "@/components/graphics"
 
 const sourceTypes = [
   {
@@ -38,14 +39,19 @@ const sourceTypes = [
  */
 export function Trust() {
   return (
-    <section id="trust" className={cn("mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
-      <div className="mx-auto max-w-4xl">
+    <section id="trust" className={cn("mx-auto max-w-[1200px] px-4 relative", brand.spacing.section)}>
+      <Backdrop variant="section" density="medium" />
+      <div className="mx-auto max-w-4xl relative z-10">
         {/* Callout card with highlighted border */}
         <div className={cn(
           "panel relative overflow-hidden border-2 border-accent-primary/30",
           "bg-gradient-to-br from-accent-primary/5 via-surface to-surface",
           "p-8 md:p-12 shadow-lg"
         )}>
+          {/* Evidence confidence illustration */}
+          <div className="absolute top-8 right-8 w-32 h-24 opacity-30 pointer-events-none hidden md:block">
+            <EvidenceConfidenceIllustration />
+          </div>
           <div className="mx-auto max-w-3xl text-center">
             <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
               Evidence-backed, not vibes

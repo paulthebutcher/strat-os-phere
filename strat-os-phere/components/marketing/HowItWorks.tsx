@@ -6,6 +6,7 @@
 import { Target, Search, TrendingUp } from "lucide-react"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
+import { WorkflowIllustration } from "@/components/graphics"
 
 const iconMap = {
   target: Target,
@@ -52,6 +53,12 @@ export function HowItWorks() {
         </p>
       </div>
       <div className="mx-auto mt-20 max-w-5xl">
+        {/* Workflow illustration above steps */}
+        <div className="mb-12 flex justify-center">
+          <div className="w-full max-w-md h-32 opacity-60">
+            <WorkflowIllustration />
+          </div>
+        </div>
         <div className="grid gap-6 md:grid-cols-3">
           {steps.map((step, index) => {
             const Icon = iconMap[step.icon as keyof typeof iconMap]

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
 import { FileText, ExternalLink, X, ChevronRight, Search, TrendingUp } from "lucide-react"
+import { Backdrop, CompetitiveLandscapeIllustration, ConfidenceBadgeIcon, RecencyBadgeIcon, CitationsBadgeIcon } from "@/components/graphics"
 
 // Mock data for Incident Management / On-call industry
 const MOCK_SAMPLE = {
@@ -121,7 +122,8 @@ export function ArtifactPreviewHero() {
       "rounded-2xl py-16 md:py-24",
       brand.spacing.section
     )}>
-      <div className="mx-auto max-w-6xl">
+      <Backdrop variant="hero" density="subtle" className="rounded-2xl" />
+      <div className="mx-auto max-w-6xl relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16">
           {/* Left side: Headline, subhead, bullets, CTAs */}
           <div className="text-center lg:text-left">
@@ -170,13 +172,16 @@ export function ArtifactPreviewHero() {
             
             {/* Trust badges */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-              <Badge variant="info" className="text-xs">
+              <Badge variant="info" className="text-xs flex items-center gap-1.5">
+                <ConfidenceBadgeIcon className="w-3 h-3" />
                 Evidence-backed
               </Badge>
-              <Badge variant="info" className="text-xs">
+              <Badge variant="info" className="text-xs flex items-center gap-1.5">
+                <RecencyBadgeIcon className="w-3 h-3" />
                 90-day window
               </Badge>
-              <Badge variant="info" className="text-xs">
+              <Badge variant="info" className="text-xs flex items-center gap-1.5">
+                <CitationsBadgeIcon className="w-3 h-3" />
                 Citations included
               </Badge>
             </div>
@@ -184,7 +189,10 @@ export function ArtifactPreviewHero() {
 
           {/* Right side: Product output preview */}
           <div className="relative">
-            <div className="panel overflow-hidden border-2 border-border-subtle shadow-lg bg-surface">
+            <div className="hidden lg:block absolute -right-8 top-8 w-32 h-24 opacity-30">
+              <CompetitiveLandscapeIllustration />
+            </div>
+            <div className="panel overflow-hidden border-2 border-border-subtle shadow-lg bg-surface relative z-10">
               {/* Header */}
               <div className="p-4 bg-surface-muted border-b border-border-subtle">
                 <div className="flex items-center justify-between">

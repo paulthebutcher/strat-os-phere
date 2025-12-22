@@ -10,6 +10,7 @@ import { toProjectCardModel } from '@/components/projects/mappers'
 import { ProjectsEmptyState } from '@/components/projects/ProjectsEmptyState'
 import { ProjectsListClient } from '@/components/projects/ProjectsListClient'
 import { ContinuePanel } from '@/components/projects/ContinuePanel'
+import { Backdrop } from '@/components/graphics'
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
@@ -58,8 +59,9 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-12">
         <main className="flex w-full flex-col items-stretch gap-8">
           {/* Header Bar */}
-          <header className="flex items-start justify-between gap-4 plinth-gradient-soft rounded-lg p-6">
-            <div className="space-y-1">
+          <header className="relative flex items-start justify-between gap-4 plinth-gradient-soft rounded-lg p-6 overflow-hidden">
+            <Backdrop variant="section" density="subtle" className="rounded-lg" />
+            <div className="space-y-1 relative z-10">
               <h1 className="text-2xl font-semibold text-foreground">Projects</h1>
               <p className="text-sm text-muted-foreground">
                 Create and manage analyses. Start new or resume recent work.

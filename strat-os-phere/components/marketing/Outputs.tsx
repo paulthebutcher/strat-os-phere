@@ -6,6 +6,7 @@
 import { Target, Lightbulb, TrendingUp, FileText } from "lucide-react"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
+import { OpportunitiesIllustration, Backdrop } from "@/components/graphics"
 
 const outputs = [
   {
@@ -48,8 +49,9 @@ const outputs = [
 
 export function Outputs() {
   return (
-    <section id="outputs" className={cn("mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
-      <div className="mx-auto max-w-3xl text-center">
+    <section id="outputs" className={cn("mx-auto max-w-[1200px] px-4 relative", brand.spacing.section)}>
+      <Backdrop variant="section" density="subtle" />
+      <div className="mx-auto max-w-3xl text-center relative z-10">
         <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
           What you get
         </h2>
@@ -57,10 +59,12 @@ export function Outputs() {
           Everything is copyable, exportable, and ready to use in your strategy work. No buzzwords—just actionable insights backed by evidence.
         </p>
       </div>
-      <div className="mt-20">
+      <div className="mt-20 relative z-10">
+        {/* Opportunities illustration for opportunities card */}
         <div className="grid gap-6 md:grid-cols-2">
           {outputs.map((output) => {
             const Icon = output.icon
+            const isOpportunities = output.id === "opportunities"
             return (
               <div
                 key={output.id}
@@ -71,6 +75,11 @@ export function Outputs() {
                   brand.surface.base
                 )}
               >
+                {isOpportunities && (
+                  <div className="absolute top-4 right-4 w-24 h-16 opacity-20 pointer-events-none">
+                    <OpportunitiesIllustration />
+                  </div>
+                )}
                 <div className="mb-4 flex shrink-0">
                   <div className={cn(
                     "flex h-12 w-12 items-center justify-center rounded-lg",

@@ -4,6 +4,7 @@ import { EvidenceConfidencePanel } from '@/components/results/EvidenceConfidence
 import { EvidenceCoveragePanel } from '@/components/results/EvidenceCoveragePanel'
 import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
 import { isFlagEnabled } from '@/lib/flags'
+import { EvidenceConfidenceIllustration, Backdrop } from '@/components/graphics'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import type { StrategicBetsArtifactContent } from '@/lib/schemas/strategicBet'
@@ -41,11 +42,21 @@ export function EvidenceContent({
 
   return (
     <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground mb-2">Evidence</h1>
-        <p className="text-sm text-muted-foreground">
-          Evidence and citations supporting the competitive analysis.
-        </p>
+      <div className="relative">
+        <Backdrop variant="section" density="subtle" className="rounded-lg" />
+        <div className="relative z-10 p-6 rounded-lg">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground mb-2">Evidence</h1>
+              <p className="text-sm text-muted-foreground">
+                Evidence and citations supporting the competitive analysis.
+              </p>
+            </div>
+            <div className="hidden md:block w-32 h-24 opacity-30">
+              <EvidenceConfidenceIllustration />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Evidence & Confidence Panel */}

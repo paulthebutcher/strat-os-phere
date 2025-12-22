@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
+import { PlinthMark } from '@/components/graphics'
 
 export async function Nav() {
   const supabase = await createClient()
@@ -20,9 +21,10 @@ export async function Nav() {
         <div className="flex items-center gap-8">
           <Link
             href="/dashboard"
-            className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors"
           >
-            Plinth
+            <PlinthMark className="w-5 h-5" />
+            <span className="hidden sm:inline">Plinth</span>
           </Link>
           <div className="hidden items-center gap-4 md:flex">
             <Link
