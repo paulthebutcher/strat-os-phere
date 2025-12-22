@@ -30,6 +30,7 @@ import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { getProjectById } from '@/lib/data/projects'
+import type { Project } from '@/lib/supabase/types'
 import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
@@ -257,13 +258,17 @@ export default async function ResultsPage(props: ResultsPageProps) {
     notFound()
   }
 
+  // TypeScript doesn't recognize that notFound() never returns, so we narrow explicitly
+  // After the null check above, user is guaranteed to be non-null
+  const authenticatedUser = user as NonNullable<typeof user>
+
   const project = await getProjectById(supabase, projectId)
 
-  if (!project || project.user_id !== user.id) {
+  if (!project || project.user_id !== authenticatedUser.id) {
     notFound()
   }
   
-  // Type assertion: notFound() above ensures project is non-null
+  // TypeScript narrowing: project is non-null after notFound() check above
   const verifiedProject = project!
 
   const [competitors, artifacts] = await Promise.all([
@@ -545,22 +550,22 @@ export default async function ResultsPage(props: ResultsPageProps) {
         {/* Confidence calibration echo - shows once at top of results */}
         {hasAnyArtifacts && (
           <div className="space-y-2">
-            <ConfidenceEcho inputConfidence={project.input_confidence} />
+            <ConfidenceEcho inputConfidence={verifiedProject.input_confidence} />
             <div className="flex justify-end">
               <AssumptionBadge
                 level={
-                  project.input_confidence === 'very_confident'
+                  verifiedProject.input_confidence === 'very_confident'
                     ? 'high_confidence'
-                    : project.input_confidence === 'some_assumptions'
+                    : verifiedProject.input_confidence === 'some_assumptions'
                     ? 'some_assumptions'
-                    : project.input_confidence === 'exploratory'
+                    : verifiedProject.input_confidence === 'exploratory'
                     ? 'exploratory'
                     : null
                 }
                 explanation={
-                  project.input_confidence === 'some_assumptions'
+                  verifiedProject.input_confidence === 'some_assumptions'
                     ? 'Some inputs were inferred from available context'
-                    : project.input_confidence === 'exploratory'
+                    : verifiedProject.input_confidence === 'exploratory'
                     ? 'Recommendations are based on early-stage hypotheses'
                     : undefined
                 }
