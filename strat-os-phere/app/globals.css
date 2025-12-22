@@ -215,8 +215,8 @@
     -moz-osx-font-smoothing: grayscale;
   }
   
-  /* Marketing landing page background gradient */
-  body > div > main {
+  /* Marketing landing page background gradient - applied via class on main */
+  .marketing-landing {
     background: linear-gradient(to bottom, 
       hsl(var(--marketing-surface)) 0%,
       hsl(var(--background)) 20%,
@@ -226,7 +226,7 @@
     position: relative;
   }
   
-  body > div > main::before {
+  .marketing-landing::before {
     content: '';
     position: fixed;
     top: 0;
@@ -245,7 +245,7 @@
     z-index: 0;
   }
   
-  body > div > main > * {
+  .marketing-landing > * {
     position: relative;
     z-index: 1;
   }

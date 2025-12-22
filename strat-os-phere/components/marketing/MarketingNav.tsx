@@ -23,24 +23,24 @@ export function MarketingNav() {
         <div className="hidden items-center gap-8 md:flex">
           <Link
             href="#outputs"
-            className="relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+            className="group relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
           >
             Outputs
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-primary to-[hsl(var(--marketing-gradient-end))] opacity-0 transition-opacity hover:opacity-100" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-primary to-[hsl(var(--marketing-gradient-end))] opacity-0 transition-opacity group-hover:opacity-100" />
           </Link>
           <Link
             href="#how-it-works"
-            className="relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+            className="group relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
           >
             How it works
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-primary to-[hsl(var(--marketing-gradient-end))] opacity-0 transition-opacity hover:opacity-100" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-primary to-[hsl(var(--marketing-gradient-end))] opacity-0 transition-opacity group-hover:opacity-100" />
           </Link>
           <Link
             href="/login"
-            className="relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+            className="group relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
           >
             Login
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-primary to-[hsl(var(--marketing-gradient-end))] opacity-0 transition-opacity hover:opacity-100" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-primary to-[hsl(var(--marketing-gradient-end))] opacity-0 transition-opacity group-hover:opacity-100" />
           </Link>
           <Link href="/dashboard">
             <Button size="sm" className="shadow-sm hover:shadow-md transition-shadow">

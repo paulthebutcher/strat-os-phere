@@ -50,7 +50,7 @@ export default async function Home(props: HomeProps) {
   }
 
   return (
-    <main>
+    <main className="marketing-landing">
       <Hero />
       <Problem />
       <Outputs />
