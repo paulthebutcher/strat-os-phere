@@ -8,6 +8,7 @@ import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
 import type { WizardState } from '@/lib/onboarding/types'
 import { WizardStep1Describe } from './WizardStep1Describe'
+import { DecisionFramingStep } from '@/components/projects/DecisionFramingStep'
 import { WizardStep2Confirm } from './WizardStep2Confirm'
 
 interface AnalysisWizardProps {
@@ -16,7 +17,7 @@ interface AnalysisWizardProps {
 
 export function AnalysisWizard({ onComplete }: AnalysisWizardProps) {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1)
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
   const [wizardState, setWizardState] = useState<WizardState>({
     primaryCompanyName: '',
     contextText: undefined,
@@ -35,7 +36,16 @@ export function AnalysisWizard({ onComplete }: AnalysisWizardProps) {
     setCurrentStep(1)
   }
 
-  const handleStep2Complete = (state: Partial<WizardState>) => {
+  const handleStep2Complete = (framing: { decisionFraming: WizardState['decisionFraming'] }) => {
+    setWizardState((prev) => ({ ...prev, ...framing }))
+    setCurrentStep(3)
+  }
+
+  const handleStep3Back = () => {
+    setCurrentStep(2)
+  }
+
+  const handleStep3Complete = (state: Partial<WizardState>) => {
     const finalState = { ...wizardState, ...state }
     if (onComplete) {
       onComplete(finalState)
@@ -60,7 +70,7 @@ export function AnalysisWizard({ onComplete }: AnalysisWizardProps) {
                   : 'text-muted-foreground'
               }`}
             >
-              Step 1: Describe
+              Step 1: Discover
             </span>
           </div>
           <div className="h-px flex-1 bg-border" />
@@ -77,7 +87,24 @@ export function AnalysisWizard({ onComplete }: AnalysisWizardProps) {
                   : 'text-muted-foreground'
               }`}
             >
-              Step 2: Confirm
+              Step 2: Frame
+            </span>
+          </div>
+          <div className="h-px flex-1 bg-border" />
+          <div className="flex items-center gap-2">
+            {currentStep >= 3 ? (
+              <CheckCircle2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            ) : (
+              <Circle className="h-5 w-5 text-muted-foreground" />
+            )}
+            <span
+              className={`text-sm font-semibold ${
+                currentStep >= 3
+                  ? 'text-foreground'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              Step 3: Confirm
             </span>
           </div>
         </div>
@@ -93,10 +120,17 @@ export function AnalysisWizard({ onComplete }: AnalysisWizardProps) {
             />
           )}
           {currentStep === 2 && (
+            <DecisionFramingStep
+              initialState={wizardState.decisionFraming}
+              onBack={handleStep2Back}
+              onComplete={(framing) => handleStep2Complete({ decisionFraming: framing })}
+            />
+          )}
+          {currentStep === 3 && (
             <WizardStep2Confirm
               state={wizardState}
-              onBack={handleStep2Back}
-              onComplete={handleStep2Complete}
+              onBack={handleStep3Back}
+              onComplete={handleStep3Complete}
             />
           )}
         </div>

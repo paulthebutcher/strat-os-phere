@@ -158,6 +158,7 @@ export function WizardStep2Confirm({
         marketCategory: 'Competitive analysis',
         targetCustomer: 'Target customers',
         goal: 'Generate competitive insights',
+        decisionFraming: state.decisionFraming ? (state.decisionFraming as unknown as any) : undefined,
       })
 
       if (!projectResult?.success || !projectResult.projectId) {

@@ -32,6 +32,7 @@ export interface ProjectRow {
   customer_profile: string | null
   market_context: string | null
   solution_idea: string | null
+  decision_framing: Json | null
   created_at: string
 }
 
@@ -56,6 +57,7 @@ export interface ProjectInsert {
   customer_profile?: string | null
   market_context?: string | null
   solution_idea?: string | null
+  decision_framing?: Json | null
 }
 
 export type ProjectUpdate = Partial<ProjectInsert>

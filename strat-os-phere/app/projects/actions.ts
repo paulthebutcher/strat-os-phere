@@ -11,6 +11,8 @@ import type {
   InputConfidence,
 } from '@/lib/supabase/types'
 
+import type { Json } from '@/lib/supabase/types'
+
 interface CreateProjectPayload {
   name: string
   marketCategory: string
@@ -32,6 +34,8 @@ interface CreateProjectPayload {
   customerProfile?: string
   marketContext?: string
   solutionIdea?: string
+  // Decision framing
+  decisionFraming?: Json
 }
 
 interface CreateProjectResult {
@@ -75,6 +79,8 @@ export async function createProjectFromForm(
       customer_profile: payload.customerProfile ?? null,
       market_context: payload.marketContext ?? null,
       solution_idea: payload.solutionIdea ?? null,
+      // Decision framing
+      decision_framing: payload.decisionFraming ?? null,
     })
 
     return { success: true, projectId: project.id }
