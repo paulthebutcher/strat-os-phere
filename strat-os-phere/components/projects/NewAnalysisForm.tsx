@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, TrendingUp, FileText, Link2 } from 'lucide-react'
+import { CheckCircle2, TrendingUp, FileText, Link2, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,6 +22,12 @@ import { CompetitorRecommendations } from '@/components/projects/new/CompetitorR
 import { CompetitorPicker, type CompetitorItem } from '@/components/projects/CompetitorPicker'
 import { FramingConfirmationCard } from '@/components/projects/FramingConfirmationCard'
 import { ExtractedFieldsPanel } from '@/components/projects/ExtractedFieldsPanel'
+import {
+  TavilyPreview,
+  TavilyPreviewLoading,
+  TavilyPreviewError,
+} from '@/components/projects/TavilyPreview'
+import { normalizeUrl, toDisplayDomain, isProbablyDomainLike } from '@/lib/url/normalizeUrl'
 import {
   type ProposedFraming,
   inferCompetitorNameFromUrl,
@@ -108,6 +114,27 @@ export function NewAnalysisForm({
   const [showFramingConfirmation, setShowFramingConfirmation] = useState(false)
   const [competitors, setCompetitors] = useState<CompetitorItem[]>([])
   const [generatingFraming, setGeneratingFraming] = useState(false)
+  
+  // Tavily preview states
+  const [tavilyPreview, setTavilyPreview] = useState<{
+    normalizedUrl: string
+    site: { title?: string; description?: string; faviconUrl?: string; domain: string }
+    summary: { oneLiner: string; bullets: string[]; confidence: 'high' | 'medium' | 'low' }
+    suggestedSources: Array<{
+      label: string
+      url: string
+      type: 'pricing' | 'docs' | 'changelog' | 'jobs' | 'status' | 'integrations' | 'reviews' | 'blog' | 'other'
+    }>
+    suggestedCompetitors: Array<{ name: string; url: string; rationale: string }>
+    suggestedKeywords: string[]
+  } | null>(null)
+  const [loadingTavily, setLoadingTavily] = useState(false)
+  const [tavilyError, setTavilyError] = useState<{
+    error: 'TAVILY_NOT_CONFIGURED' | 'INVALID_URL' | 'TAVILY_ERROR' | 'UNAUTHORIZED' | 'INTERNAL_ERROR'
+    message: string
+  } | null>(null)
+  const [enabledSources, setEnabledSources] = useState<Set<string>>(new Set())
+  const [normalizedUrlDisplay, setNormalizedUrlDisplay] = useState<string | null>(null)
 
   function handleExtractedValues(values: {
     name?: string
@@ -501,7 +528,7 @@ export function NewAnalysisForm({
   }
 
   /**
-   * Handle "Analyze this URL" - get recommendations from primary URL
+   * Handle "Find signals" - analyze URL with Tavily and get recommendations
    */
   async function handleAnalyzeUrl() {
     if (!primaryUrl.trim()) {
@@ -510,15 +537,65 @@ export function NewAnalysisForm({
       return
     }
 
-    setRecommending(true)
+    // Normalize URL client-side first
+    const normalized = normalizeUrl(primaryUrl.trim())
+    if (!normalized.ok) {
+      setError(`Invalid URL: ${normalized.reason}`)
+      setErrorDetails({
+        code: 'VALIDATION_ERROR',
+        status: 400,
+      })
+      setNormalizedUrlDisplay(null)
+      return
+    }
+
+    const normalizedUrlValue = normalized.url
+    setNormalizedUrlDisplay(normalizedUrlValue)
     setError(null)
     setErrorDetails(null)
+    setTavilyError(null)
+    setLoadingTavily(true)
+    setRecommending(true)
 
     try {
+      // First, try Tavily preview
+      try {
+        const tavilyResponse = await fetch('/api/tavily/primary-site', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ primaryUrl: normalizedUrlValue }),
+        })
+
+        const tavilyData = await tavilyResponse.json()
+
+        if (tavilyData.ok) {
+          setTavilyPreview(tavilyData)
+          // Enable all sources by default
+          const sourceUrls = new Set<string>(
+            tavilyData.suggestedSources.map((s: { url: string }) => s.url)
+          )
+          setEnabledSources(sourceUrls)
+        } else {
+          setTavilyError({
+            error: tavilyData.error,
+            message: tavilyData.message,
+          })
+          // Continue with recommendations even if Tavily fails
+        }
+      } catch (tavilyErr) {
+        // Non-blocking: log but continue
+        console.warn('Tavily preview failed (non-blocking):', tavilyErr)
+        setTavilyError({
+          error: 'TAVILY_ERROR',
+          message: tavilyErr instanceof Error ? tavilyErr.message : 'Failed to analyze site',
+        })
+      }
+
+      // Then get competitor recommendations
       const response = await fetch('/api/projects/recommend-competitors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ primaryUrl: primaryUrl.trim() }),
+        body: JSON.stringify({ primaryUrl: normalizedUrlValue }),
       })
 
       let data: unknown
@@ -1014,19 +1091,51 @@ export function NewAnalysisForm({
                     Primary competitor URL
                     <span className="text-muted-foreground font-normal ml-1">(optional)</span>
                   </label>
-                  <Input
-                    id="primaryUrl"
-                    type="url"
-                    value={primaryUrl}
-                    onChange={(e) => {
-                      setPrimaryUrl(e.target.value)
-                      setError(null)
-                      setErrorDetails(null)
-                    }}
-                    placeholder="https://example.com"
-                    disabled={generatingFraming}
-                    className="flex-1"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="primaryUrl"
+                      type="text"
+                      value={primaryUrl}
+                      onChange={(e) => {
+                        setPrimaryUrl(e.target.value)
+                        setError(null)
+                        setErrorDetails(null)
+                        setNormalizedUrlDisplay(null)
+                        setTavilyPreview(null)
+                        setTavilyError(null)
+                      }}
+                      placeholder="monday.com or https://monday.com"
+                      disabled={recommending || loadingTavily}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleAnalyzeUrl}
+                      disabled={recommending || loadingTavily || !primaryUrl.trim()}
+                    >
+                      {recommending || loadingTavily ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        'Find signals'
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Paste a domain or product URL (we'll fix the format).
+                  </p>
+                  {normalizedUrlDisplay && normalizedUrlDisplay !== primaryUrl.trim() && (
+                    <p className="text-xs text-muted-foreground italic">
+                      We'll use: {normalizedUrlDisplay}
+                    </p>
+                  )}
+                  {error && errorDetails?.code === 'VALIDATION_ERROR' && (
+                    <p className="text-xs text-destructive">
+                      {error}. Expected format: example.com or https://example.com
+                    </p>
+                  )}
                 </div>
 
                 {/* Free-form context */}
@@ -1051,6 +1160,41 @@ export function NewAnalysisForm({
                     disabled={generatingFraming}
                   />
                 </div>
+
+                {/* Tavily Preview */}
+                {loadingTavily && <TavilyPreviewLoading />}
+                {tavilyError && (
+                  <TavilyPreviewError
+                    error={tavilyError.error}
+                    message={tavilyError.message}
+                    onRetry={() => handleAnalyzeUrl()}
+                  />
+                )}
+                {tavilyPreview && !loadingTavily && (
+                  <TavilyPreview
+                    data={tavilyPreview}
+                    onAddCompetitor={(competitor) => {
+                      if (!competitors.some((c) => c.url === competitor.url)) {
+                        setCompetitors((prev) => [
+                          ...prev,
+                          { name: competitor.name, url: competitor.url },
+                        ])
+                      }
+                    }}
+                    onSourceToggle={(source, enabled) => {
+                      setEnabledSources((prev) => {
+                        const next = new Set(prev)
+                        if (enabled) {
+                          next.add(source.url)
+                        } else {
+                          next.delete(source.url)
+                        }
+                        return next
+                      })
+                    }}
+                    enabledSources={enabledSources}
+                  />
+                )}
 
                 {/* Generate framing button */}
                 <Button

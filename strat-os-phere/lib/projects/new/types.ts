@@ -31,9 +31,11 @@ export const CompetitorRecommendationsResponseSchema = z.object({
 
 /**
  * Schema for the recommendation request
+ * Note: primaryUrl validation is done via normalizeUrl() in the route handler
+ * to allow forgiving input (bare domains, missing protocols, etc.)
  */
 export const CompetitorRecommendationsRequestSchema = z.object({
-  primaryUrl: z.string().url().optional(),
+  primaryUrl: z.string().min(1).optional(),
   contextText: z.string().optional(),
 })
 

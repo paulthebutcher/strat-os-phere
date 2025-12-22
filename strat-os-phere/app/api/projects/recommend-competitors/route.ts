@@ -12,6 +12,7 @@ import { getSystemStyleGuide } from '@/lib/prompts/system'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { LLMError } from '@/lib/llm/provider'
+import { normalizeUrl } from '@/lib/url/normalizeUrl'
 
 export const runtime = 'nodejs'
 
@@ -34,6 +35,7 @@ type RecommendSuccessResponse = {
     reason: string
     confidence?: 'high' | 'medium' | 'low'
   }>
+  normalizedUrl?: string
   errorId?: never
 }
 
@@ -50,6 +52,10 @@ type RecommendErrorResponse = {
   errorId: string
   recommendations: []
   framing?: never
+  fieldErrors?: {
+    primaryUrl?: string
+  }
+  normalizedUrl?: string
   debug?: {
     status: number
     code: string
@@ -231,7 +237,33 @@ export async function POST(request: Request): Promise<NextResponse<RecommendResp
       return NextResponse.json(errorResponse, { status: 400 })
     }
 
-    const { primaryUrl, contextText } = validationResult.data
+    let { primaryUrl, contextText } = validationResult.data
+
+    // Normalize primaryUrl if provided
+    if (primaryUrl) {
+      const normalized = normalizeUrl(primaryUrl)
+      if (!normalized.ok) {
+        const errorResponse: RecommendErrorResponse = {
+          ok: false,
+          error: {
+            message: `Validation failed: primaryUrl: ${normalized.reason}`,
+            code: 'VALIDATION_ERROR',
+            status: 400,
+          },
+          errorId,
+          recommendations: [],
+          fieldErrors: {
+            primaryUrl: normalized.reason,
+          },
+          ...(process.env.NODE_ENV !== 'production' && {
+            debug: { status: 400, code: 'VALIDATION_ERROR' },
+          }),
+        }
+        logger.error('[recommend-competitors] URL normalization failed', { errorId, reason: normalized.reason, input: primaryUrl })
+        return NextResponse.json(errorResponse, { status: 400 })
+      }
+      primaryUrl = normalized.url
+    }
 
     if (!primaryUrl && !contextText) {
       const successResponse: RecommendSuccessResponse = {
@@ -352,6 +384,7 @@ export async function POST(request: Request): Promise<NextResponse<RecommendResp
       ok: true,
       framing: parseResult.data.framing,
       recommendations: deduplicated,
+      ...(primaryUrl && { normalizedUrl: primaryUrl }),
     }
 
     return NextResponse.json(successResponse, { status: 200 })
