@@ -17,11 +17,11 @@ interface AnalysisProgressProps {
 }
 
 const STEPS = [
-  'Understanding your market',
-  'Mapping competitor capabilities',
+  'Identifying where competitors are vulnerable',
+  'Scanning pricing, positioning, and hiring signals',
   'Extracting real customer struggles',
-  'Scoring differentiation opportunities',
-  'Finalizing strategic recommendations',
+  'Stress-testing opportunity defensibility',
+  'Synthesizing signals into strategic options',
 ] as const
 
 /**

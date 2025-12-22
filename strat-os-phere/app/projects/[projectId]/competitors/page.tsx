@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
+import { AppShell } from '@/components/layout/AppShell'
 import { CompetitorCard } from '@/components/competitors/CompetitorCard'
 import { CompetitorForm } from '@/components/competitors/CompetitorForm'
 import { GenerateAnalysisButton } from '@/components/competitors/GenerateAnalysisButton'
@@ -12,6 +13,8 @@ import {
 } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
 import { createPageMetadata } from '@/lib/seo/metadata'
+import { listArtifacts } from '@/lib/data/artifacts'
+import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
 
 interface CompetitorsPageProps {
   params: Promise<{
@@ -56,7 +59,10 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
     notFound()
   }
 
-  const competitors = await listCompetitorsForProject(supabase, projectId)
+  const [competitors, artifacts] = await Promise.all([
+    listCompetitorsForProject(supabase, projectId),
+    listArtifacts(supabase, { projectId }),
+  ])
   const competitorCount = competitors.length
   const hasCompetitors = competitorCount > 0
   const readyForAnalysis = competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS
@@ -65,9 +71,30 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
     MIN_COMPETITORS_FOR_ANALYSIS - competitorCount
   )
 
+  const normalized = normalizeResultsArtifacts(artifacts)
+  const hasAnyArtifacts = Boolean(
+    normalized.profiles ||
+    normalized.synthesis ||
+    normalized.jtbd ||
+    normalized.opportunitiesV2 ||
+    normalized.opportunitiesV3 ||
+    normalized.scoringMatrix ||
+    normalized.strategicBets
+  )
+  const effectiveCompetitorCount = normalized.competitorCount ?? competitorCount
+
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-      <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
+    <AppShell
+      projectId={projectId}
+      projectName={project.name}
+      projectMarket={project.market}
+      projectCustomer={project.customer}
+      hasArtifacts={hasAnyArtifacts}
+      competitorCount={competitorCount}
+      effectiveCompetitorCount={effectiveCompetitorCount}
+    >
+      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
+        <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
         <header className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -77,6 +104,11 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
             <p className="text-sm text-text-secondary">
               Add real alternatives so Plinth can generate a sharp,
               exec-ready landscape summary.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <Link href="/help#competitors" className="text-primary underline hover:text-primary/80">
+                Need help?
+              </Link>
             </p>
           </div>
 
@@ -180,7 +212,8 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
           </section>
         )}
       </main>
-    </div>
+      </div>
+    </AppShell>
   )
 }
 

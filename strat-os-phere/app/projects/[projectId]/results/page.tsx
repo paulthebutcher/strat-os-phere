@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { CopySectionButton } from '@/components/results/CopySectionButton'
@@ -181,11 +180,30 @@ export default async function ResultsPage(props: ResultsPageProps) {
     view?: string
     new?: string
   }
-  const tabParam = searchParamsObj.tab ?? undefined
-  const frameParam = searchParamsObj.frame ?? undefined
-  const isGenerating = searchParamsObj.generating === 'true'
-  const viewResults = searchParamsObj.view === 'results'
-  const showNewBadge = searchParamsObj.new === 'true'
+  
+  // Backward compatibility: redirect to overview or appropriate route
+  // If there's a tab parameter, redirect to the appropriate route
+  const tabParam = searchParamsObj.tab
+  if (tabParam === 'opportunities_v3' || tabParam === 'opportunities' || tabParam === 'opportunities_v2') {
+    redirect(`/projects/${projectId}/opportunities${searchParamsObj.frame ? `?frame=${searchParamsObj.frame}` : ''}`)
+  } else if (tabParam === 'jobs') {
+    redirect(`/projects/${projectId}/jobs${searchParamsObj.frame ? `?frame=${searchParamsObj.frame}` : ''}`)
+  } else if (tabParam === 'scorecard') {
+    redirect(`/projects/${projectId}/scorecard`)
+  } else if (tabParam === 'strategic_bets') {
+    redirect(`/projects/${projectId}/strategic-bets`)
+  } else if (tabParam === 'profiles') {
+    redirect(`/projects/${projectId}/competitors`)
+  } else {
+    // Default: redirect to overview
+    const queryParams = new URLSearchParams()
+    if (searchParamsObj.generating === 'true') queryParams.set('generating', 'true')
+    if (searchParamsObj.view === 'results') queryParams.set('view', 'results')
+    if (searchParamsObj.new === 'true') queryParams.set('new', 'true')
+    const queryString = queryParams.toString()
+    redirect(`/projects/${projectId}/overview${queryString ? `?${queryString}` : ''}`)
+  }
+}
 
   const activeFrame: ResultsFrame =
     (frameParam as ResultsFrame | undefined) ?? 'jobs'
@@ -329,7 +347,12 @@ export default async function ResultsPage(props: ResultsPageProps) {
               )}
             </div>
             <p className="text-xs text-muted-foreground max-w-2xl">
-              Insights derived from publicly available information from the past 90 days, including marketing materials, reviews, pricing, changelogs, and documentation.
+              Insights derived from publicly available information from the past 90 days, including marketing materials, reviews, pricing, changelogs, and documentation. Signals updated recently are weighted higher in confidence scores.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <Link href="/help#results" className="text-primary underline hover:text-primary/80">
+                Need help?
+              </Link>
             </p>
           </div>
 
@@ -377,13 +400,32 @@ export default async function ResultsPage(props: ResultsPageProps) {
           <section className="flex flex-col items-center justify-center py-16 px-6">
             <div className="w-full max-w-md space-y-4 text-center">
               <h2 className="text-xl font-semibold text-foreground">
-                Analysis not yet generated
+                Ready to generate your analysis
               </h2>
-              <p className="text-sm text-muted-foreground">
-                {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS
-                  ? 'Generate your first analysis to view competitive insights, jobs to be done, and strategic opportunities.'
-                  : `Add at least ${MIN_COMPETITORS_FOR_ANALYSIS} competitors to begin analysis.`}
-              </p>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
+                  <>
+                    <p>
+                      ✓ You have {competitorCount} competitor{competitorCount !== 1 ? 's' : ''} configured
+                    </p>
+                    <p>
+                      <span className="font-medium text-foreground">What's next:</span> Generate your first analysis to view competitive insights, jobs to be done, and strategic opportunities.
+                    </p>
+                    <p className="text-xs italic">
+                      Why this matters: Analysis helps identify defensible opportunities and pressure-test your competitive positioning.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      <span className="font-medium text-foreground">What's needed:</span> Add at least {MIN_COMPETITORS_FOR_ANALYSIS} competitors to begin analysis.
+                    </p>
+                    <p className="text-xs italic">
+                      Why this matters: Competitive analysis requires multiple perspectives to identify patterns and gaps.
+                    </p>
+                  </>
+                )}
+              </div>
               <div className="pt-2">
                 {competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS ? (
                   <GenerateResultsV2Button
@@ -530,9 +572,12 @@ function ProfilesSection({ profiles }: ProfilesSectionProps) {
   if (!profiles || profiles.snapshots.length === 0) {
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md space-y-2 text-center">
+        <div className="w-full max-w-md space-y-3 text-center">
           <p className="text-sm text-muted-foreground">
-            Competitor profiles will appear here after analysis is generated.
+            <span className="font-medium text-foreground">What's needed:</span> Competitor profiles will appear here after analysis is generated.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Profiles summarize what each competitor offers today, helping identify vulnerabilities and gaps.
           </p>
         </div>
       </section>
@@ -651,9 +696,12 @@ function ThemesSection({ synthesis }: SynthesisSectionProps) {
   if (!value) {
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md space-y-2 text-center">
+        <div className="w-full max-w-md space-y-3 text-center">
           <p className="text-sm text-muted-foreground">
-            Market themes will appear here after analysis is generated.
+            <span className="font-medium text-foreground">What's needed:</span> Market themes will appear here after analysis is generated.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Themes identify patterns across competitors and market shifts that create opportunities.
           </p>
         </div>
       </section>
@@ -725,9 +773,12 @@ function PositioningSection({ synthesis }: SynthesisSectionProps) {
   if (!value) {
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md space-y-2 text-center">
+        <div className="w-full max-w-md space-y-3 text-center">
           <p className="text-sm text-muted-foreground">
-            Positioning analysis will appear here after analysis is generated.
+            <span className="font-medium text-foreground">What's needed:</span> Positioning analysis will appear here after analysis is generated.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Positioning maps show how competitors cluster and where differentiation opportunities exist.
           </p>
         </div>
       </section>
@@ -803,9 +854,12 @@ function OpportunitiesSection({ synthesis }: SynthesisSectionProps) {
   if (!value || !value.opportunities?.length) {
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md space-y-2 text-center">
+        <div className="w-full max-w-md space-y-3 text-center">
           <p className="text-sm text-muted-foreground">
-            Opportunities will appear here after analysis is generated.
+            <span className="font-medium text-foreground">What's needed:</span> Opportunities will appear here after analysis is generated.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Opportunities identify defensible ways to win that force competitors to react.
           </p>
         </div>
       </section>
@@ -865,9 +919,12 @@ function AnglesSection({ synthesis }: SynthesisSectionProps) {
   ) {
     return (
       <section className="flex flex-col items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md space-y-2 text-center">
+        <div className="w-full max-w-md space-y-3 text-center">
           <p className="text-sm text-muted-foreground">
-            Differentiation angles will appear here after analysis is generated.
+            <span className="font-medium text-foreground">What's needed:</span> Differentiation angles will appear here after analysis is generated.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Differentiation angles show how to position your offering to stand apart from competitors.
           </p>
         </div>
       </section>
@@ -994,7 +1051,10 @@ function JtbdSection({ jtbd, projectId, frame }: JtbdSectionProps) {
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
           <p className="text-sm text-muted-foreground">
-            Jobs To Be Done will appear here after analysis is generated.
+            <span className="font-medium text-foreground">What's needed:</span> Jobs To Be Done will appear here after analysis is generated.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Jobs help identify what customers are trying to accomplish and where current solutions fall short.
           </p>
           <GenerateResultsV2Button
             projectId={projectId}
@@ -1017,8 +1077,9 @@ function JtbdSection({ jtbd, projectId, frame }: JtbdSectionProps) {
     <section className="space-y-6">
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Jobs To Be Done</h3>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Jobs To Be Done describe the specific tasks customers need to accomplish. Each job includes measurable outcomes and an opportunity score based on importance and current satisfaction.
+          The specific tasks customers need to accomplish. Each job includes measurable outcomes and an opportunity score based on importance and current satisfaction.
         </p>
       </div>
       {frameGroups.map((group) =>
@@ -1034,9 +1095,12 @@ function JtbdSection({ jtbd, projectId, frame }: JtbdSectionProps) {
                     <h2 className="text-base font-semibold text-foreground leading-snug">{job.job_statement}</h2>
                     <div className="flex items-center gap-2 shrink-0">
                       <LineageLink lineage={lineage} title={job.job_statement} />
-                      <Badge variant="primary">
-                        {job.opportunity_score}/100
-                      </Badge>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant="primary">
+                          {job.opportunity_score}/100
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">Confidence-weighted</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -1173,7 +1237,10 @@ function OpportunitiesV2Section({
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
           <p className="text-sm text-muted-foreground">
-            Opportunities will appear here after analysis is generated.
+            <span className="font-medium text-foreground">What's needed:</span> Opportunities will appear here after analysis is generated.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Opportunities identify defensible ways to win that force competitors to react.
           </p>
           <GenerateResultsV2Button
             projectId={projectId}
@@ -1198,8 +1265,12 @@ function OpportunitiesV2Section({
     <section className="space-y-6">
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Ranked by score (impact, effort, confidence, and linked job importance). Each opportunity includes first experiments—concrete tests you can run in 1–2 weeks to validate before committing to a full build.
+        <h3 className="text-sm font-semibold text-foreground mb-1">Opportunities</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+          A defensible way to win that forces competitors to react. Ranked by score (impact, effort, confidence, and linked job importance). Each opportunity includes first experiments—concrete tests you can run in 1–2 weeks to validate before committing to a full build.
+        </p>
+        <p className="text-xs text-muted-foreground italic">
+          Score: Confidence-weighted likelihood of advantage over 12–18 months
         </p>
       </div>
       {frameGroups.map((group) => (
@@ -1224,9 +1295,12 @@ function OpportunitiesV2Section({
                       <h2 className="text-base font-semibold text-foreground leading-snug">{opp.title}</h2>
                       <div className="flex items-center gap-2 shrink-0">
                         <LineageLink lineage={lineage} title={opp.title} />
-                        <Badge variant="primary">
-                          {opp.score}/100
-                        </Badge>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge variant="primary">
+                            {opp.score}/100
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">Based on multiple sources</span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -1333,7 +1407,10 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
           <p className="text-sm text-muted-foreground">
-            Competitive scorecard will appear here after analysis is generated.
+            <span className="font-medium text-foreground">What's needed:</span> Competitive scorecard will appear here after analysis is generated.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            The scorecard evaluates competitors on key criteria that matter to buyers, weighted by importance.
           </p>
           <GenerateResultsV2Button
             projectId={projectId}
@@ -1355,8 +1432,12 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
     <section className="space-y-6">
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Scorecard</h3>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Evaluates each competitor on key criteria that matter to buyers. Scores are weighted by importance (1–5), with total scores out of 100.
+        </p>
+        <p className="text-xs text-muted-foreground italic mt-2">
+          Signals: Live evidence from pricing, product, hiring, and positioning
         </p>
       </div>
 
@@ -1454,7 +1535,10 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
       <section className="flex flex-col items-center justify-center py-12 px-6">
         <div className="w-full max-w-md space-y-4 text-center">
           <p className="text-sm text-muted-foreground">
-            No opportunities yet — generate results to see your first strategic bet.
+            <span className="font-medium text-foreground">What's needed:</span> No opportunities yet — generate results to see your first strategic bet.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Opportunities identify defensible ways to win that force competitors to react, ranked by impact and defensibility.
           </p>
           <GenerateResultsV2Button
             projectId={projectId}
@@ -1524,9 +1608,12 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
               {topOpportunity.title}
             </h3>
             {topScore !== null && (
-              <Badge variant="primary" className="mb-2">
-                Score: {topScore}/100
-              </Badge>
+              <div className="flex flex-col items-start gap-1 mb-2">
+                <Badge variant="primary">
+                  Score: {topScore}/100
+                </Badge>
+                <span className="text-xs text-muted-foreground">Based on multiple sources</span>
+              </div>
             )}
             <p className="text-sm text-foreground leading-relaxed mt-2">
               {rationale}
@@ -1547,8 +1634,12 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
 
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Ranked opportunities with citation-backed proof points, deterministic score breakdowns, and actionable experiments. Each opportunity includes what makes it defensible and why competitors won't follow.
+        <h3 className="text-sm font-semibold text-foreground mb-1">Opportunities</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+          A defensible way to win that forces competitors to react. Ranked opportunities with citation-backed proof points, deterministic score breakdowns, and actionable experiments. Each opportunity includes what makes it defensible and why competitors won't follow.
+        </p>
+        <p className="text-xs text-muted-foreground italic">
+          Score: Confidence-weighted likelihood of advantage over 12–18 months
         </p>
       </div>
 
@@ -1565,9 +1656,12 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
                 <p className="mt-2 text-sm text-foreground leading-relaxed">{opp.one_liner}</p>
               </div>
               {getOpportunityScore(opp) !== null && (
-                <Badge variant="primary" className="shrink-0 text-base px-3 py-1">
-                  {getOpportunityScore(opp)}/100
-                </Badge>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <Badge variant="primary" className="text-base px-3 py-1">
+                    {getOpportunityScore(opp)}/100
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">Based on multiple sources</span>
+                </div>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
@@ -1756,9 +1850,14 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
           <h2 className="text-xl font-semibold text-foreground">
             Strategic Bets not yet generated
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Strategic bets are generated as part of the full analysis. Generate analysis to create strategic bets along with jobs, scorecard, and opportunities.
-          </p>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              <span className="font-medium text-foreground">What's needed:</span> Strategic bets are generated as part of the full analysis. Generate analysis to create strategic bets along with jobs, scorecard, and opportunities.
+            </p>
+            <p className="text-xs italic">
+              Why this matters: Strategic bets convert opportunities into commitment-ready decisions with explicit tradeoffs and falsifiable experiments.
+            </p>
+          </div>
           <GenerateResultsV2Button
             projectId={projectId}
             label="Generate Analysis"
@@ -1772,8 +1871,12 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
     <section className="space-y-6">
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Strategic bets synthesize your analysis into concrete, commitment-ready decisions suitable for VP+ Product and UX leaders. Each bet forces explicit tradeoffs, requires specific capabilities, and includes a falsifiable experiment to validate or disconfirm.
+        <h3 className="text-sm font-semibold text-foreground mb-1">Strategic Bets</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+          Concrete, commitment-ready decisions suitable for VP+ Product and UX leaders. Each bet forces explicit tradeoffs, requires specific capabilities, and includes a falsifiable experiment to validate or disconfirm.
+        </p>
+        <p className="text-xs text-muted-foreground italic">
+          Confidence score: Weighted by evidence quality and competitive defensibility
         </p>
       </div>
 
@@ -1790,18 +1893,25 @@ function StrategicBetsSection({ strategicBets, projectId }: StrategicBetsSection
                 <h2 className="text-xl font-semibold text-foreground leading-tight">{bet.title}</h2>
                 <div className="flex items-center gap-2 shrink-0">
                   <CopySectionButton content={betMarkdown} label="Copy bet" />
-                  <Badge
-                    variant={
-                      bet.confidence_score >= 70
-                        ? 'success'
-                        : bet.confidence_score >= 50
-                        ? 'warning'
-                        : 'default'
-                    }
-                    className="text-xs"
-                  >
-                    {bet.confidence_score}/100
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge
+                      variant={
+                        bet.confidence_score >= 70
+                          ? 'success'
+                          : bet.confidence_score >= 50
+                          ? 'warning'
+                          : 'default'
+                      }
+                      className="text-xs"
+                    >
+                      {bet.confidence_score}/100
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {bet.supporting_signals && bet.supporting_signals.length > 0
+                        ? `Includes ${bet.supporting_signals.length} source${bet.supporting_signals.length !== 1 ? 's' : ''}`
+                        : 'Evidence-weighted'}
+                    </span>
+                  </div>
                 </div>
               </div>
               <p className="text-sm text-foreground leading-relaxed">{bet.summary}</p>

@@ -40,7 +40,7 @@ export async function Nav() {
             </Link>
             <span className="text-xs text-muted-foreground">·</span>
             <Link
-              href="/dashboard"
+              href="/help"
               className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Help

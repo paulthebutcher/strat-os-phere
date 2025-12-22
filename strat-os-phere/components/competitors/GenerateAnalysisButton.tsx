@@ -35,9 +35,9 @@ export function GenerateAnalysisButton({
       // Ignore sessionStorage errors
     }
 
-    // Navigate to results page with generating flag to show AnalysisRunExperience
+    // Navigate to overview page with generating flag to show AnalysisRunExperience
     // This will generate everything including Strategic Bets
-    router.push(`/projects/${projectId}/results?generating=true`)
+    router.push(`/projects/${projectId}/overview?generating=true`)
   }
 
   return (

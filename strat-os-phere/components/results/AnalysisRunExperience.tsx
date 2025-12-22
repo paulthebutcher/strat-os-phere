@@ -388,26 +388,25 @@ export function AnalysisRunExperience({
                 <div>
                   <h1 className="text-2xl font-semibold text-foreground">
                     {isBlocked && isProfileGenerationError
-                      ? 'Analysis paused — couldn\'t generate competitor profiles'
+                      ? 'You're partway there'
                       : hasPartialResults
-                      ? 'Analysis partially completed'
+                      ? 'You're partway there'
                       : 'Something interrupted the analysis'}
                   </h1>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {error.message ||
-                      `We weren't able to complete this run. Your inputs are safe, and nothing was lost.`}
+                    {isBlocked && isProfileGenerationError
+                      ? 'We\'ve identified the opportunity space and initial signals. Add competitor profiles to pressure-test defensibility and confidence.'
+                      : hasPartialResults
+                      ? 'We\'ve completed some phases of the analysis. Review what\'s ready below, then retry to finish the remaining steps.'
+                      : error.message ||
+                        `We weren't able to complete this run. Your inputs are safe, and nothing was lost.`}
                   </p>
-                  {isBlocked && isProfileGenerationError && (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      We'll keep everything else ready. Retry to generate profiles, or edit competitors if something is wrong.
-                    </p>
-                  )}
                 </div>
 
                 {hasPartialResults && !isBlocked && (
                   <div className="rounded-md border border-border bg-muted/50 p-4">
                     <p className="text-sm font-medium text-foreground mb-2">
-                      Completed phases:
+                      ✓ What's already complete:
                     </p>
                     <ul className="text-sm text-muted-foreground space-y-1">
                       {completedPhases.map((phase, idx) => {
@@ -420,12 +419,21 @@ export function AnalysisRunExperience({
                         )
                       })}
                     </ul>
+                    <p className="text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
+                      <span className="font-medium text-foreground">What's needed next:</span> Retry to complete the remaining analysis phases.
+                    </p>
                   </div>
                 )}
 
                 {/* Diagnostic details for profile generation error */}
                 {isBlocked && isProfileGenerationError && error.technicalDetails && (
                   <div className="rounded-md border border-border bg-muted/50 p-4">
+                    <p className="text-sm font-medium text-foreground mb-2">
+                      Why this step matters:
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Competitor profiles help us identify vulnerabilities and defensibility gaps. Without them, we can't fully assess which opportunities are worth pursuing.
+                    </p>
                     <p className="text-sm font-medium text-foreground mb-2">
                       Diagnostic information:
                     </p>
@@ -528,7 +536,7 @@ export function AnalysisRunExperience({
                   Analysis complete
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  Strategic bets, opportunities, scorecard, and jobs are ready for review.
+                  Strategic bets, opportunities, scorecard, and jobs are ready for review. Each insight includes citation-backed evidence and confidence-weighted scores.
                 </p>
               </div>
 

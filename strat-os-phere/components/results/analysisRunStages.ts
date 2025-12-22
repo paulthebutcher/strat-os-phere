@@ -21,15 +21,20 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'checking_profiles',
-    label: 'Generating competitor profiles',
+    label: 'Identifying where competitors are vulnerable',
     description:
-      'Summarizing what each competitor offers today, with citations.',
+      'Mapping each competitor's current positioning, capabilities, and gaps.',
+    signals: [
+      'Competitor positioning claims',
+      'Implicit optimization patterns',
+      'Information gaps and ambiguities',
+    ],
   },
   {
     id: 'gathering_inputs',
-    label: 'Reviewing live competitor signals',
+    label: 'Scanning pricing, positioning, and hiring signals',
     description:
-      'Collecting and organizing evidence from competitors, market data, and customer signals.',
+      'Collecting live evidence from recent product updates, reviews, and market activity.',
     signals: [
       'Competitor positioning claims',
       'Implicit optimization patterns',
@@ -38,9 +43,9 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'analyzing_competitors',
-    label: 'Analyzing competitive landscape',
+    label: 'Mapping competitor capabilities',
     description:
-      'Evaluating capabilities, constraints, and differentiation across competitors.',
+      'Evaluating what each competitor can and cannot do, and where they overlap.',
     signals: [
       'Capability overlaps versus true differences',
       'Feature gaps masked by similar language',
@@ -49,9 +54,9 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'deriving_jobs',
-    label: 'Extracting customer jobs and struggles',
+    label: 'Extracting real customer struggles',
     description:
-      'Translating competitive behavior into concrete customer jobs.',
+      'Translating competitive behavior into concrete jobs customers need to accomplish.',
     signals: [
       'Customer workarounds in use',
       'Partially-served jobs',
@@ -60,9 +65,9 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'scoring_positioning',
-    label: 'Scoring competitive capabilities',
+    label: 'Stress-testing opportunity defensibility',
     description:
-      'Evaluating competitive positioning across dimensions that matter.',
+      'Evaluating which opportunities are defensible and which competitors can easily copy.',
     signals: [
       'Assumed but unsupported strengths',
       'Compounding friction points',
@@ -71,9 +76,9 @@ export const ANALYSIS_STAGES: StageConfig[] = [
   },
   {
     id: 'ranking_opportunities',
-    label: 'Identifying differentiation opportunities',
+    label: 'Synthesizing signals into strategic options',
     description:
-      'Identifying and scoring opportunities for meaningful differentiation.',
+      'Ranking opportunities by impact, effort, and competitive moat strength.',
     signals: [
       'Underserved high-importance jobs',
       'Opportunities with competitive moats',
@@ -84,7 +89,7 @@ export const ANALYSIS_STAGES: StageConfig[] = [
     id: 'forming_strategic_bets',
     label: 'Forming strategic bets',
     description:
-      'Converting opportunities into decision-ready commitments.',
+      'Converting opportunities into decision-ready commitments with explicit tradeoffs.',
     signals: [
       'Explicit tradeoffs and constraints',
       'Required capabilities',

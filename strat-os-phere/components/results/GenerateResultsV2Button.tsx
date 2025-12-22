@@ -36,8 +36,8 @@ export function GenerateResultsV2Button({
       // Ignore sessionStorage errors
     }
 
-    // Navigate to results page with generating flag
-    router.push(`/projects/${projectId}/results?generating=true`)
+    // Navigate to overview page with generating flag
+    router.push(`/projects/${projectId}/overview?generating=true`)
   }
 
   return (
