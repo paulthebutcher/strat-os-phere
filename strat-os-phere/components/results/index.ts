@@ -21,4 +21,5 @@ export { DecisionConfidenceSummary } from './DecisionConfidenceSummary'
 export { DecisionConfidencePanel } from './DecisionConfidencePanel'
 export { HardToCopyCallout } from './HardToCopyCallout'
 export { RunRecapPanel } from './RunRecapPanel'
+export { EvidenceConfidencePanel } from './EvidenceConfidencePanel'
 

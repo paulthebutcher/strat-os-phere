@@ -89,6 +89,8 @@ import type { ReactNode } from 'react'
 import { RunRecapPanel } from '@/components/results/RunRecapPanel'
 import { FreshnessBadge } from '@/components/shared/FreshnessBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { EvidenceConfidencePanel } from '@/components/results/EvidenceConfidencePanel'
+import { extractCitationsFromArtifact } from '@/lib/results/evidence'
 import {
   type TabId,
   resolveResultsTab,
@@ -1443,26 +1445,34 @@ function OpportunitiesV2Section({
   projectId,
   frame,
 }: OpportunitiesV2SectionProps) {
+  // Extract citations from opportunities artifact
+  const citations = extractCitationsFromArtifact(opportunities ?? null)
+  
   if (!opportunities || !opportunities.opportunities?.length) {
     return (
-      <section className="flex flex-col items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md space-y-4 text-center">
-          <h2 className="text-lg font-semibold text-foreground">
-            Opportunities not yet generated
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Once analysis is complete, Plinth will surface defensible opportunities ranked by impact, effort, and competitive moat strength.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <GenerateResultsV2Button
-              projectId={projectId}
-              label="Generate Analysis"
-            />
-            <Button asChild variant="outline" type="button">
-              <Link href={`/projects/${projectId}/competitors`}>
-                Review inputs
-              </Link>
-            </Button>
+      <section className="space-y-6">
+        {/* Evidence panel - show even when no opportunities yet */}
+        <EvidenceConfidencePanel citations={citations} />
+        
+        <div className="flex flex-col items-center justify-center py-12 px-6">
+          <div className="w-full max-w-md space-y-4 text-center">
+            <h2 className="text-lg font-semibold text-foreground">
+              Opportunities not yet generated
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Once analysis is complete, Plinth will surface defensible opportunities ranked by impact, effort, and competitive moat strength.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <GenerateResultsV2Button
+                projectId={projectId}
+                label="Generate Analysis"
+              />
+              <Button asChild variant="outline" type="button">
+                <Link href={`/projects/${projectId}/competitors`}>
+                  Review inputs
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -1481,6 +1491,9 @@ function OpportunitiesV2Section({
 
   return (
     <section className="space-y-6">
+      {/* Evidence & Confidence Panel - at the top */}
+      <EvidenceConfidencePanel citations={citations} />
+      
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
         <h3 className="text-sm font-semibold text-foreground mb-1">Opportunities</h3>
@@ -1759,31 +1772,39 @@ interface OpportunitiesV3SectionProps {
 }
 
 function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3SectionProps) {
+  // Extract citations from opportunities artifact
+  const citations = extractCitationsFromArtifact(opportunities ?? null)
+  
   if (!opportunities || !opportunities.opportunities?.length) {
     return (
-      <SectionCard className="py-16">
-        <div className="w-full max-w-md space-y-6 text-center mx-auto">
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">
-              No opportunities generated yet
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Once inputs are confirmed, Plinth will surface defensible opportunities ranked by impact and confidence.
-            </p>
+      <section className="space-y-6">
+        {/* Evidence panel - show even when no opportunities yet */}
+        <EvidenceConfidencePanel citations={citations} />
+        
+        <SectionCard className="py-16">
+          <div className="w-full max-w-md space-y-6 text-center mx-auto">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-foreground">
+                No opportunities generated yet
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Once inputs are confirmed, Plinth will surface defensible opportunities ranked by impact and confidence.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <GenerateResultsV2Button
+                projectId={projectId}
+                label="Generate Analysis"
+              />
+              <Button asChild variant="outline" type="button">
+                <Link href={`/projects/${projectId}/competitors`}>
+                  Review inputs
+                </Link>
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <GenerateResultsV2Button
-              projectId={projectId}
-              label="Generate Analysis"
-            />
-            <Button asChild variant="outline" type="button">
-              <Link href={`/projects/${projectId}/competitors`}>
-                Review inputs
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </SectionCard>
+        </SectionCard>
+      </section>
     )
   }
 
@@ -1830,6 +1851,9 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
 
   return (
     <section className="space-y-6">
+      {/* Evidence & Confidence Panel - at the top */}
+      <EvidenceConfidencePanel citations={citations} />
+      
       {/* Results header with progressive reveal message */}
       <ProgressiveRevealWrapper section="top" storageKey="opportunities-progressive-reveal">
         <div className="mb-4 rounded-lg bg-muted/30 border border-border p-4">
