@@ -3,24 +3,87 @@
 import { Badge } from '@/components/ui/badge'
 import type { ComputedScore } from '@/lib/scoring/types'
 import { cn } from '@/lib/utils'
+import { gateScore, type DirectionalSignal } from '@/lib/scoring/evidenceGating'
+import type { CitationInput } from '@/lib/scoring/extractEvidenceFromArtifacts'
 
 interface ScorePillProps {
   score: ComputedScore
+  citations?: CitationInput[]
   className?: string
   showTooltip?: boolean
 }
 
 /**
+ * Maps directional signal to badge variant
+ */
+function getDirectionalVariant(directional: DirectionalSignal): 'default' | 'secondary' {
+  switch (directional) {
+    case 'strong':
+      return 'default'
+    case 'mixed':
+      return 'secondary'
+    case 'weak':
+      return 'secondary'
+    case 'unclear':
+      return 'secondary'
+  }
+}
+
+/**
+ * Gets display label for directional signal
+ */
+function getDirectionalLabel(directional: DirectionalSignal): string {
+  switch (directional) {
+    case 'strong':
+      return 'Strong'
+    case 'mixed':
+      return 'Mixed'
+    case 'weak':
+      return 'Weak'
+    case 'unclear':
+      return 'Unclear'
+  }
+}
+
+/**
+ * Gets coverage message for tooltip
+ */
+function getCoverageMessage(coverage: 'complete' | 'partial' | 'insufficient'): string {
+  switch (coverage) {
+    case 'complete':
+      return 'Good evidence coverage'
+    case 'partial':
+      return 'Partial evidence'
+    case 'insufficient':
+      return 'Low evidence'
+  }
+}
+
+/**
  * ScorePill component for displaying scores with proper states
  * 
- * Variants:
- * - scored high (>=8)
- * - scored medium (5–7.9)
- * - scored low (<5)
- * - unscored (neutral)
+ * Now respects evidence gating:
+ * - Shows numeric scores (X.X/10) only when coverage is complete AND confidence is moderate/high
+ * - Otherwise shows directional labels (Strong/Mixed/Weak/Unclear) with evidence caveat
  */
-export function ScorePill({ score, className, showTooltip = false }: ScorePillProps) {
-  if (score.status === 'unscored') {
+export function ScorePill({ score, citations = [], className, showTooltip = false }: ScorePillProps) {
+  // If no citations provided, try to construct from ComputedScore metadata
+  // This maintains backward compatibility
+  const citationInputs: CitationInput[] = citations.length > 0
+    ? citations
+    : score.evidenceCount > 0
+    ? Array.from({ length: score.evidenceCount }, (_, i) => ({
+        url: `placeholder-${i}`, // Placeholder since we don't have actual URLs
+        sourceType: score.sourceTypes[i % score.sourceTypes.length] || 'other',
+        date: score.newestEvidenceAt || undefined,
+      }))
+    : []
+
+  // Gate the score
+  const gated = gateScore(score.value, citationInputs)
+
+  // If unscored or no value, show N/A
+  if (score.status === 'unscored' || (score.value === null && !gated.showNumeric)) {
     return (
       <div className={cn('flex items-center gap-2', className)}>
         <Badge variant="secondary" className="text-xs">
@@ -35,33 +98,46 @@ export function ScorePill({ score, className, showTooltip = false }: ScorePillPr
     )
   }
 
-  if (score.value === null) {
+  // If we should show numeric score
+  if (gated.showNumeric && gated.score !== null) {
+    const value = gated.score
+    let variant: 'default' | 'secondary' = 'secondary'
+
+    if (value >= 8) {
+      variant = 'default' // High score - use primary/default variant
+    } else if (value >= 5) {
+      variant = 'secondary' // Medium score - use secondary variant
+    } else {
+      variant = 'secondary' // Low score - use secondary variant
+    }
+
     return (
-      <Badge variant="secondary" className="text-xs">
-        N/A
-      </Badge>
+      <div className={cn('flex items-center gap-2', className)}>
+        <Badge variant={variant} className="text-xs">
+          {value.toFixed(1)}/10
+        </Badge>
+        {showTooltip && score.evidenceCount > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {score.evidenceCount} citation{score.evidenceCount !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
     )
   }
 
-  const value = score.value
-  let variant: 'default' | 'secondary' | 'outline' = 'secondary'
-
-  if (value >= 8) {
-    variant = 'default' // High score - use primary/default variant
-  } else if (value >= 5) {
-    variant = 'secondary' // Medium score - use secondary variant
-  } else {
-    variant = 'secondary' // Low score - use secondary variant (could be enhanced with custom styling)
-  }
+  // Otherwise show directional label
+  const directionalVariant = getDirectionalVariant(gated.directional)
+  const directionalLabel = getDirectionalLabel(gated.directional)
+  const coverageMessage = getCoverageMessage(gated.coverage)
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      <Badge variant={variant} className="text-xs">
-        {value.toFixed(1)}/10
+      <Badge variant={directionalVariant} className="text-xs">
+        {directionalLabel}
       </Badge>
-      {showTooltip && score.evidenceCount > 0 && (
+      {showTooltip && (
         <span className="text-xs text-muted-foreground">
-          {score.evidenceCount} citation{score.evidenceCount !== 1 ? 's' : ''}
+          {coverageMessage}
         </span>
       )}
     </div>

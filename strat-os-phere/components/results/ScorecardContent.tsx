@@ -10,6 +10,8 @@ import { formatScoringMatrixToMarkdown } from '@/lib/results/normalizeArtifacts'
 import type { ScoringMatrixArtifactContent } from '@/lib/schemas/scoring'
 import { computeScoreFromScoringMatrix } from '@/lib/scoring/computeScoreFromScoringMatrix'
 import { ScorePill } from '@/components/ui/ScorePill'
+import { extractCitationsFromArtifact, normalizeCitation, type NormalizedCitation } from '@/lib/results/evidence'
+import type { CitationInput } from '@/lib/scoring/extractEvidenceFromArtifacts'
 
 interface ScorecardContentProps {
   projectId: string
@@ -73,6 +75,10 @@ export function ScorecardContent({ projectId, scoring }: ScorecardContentProps) 
             {scoring.criteria.map((criterion) => {
               // Find scores for this criterion
               const criterionScores = scoring.scores?.filter(s => s.criteria_id === criterion.id) || []
+              
+              // Extract citations for this criterion (from criterion-specific evidence or fallback to overall)
+              const allCitations = extractCitationsFromArtifact(scoring)
+              
               // Compute evidence-backed scores
               const scoresWithComputed = criterionScores.map(s => {
                 const computedScore = computeScoreFromScoringMatrix(
@@ -80,9 +86,55 @@ export function ScorecardContent({ projectId, scoring }: ScorecardContentProps) 
                   s.competitor_name,
                   criterion.id
                 )
+                
+                // Try to extract citations from the evidence field for this specific score
+                let citationsForScore: CitationInput[] = []
+                if (s.evidence) {
+                  try {
+                    const evidenceObj = typeof s.evidence === 'string' 
+                      ? JSON.parse(s.evidence) 
+                      : s.evidence
+                    
+                    if (Array.isArray(evidenceObj)) {
+                      const normalized = evidenceObj
+                        .map(normalizeCitation)
+                        .filter((c): c is NormalizedCitation => c !== null)
+                      citationsForScore = normalized.map(c => ({
+                        url: c.url,
+                        sourceType: c.sourceType,
+                        date: c.date?.toISOString(),
+                      }))
+                    } else if (evidenceObj && typeof evidenceObj === 'object') {
+                      const citations = (evidenceObj as any).citations || (evidenceObj as any).sources || []
+                      if (Array.isArray(citations)) {
+                        const normalized = citations
+                          .map(normalizeCitation)
+                          .filter((c): c is NormalizedCitation => c !== null)
+                        citationsForScore = normalized.map(c => ({
+                          url: c.url,
+                          sourceType: c.sourceType,
+                          date: c.date?.toISOString(),
+                        }))
+                      }
+                    }
+                  } catch {
+                    // Evidence field is not JSON, skip
+                  }
+                }
+                
+                // Fallback to overall citations if no criterion-specific citations
+                if (citationsForScore.length === 0 && allCitations.length > 0) {
+                  citationsForScore = allCitations.map(c => ({
+                    url: c.url,
+                    sourceType: c.sourceType,
+                    date: c.date?.toISOString(),
+                  }))
+                }
+                
                 return {
                   competitor: s.competitor_name,
                   computedScore,
+                  citations: citationsForScore,
                 }
               })
               
@@ -99,7 +151,7 @@ export function ScorecardContent({ projectId, scoring }: ScorecardContentProps) 
                       {scoresWithComputed.map((s, idx) => (
                         <div key={idx} className="flex items-center justify-between text-sm">
                           <span>{s.competitor}</span>
-                          <ScorePill score={s.computedScore} showTooltip={true} />
+                          <ScorePill score={s.computedScore} citations={s.citations} showTooltip={true} />
                         </div>
                       ))}
                     </div>
