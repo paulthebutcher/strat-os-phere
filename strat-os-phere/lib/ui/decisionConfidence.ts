@@ -1,4 +1,6 @@
 import type { OpportunityV3Item, Citation } from '@/lib/schemas/opportunityV3'
+import { newestCitationDate } from '@/lib/utils/citations'
+import { daysAgo } from '@/lib/utils/dates'
 
 export type DecisionConfidenceLevel = 'high' | 'moderate' | 'exploratory'
 
@@ -22,7 +24,6 @@ export function computeDecisionConfidence(
   let evidenceCount = 0
   let sourceTypeCount = 0
   const sourceTypes = new Set<string>()
-  let newestCitationDate: Date | null = null
 
   // Collect all citations from proof_points and citations array
   const allCitations: Citation[] = []
@@ -53,39 +54,30 @@ export function computeDecisionConfidence(
     if (citation.source_type) {
       sourceTypes.add(citation.source_type)
     }
-
-    // Track newest citation date
-    if (citation.extracted_at) {
-      try {
-        const date = new Date(citation.extracted_at)
-        if (!newestCitationDate || date > newestCitationDate) {
-          newestCitationDate = date
-        }
-      } catch {
-        // Ignore invalid dates
-      }
-    }
   })
 
   sourceTypeCount = sourceTypes.size
 
+  // Get newest citation date using centralized utility
+  const newest = newestCitationDate(uniqueCitations)
+
   // Compute evidence recency
   let evidenceRecency: string | undefined
-  if (newestCitationDate) {
-    const daysAgo = Math.floor(
-      (Date.now() - newestCitationDate.getTime()) / (1000 * 60 * 60 * 24)
-    )
-    if (daysAgo === 0) {
-      evidenceRecency = 'Today'
-    } else if (daysAgo === 1) {
-      evidenceRecency = '1 day ago'
-    } else if (daysAgo < 30) {
-      evidenceRecency = `${daysAgo} days ago`
-    } else if (daysAgo < 90) {
-      const weeks = Math.floor(daysAgo / 7)
-      evidenceRecency = `${weeks} week${weeks !== 1 ? 's' : ''} ago`
-    } else {
-      evidenceRecency = '90+ days ago'
+  if (newest) {
+    const days = daysAgo(newest)
+    if (days !== null) {
+      if (days === 0) {
+        evidenceRecency = 'Today'
+      } else if (days === 1) {
+        evidenceRecency = '1 day ago'
+      } else if (days < 30) {
+        evidenceRecency = `${days} days ago`
+      } else if (days < 90) {
+        const weeks = Math.floor(days / 7)
+        evidenceRecency = `${weeks} week${weeks !== 1 ? 's' : ''} ago`
+      } else {
+        evidenceRecency = '90+ days ago'
+      }
     }
   }
 
@@ -132,14 +124,14 @@ export function computeDecisionConfidence(
     reasons.push(`${sourceTypeLabels} signals`)
   }
 
-  if (evidenceRecency && newestCitationDate) {
-    const daysAgo = Math.floor(
-      (Date.now() - newestCitationDate.getTime()) / (1000 * 60 * 60 * 24)
-    )
-    if (daysAgo <= 30) {
-      reasons.push('Signals are recent and consistent')
-    } else if (daysAgo <= 90) {
-      reasons.push('Signals from last quarter')
+  if (evidenceRecency && newest) {
+    const days = daysAgo(newest)
+    if (days !== null) {
+      if (days <= 30) {
+        reasons.push('Signals are recent and consistent')
+      } else if (days <= 90) {
+        reasons.push('Signals from last quarter')
+      }
     }
   }
 
@@ -161,9 +153,8 @@ export function computeDecisionConfidence(
   // - Recency confidence >= 7 (if available)
   const hasHighEvidenceCount = evidenceCount >= 8
   const hasHighSourceDiversity = sourceTypeCount >= 3
-  const hasRecentSignals =
-    newestCitationDate &&
-    (Date.now() - newestCitationDate.getTime()) / (1000 * 60 * 60 * 24) <= 30
+  const newestDays = newest ? daysAgo(newest) : null
+  const hasRecentSignals = newestDays !== null && newestDays <= 30
   const hasHighRecencyConfidence =
     recencyConfidenceScore !== null && recencyConfidenceScore >= 7
 
@@ -176,9 +167,7 @@ export function computeDecisionConfidence(
   } else if (
     evidenceCount >= 4 &&
     sourceTypeCount >= 2 &&
-    (newestCitationDate === null ||
-      (Date.now() - newestCitationDate.getTime()) / (1000 * 60 * 60 * 24) <=
-        90)
+    (newest === null || (newestDays !== null && newestDays <= 90))
   ) {
     level = 'moderate'
   }
@@ -249,51 +238,40 @@ export function computeAggregateConfidence(
   })
 
   // Find newest citation across all opportunities
-  let newestDate: Date | null = null
+  const allCitationsForDate: Citation[] = []
   opportunities.forEach((opp) => {
-    const citations: Citation[] = []
     if (opp.proof_points) {
       opp.proof_points.forEach((proof) => {
         if (proof.citations) {
-          citations.push(...proof.citations)
+          allCitationsForDate.push(...proof.citations)
         }
       })
     }
     if (opp.citations) {
-      citations.push(...opp.citations)
+      allCitationsForDate.push(...opp.citations)
     }
-    citations.forEach((c) => {
-      if (c.extracted_at) {
-        try {
-          const date = new Date(c.extracted_at)
-          if (!newestDate || date > newestDate) {
-            newestDate = date
-          }
-        } catch {
-          // Ignore
-        }
-      }
-    })
   })
 
+  const newest = newestCitationDate(allCitationsForDate)
+
   let averageRecency: string | null = null
-  if (newestDate) {
-    const daysAgo = Math.floor(
-      (Date.now() - newestDate.getTime()) / (1000 * 60 * 60 * 24)
-    )
-    if (daysAgo <= 90) {
-      if (daysAgo === 0) {
-        averageRecency = 'today'
-      } else if (daysAgo === 1) {
-        averageRecency = '1 day ago'
-      } else if (daysAgo < 30) {
-        averageRecency = `${daysAgo} days ago`
+  if (newest) {
+    const days = daysAgo(newest)
+    if (days !== null) {
+      if (days <= 90) {
+        if (days === 0) {
+          averageRecency = 'today'
+        } else if (days === 1) {
+          averageRecency = '1 day ago'
+        } else if (days < 30) {
+          averageRecency = `${days} days ago`
+        } else {
+          const weeks = Math.floor(days / 7)
+          averageRecency = `${weeks} week${weeks !== 1 ? 's' : ''} ago`
+        }
       } else {
-        const weeks = Math.floor(daysAgo / 7)
-        averageRecency = `${weeks} week${weeks !== 1 ? 's' : ''} ago`
+        averageRecency = 'last 90 days'
       }
-    } else {
-      averageRecency = 'last 90 days'
     }
   }
 
