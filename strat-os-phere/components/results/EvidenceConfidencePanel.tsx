@@ -5,14 +5,40 @@ import { Badge } from '@/components/ui/badge'
 import { Collapsible } from '@/components/ui/collapsible'
 import { SectionCard } from '@/components/results/SectionCard'
 import { cn } from '@/lib/utils'
-import type { NormalizedCitation, EvidenceSummary } from '@/lib/results/evidence'
-import { summarizeEvidence } from '@/lib/results/evidence'
+import type { NormalizedCitation } from '@/lib/results/evidence'
+import { summarizeCitations, computeCoverage, computeConfidence, type CoverageStatus, type ConfidenceLevel } from '@/lib/scoring/evidenceGating'
+import type { CitationInput } from '@/lib/scoring/extractEvidenceFromArtifacts'
 
 interface EvidenceConfidencePanelProps {
   title?: string
   citations: NormalizedCitation[]
   compact?: boolean
   className?: string
+}
+
+/**
+ * Converts NormalizedCitation to CitationInput format
+ */
+function normalizeToInput(citation: NormalizedCitation): CitationInput {
+  return {
+    url: citation.url,
+    sourceType: citation.sourceType,
+    date: citation.date?.toISOString(),
+  }
+}
+
+/**
+ * Gets coverage message based on coverage status
+ */
+function getCoverageMessage(coverage: CoverageStatus): string {
+  switch (coverage) {
+    case 'insufficient':
+      return 'Limited evidence coverage; treat as directional.'
+    case 'partial':
+      return 'Some evidence coverage; validate before acting.'
+    case 'complete':
+      return 'Good evidence coverage; suitable for decision support.'
+  }
 }
 
 /**
@@ -51,13 +77,19 @@ export function EvidenceConfidencePanel({
   compact = false,
   className,
 }: EvidenceConfidencePanelProps) {
-  const summary = summarizeEvidence(citations)
+  // Convert NormalizedCitation to CitationInput format
+  const citationInputs: CitationInput[] = citations.map(normalizeToInput)
+  
+  // Use new gating functions
+  const summary = summarizeCitations(citationInputs)
+  const coverage = computeCoverage(summary)
+  const confidence = computeConfidence(summary)
   
   // Map confidence to badge variant
   const confidenceVariant = 
-    summary.confidence === 'high' 
+    confidence === 'high' 
       ? 'success' 
-      : summary.confidence === 'medium' 
+      : confidence === 'moderate' 
       ? 'warning' 
       : 'danger'
   
@@ -75,18 +107,33 @@ export function EvidenceConfidencePanel({
     (a, b) => citationsByType[b].length - citationsByType[a].length
   )
   
+  // Generate recency label
+  let recencyLabel: string
+  if (summary.newestCitationDate) {
+    try {
+      const newest = new Date(summary.newestCitationDate)
+      const now = new Date()
+      const daysAgo = Math.floor((now.getTime() - newest.getTime()) / (1000 * 60 * 60 * 24))
+      recencyLabel = `Most evidence from last ${daysAgo} days`
+    } catch {
+      recencyLabel = 'Evidence dates unavailable'
+    }
+  } else {
+    recencyLabel = 'Evidence dates unavailable'
+  }
+  
   return (
     <SectionCard className={cn('space-y-4', className)}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold text-foreground mb-2">{title}</h3>
-          {!compact && summary.confidenceRationale && (
-            <p className="text-sm text-muted-foreground">{summary.confidenceRationale}</p>
+          {!compact && (
+            <p className="text-sm text-muted-foreground">{getCoverageMessage(coverage)}</p>
           )}
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <Badge variant={confidenceVariant} className="text-sm px-3 py-1">
-            {summary.confidence.charAt(0).toUpperCase() + summary.confidence.slice(1)}
+            {confidence.charAt(0).toUpperCase() + confidence.slice(1)}
           </Badge>
         </div>
       </div>
@@ -96,14 +143,14 @@ export function EvidenceConfidencePanel({
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
             Recency
           </div>
-          <div className="text-sm text-foreground">{summary.recencyLabel}</div>
+          <div className="text-sm text-foreground">{recencyLabel}</div>
         </div>
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
             Total citations
           </div>
           <div className="text-sm text-foreground">
-            {summary.total} citation{summary.total !== 1 ? 's' : ''}
+            {summary.totalCitations} citation{summary.totalCitations !== 1 ? 's' : ''}
           </div>
         </div>
         <div>
@@ -111,7 +158,12 @@ export function EvidenceConfidencePanel({
             Source types
           </div>
           <div className="text-sm text-foreground">
-            {sourceTypes.length} type{sourceTypes.length !== 1 ? 's' : ''}
+            {summary.sourceTypes.length} type{summary.sourceTypes.length !== 1 ? 's' : ''}
+            {summary.sourceTypes.length > 0 && (
+              <span className="text-muted-foreground ml-1">
+                ({summary.sourceTypes.join(', ')})
+              </span>
+            )}
           </div>
         </div>
       </div>
