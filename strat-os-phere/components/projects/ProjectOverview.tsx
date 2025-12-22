@@ -21,7 +21,8 @@ interface ProjectOverviewProps {
  * Project summary card showing key project information
  */
 function ProjectSummaryCard({ project, generatedAt }: { project: Project; generatedAt?: string | null }) {
-  const lastUpdated = project.updated_at || project.created_at
+  // Use generatedAt (artifact generation time) if available, otherwise fall back to project creation time
+  const lastUpdated = generatedAt ?? project.created_at
   const contextParts: string[] = []
   
   if (project.market) contextParts.push(project.market)
