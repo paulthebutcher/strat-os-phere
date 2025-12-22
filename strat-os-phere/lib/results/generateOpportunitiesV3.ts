@@ -35,6 +35,7 @@ import {
   type ProgressCallback,
   type ProgressEvent,
   makeProgressEvent,
+  RESULTS_V2_PHASES,
 } from '@/lib/results/progress'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
@@ -210,7 +211,7 @@ export async function generateOpportunitiesV3(
 
     // Phase 2: Reading live competitor signals
     onProgress?.(
-      makeProgressEvent(runId, 'gathering_inputs', 'Reading live competitor signals', {
+      makeProgressEvent(runId, RESULTS_V2_PHASES.EVIDENCE_QUALITY_CHECK, 'Reading live competitor signals', {
         status: 'started',
         detail: 'Scanning pricing, reviews, changelog, jobs',
       })
@@ -228,7 +229,7 @@ export async function generateOpportunitiesV3(
     }
 
     onProgress?.(
-      makeProgressEvent(runId, 'gathering_inputs', 'Live signals loaded', {
+      makeProgressEvent(runId, RESULTS_V2_PHASES.EVIDENCE_QUALITY_CHECK, 'Live signals loaded', {
         status: 'completed',
         detail: `${evidenceSources.length} sources found`,
         meta: sourceCounts,

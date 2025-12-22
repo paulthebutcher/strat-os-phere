@@ -19,6 +19,27 @@ export type ResultsV2Phase =
   | 'save_artifacts'
   | 'finalize'
 
+/**
+ * Canonical phase constants for ResultsV2Phase
+ * Use these constants instead of raw strings to prevent typos and ensure type safety
+ */
+export const RESULTS_V2_PHASES = {
+  LOAD_INPUT: 'load_input',
+  COMPETITOR_PROFILES: 'competitor_profiles',
+  EVIDENCE_QUALITY_CHECK: 'evidence_quality_check',
+  JOBS_GENERATE: 'jobs_generate',
+  JOBS_VALIDATE: 'jobs_validate',
+  SCORECARD_GENERATE: 'scorecard_generate',
+  SCORECARD_VALIDATE: 'scorecard_validate',
+  OPPORTUNITIES_GENERATE: 'opportunities_generate',
+  OPPORTUNITIES_VALIDATE: 'opportunities_validate',
+  STRATEGIC_BETS_GENERATE: 'strategic_bets_generate',
+  STRATEGIC_BETS_VALIDATE: 'strategic_bets_validate',
+  SCORING_COMPUTE: 'scoring_compute',
+  SAVE_ARTIFACTS: 'save_artifacts',
+  FINALIZE: 'finalize',
+} as const satisfies Record<string, ResultsV2Phase>
+
 export type ProgressStatus = 'started' | 'progress' | 'completed' | 'failed' | 'blocked'
 
 export interface ProgressEvent {
