@@ -4,26 +4,14 @@
  */
 
 /**
- * Artifact types - must match database enum and schema definitions
+ * Artifact types - imported from canonical registry
+ * @deprecated Use lib/artifacts/registry.ts directly for new code
  */
-export const ARTIFACT_TYPES = [
-  'profiles',
-  'synthesis',
-  'jtbd',
-  'opportunities_v2',
-  'opportunities_v3',
-  'scoring_matrix',
-  'strategic_bets',
-] as const
-
-export type ArtifactType = (typeof ARTIFACT_TYPES)[number]
-
-/**
- * Type guard for artifact types
- */
-export function isArtifactType(value: string): value is ArtifactType {
-  return ARTIFACT_TYPES.includes(value as ArtifactType)
-}
+export {
+  ARTIFACT_TYPES,
+  type ArtifactType,
+  isArtifactType,
+} from '@/lib/artifacts/registry'
 
 /**
  * Results V2 generation phases
@@ -83,19 +71,14 @@ export function isResultsV2Phase(value: string): value is ResultsV2Phase {
 }
 
 /**
- * Repairable schema names - schemas that can be repaired via LLM
+ * Repairable schema names - derived from artifact registry
+ * @deprecated Use lib/artifacts/registry.ts directly for new code
  */
-export const REPAIRABLE_SCHEMA_NAMES = [
-  'CompetitorSnapshot',
-  'MarketSynthesis',
-  'JtbdArtifactContent',
-  'OpportunitiesArtifactContent',
-  'OpportunityV3ArtifactContent',
-  'ScoringMatrixArtifactContent',
-  'StrategicBetsArtifactContent',
-] as const
+import { ARTIFACT_SCHEMA_NAMES, type ArtifactSchemaName } from '@/lib/artifacts/registry'
 
-export type RepairableSchemaName = (typeof REPAIRABLE_SCHEMA_NAMES)[number]
+export const REPAIRABLE_SCHEMA_NAMES = ARTIFACT_SCHEMA_NAMES
+
+export type RepairableSchemaName = ArtifactSchemaName
 
 /**
  * Type guard for RepairableSchemaName

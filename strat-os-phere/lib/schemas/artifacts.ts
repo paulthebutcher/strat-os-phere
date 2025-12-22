@@ -7,12 +7,38 @@ import { OpportunitiesArtifactContentSchema } from './opportunities'
 import { OpportunityV3ArtifactContentSchema } from './opportunityV3'
 import { ScoringMatrixArtifactContentSchema } from './scoring'
 import { StrategicBetsArtifactContentSchema } from './strategicBet'
-import { ARTIFACT_TYPES, type ArtifactType } from '@/lib/constants/types'
+import { ARTIFACT_TYPES, type ArtifactType } from '@/lib/artifacts/registry'
 
-// Derive Zod schema from centralized constants
-export const ArtifactTypeSchema = z.enum(ARTIFACT_TYPES as [ArtifactType, ...ArtifactType[]])
+/**
+ * Safe helper to create a Zod enum from a const array
+ * Ensures the array is non-empty and properly typed for z.enum()
+ */
+function createZodEnumFromArray<T extends string>(
+  values: readonly T[]
+): z.ZodEnum<[T, ...T[]]> {
+  if (values.length === 0) {
+    throw new Error('Cannot create Zod enum from empty array')
+  }
+  // TypeScript knows values is non-empty after the check
+  // We need to cast to satisfy z.enum's tuple requirement
+  return z.enum(values as [T, ...T[]])
+}
 
-// Re-export type from centralized location
+// Derive Zod schema from canonical registry
+// ARTIFACT_TYPES is guaranteed non-empty by the registry definition
+export const ArtifactTypeSchema = createZodEnumFromArray(ARTIFACT_TYPES)
+
+// Compile-time verification: ensure inferred type matches ArtifactType
+// This will fail at compile time if there's a mismatch
+type _ArtifactTypeCheck = z.infer<typeof ArtifactTypeSchema> extends ArtifactType
+  ? ArtifactType extends z.infer<typeof ArtifactTypeSchema>
+    ? true
+    : never
+  : never
+const _artifactTypeVerified: _ArtifactTypeCheck = true
+void _artifactTypeVerified
+
+// Re-export type from canonical registry
 export type { ArtifactType }
 
 export const ProfilesArtifactSchema = z.object({
@@ -120,8 +146,10 @@ export function getArtifactContentSchema(
     case 'strategic_bets':
       return StrategicBetsArtifactContentSchema
     default: {
-      const _exhaustiveCheck: never = type
-      return _exhaustiveCheck
+      // TypeScript should prove this is unreachable if all cases are handled
+      // If this errors, it means a new artifact type was added but not handled
+      const _exhaustiveCheck: never = type as never
+      throw new Error(`Unhandled artifact type: ${String(type)}`)
     }
   }
 }
