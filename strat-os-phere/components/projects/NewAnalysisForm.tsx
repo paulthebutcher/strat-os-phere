@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, TrendingUp, FileText } from 'lucide-react'
+import { CheckCircle2, TrendingUp, FileText, Link2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,8 @@ import { WhyTooltip } from '@/components/guidance/WhyTooltip'
 import { TourLink } from '@/components/guidance/TourLink'
 import { Backdrop, ConfidenceBadgeIcon, RecencyBadgeIcon, CitationsBadgeIcon } from '@/components/graphics'
 import { createProjectFromForm } from '@/app/projects/actions'
+import { createCompetitorForProject } from '@/app/projects/[projectId]/competitors/actions'
+import { CompetitorRecommendations } from '@/components/projects/new/CompetitorRecommendations'
 import {
   ANALYSIS_TEMPLATES,
   FIELD_EXAMPLES,
@@ -29,6 +31,11 @@ import type {
   DecisionLevel,
   InputConfidence,
 } from '@/lib/supabase/types'
+import type {
+  CompetitorRecommendation,
+  CompetitorRecommendationsResponse,
+} from '@/lib/projects/new/types'
+import type { EvidenceDraft } from '@/lib/schemas/evidenceDraft'
 
 interface NewAnalysisFormProps {
   /**
@@ -72,6 +79,15 @@ export function NewAnalysisForm({
     product?: string
     geography?: string
   } | null>(null)
+  
+  // New entry point states
+  const [primaryUrl, setPrimaryUrl] = useState('')
+  const [contextText, setContextText] = useState('')
+  const [recommendations, setRecommendations] = useState<CompetitorRecommendation[]>([])
+  const [showRecommendations, setShowRecommendations] = useState(false)
+  const [recommending, setRecommending] = useState(false)
+  const [scraping, setScraping] = useState(false)
+  const [suggestedFields, setSuggestedFields] = useState<Set<string>>(new Set())
 
   function handleExtractedValues(values: {
     name?: string
@@ -206,6 +222,398 @@ export function NewAnalysisForm({
     const examples = FIELD_EXAMPLES[field]
     const randomExample = examples[Math.floor(Math.random() * examples.length)]
     handleExampleSelect(field, randomExample)
+  }
+
+  /**
+   * Format evidence draft into markdown evidence text
+   */
+  function formatEvidenceDraft(draft: EvidenceDraft): string {
+    const sections: string[] = []
+
+    // Positioning
+    if (draft.sections.positioning.bullets.length > 0) {
+      sections.push('## Positioning')
+      sections.push('')
+      draft.sections.positioning.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.positioning.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.positioning.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Pricing
+    if (draft.sections.pricing.bullets.length > 0) {
+      sections.push('## Pricing')
+      sections.push('')
+      draft.sections.pricing.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.pricing.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.pricing.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Target customers
+    if (draft.sections.target_customers.bullets.length > 0) {
+      sections.push('## Target Customers')
+      sections.push('')
+      draft.sections.target_customers.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.target_customers.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.target_customers.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Key features
+    if (draft.sections.key_features.bullets.length > 0) {
+      sections.push('## Key Features')
+      sections.push('')
+      draft.sections.key_features.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.key_features.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.key_features.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Integrations (optional)
+    if (draft.sections.integrations && draft.sections.integrations.bullets.length > 0) {
+      sections.push('## Integrations')
+      sections.push('')
+      draft.sections.integrations.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.integrations.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.integrations.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    // Enterprise signals (optional)
+    if (draft.sections.enterprise_signals && draft.sections.enterprise_signals.bullets.length > 0) {
+      sections.push('## Enterprise Signals')
+      sections.push('')
+      draft.sections.enterprise_signals.bullets.forEach((bullet) => {
+        sections.push(`- ${bullet}`)
+      })
+      if (draft.sections.enterprise_signals.sources.length > 0) {
+        sections.push('')
+        sections.push('Sources:')
+        draft.sections.enterprise_signals.sources.forEach((url) => {
+          sections.push(`- ${url}`)
+        })
+      }
+      sections.push('')
+    }
+
+    return sections.join('\n')
+  }
+
+  /**
+   * Handle "Analyze this URL" - get recommendations from primary URL
+   */
+  async function handleAnalyzeUrl() {
+    if (!primaryUrl.trim()) {
+      setError('Please enter a competitor URL')
+      return
+    }
+
+    setRecommending(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/projects/recommend-competitors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ primaryUrl: primaryUrl.trim() }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get recommendations')
+      }
+
+      const data = (await response.json()) as
+        | { ok: true } & CompetitorRecommendationsResponse
+        | { ok: false; error: string }
+
+      if (!data.ok) {
+        throw new Error(data.error || 'Failed to get recommendations')
+      }
+
+      // Auto-fill framing if available
+      const newSuggestedFields = new Set<string>()
+      const framing = data.framing
+      if (framing) {
+        if (framing.projectName && !formState.name) {
+          setFormState((prev) => ({ ...prev, name: framing.projectName! }))
+          newSuggestedFields.add('name')
+        }
+        if (framing.market && !formState.marketCategory) {
+          setFormState((prev) => ({
+            ...prev,
+            marketCategory: framing.market!,
+          }))
+          newSuggestedFields.add('marketCategory')
+        }
+        if (framing.targetCustomer && !formState.targetCustomer) {
+          setFormState((prev) => ({
+            ...prev,
+            targetCustomer: framing.targetCustomer!,
+          }))
+          newSuggestedFields.add('targetCustomer')
+        }
+        if (framing.geography && !formState.geography) {
+          setFormState((prev) => ({ ...prev, geography: framing.geography! }))
+          newSuggestedFields.add('geography')
+        }
+        if (framing.businessGoal && !formState.goal) {
+          setFormState((prev) => ({ ...prev, goal: framing.businessGoal! }))
+          newSuggestedFields.add('goal')
+        }
+      }
+      setSuggestedFields(newSuggestedFields)
+
+      setRecommendations(data.recommendations)
+      setShowRecommendations(true)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to get recommendations. Please try again.'
+      )
+    } finally {
+      setRecommending(false)
+    }
+  }
+
+  /**
+   * Handle "Extract & recommend competitors" - get recommendations from context text
+   */
+  async function handleExtractAndRecommend() {
+    if (!contextText.trim()) {
+      setError('Please paste some context')
+      return
+    }
+
+    setRecommending(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/projects/recommend-competitors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contextText: contextText.trim() }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get recommendations')
+      }
+
+      const data = (await response.json()) as
+        | { ok: true } & CompetitorRecommendationsResponse
+        | { ok: false; error: string }
+
+      if (!data.ok) {
+        throw new Error(data.error || 'Failed to get recommendations')
+      }
+
+      // Auto-fill framing if available
+      const newSuggestedFields = new Set<string>()
+      const framing = data.framing
+      if (framing) {
+        if (framing.projectName && !formState.name) {
+          setFormState((prev) => ({ ...prev, name: framing.projectName! }))
+          newSuggestedFields.add('name')
+        }
+        if (framing.market && !formState.marketCategory) {
+          setFormState((prev) => ({
+            ...prev,
+            marketCategory: framing.market!,
+          }))
+          newSuggestedFields.add('marketCategory')
+        }
+        if (framing.targetCustomer && !formState.targetCustomer) {
+          setFormState((prev) => ({
+            ...prev,
+            targetCustomer: framing.targetCustomer!,
+          }))
+          newSuggestedFields.add('targetCustomer')
+        }
+        if (framing.geography && !formState.geography) {
+          setFormState((prev) => ({ ...prev, geography: framing.geography! }))
+          newSuggestedFields.add('geography')
+        }
+        if (framing.businessGoal && !formState.goal) {
+          setFormState((prev) => ({ ...prev, goal: framing.businessGoal! }))
+          newSuggestedFields.add('goal')
+        }
+      }
+      setSuggestedFields(newSuggestedFields)
+
+      setRecommendations(data.recommendations)
+      setShowRecommendations(true)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to get recommendations. Please try again.'
+      )
+    } finally {
+      setRecommending(false)
+    }
+  }
+
+  /**
+   * Handle "Confirm & scrape" - create project and add competitors with evidence
+   */
+  async function handleConfirmAndScrape(
+    selected: Array<{ name: string; url: string }>
+  ) {
+    if (selected.length === 0) {
+      setError('Please select at least one competitor with a URL')
+      return
+    }
+
+    // Ensure we have minimum required fields for project creation
+    const projectName =
+      formState.name || `New analysis (draft) - ${new Date().toLocaleDateString()}`
+    const marketCategory = formState.marketCategory || 'Competitive analysis'
+    const targetCustomer = formState.targetCustomer || 'Target customers'
+    const goal = formState.goal || 'Generate competitive insights'
+
+    setScraping(true)
+    setError(null)
+
+    try {
+      // Create project first
+      const projectResult = await createProjectFromForm({
+        name: projectName,
+        marketCategory,
+        targetCustomer,
+        product: formState.product || undefined,
+        goal,
+        geography: formState.geography || undefined,
+        primaryConstraint: formState.primaryConstraint || undefined,
+        riskPosture: (formState.riskPosture as RiskPosture) || undefined,
+        ambitionLevel: (formState.ambitionLevel as AmbitionLevel) || undefined,
+        organizationalCapabilities:
+          formState.organizationalCapabilities || undefined,
+        decisionLevel: (formState.decisionLevel as DecisionLevel) || undefined,
+        explicitNonGoals: formState.explicitNonGoals || undefined,
+        inputConfidence:
+          (formState.inputConfidence as InputConfidence) || undefined,
+      })
+
+      if (!projectResult?.success || !projectResult.projectId) {
+        throw new Error(
+          projectResult?.message || 'Failed to create project'
+        )
+      }
+
+      const projectId = projectResult.projectId
+
+      // For each selected competitor, generate evidence and create competitor
+      for (const competitor of selected) {
+        try {
+          // Generate evidence
+          const evidenceResponse = await fetch('/api/evidence/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              projectId,
+              competitorName: competitor.name,
+              domainOrUrl: competitor.url,
+            }),
+          })
+
+          if (!evidenceResponse.ok) {
+            const errorData = await evidenceResponse.json().catch(() => ({}))
+            throw new Error(
+              errorData.error || `Failed to generate evidence for ${competitor.name}`
+            )
+          }
+
+          const evidenceResult = (await evidenceResponse.json()) as
+            | { ok: true; draft: EvidenceDraft }
+            | { ok: false; error: string }
+
+          if (!evidenceResult.ok) {
+            throw new Error(
+              evidenceResult.error || `Failed to generate evidence for ${competitor.name}`
+            )
+          }
+
+          if (!evidenceResult.draft) {
+            throw new Error(`Failed to generate evidence for ${competitor.name}: missing draft`)
+          }
+
+          // Format evidence draft into markdown
+          const evidenceText = formatEvidenceDraft(evidenceResult.draft)
+
+          // Create competitor
+          const competitorResult = await createCompetitorForProject(projectId, {
+            name: competitor.name,
+            website: competitor.url,
+            evidence: evidenceText,
+          })
+
+          if (!competitorResult.success) {
+            throw new Error(
+              competitorResult.message || `Failed to create competitor ${competitor.name}`
+            )
+          }
+        } catch (err) {
+          // Log error but continue with other competitors
+          console.error(`Failed to process competitor ${competitor.name}:`, err)
+          // Still create the competitor with minimal evidence if scraping fails
+          try {
+            await createCompetitorForProject(projectId, {
+              name: competitor.name,
+              website: competitor.url,
+              evidence: `## ${competitor.name}\n\nEvidence generation in progress.`,
+            })
+          } catch (createErr) {
+            console.error(`Failed to create competitor ${competitor.name}:`, createErr)
+          }
+        }
+      }
+
+      // Navigate to competitors page
+      router.push(`/projects/${projectId}/competitors`)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to create project and scrape competitors. Please try again.'
+      )
+      setScraping(false)
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -363,9 +771,107 @@ export function NewAnalysisForm({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left column: Form */}
         <div className="lg:col-span-8 space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Step 1: Template Selection */}
-            <SurfaceCard className="p-6">
+          {/* New Entry Points Section */}
+          {!showRecommendations && (
+            <div className="space-y-4">
+              {/* Section A: Primary Competitor URL */}
+              <SurfaceCard className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-300 uppercase mb-1">
+                      Section A — Start with a primary competitor URL (recommended)
+                    </p>
+                    <label
+                      htmlFor="primaryUrl"
+                      className="text-sm font-semibold text-foreground"
+                    >
+                      Primary competitor URL
+                    </label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      We'll discover market signals and recommend additional competitors.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      id="primaryUrl"
+                      type="url"
+                      value={primaryUrl}
+                      onChange={(e) => {
+                        setPrimaryUrl(e.target.value)
+                        setError(null)
+                      }}
+                      placeholder="https://example.com"
+                      disabled={recommending}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleAnalyzeUrl}
+                      disabled={recommending || !primaryUrl.trim()}
+                    >
+                      {recommending ? 'Analyzing...' : 'Analyze this URL'}
+                    </Button>
+                  </div>
+                </div>
+              </SurfaceCard>
+
+              {/* Section B: Freeform Context */}
+              <SurfaceCard className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-semibold tracking-wide text-slate-700 dark:text-slate-300 uppercase mb-1">
+                      Section B — Or paste context (optional)
+                    </p>
+                    <label
+                      htmlFor="contextText"
+                      className="text-sm font-semibold text-foreground"
+                    >
+                      Paste context
+                    </label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Paste notes, a doc excerpt, or a rough description. We'll recommend competitor URLs to scrape.
+                    </p>
+                  </div>
+                  <Textarea
+                    id="contextText"
+                    value={contextText}
+                    onChange={(e) => {
+                      setContextText(e.target.value)
+                      setError(null)
+                    }}
+                    placeholder="Paste notes, a doc excerpt, or a rough description. We'll recommend competitor URLs to scrape."
+                    rows={4}
+                    disabled={recommending}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleExtractAndRecommend}
+                    disabled={recommending || !contextText.trim()}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {recommending ? 'Extracting...' : 'Extract & recommend competitors'}
+                  </Button>
+                </div>
+              </SurfaceCard>
+            </div>
+          )}
+
+          {/* Recommendations Step */}
+          {showRecommendations && (
+            <CompetitorRecommendations
+              recommendations={recommendations}
+              onConfirm={handleConfirmAndScrape}
+              onAddManual={() => setShowRecommendations(false)}
+              loading={scraping}
+            />
+          )}
+
+          {/* Traditional Form (shown when not in recommendations flow) */}
+          {!showRecommendations && (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Step 1: Template Selection */}
+              <SurfaceCard className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -466,12 +972,19 @@ export function NewAnalysisForm({
                 </p>
                 <div className="space-y-4">
                 <div className="space-y-2">
-                  <label
-                    htmlFor="name"
-                    className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Project name<span className="text-destructive ml-1">*</span>
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="name"
+                      className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Project name<span className="text-destructive ml-1">*</span>
+                    </label>
+                    {suggestedFields.has('name') && (
+                      <span className="text-xs text-muted-foreground italic">
+                        Suggested from your URL/context — edit anytime
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="name"
                     name="name"
@@ -483,13 +996,20 @@ export function NewAnalysisForm({
                 </div>
 
                 <div className="space-y-2">
-                  <label
-                    htmlFor="marketCategory"
-                    className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Market / category
-                    <span className="text-destructive ml-1">*</span>
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="marketCategory"
+                      className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Market / category
+                      <span className="text-destructive ml-1">*</span>
+                    </label>
+                    {suggestedFields.has('marketCategory') && (
+                      <span className="text-xs text-muted-foreground italic">
+                        Suggested from your URL/context — edit anytime
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="marketCategory"
                     name="marketCategory"
@@ -534,13 +1054,20 @@ export function NewAnalysisForm({
                 </div>
 
                 <div className="space-y-2">
-                  <label
-                    htmlFor="targetCustomer"
-                    className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Target customer
-                    <span className="text-destructive ml-1">*</span>
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="targetCustomer"
+                      className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Target customer
+                      <span className="text-destructive ml-1">*</span>
+                    </label>
+                    {suggestedFields.has('targetCustomer') && (
+                      <span className="text-xs text-muted-foreground italic">
+                        Suggested from your URL/context — edit anytime
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="targetCustomer"
                     name="targetCustomer"
@@ -631,13 +1158,20 @@ export function NewAnalysisForm({
                 )}
 
                 <div className="space-y-2">
-                  <label
-                    htmlFor="goal"
-                    className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Business goal
-                    <span className="text-destructive ml-1">*</span>
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="goal"
+                      className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Business goal
+                      <span className="text-destructive ml-1">*</span>
+                    </label>
+                    {suggestedFields.has('goal') && (
+                      <span className="text-xs text-muted-foreground italic">
+                        Suggested from your URL/context — edit anytime
+                      </span>
+                    )}
+                  </div>
                   <Textarea
                     id="goal"
                     name="goal"
@@ -878,6 +1412,7 @@ export function NewAnalysisForm({
               </Button>
             </div>
           </form>
+          )}
         </div>
 
         {/* Right column: Sticky Preview */}
