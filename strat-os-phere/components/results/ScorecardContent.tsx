@@ -8,6 +8,8 @@ import { SectionCard } from '@/components/results/SectionCard'
 import { CopySectionButton } from '@/components/results/CopySectionButton'
 import { formatScoringMatrixToMarkdown } from '@/lib/results/normalizeArtifacts'
 import type { ScoringMatrixArtifactContent } from '@/lib/schemas/scoring'
+import { computeScoreFromScoringMatrix } from '@/lib/scoring/computeScoreFromScoringMatrix'
+import { ScorePill } from '@/components/ui/ScorePill'
 
 interface ScorecardContentProps {
   projectId: string
@@ -71,13 +73,16 @@ export function ScorecardContent({ projectId, scoring }: ScorecardContentProps) 
             {scoring.criteria.map((criterion) => {
               // Find scores for this criterion
               const criterionScores = scoring.scores?.filter(s => s.criteria_id === criterion.id) || []
-              // Calculate average score from dimensions
-              const scoresWithAvg = criterionScores.map(s => {
-                const dims = s.dimensions
-                const avg = (dims.discovery_support + dims.execution_support + dims.reliability + dims.flexibility + (1 - dims.friction)) / 5
+              // Compute evidence-backed scores
+              const scoresWithComputed = criterionScores.map(s => {
+                const computedScore = computeScoreFromScoringMatrix(
+                  scoring,
+                  s.competitor_name,
+                  criterion.id
+                )
                 return {
                   competitor: s.competitor_name,
-                  score: avg * 10, // Scale to 0-10 for display
+                  computedScore,
                 }
               })
               
@@ -89,12 +94,12 @@ export function ScorecardContent({ projectId, scoring }: ScorecardContentProps) 
                       Weight: {criterion.weight ?? 1}
                     </Badge>
                   </div>
-                  {scoresWithAvg.length > 0 && (
+                  {scoresWithComputed.length > 0 && (
                     <div className="space-y-2">
-                      {scoresWithAvg.map((s, idx) => (
+                      {scoresWithComputed.map((s, idx) => (
                         <div key={idx} className="flex items-center justify-between text-sm">
                           <span>{s.competitor}</span>
-                          <Badge variant="secondary">{s.score.toFixed(1)}/10</Badge>
+                          <ScorePill score={s.computedScore} showTooltip={true} />
                         </div>
                       ))}
                     </div>
