@@ -395,7 +395,7 @@ export async function generateOpportunitiesV3(
 
       const schemaShapeText = JSON.stringify(OPPORTUNITY_V3_SCHEMA_SHAPE, null, 2)
       const repairMessages = buildRepairMessages({
-        originalResponse: opportunityResponse.text,
+        rawText: opportunityResponse.text,
         schemaName: 'OpportunityV3ArtifactContent',
         schemaShapeText,
         validationErrors: opportunityParsed.error,

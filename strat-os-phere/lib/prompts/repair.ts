@@ -9,6 +9,7 @@ export type RepairableSchemaName =
   | 'MarketSynthesis'
   | 'JtbdArtifactContent'
   | 'OpportunitiesArtifactContent'
+  | 'OpportunityV3ArtifactContent'
   | 'ScoringMatrixArtifactContent'
   | 'StrategicBetsArtifactContent'
 
