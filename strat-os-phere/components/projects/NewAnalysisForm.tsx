@@ -70,6 +70,8 @@ export function NewAnalysisForm({
   const router = useRouter()
   const [formState, setFormState] = useState({
     name: '',
+    startingPoint: 'product' as 'product' | 'problem' | 'customer' | 'market',
+    hypothesis: '',
     marketCategory: '',
     targetCustomer: '',
     product: '',
@@ -82,6 +84,11 @@ export function NewAnalysisForm({
     decisionLevel: '' as DecisionLevel | '',
     explicitNonGoals: '',
     inputConfidence: '' as InputConfidence | '',
+    // New optional fields
+    problemStatement: '',
+    customerProfile: '',
+    marketContext: '',
+    solutionIdea: '',
   })
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -826,6 +833,13 @@ export function NewAnalysisForm({
         explicitNonGoals: formState.explicitNonGoals || undefined,
         inputConfidence:
           (formState.inputConfidence as InputConfidence) || undefined,
+        // New hypothesis-first fields
+        startingPoint: formState.startingPoint,
+        hypothesis: formState.hypothesis || undefined,
+        problemStatement: formState.problemStatement || undefined,
+        customerProfile: formState.customerProfile || undefined,
+        marketContext: formState.marketContext || undefined,
+        solutionIdea: formState.solutionIdea || undefined,
       })
 
       if (!projectResult?.success || !projectResult.projectId) {
@@ -918,11 +932,11 @@ export function NewAnalysisForm({
     event.preventDefault()
     if (
       !formState.name ||
+      !formState.hypothesis ||
       !formState.marketCategory ||
-      !formState.targetCustomer ||
-      !formState.goal
+      !formState.targetCustomer
     ) {
-      setError('Please fill in all required fields.')
+      setError('Please fill in all required fields (name, hypothesis, market, and target customer).')
       return
     }
 
@@ -950,6 +964,13 @@ export function NewAnalysisForm({
         explicitNonGoals: formState.explicitNonGoals || undefined,
         inputConfidence:
           (formState.inputConfidence as InputConfidence) || undefined,
+        // New hypothesis-first fields
+        startingPoint: formState.startingPoint,
+        hypothesis: formState.hypothesis || undefined,
+        problemStatement: formState.problemStatement || undefined,
+        customerProfile: formState.customerProfile || undefined,
+        marketContext: formState.marketContext || undefined,
+        solutionIdea: formState.solutionIdea || undefined,
       })
 
       if (!result?.success) {
@@ -1032,7 +1053,7 @@ export function NewAnalysisForm({
   const coreComplete =
     formState.marketCategory.trim().length > 0 &&
     formState.targetCustomer.trim().length > 0 &&
-    formState.goal.trim().length > 0
+    formState.hypothesis.trim().length > 0
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6">
@@ -1580,6 +1601,202 @@ export function NewAnalysisForm({
                     required
                   />
                 </div>
+
+                {/* Starting Point Selector */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-foreground">
+                    Starting point
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: 'product', label: 'I have a product' },
+                      { value: 'problem', label: 'I have a problem I want to solve' },
+                      { value: 'customer', label: 'I have a customer in mind' },
+                      { value: 'market', label: "I'm exploring a market" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleChange('startingPoint', option.value as typeof formState.startingPoint)}
+                        className={`
+                          p-3 rounded-lg border text-left transition-colors
+                          ${
+                            formState.startingPoint === option.value
+                              ? 'border-indigo-600 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-950/20'
+                              : 'border-border hover:bg-muted/50'
+                          }
+                        `}
+                      >
+                        <span className="text-sm font-medium text-foreground">
+                          {option.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Hypothesis Field */}
+                <div className="space-y-2">
+                  <label
+                    htmlFor="hypothesis"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    What are you trying to test or learn?
+                    <span className="text-destructive ml-1">*</span>
+                  </label>
+                  <Textarea
+                    id="hypothesis"
+                    name="hypothesis"
+                    value={formState.hypothesis}
+                    onChange={(event) => handleChange('hypothesis', event.target.value)}
+                    placeholder={
+                      formState.startingPoint === 'product'
+                        ? 'Will we win against X by focusing on Y?'
+                        : formState.startingPoint === 'problem'
+                        ? 'Is scheduling the #1 pain for boutique gym owners?'
+                        : formState.startingPoint === 'customer'
+                        ? 'What do HR ops teams struggle with most in onboarding?'
+                        : 'Where is incident management overbuilt or underdelivering?'
+                    }
+                    rows={3}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Frame your analysis around a testable hypothesis or learning goal.
+                  </p>
+                </div>
+
+                {/* Optional: Sharpen the analysis - conditional fields based on starting point */}
+                <Collapsible
+                  title="Optional: Sharpen the analysis"
+                  description="Add context to improve analysis quality"
+                  defaultOpen={false}
+                >
+                  <div className="space-y-4 pt-2">
+                    {formState.startingPoint === 'product' && (
+                      <>
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="solutionIdea"
+                            className="text-sm font-semibold text-foreground"
+                          >
+                            Your product / solution idea
+                          </label>
+                          <Textarea
+                            id="solutionIdea"
+                            name="solutionIdea"
+                            value={formState.solutionIdea}
+                            onChange={(event) => handleChange('solutionIdea', event.target.value)}
+                            placeholder="Describe your product or solution idea"
+                            rows={2}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {formState.startingPoint === 'problem' && (
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="problemStatement"
+                          className="text-sm font-semibold text-foreground"
+                        >
+                          Problem statement
+                        </label>
+                        <Textarea
+                          id="problemStatement"
+                          name="problemStatement"
+                          value={formState.problemStatement}
+                          onChange={(event) => handleChange('problemStatement', event.target.value)}
+                          placeholder="Describe the problem you want to solve"
+                          rows={2}
+                        />
+                      </div>
+                    )}
+                    {formState.startingPoint === 'customer' && (
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="customerProfile"
+                          className="text-sm font-semibold text-foreground"
+                        >
+                          Customer profile
+                        </label>
+                        <Textarea
+                          id="customerProfile"
+                          name="customerProfile"
+                          value={formState.customerProfile}
+                          onChange={(event) => handleChange('customerProfile', event.target.value)}
+                          placeholder="Describe the customer you have in mind"
+                          rows={2}
+                        />
+                      </div>
+                    )}
+                    {formState.startingPoint === 'market' && (
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="marketContext"
+                          className="text-sm font-semibold text-foreground"
+                        >
+                          Market context
+                        </label>
+                        <Textarea
+                          id="marketContext"
+                          name="marketContext"
+                          value={formState.marketContext}
+                          onChange={(event) => handleChange('marketContext', event.target.value)}
+                          placeholder="Describe the market or category you're exploring"
+                          rows={2}
+                        />
+                      </div>
+                    )}
+                    {/* Geography field - shown for all starting points */}
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="geographyOptional"
+                        className="text-sm font-semibold text-foreground"
+                      >
+                        Geography
+                      </label>
+                      <Input
+                        id="geographyOptional"
+                        name="geographyOptional"
+                        value={formState.geography}
+                        onChange={(event) => handleChange('geography', event.target.value)}
+                        placeholder="e.g. North America and Western Europe"
+                      />
+                    </div>
+                    {/* Confidence field */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm font-semibold text-foreground">
+                          Confidence
+                        </label>
+                      </div>
+                      <RadioGroup
+                        name="inputConfidenceOptional"
+                        value={formState.inputConfidence}
+                        onChange={(value) =>
+                          handleChange('inputConfidence', value as InputConfidence)
+                        }
+                        options={[
+                          {
+                            value: 'very_confident',
+                            label: 'Very confident',
+                            description: 'Inputs are well-researched and validated',
+                          },
+                          {
+                            value: 'some_assumptions',
+                            label: 'Some assumptions',
+                            description: 'Some inputs are assumptions or best guesses',
+                          },
+                          {
+                            value: 'exploratory',
+                            label: 'Exploring',
+                            description: 'Early exploration, many unknowns',
+                          },
+                        ]}
+                      />
+                    </div>
+                  </div>
+                </Collapsible>
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">

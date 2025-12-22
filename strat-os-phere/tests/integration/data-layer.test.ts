@@ -117,6 +117,28 @@ describe('Data Layer Integration Tests', () => {
       expect(retrieved?.business_goal).toBeNull()
       expect(retrieved?.geography).toBeNull()
     })
+
+    it('createProject accepts new hypothesis-first fields and normalizes undefined to null', async () => {
+      const input = {
+        user_id: userId,
+        name: 'Hypothesis Project',
+        market: 'Test Market',
+        target_customer: 'Test Customer',
+        starting_point: 'problem' as const,
+        hypothesis: 'Is scheduling the #1 pain for boutique gym owners?',
+        problem_statement: 'Boutique gym owners struggle with manual scheduling',
+        // Other new fields omitted (should be null)
+      }
+
+      const project = await createProject(client, input)
+
+      expect(project.starting_point).toBe('problem')
+      expect(project.hypothesis).toBe('Is scheduling the #1 pain for boutique gym owners?')
+      expect(project.problem_statement).toBe('Boutique gym owners struggle with manual scheduling')
+      expect(project.customer_profile).toBeNull()
+      expect(project.market_context).toBeNull()
+      expect(project.solution_idea).toBeNull()
+    })
   })
 
   describe('Competitors', () => {

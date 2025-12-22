@@ -26,6 +26,12 @@ export interface ProjectRow {
   decision_level: DecisionLevel | null
   explicit_non_goals: string | null
   input_confidence: InputConfidence | null
+  starting_point: StartingPoint | null
+  hypothesis: string | null
+  problem_statement: string | null
+  customer_profile: string | null
+  market_context: string | null
+  solution_idea: string | null
   created_at: string
 }
 
@@ -44,6 +50,12 @@ export interface ProjectInsert {
   decision_level?: DecisionLevel | null
   explicit_non_goals?: string | null
   input_confidence?: InputConfidence | null
+  starting_point?: StartingPoint | null
+  hypothesis?: string | null
+  problem_statement?: string | null
+  customer_profile?: string | null
+  market_context?: string | null
+  solution_idea?: string | null
 }
 
 export type ProjectUpdate = Partial<ProjectInsert>
@@ -84,6 +96,7 @@ export type RiskPosture = 'near_term_traction' | 'long_term_defensibility' | 'ba
 export type AmbitionLevel = 'core_optimization' | 'adjacent_expansion' | 'category_redefinition'
 export type DecisionLevel = 'IC' | 'Director' | 'VP' | 'C-suite'
 export type InputConfidence = 'very_confident' | 'some_assumptions' | 'exploratory'
+export type StartingPoint = 'product' | 'problem' | 'customer' | 'market'
 
 export interface EvidenceSourceRow {
   id: string

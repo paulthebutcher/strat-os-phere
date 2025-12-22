@@ -24,6 +24,16 @@ export interface ProjectContext {
   decision_level?: DecisionLevel | null
   explicit_non_goals?: string | null
   input_confidence?: InputConfidence | null
+  // New hypothesis-first fields
+  starting_point?: 'product' | 'problem' | 'customer' | 'market' | null
+  hypothesis?: string | null
+  problem_statement?: string | null
+  customer_profile?: string | null
+  market_context?: string | null
+  solution_idea?: string | null
+  // Computed context summary (from buildProjectContext)
+  lens?: 'product' | 'problem' | 'customer' | 'market'
+  summaryText?: string
 }
 
 export interface CompetitorContext {
@@ -66,17 +76,43 @@ function stringifySchemaForPrompt(schemaShape: unknown): string {
 export function buildSnapshotMessages(input: SnapshotPromptInput): Message[] {
   const { project, competitor } = input
 
+  // Build project context with hypothesis-first approach
+  const lens = project.lens || project.starting_point || 'product'
   const projectLines: string[] = [
-    `Market: ${project.market}`,
-    `Target customer: ${project.target_customer}`,
+    `Lens: ${lens.charAt(0).toUpperCase() + lens.slice(1)}`,
   ]
 
-  if (project.your_product) {
+  // Primary anchor: hypothesis (preferred) or fallback to your_product/business_goal
+  if (project.hypothesis) {
+    projectLines.push(`Hypothesis: ${project.hypothesis}`)
+  } else if (project.your_product) {
     projectLines.push(`Your product: ${project.your_product}`)
+  } else if (project.business_goal) {
+    projectLines.push(`Business goal: ${project.business_goal}`)
   }
 
-  if (project.business_goal) {
-    projectLines.push(`Business goal: ${project.business_goal}`)
+  // Market context
+  if (project.market_context) {
+    projectLines.push(`Market: ${project.market_context}`)
+  } else {
+    projectLines.push(`Market: ${project.market}`)
+  }
+
+  // Customer context
+  if (project.customer_profile) {
+    projectLines.push(`Customer: ${project.customer_profile}`)
+  } else {
+    projectLines.push(`Target customer: ${project.target_customer}`)
+  }
+
+  // Problem statement (for problem lens)
+  if (project.problem_statement) {
+    projectLines.push(`Problem: ${project.problem_statement}`)
+  }
+
+  // Solution idea (for product lens)
+  if (project.solution_idea) {
+    projectLines.push(`Solution: ${project.solution_idea}`)
   }
 
   if (project.geography) {
@@ -147,6 +183,7 @@ export function buildSnapshotMessages(input: SnapshotPromptInput): Message[] {
   const userContent = [
     'TASK',
     'Analyze the evidence for this competitor and produce a single CompetitorSnapshot JSON object.',
+    'Outputs must evaluate the user\'s hypothesis; do not assume a finished product exists.',
     '',
     'PROJECT CONTEXT',
     projectLines.join('\n'),

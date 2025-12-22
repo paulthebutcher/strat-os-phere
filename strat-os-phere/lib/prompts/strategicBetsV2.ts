@@ -50,17 +50,33 @@ export function buildStrategicBetsV2Prompt(
 ): Message[] {
   const { project, topOpportunities, evidenceDigest } = input
 
+  // Build project context with hypothesis-first approach
+  const lens = project.lens || project.starting_point || 'product'
   const projectLines: string[] = [
-    `Market: ${project.market}`,
-    `Target customer: ${project.target_customer}`,
+    `Lens: ${lens.charAt(0).toUpperCase() + lens.slice(1)}`,
   ]
 
-  if (project.your_product) {
+  // Primary anchor: hypothesis (preferred) or fallback to your_product/business_goal
+  if (project.hypothesis) {
+    projectLines.push(`Hypothesis: ${project.hypothesis}`)
+  } else if (project.your_product) {
     projectLines.push(`Your product: ${project.your_product}`)
+  } else if (project.business_goal) {
+    projectLines.push(`Business goal: ${project.business_goal}`)
   }
 
-  if (project.business_goal) {
-    projectLines.push(`Business goal: ${project.business_goal}`)
+  // Market context
+  if (project.market_context) {
+    projectLines.push(`Market: ${project.market_context}`)
+  } else {
+    projectLines.push(`Market: ${project.market}`)
+  }
+
+  // Customer context
+  if (project.customer_profile) {
+    projectLines.push(`Customer: ${project.customer_profile}`)
+  } else {
+    projectLines.push(`Target customer: ${project.target_customer}`)
   }
 
   // Format evidence digest for prompt
@@ -91,6 +107,7 @@ export function buildStrategicBetsV2Prompt(
     'TASK',
     'Given the top opportunities and evidence, synthesize 2-4 strategic bets a leadership team could commit to in the next 6-12 months.',
     'Each bet must be decision-ready, VP-ready, and include citations where applicable.',
+    'Outputs must evaluate the user\'s hypothesis; do not assume a finished product exists.',
     '',
     'PROJECT CONTEXT',
     projectLines.join('\n'),

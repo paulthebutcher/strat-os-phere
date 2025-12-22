@@ -25,6 +25,13 @@ interface CreateProjectPayload {
   decisionLevel?: DecisionLevel
   explicitNonGoals?: string
   inputConfidence?: InputConfidence
+  // New hypothesis-first fields
+  startingPoint?: 'product' | 'problem' | 'customer' | 'market'
+  hypothesis?: string
+  problemStatement?: string
+  customerProfile?: string
+  marketContext?: string
+  solutionIdea?: string
 }
 
 interface CreateProjectResult {
@@ -61,6 +68,13 @@ export async function createProjectFromForm(
       decision_level: payload.decisionLevel ?? null,
       explicit_non_goals: payload.explicitNonGoals ?? null,
       input_confidence: payload.inputConfidence ?? null,
+      // New hypothesis-first fields
+      starting_point: payload.startingPoint ?? 'product', // Default to 'product' for backwards compatibility
+      hypothesis: payload.hypothesis ?? null,
+      problem_statement: payload.problemStatement ?? null,
+      customer_profile: payload.customerProfile ?? null,
+      market_context: payload.marketContext ?? null,
+      solution_idea: payload.solutionIdea ?? null,
     })
 
     return { success: true, projectId: project.id }

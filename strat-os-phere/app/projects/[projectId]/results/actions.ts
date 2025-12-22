@@ -30,6 +30,7 @@ import {
 import { safeParseLLMJson } from '@/lib/schemas/safeParseLLMJson'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
+import { buildProjectContext } from '@/lib/results/projectContext'
 
 type GenerateAnalysisSuccessResult = {
   ok: true
@@ -110,6 +111,8 @@ export async function generateAnalysis(
       }
     }
 
+    // Build normalized project context (handles both legacy and new hypothesis-first projects)
+    const contextSummary = buildProjectContext(project)
     const projectContext: ProjectContext = {
       market: project.market,
       target_customer: project.target_customer,
@@ -123,6 +126,16 @@ export async function generateAnalysis(
       decision_level: project.decision_level,
       explicit_non_goals: project.explicit_non_goals,
       input_confidence: project.input_confidence,
+      // New hypothesis-first fields
+      starting_point: project.starting_point,
+      hypothesis: project.hypothesis,
+      problem_statement: project.problem_statement,
+      customer_profile: project.customer_profile,
+      market_context: project.market_context,
+      solution_idea: project.solution_idea,
+      // Computed context
+      lens: contextSummary.lens,
+      summaryText: contextSummary.summaryText,
     }
 
     const snapshots: CompetitorSnapshot[] = []

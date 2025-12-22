@@ -66,9 +66,9 @@ export function OpportunitiesSection({
     return (
       <section className="space-y-4">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">Opportunities</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Evidence-backed opportunities</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Opportunities are inputs; bets are decisions.
+            Opportunities are inputs; bets are decisions. Each opportunity evaluates your hypothesis against market reality.
           </p>
         </div>
         

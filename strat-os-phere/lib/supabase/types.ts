@@ -16,6 +16,7 @@ import type {
   AmbitionLevel,
   DecisionLevel,
   InputConfidence,
+  StartingPoint,
   Json,
 } from './database.types'
 
@@ -35,6 +36,7 @@ export type {
   AmbitionLevel,
   DecisionLevel,
   InputConfidence,
+  StartingPoint,
   Json,
 }
 

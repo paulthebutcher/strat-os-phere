@@ -83,3 +83,26 @@ CREATE POLICY "Users can delete evidence_sources for their own projects"
   );
 ```
 
+## Hypothesis-First Inputs (Starting Point & Hypothesis Fields)
+
+Add nullable fields to support pre-product users and hypothesis-driven analysis:
+
+```sql
+-- Add new nullable fields to projects table
+ALTER TABLE projects 
+  ADD COLUMN IF NOT EXISTS starting_point TEXT CHECK (starting_point IN ('product', 'problem', 'customer', 'market')),
+  ADD COLUMN IF NOT EXISTS hypothesis TEXT,
+  ADD COLUMN IF NOT EXISTS problem_statement TEXT,
+  ADD COLUMN IF NOT EXISTS customer_profile TEXT,
+  ADD COLUMN IF NOT EXISTS market_context TEXT,
+  ADD COLUMN IF NOT EXISTS solution_idea TEXT;
+
+-- Note: input_confidence already exists, but if it doesn't match the new enum values, update it:
+-- The existing enum values ('very_confident', 'some_assumptions', 'exploratory') should work,
+-- but if you need to align with the new naming, you can update:
+-- UPDATE projects SET input_confidence = 'exploring' WHERE input_confidence = 'exploratory';
+-- Then alter the constraint if needed.
+```
+
+These fields are all nullable to maintain backward compatibility with existing projects.
+

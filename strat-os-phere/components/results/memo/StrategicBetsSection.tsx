@@ -41,7 +41,7 @@ export function StrategicBetsSection({
         <div>
           <h2 className="text-2xl font-semibold text-foreground">Strategic Bets</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            A bet is a commitment: tradeoffs, capability, and defensibility.
+            A bet is a commitment: tradeoffs, capability, and defensibility. Each bet connects back to your hypothesis and addresses: What would we say no to? What capability would this force us to build? Why competitors won't follow easily?
           </p>
         </div>
         
@@ -111,7 +111,7 @@ export function StrategicBetsSection({
       <div>
         <h2 className="text-2xl font-semibold text-foreground">Strategic Bets</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          A bet is a commitment: tradeoffs, capability, and defensibility.
+          A bet is a commitment: tradeoffs, capability, and defensibility. Each bet connects back to your hypothesis and addresses: What would we say no to? What capability would this force us to build? Why competitors won't follow easily?
         </p>
       </div>
       

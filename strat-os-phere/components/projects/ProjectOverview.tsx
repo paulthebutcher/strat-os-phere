@@ -30,11 +30,37 @@ function ProjectSummaryCard({ project, generatedAt }: { project: Project; genera
   if (project.risk_posture) contextParts.push(`Risk: ${project.risk_posture}`)
   if (project.ambition_level) contextParts.push(`Ambition: ${project.ambition_level}`)
 
+  const startingPoint = project.starting_point || 'product'
+  const startingPointLabels: Record<string, string> = {
+    product: 'I have a product',
+    problem: 'I have a problem',
+    customer: 'I have a customer',
+    market: 'Exploring a market',
+  }
+
   return (
     <div className="panel p-6">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl font-semibold text-foreground mb-2">{project.name}</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="text-xl font-semibold text-foreground">{project.name}</h2>
+            <Badge variant="secondary" className="text-xs">
+              {startingPointLabels[startingPoint] || startingPoint}
+            </Badge>
+            {project.input_confidence && (
+              <Badge variant="secondary" className="text-xs">
+                {project.input_confidence === 'very_confident' ? 'Very confident' :
+                 project.input_confidence === 'some_assumptions' ? 'Some assumptions' :
+                 project.input_confidence === 'exploratory' || project.input_confidence === 'exploring' ? 'Exploring' :
+                 project.input_confidence}
+              </Badge>
+            )}
+          </div>
+          {project.hypothesis && (
+            <p className="text-sm font-medium text-foreground mb-2">
+              {project.hypothesis}
+            </p>
+          )}
           {contextParts.length > 0 && (
             <p className="text-sm text-muted-foreground">
               {contextParts.join(' · ')}

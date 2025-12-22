@@ -146,17 +146,43 @@ export function buildOpportunityV3Messages(
 ): Message[] {
   const { project, snapshotsJson, jtbdJson, scoringJson, evidenceSourcesJson } = input
 
+  // Build project context with hypothesis-first approach
+  const lens = project.lens || project.starting_point || 'product'
   const projectLines: string[] = [
-    `Market: ${project.market}`,
-    `Target customer: ${project.target_customer}`,
+    `Lens: ${lens.charAt(0).toUpperCase() + lens.slice(1)}`,
   ]
 
-  if (project.your_product) {
+  // Primary anchor: hypothesis (preferred) or fallback to your_product/business_goal
+  if (project.hypothesis) {
+    projectLines.push(`Hypothesis: ${project.hypothesis}`)
+  } else if (project.your_product) {
     projectLines.push(`Your product: ${project.your_product}`)
+  } else if (project.business_goal) {
+    projectLines.push(`Business goal: ${project.business_goal}`)
   }
 
-  if (project.business_goal) {
-    projectLines.push(`Business goal: ${project.business_goal}`)
+  // Market context
+  if (project.market_context) {
+    projectLines.push(`Market: ${project.market_context}`)
+  } else {
+    projectLines.push(`Market: ${project.market}`)
+  }
+
+  // Customer context
+  if (project.customer_profile) {
+    projectLines.push(`Customer: ${project.customer_profile}`)
+  } else {
+    projectLines.push(`Target customer: ${project.target_customer}`)
+  }
+
+  // Problem statement (for problem lens)
+  if (project.problem_statement) {
+    projectLines.push(`Problem: ${project.problem_statement}`)
+  }
+
+  // Solution idea (for product lens)
+  if (project.solution_idea) {
+    projectLines.push(`Solution: ${project.solution_idea}`)
   }
 
   if (project.geography) {
@@ -167,6 +193,7 @@ export function buildOpportunityV3Messages(
     'TASK',
     'Generate 6-10 unified opportunities that distill all competitive analysis inputs into actionable, defensible strategic recommendations.',
     'Each opportunity must be specific, citation-backed, and include a deterministic score breakdown.',
+    'Outputs must evaluate the user\'s hypothesis; do not assume a finished product exists.',
     '',
     'PROJECT CONTEXT',
     projectLines.join('\n'),
@@ -247,10 +274,11 @@ export function buildOpportunityV3Messages(
     '- Total: Compute as weighted sum, then round to integer (0-100)',
     '- Explainability: 3-5 bullets describing what drove the score, with citations where possible',
     '',
-    'Tradeoffs:',
+    'Tradeoffs (REQUIRED for each opportunity):',
     '- what_we_say_no_to: 2-4 bullets (what we would say no to)',
-    '- capability_forced: 2-4 bullets (capabilities we must build)',
-    '- why_competitors_wont_follow: 2-4 bullets (moat/constraints)',
+    '- capability_forced: 2-4 bullets (what capability would this force us to build?)',
+    '- why_competitors_wont_follow: 2-4 bullets (why competitors won\'t follow easily?)',
+    'Each opportunity must explicitly connect back to the hypothesis and address these three questions.',
     '',
     'Experiments: 3-5 first experiments',
     'Each with: hypothesis, smallest_test, success_metric, expected_timeframe, risk_reduced',
