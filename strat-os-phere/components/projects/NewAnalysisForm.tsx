@@ -7,10 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Collapsible } from '@/components/ui/collapsible'
+import { Badge } from '@/components/ui/badge'
 import { PasteExtraction } from '@/components/projects/PasteExtraction'
 import { AnalysisFramingPreview } from '@/components/projects/AnalysisFramingPreview'
 import { ExpertNote } from '@/components/shared/ExpertNote'
 import { createProjectFromForm } from '@/app/projects/actions'
+import {
+  ANALYSIS_TEMPLATES,
+  FIELD_EXAMPLES,
+  GYM_QUICK_FILL,
+  type AnalysisTemplate,
+} from '@/components/projects/newAnalysisTemplates'
 import type {
   RiskPosture,
   AmbitionLevel,
@@ -51,27 +58,64 @@ export function NewAnalysisForm({
   })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  function handleExtractedValues(values: {
-    market?: string
+  const [extractedValues, setExtractedValues] = useState<{
+    name?: string
+    marketCategory?: string
     targetCustomer?: string
-    goal?: string
-    constraints?: string
-    nonGoals?: string
+    businessGoal?: string
     product?: string
     geography?: string
+  } | null>(null)
+
+  function handleExtractedValues(values: {
+    name?: string
+    marketCategory?: string
+    targetCustomer?: string
+    businessGoal?: string
+    product?: string
+    geography?: string
+    constraints?: string
+    nonGoals?: string
   }) {
-    if (values.market && !formState.marketCategory) {
-      setFormState((prev) => ({ ...prev, marketCategory: values.market! }))
+    const extracted: typeof extractedValues = {}
+    if (values.name) {
+      extracted.name = values.name
+      if (!formState.name) {
+        setFormState((prev) => ({ ...prev, name: values.name! }))
+      }
     }
-    if (values.targetCustomer && !formState.targetCustomer) {
-      setFormState((prev) => ({
-        ...prev,
-        targetCustomer: values.targetCustomer!,
-      }))
+    if (values.marketCategory) {
+      extracted.marketCategory = values.marketCategory
+      if (!formState.marketCategory) {
+        setFormState((prev) => ({ ...prev, marketCategory: values.marketCategory! }))
+      }
     }
-    if (values.goal && !formState.goal) {
-      setFormState((prev) => ({ ...prev, goal: values.goal! }))
+    if (values.targetCustomer) {
+      extracted.targetCustomer = values.targetCustomer
+      if (!formState.targetCustomer) {
+        setFormState((prev) => ({
+          ...prev,
+          targetCustomer: values.targetCustomer!,
+        }))
+      }
+    }
+    if (values.businessGoal) {
+      extracted.businessGoal = values.businessGoal
+      if (!formState.goal) {
+        setFormState((prev) => ({ ...prev, goal: values.businessGoal! }))
+      }
+    }
+    if (values.product) {
+      extracted.product = values.product
+      if (!formState.product) {
+        setFormState((prev) => ({ ...prev, product: values.product! }))
+      }
+    }
+    if (values.geography) {
+      extracted.geography = values.geography
+      if (!formState.geography) {
+        setFormState((prev) => ({ ...prev, geography: values.geography! }))
+      }
     }
     if (values.constraints && !formState.primaryConstraint) {
       setFormState((prev) => ({
@@ -85,12 +129,75 @@ export function NewAnalysisForm({
         explicitNonGoals: values.nonGoals!,
       }))
     }
-    if (values.product && !formState.product) {
-      setFormState((prev) => ({ ...prev, product: values.product! }))
+    setExtractedValues(extracted)
+  }
+
+  function handleClearExtracted() {
+    if (extractedValues) {
+      // Revert only the extracted fields
+      setFormState((prev) => ({
+        ...prev,
+        ...(extractedValues.name && prev.name === extractedValues.name
+          ? { name: '' }
+          : {}),
+        ...(extractedValues.marketCategory &&
+        prev.marketCategory === extractedValues.marketCategory
+          ? { marketCategory: '' }
+          : {}),
+        ...(extractedValues.targetCustomer &&
+        prev.targetCustomer === extractedValues.targetCustomer
+          ? { targetCustomer: '' }
+          : {}),
+        ...(extractedValues.businessGoal && prev.goal === extractedValues.businessGoal
+          ? { goal: '' }
+          : {}),
+        ...(extractedValues.product && prev.product === extractedValues.product
+          ? { product: '' }
+          : {}),
+        ...(extractedValues.geography && prev.geography === extractedValues.geography
+          ? { geography: '' }
+          : {}),
+      }))
+      setExtractedValues(null)
     }
-    if (values.geography && !formState.geography) {
-      setFormState((prev) => ({ ...prev, geography: values.geography! }))
+  }
+
+  function handleTemplateSelect(template: AnalysisTemplate) {
+    setFormState((prev) => ({
+      ...prev,
+      name: template.values.name,
+      marketCategory: template.values.marketCategory,
+      targetCustomer: template.values.targetCustomer,
+      goal: template.values.businessGoal,
+      product: template.values.product || prev.product,
+      geography: template.values.geography || prev.geography,
+    }))
+  }
+
+  function handleQuickFill() {
+    setFormState((prev) => ({
+      ...prev,
+      name: GYM_QUICK_FILL.name,
+      marketCategory: GYM_QUICK_FILL.marketCategory,
+      targetCustomer: GYM_QUICK_FILL.targetCustomer,
+      goal: GYM_QUICK_FILL.businessGoal,
+      product: GYM_QUICK_FILL.product,
+      geography: GYM_QUICK_FILL.geography,
+    }))
+  }
+
+  function handleExampleSelect(field: 'marketCategory' | 'targetCustomer' | 'businessGoal', example: string) {
+    if (field === 'businessGoal') {
+      setFormState((prev) => ({ ...prev, goal: example }))
+    } else {
+      setFormState((prev) => ({ ...prev, [field]: example }))
     }
+  }
+
+  function handleRandomExample(field: 'marketCategory' | 'targetCustomer' | 'businessGoal') {
+    const examples = FIELD_EXAMPLES[field]
+    const randomExample = examples[Math.floor(Math.random() * examples.length)]
+    handleExampleSelect(field, randomExample)
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -98,7 +205,8 @@ export function NewAnalysisForm({
     if (
       !formState.name ||
       !formState.marketCategory ||
-      !formState.targetCustomer
+      !formState.targetCustomer ||
+      !formState.goal
     ) {
       setError('Please fill in all required fields.')
       return
@@ -206,6 +314,12 @@ export function NewAnalysisForm({
   const goalCharCount = formState.goal.length
   const goalMaxLength = 500
 
+  // Progressive disclosure: show product/geography only when core fields are filled
+  const coreComplete =
+    formState.marketCategory.trim().length > 0 &&
+    formState.targetCustomer.trim().length > 0 &&
+    formState.goal.trim().length > 0
+
   return (
     <div className="w-full max-w-7xl mx-auto">
       <div className="mb-6 space-y-2">
@@ -215,23 +329,89 @@ export function NewAnalysisForm({
         ) : null}
       </div>
 
+      {/* What you'll get section */}
+      <div className="mb-6 rounded-lg border border-border bg-muted/30 px-4 py-3">
+        <p className="text-sm font-semibold text-foreground mb-2">What you'll get:</p>
+        <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+          <li>Ranked opportunities with defensible evidence</li>
+          <li>Confidence & recency signals</li>
+          <li>Actionable next steps</li>
+        </ul>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column: Form */}
         <div className="lg:col-span-2">
           <div className="panel w-full px-6 py-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <PasteExtraction
-                onExtract={handleExtractedValues}
-                currentValues={{
-                  marketCategory: formState.marketCategory,
-                  targetCustomer: formState.targetCustomer,
-                  goal: formState.goal,
-                  primaryConstraint: formState.primaryConstraint,
-                  explicitNonGoals: formState.explicitNonGoals,
-                  product: formState.product,
-                  geography: formState.geography,
-                }}
-              />
+              {/* Templates section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">
+                    Start with a template
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleQuickFill}
+                  >
+                    Quick fill: Gym management
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {ANALYSIS_TEMPLATES.map((template) => (
+                    <button
+                      key={template.id}
+                      type="button"
+                      onClick={() => handleTemplateSelect(template)}
+                      className="text-left rounded-lg border border-border bg-background p-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="text-sm font-semibold text-foreground mb-1">
+                        {template.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {template.description}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Paste extraction with improved UI */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-foreground">
+                  Have context already? Paste it here (optional)
+                </label>
+                <PasteExtraction
+                  onExtract={handleExtractedValues}
+                  currentValues={{
+                    name: formState.name,
+                    marketCategory: formState.marketCategory,
+                    targetCustomer: formState.targetCustomer,
+                    goal: formState.goal,
+                    primaryConstraint: formState.primaryConstraint,
+                    explicitNonGoals: formState.explicitNonGoals,
+                    product: formState.product,
+                    geography: formState.geography,
+                  }}
+                />
+                {extractedValues && (
+                  <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3 py-2">
+                    <p className="text-xs text-muted-foreground">
+                      We filled what we could — review and edit.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearExtracted}
+                    >
+                      Clear extracted values
+                    </Button>
+                  </div>
+                )}
+              </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -269,10 +449,37 @@ export function NewAnalysisForm({
                     placeholder="e.g. B2C video streaming platforms"
                     required
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Be specific: "Boutique gym management software" beats
-                    "Fitness".
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {FIELD_EXAMPLES.marketCategory.slice(0, 2).map((example) => (
+                      <Badge
+                        key={example}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-muted transition-colors"
+                        onClick={() => handleExampleSelect('marketCategory', example)}
+                      >
+                        {example}
+                      </Badge>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => handleRandomExample('marketCategory')}
+                      className="text-xs text-muted-foreground hover:text-foreground underline"
+                    >
+                      Use example
+                    </button>
+                  </div>
+                  {formState.marketCategory.length > 0 &&
+                    formState.marketCategory.length < 8 && (
+                      <p className="text-xs text-muted-foreground">
+                        Add a bit more detail for better results.
+                      </p>
+                    )}
+                  {formState.marketCategory.length >= 8 && (
+                    <p className="text-xs text-muted-foreground">
+                      Be specific: "Boutique gym management software" beats
+                      "Fitness".
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -293,64 +500,92 @@ export function NewAnalysisForm({
                     placeholder="e.g. Gen Z cord-cutters in the US"
                     required
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Include demographics, behaviors, or firmographics.
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {FIELD_EXAMPLES.targetCustomer.slice(0, 2).map((example) => (
+                      <Badge
+                        key={example}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-muted transition-colors"
+                        onClick={() => handleExampleSelect('targetCustomer', example)}
+                      >
+                        {example}
+                      </Badge>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => handleRandomExample('targetCustomer')}
+                      className="text-xs text-muted-foreground hover:text-foreground underline"
+                    >
+                      Use example
+                    </button>
+                  </div>
+                  {formState.targetCustomer.length > 0 &&
+                    formState.targetCustomer.length < 8 && (
+                      <p className="text-xs text-muted-foreground">
+                        Add a bit more detail for better results.
+                      </p>
+                    )}
+                  {formState.targetCustomer.length >= 8 && (
+                    <p className="text-xs text-muted-foreground">
+                      Include demographics, behaviors, or firmographics.
+                    </p>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="product"
-                      className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Your product{' '}
-                      <span className="text-muted-foreground font-normal">
-                        (optional)
-                      </span>
-                    </label>
-                    <Input
-                      id="product"
-                      name="product"
-                      value={formState.product}
-                      onChange={(event) =>
-                        handleChange('product', event.target.value)
-                      }
-                      placeholder="How you describe what you're building"
-                    />
-                  </div>
+                {/* Progressive disclosure: Product and Geography */}
+                {coreComplete && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="product"
+                        className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Your product{' '}
+                        <span className="text-muted-foreground font-normal">
+                          (optional)
+                        </span>
+                      </label>
+                      <Input
+                        id="product"
+                        name="product"
+                        value={formState.product}
+                        onChange={(event) =>
+                          handleChange('product', event.target.value)
+                        }
+                        placeholder="How you describe what you're building"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="geography"
-                      className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Geography{' '}
-                      <span className="text-muted-foreground font-normal">
-                        (optional)
-                      </span>
-                    </label>
-                    <Input
-                      id="geography"
-                      name="geography"
-                      value={formState.geography}
-                      onChange={(event) =>
-                        handleChange('geography', event.target.value)
-                      }
-                      placeholder="e.g. North America and Western Europe"
-                    />
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="geography"
+                        className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Geography{' '}
+                        <span className="text-muted-foreground font-normal">
+                          (optional)
+                        </span>
+                      </label>
+                      <Input
+                        id="geography"
+                        name="geography"
+                        value={formState.geography}
+                        onChange={(event) =>
+                          handleChange('geography', event.target.value)
+                        }
+                        placeholder="e.g. North America and Western Europe"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="space-y-2">
                   <label
                     htmlFor="goal"
                     className="text-sm font-semibold text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Business goal{' '}
-                    <span className="text-muted-foreground font-normal">
-                      (optional)
-                    </span>
+                    Business goal
+                    <span className="text-destructive ml-1">*</span>
                   </label>
                   <Textarea
                     id="goal"
@@ -360,12 +595,40 @@ export function NewAnalysisForm({
                     placeholder="What decision or outcome this analysis should support"
                     rows={3}
                     maxLength={goalMaxLength}
+                    required
                   />
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {FIELD_EXAMPLES.businessGoal.slice(0, 2).map((example) => (
+                      <Badge
+                        key={example}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-muted transition-colors text-xs max-w-full truncate"
+                        onClick={() => handleExampleSelect('businessGoal', example)}
+                        title={example}
+                      >
+                        {example.length > 50 ? `${example.substring(0, 47)}...` : example}
+                      </Badge>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => handleRandomExample('businessGoal')}
+                      className="text-xs text-muted-foreground hover:text-foreground underline"
+                    >
+                      Use example
+                    </button>
+                  </div>
+                  {formState.goal.length > 0 && formState.goal.length < 8 && (
                     <p className="text-xs text-muted-foreground">
-                      Outcome &gt; feature: "Reduce churn in first 30 days"
-                      beats "Improve onboarding".
+                      Add a bit more detail for better results.
                     </p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    {formState.goal.length >= 8 && (
+                      <p className="text-xs text-muted-foreground">
+                        Outcome &gt; feature: "Reduce churn in first 30 days"
+                        beats "Improve onboarding".
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {goalCharCount}/{goalMaxLength}
                     </p>
