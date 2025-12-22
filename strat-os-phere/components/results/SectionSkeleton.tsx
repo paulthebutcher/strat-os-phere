@@ -20,7 +20,7 @@ export function SectionSkeleton({ title, description }: SectionSkeletonProps) {
             <p className="text-sm text-muted-foreground mt-1">{description}</p>
           )}
         </div>
-        <Badge variant="outline" className="gap-1">
+        <Badge variant="muted" className="gap-1">
           <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
           Generating…
         </Badge>

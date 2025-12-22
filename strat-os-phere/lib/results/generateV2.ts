@@ -158,9 +158,12 @@ export async function generateResultsV2(
     const dbProgressWriter = createProgressWriter(supabase, runId)
     const combinedProgress: ProgressCallback = (event) => {
       // Write to database (fire and forget)
-      dbProgressWriter(event).catch((err) => {
-        logger.error('Progress writer error', { runId, error: err instanceof Error ? err.message : String(err) })
-      })
+      const promise = dbProgressWriter(event) as Promise<void> | void
+      if (promise && typeof promise.catch === 'function') {
+        promise.catch((err) => {
+          logger.error('Progress writer error', { runId, error: err instanceof Error ? err.message : String(err) })
+        })
+      }
       // Call user callback if provided
       onProgress?.(event)
     }

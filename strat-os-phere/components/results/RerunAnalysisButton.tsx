@@ -3,12 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { generateAnalysis } from '@/app/projects/[projectId]/results/actions'
 
 interface RerunAnalysisButtonProps {
   projectId: string
@@ -32,8 +26,12 @@ export function RerunAnalysisButton({
     setIsRunning(true)
 
     try {
-      const result = await generateAnalysis(projectId)
-      
+      const response = await fetch(`/api/projects/${projectId}/generate`, {
+        method: 'POST',
+      })
+
+      const result = await response.json()
+
       if (result.ok) {
         // Navigate to results page with the new runId to show progress
         router.push(`/projects/${projectId}/results?runId=${result.runId}`)

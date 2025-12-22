@@ -95,6 +95,6 @@ export async function initializeRun(
     project_id: projectId,
     id: runId,
     status: 'queued',
-  })
+  } as Parameters<typeof createAnalysisRun>[1])
 }
 

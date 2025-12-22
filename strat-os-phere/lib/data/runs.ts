@@ -139,10 +139,13 @@ export async function updateAnalysisRun(
   }>
 ): Promise<void> {
   const typedClient = getTypedClient(client)
-  const { error } = await typedClient
-    .from('analysis_runs')
-    .update(updates)
-    .eq('id', runId)
+  const updatePayload = updates as Database['public']['Tables']['analysis_runs']['Update']
+  const query = typedClient.from('analysis_runs') as unknown as {
+    update: (values: Database['public']['Tables']['analysis_runs']['Update']) => {
+      eq: (column: string, value: string) => Promise<{ error: { message: string; code?: string } | null }>
+    }
+  }
+  const { error } = await query.update(updatePayload).eq('id', runId)
 
   if (error) {
     throw new Error(error.message)

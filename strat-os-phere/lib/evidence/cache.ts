@@ -94,8 +94,8 @@ export async function upsertCached(
     final_url: insert.final_url ?? null,
     title: insert.title ?? null,
     raw_text: insert.raw_text ?? null,
-    extract_json: insert.extract_json ?? null,
-    summary_json: insert.summary_json ?? null,
+    extract_json: (insert.extract_json ?? null) as any,
+    summary_json: (insert.summary_json ?? null) as any,
     summary_prompt_version: insert.summary_prompt_version ?? null,
     stale_after_days: insert.stale_after_days ?? 7,
   }
