@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-import { NewAnalysisForm } from '@/components/projects/NewAnalysisForm'
+import { AnalysisWizard } from '@/components/onboarding/AnalysisWizard'
 import { createClient } from '@/lib/supabase/server'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
 
@@ -18,7 +18,7 @@ export default async function NewProjectPage() {
     <PageGuidanceWrapper pageId="new_project">
       <div className="min-h-[calc(100vh-57px)]">
         <main className="w-full py-8">
-          <NewAnalysisForm />
+          <AnalysisWizard />
         </main>
       </div>
     </PageGuidanceWrapper>
