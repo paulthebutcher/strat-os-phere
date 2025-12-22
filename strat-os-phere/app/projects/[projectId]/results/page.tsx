@@ -91,6 +91,9 @@ import { FreshnessBadge } from '@/components/shared/FreshnessBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { EvidenceConfidencePanel } from '@/components/results/EvidenceConfidencePanel'
 import { extractCitationsFromArtifact } from '@/lib/results/evidence'
+import { ResultsMemo } from '@/components/results/ResultsMemo'
+import { AppendixTabs } from '@/components/results/AppendixTabs'
+import { selectArtifacts } from '@/lib/results/selectArtifacts'
 import {
   type TabId,
   resolveResultsTab,
@@ -313,6 +316,8 @@ export default async function ResultsPage(props: ResultsPageProps) {
   const hasOpportunities = Boolean(opportunitiesArtifact)
 
   // Resolve tab using shared helper (deterministic, loop-proof)
+  // For memo-first experience: if no tab param, show memo (don't redirect)
+  // If tab param exists and is valid, show that tab in appendix mode
   const tabAvailability: TabAvailability = {
     hasOpportunitiesV3,
     hasStrategicBets,
@@ -323,43 +328,30 @@ export default async function ResultsPage(props: ResultsPageProps) {
     hasSynthesis,
   }
   
-  const tabResolution = resolveResultsTab(searchParamsObj.tab, tabAvailability)
-  const activeTab = tabResolution.tab
+  // Determine if we should show memo (default) or a specific tab
+  const tabParam = searchParamsObj.tab
+  const showMemo = !tabParam // Show memo if no tab param
   
-  // Debug logging (dev only)
-  if (process.env.NODE_ENV !== 'production') {
-    logger.debug('Results page tab resolution', {
-      projectId,
-      tabParam: searchParamsObj.tab,
-      resolvedTab: activeTab,
-      isValid: tabResolution.isValid,
-      needsRedirect: tabResolution.needsRedirect,
-      availableTabs: Object.entries(tabAvailability)
-        .filter(([_, available]) => available)
-        .map(([key]) => key),
-    })
-  }
-  
-  // Canonical URL enforcement: redirect if tab is missing or invalid
-  if (tabResolution.needsRedirect) {
-    const canonicalParams = new URLSearchParams()
-    canonicalParams.set('tab', activeTab)
-    if (frameParam) canonicalParams.set('frame', frameParam)
-    if (isGenerating) canonicalParams.set('generating', 'true')
-    if (viewResults) canonicalParams.set('view', 'results')
-    if (showNewBadge) canonicalParams.set('new', 'true')
-    
-    const canonicalUrl = `/projects/${projectId}/results?${canonicalParams.toString()}`
-    
-    if (process.env.NODE_ENV !== 'production') {
-      logger.debug('Redirecting to canonical URL', {
-        from: `/projects/${projectId}/results${searchParamsObj.tab ? `?tab=${searchParamsObj.tab}` : ''}`,
-        to: canonicalUrl,
-        reason: tabResolution.isValid ? 'missing tab' : 'invalid tab',
-      })
+  let activeTab: TabId | null = null
+  if (tabParam) {
+    // Validate tab param
+    const tabResolution = resolveResultsTab(tabParam, tabAvailability)
+    if (tabResolution.isValid) {
+      activeTab = tabResolution.tab
+    } else {
+      // Invalid tab param - redirect to memo (no tab param)
+      const canonicalParams = new URLSearchParams()
+      if (frameParam) canonicalParams.set('frame', frameParam)
+      if (isGenerating) canonicalParams.set('generating', 'true')
+      if (viewResults) canonicalParams.set('view', 'results')
+      if (showNewBadge) canonicalParams.set('new', 'true')
+      
+      const canonicalUrl = canonicalParams.toString()
+        ? `/projects/${projectId}/results?${canonicalParams.toString()}`
+        : `/projects/${projectId}/results`
+      
+      redirect(canonicalUrl)
     }
-    
-    redirect(canonicalUrl)
   }
 
   // Get previous run artifacts for contrast
@@ -520,9 +512,8 @@ export default async function ResultsPage(props: ResultsPageProps) {
   }
 
   // Safety check: ensure activeTab exists in PANELS (should never happen, but defensive)
-  // activeTab is guaranteed to be valid by resolveResultsTab, but we add a fallback for type safety
-  const activePanel = PANELS[activeTab] ?? PANELS[TABS[0]?.id ?? 'opportunities_v3']
-  const copyContent = activePanel.copyContent
+  const activePanel = activeTab ? (PANELS[activeTab] ?? null) : null
+  const copyContent = activePanel?.copyContent ?? ''
 
   // Build metadata for header
   const headerMetadata = [
@@ -687,85 +678,114 @@ export default async function ResultsPage(props: ResultsPageProps) {
             </div>
           </div>
         </SectionCard>
-      ) : (
-        <section className="flex flex-col gap-6">
-            {/* Run Recap Panel - shows what phases completed */}
-            <RunRecapPanel
-              projectId={verifiedProject.id}
-              hasJobs={hasJtbd}
-              hasScorecard={hasScoringMatrix}
-              hasOpportunities={hasOpportunitiesV2 || hasOpportunitiesV3}
-              hasStrategicBets={hasStrategicBets}
-              generatedAt={generatedAt}
-              defaultOpen={showNewBadge}
+      ) : showMemo ? (
+        // Show memo view (default)
+        <div className="space-y-8">
+          {/* Run Recap Panel - shows what phases completed */}
+          <RunRecapPanel
+            projectId={verifiedProject.id}
+            hasJobs={hasJtbd}
+            hasScorecard={hasScoringMatrix}
+            hasOpportunities={hasOpportunitiesV2 || hasOpportunitiesV3}
+            hasStrategicBets={hasStrategicBets}
+            generatedAt={generatedAt}
+            defaultOpen={showNewBadge}
+          />
+
+          {/* Post-generation highlight */}
+          {(jtbd || opportunitiesV2 || scoringMatrix) && (
+            <PostGenerationHighlight
+              opportunities={opportunitiesV2?.content}
+              scoring={scoringMatrix?.content}
             />
+          )}
 
-            {/* Post-generation highlight */}
-            {(jtbd || opportunitiesV2 || scoringMatrix) && (
-              <PostGenerationHighlight
-                opportunities={opportunitiesV2?.content}
-                scoring={scoringMatrix?.content}
-              />
-            )}
+          {/* Contrast Summary */}
+          {contrastSummary.hasChanges && (
+            <ContrastSummary
+              summary={contrastSummary}
+              latestRunDate={generatedAt}
+              previousRunDate={
+                previousNormalized.jtbd?.generatedAt ??
+                previousNormalized.opportunities?.generatedAt ??
+                previousNormalized.scorecard?.generatedAt ??
+                null
+              }
+            />
+          )}
 
-            {/* Contrast Summary */}
-            {contrastSummary.hasChanges && (
-              <ContrastSummary
-                summary={contrastSummary}
-                latestRunDate={generatedAt}
-                previousRunDate={
-                  previousNormalized.jtbd?.generatedAt ??
-                  previousNormalized.opportunities?.generatedAt ??
-                  previousNormalized.scorecard?.generatedAt ??
-                  null
-                }
-              />
-            )}
+          {/* Results Memo */}
+          <ResultsMemo
+            bets={strategicBets?.content ?? null}
+            opportunities={opportunitiesV3?.content ?? opportunitiesV2?.content ?? null}
+            projectId={verifiedProject.id}
+            projectName={verifiedProject.name}
+            generatedAt={generatedAt}
+            competitorCount={effectiveCompetitorCount}
+          />
 
-            {/* Recommended Next Steps Panel */}
-            {recommendedNextStepsContent ? (
-              <RecommendedNextStepsPanel
-                opportunities={recommendedNextStepsContent!}
-                projectId={verifiedProject.id}
-              />
-            ) : opportunitiesV2 === null ? (
-              <div className="text-sm text-muted-foreground text-center py-4">
-                <p>Opportunities will appear here after analysis is generated.</p>
-              </div>
-            ) : null}
-
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-border">
-            <nav
-              className="tabs-list"
-              aria-label="Analysis sections"
+          {/* Appendix Tabs */}
+          <AppendixTabs
+            projectId={verifiedProject.id}
+            activeTab={'opportunities_v3' as TabId}
+            copyContent=""
+            tabs={TABS.map((tab) => ({
+              id: tab.id,
+              label: tab.label,
+              enabled: PANELS[tab.id].enabled,
+            }))}
+            frame={frameParam}
+          />
+        </div>
+      ) : activeTab && activePanel ? (
+        // Show specific tab in appendix mode (with memo-style header)
+        <div className="space-y-6">
+          {/* Breadcrumb navigation */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground pb-4 border-b border-border">
+            <Link
+              href={`/projects/${verifiedProject.id}/results`}
+              className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
             >
-              {TABS.map((tab) => (
-                <Link
-                  key={tab.id}
-                  href={`/projects/${verifiedProject.id}/results?tab=${tab.id}${frameParam ? `&frame=${frameParam}` : ''}`}
-                  className="tabs-trigger"
-                  data-state={activeTab === tab.id ? 'active' : 'inactive'}
-                  aria-current={activeTab === tab.id ? 'page' : undefined}
-                >
-                  {tab.label}
-                </Link>
-              ))}
-            </nav>
-            <CopySectionButton content={copyContent} label="Copy section" />
+              Results
+            </Link>
+            <span aria-hidden="true">→</span>
+            <span>Appendix</span>
+            <span aria-hidden="true">→</span>
+            <span className="text-foreground font-medium">{activePanel.label}</span>
           </div>
 
-            {/* Frame Toggle - only show for v2 tabs */}
-            {(activeTab === 'jobs' || activeTab === 'opportunities_v2') && (
-              <ResultsFrameToggle
-                currentFrame={activeFrame}
-                projectId={verifiedProject.id}
-              />
-            )}
+          {/* Back to memo button */}
+          <div>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/projects/${verifiedProject.id}/results`}>
+                ← Back to memo
+              </Link>
+            </Button>
+          </div>
 
-          {/* Render active panel using registry - eliminates long ternary chains */}
+          {/* Run Recap Panel - shows what phases completed */}
+          <RunRecapPanel
+            projectId={verifiedProject.id}
+            hasJobs={hasJtbd}
+            hasScorecard={hasScoringMatrix}
+            hasOpportunities={hasOpportunitiesV2 || hasOpportunitiesV3}
+            hasStrategicBets={hasStrategicBets}
+            generatedAt={generatedAt}
+            defaultOpen={false}
+          />
+
+          {/* Frame Toggle - only show for v2 tabs */}
+          {(activeTab === 'jobs' || activeTab === 'opportunities_v2') && (
+            <ResultsFrameToggle
+              currentFrame={activeFrame}
+              projectId={verifiedProject.id}
+            />
+          )}
+
+          {/* Render active panel */}
           {activePanel.render()}
-        </section>
-      )}
+        </div>
+      ) : null}
     </ResultsPageShell>
   )
 }
