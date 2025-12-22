@@ -110,13 +110,90 @@ function extractCitation(obj: unknown): NormalizedCitation | null {
 }
 
 /**
+ * Normalizes a citation object to a standard format
+ * Handles various input shapes and field name variations
+ */
+export function normalizeCitation(c: any): NormalizedCitation | null {
+  return extractCitation(c)
+}
+
+/**
+ * Recursively searches for citation arrays in an object up to a safe depth
+ * This helps find citations in nested structures we might not explicitly check
+ */
+function findCitationArraysRecursively(
+  obj: unknown,
+  found: unknown[] = [],
+  depth: number = 0,
+  maxDepth: number = 5
+): unknown[] {
+  if (depth > maxDepth || !obj || typeof obj !== 'object') {
+    return found
+  }
+
+  const record = obj as Record<string, unknown>
+
+  // Check common citation array keys
+  const citationKeys = ['citations', 'evidence_citations', 'sources', 'references']
+  for (const key of citationKeys) {
+    if (Array.isArray(record[key])) {
+      found.push(...(record[key] as unknown[]))
+    }
+  }
+
+  // Recursively search nested objects and arrays
+  for (const value of Object.values(record)) {
+    if (value && typeof value === 'object') {
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          findCitationArraysRecursively(item, found, depth + 1, maxDepth)
+        }
+      } else {
+        findCitationArraysRecursively(value, found, depth + 1, maxDepth)
+      }
+    }
+  }
+
+  return found
+}
+
+/**
+ * Extracts citations from multiple artifacts
+ * Aggregates citations from all provided artifacts and deduplicates by URL
+ */
+export function extractCitationsFromAllArtifacts(
+  ...artifacts: Array<unknown>
+): NormalizedCitation[] {
+  const allCitations: NormalizedCitation[] = []
+  const seenUrls = new Set<string>()
+  
+  for (const artifact of artifacts) {
+    if (!artifact) continue
+    
+    const citations = extractCitationsFromArtifact(artifact)
+    for (const citation of citations) {
+      if (!seenUrls.has(citation.url)) {
+        allCitations.push(citation)
+        seenUrls.add(citation.url)
+      }
+    }
+  }
+  
+  return allCitations
+}
+
+/**
  * Safely extracts citations from an artifact
  * 
  * Looks for citations in multiple locations:
  * - Top-level citations array
+ * - meta.citations
  * - Opportunities array with nested citations
  * - Proof points with citations
  * - Scoring explainability citations
+ * - Jobs to be done evidence citations
+ * - Competitor snapshots (profiles)
+ * - Recursive search for any citations arrays
  */
 export function extractCitationsFromArtifact(artifactContent: unknown): NormalizedCitation[] {
   if (!artifactContent || typeof artifactContent !== 'object') {
@@ -235,6 +312,42 @@ export function extractCitationsFromArtifact(artifactContent: unknown): Normaliz
         }
       }
     }
+    
+    // Check jobs_to_be_done / jtbd.jobs[].evidence[].citation
+    if (Array.isArray(record.jobs)) {
+      for (const job of record.jobs) {
+        if (!job || typeof job !== 'object') continue
+        const jobObj = job as Record<string, unknown>
+        if (Array.isArray(jobObj.evidence)) {
+          for (const evidence of jobObj.evidence) {
+            if (!evidence || typeof evidence !== 'object') continue
+            const evidenceObj = evidence as Record<string, unknown>
+            // JTBD evidence has citation as a string URL
+            const citationUrl = evidenceObj.citation
+            if (citationUrl && typeof citationUrl === 'string') {
+              const normalized = extractCitation({ url: citationUrl, source_type: 'jobs' })
+              if (normalized && !seenUrls.has(normalized.url)) {
+                citations.push(normalized)
+                seenUrls.add(normalized.url)
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Check competitor snapshots (profiles) - snapshots[].proof_points don't have citations directly
+    // but we'll catch them in recursive search
+    
+    // Recursive search for any remaining citation arrays we might have missed
+    const foundCitations = findCitationArraysRecursively(record)
+    for (const citation of foundCitations) {
+      const normalized = extractCitation(citation)
+      if (normalized && !seenUrls.has(normalized.url)) {
+        citations.push(normalized)
+        seenUrls.add(normalized.url)
+      }
+    }
   } catch (error) {
     // Silently fail - return what we've collected so far
     console.warn('Error extracting citations:', error)
@@ -252,6 +365,72 @@ export type EvidenceSummary = {
   recencyLabel: string
   confidence: 'high' | 'medium' | 'low'
   confidenceRationale: string
+}
+
+export type AggregatedEvidence = {
+  totalCitations: number
+  sourceTypes: string[]
+  newestCitationDate: Date | null
+  confidenceLevel: 'high' | 'medium' | 'low'
+}
+
+/**
+ * Aggregates evidence from a collection of normalized citations
+ * Returns summary statistics and confidence level
+ */
+export function aggregateEvidenceFromCitations(
+  citations: NormalizedCitation[]
+): AggregatedEvidence {
+  const totalCitations = citations.length
+  
+  // Collect unique source types
+  const sourceTypeSet = new Set<string>()
+  for (const citation of citations) {
+    sourceTypeSet.add(citation.sourceType)
+  }
+  const sourceTypes = Array.from(sourceTypeSet)
+  
+  // Find newest citation date
+  const dates = citations
+    .map((c) => c.date)
+    .filter((d): d is Date => d !== undefined)
+    .sort((a, b) => b.getTime() - a.getTime()) // Most recent first
+  
+  const newestCitationDate = dates.length > 0 ? dates[0] : null
+  
+  // Determine confidence level
+  // High: 10+ citations, 3+ source types, recent date (within 30 days)
+  // Medium: 5+ citations, 2+ source types, or recent date
+  // Low: otherwise
+  let confidenceLevel: 'high' | 'medium' | 'low' = 'low'
+  
+  if (totalCitations >= 10 && sourceTypes.length >= 3) {
+    if (newestCitationDate) {
+      const daysAgo = Math.floor(
+        (Date.now() - newestCitationDate.getTime()) / (1000 * 60 * 60 * 24)
+      )
+      if (daysAgo <= 30) {
+        confidenceLevel = 'high'
+      } else if (daysAgo <= 90) {
+        confidenceLevel = 'medium'
+      }
+    } else {
+      // Without dates, can't be high confidence
+      confidenceLevel = 'medium'
+    }
+  } else if (totalCitations >= 5 && sourceTypes.length >= 2) {
+    confidenceLevel = 'medium'
+  } else if (totalCitations > 0) {
+    // At least we have some citations
+    confidenceLevel = 'low'
+  }
+  
+  return {
+    totalCitations,
+    sourceTypes,
+    newestCitationDate,
+    confidenceLevel,
+  }
 }
 
 /**

@@ -6,7 +6,7 @@ import { ExecutiveSummarySection } from './memo/ExecutiveSummarySection'
 import { StrategicBetsSection } from './memo/StrategicBetsSection'
 import { OpportunitiesSection } from './memo/OpportunitiesSection'
 import { EvidenceConfidencePanel } from './EvidenceConfidencePanel'
-import { extractCitationsFromArtifact } from '@/lib/results/evidence'
+import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
 import type { StrategicBetsArtifactContent } from '@/lib/schemas/strategicBet'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
@@ -39,8 +39,8 @@ export function ResultsMemo({
 }: ResultsMemoProps) {
   const [copiedExecSummary, setCopiedExecSummary] = useState(false)
   
-  // Extract citations for evidence panel
-  const citations = extractCitationsFromArtifact(bets ?? opportunities ?? null)
+  // Extract citations for evidence panel from all available artifacts
+  const citations = extractCitationsFromAllArtifacts(bets, opportunities)
   
   // Format metadata
   const formattedGeneratedAt = generatedAt

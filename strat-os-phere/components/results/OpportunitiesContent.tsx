@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
 import { EvidenceConfidencePanel } from '@/components/results/EvidenceConfidencePanel'
 import { EvidenceCoveragePanel } from '@/components/results/EvidenceCoveragePanel'
-import { extractCitationsFromArtifact } from '@/lib/results/evidence'
+import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
 import { isFlagEnabled } from '@/lib/flags'
 import { compressOpportunities } from '@/lib/results/opportunityCompression'
 import { getOpportunityScore, getWhyNowSignals } from '@/lib/results/opportunityUx'
@@ -27,25 +27,39 @@ import { MergeBadge } from '@/components/results/MergeBadge'
 import { CounterfactualCallout } from '@/components/results/CounterfactualCallout'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
+import type { StrategicBetsArtifactContent } from '@/lib/schemas/strategicBet'
+import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
+import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 import { formatOpportunitiesV3ToMarkdown, formatOpportunitiesV2ToMarkdown } from '@/lib/results/normalizeArtifacts'
 
 interface OpportunitiesContentProps {
   projectId: string
   opportunitiesV3: OpportunityV3ArtifactContent | null | undefined
   opportunitiesV2: OpportunitiesArtifactContent | null | undefined
+  profiles: { snapshots: CompetitorSnapshot[] } | null | undefined
+  strategicBets: StrategicBetsArtifactContent | null | undefined
+  jtbd: JtbdArtifactContent | null | undefined
 }
 
 export function OpportunitiesContent({
   projectId,
   opportunitiesV3,
   opportunitiesV2,
+  profiles,
+  strategicBets,
+  jtbd,
 }: OpportunitiesContentProps) {
   // Prefer v3, fallback to v2
   const opportunities = opportunitiesV3 ?? opportunitiesV2 ?? null
   const isV3 = Boolean(opportunitiesV3)
   
-  // Extract citations
-  const citations = extractCitationsFromArtifact(opportunities)
+  // Extract citations from all available artifacts
+  const citations = extractCitationsFromAllArtifacts(
+    opportunities,
+    profiles,
+    strategicBets,
+    jtbd
+  )
   
   // Feature flag check
   const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')
@@ -114,7 +128,9 @@ function OpportunitiesV3Content({
   projectId: string
   opportunities: OpportunityV3ArtifactContent
 }) {
-  const citations = extractCitationsFromArtifact(opportunities)
+  // For v3 content, we still extract from the opportunities artifact
+  // but the parent component already aggregates all artifacts
+  const citations = extractCitationsFromAllArtifacts(opportunities)
   const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')
   
   // Apply compression if feature flag is enabled
@@ -357,7 +373,9 @@ function OpportunitiesV2Content({
   projectId: string
   opportunities: OpportunitiesArtifactContent
 }) {
-  const citations = extractCitationsFromArtifact(opportunities)
+  // For v2 content, we still extract from the opportunities artifact
+  // but the parent component already aggregates all artifacts
+  const citations = extractCitationsFromAllArtifacts(opportunities)
   const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')
   
   if (!opportunities.opportunities?.length) {

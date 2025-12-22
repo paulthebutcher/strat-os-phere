@@ -2,25 +2,39 @@
 
 import { EvidenceConfidencePanel } from '@/components/results/EvidenceConfidencePanel'
 import { EvidenceCoveragePanel } from '@/components/results/EvidenceCoveragePanel'
-import { extractCitationsFromArtifact } from '@/lib/results/evidence'
+import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
 import { isFlagEnabled } from '@/lib/flags'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
+import type { StrategicBetsArtifactContent } from '@/lib/schemas/strategicBet'
+import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
+import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 
 interface EvidenceContentProps {
   opportunitiesV3: OpportunityV3ArtifactContent | null | undefined
   opportunitiesV2: OpportunitiesArtifactContent | null | undefined
+  profiles: { snapshots: CompetitorSnapshot[] } | null | undefined
+  strategicBets: StrategicBetsArtifactContent | null | undefined
+  jtbd: JtbdArtifactContent | null | undefined
 }
 
 export function EvidenceContent({
   opportunitiesV3,
   opportunitiesV2,
+  profiles,
+  strategicBets,
+  jtbd,
 }: EvidenceContentProps) {
   // Prefer v3, fallback to v2
   const opportunities = opportunitiesV3 ?? opportunitiesV2 ?? null
   
-  // Extract citations
-  const citations = extractCitationsFromArtifact(opportunities)
+  // Extract citations from all available artifacts
+  const citations = extractCitationsFromAllArtifacts(
+    opportunities,
+    profiles,
+    strategicBets,
+    jtbd
+  )
   
   // Feature flag check
   const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')

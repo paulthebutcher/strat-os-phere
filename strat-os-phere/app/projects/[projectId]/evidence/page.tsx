@@ -51,7 +51,7 @@ export default async function EvidencePage(props: EvidencePageProps) {
 
   const artifacts = await listArtifacts(supabase, { projectId })
   const normalized = normalizeResultsArtifacts(artifacts)
-  const { opportunitiesV3, opportunitiesV2 } = normalized
+  const { opportunitiesV3, opportunitiesV2, profiles, strategicBets, jtbd } = normalized
 
   return (
     <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
@@ -59,6 +59,9 @@ export default async function EvidencePage(props: EvidencePageProps) {
         <EvidenceContent
           opportunitiesV3={opportunitiesV3?.content}
           opportunitiesV2={opportunitiesV2?.content}
+          profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
+          strategicBets={strategicBets?.content}
+          jtbd={jtbd?.content}
         />
       </main>
     </div>
