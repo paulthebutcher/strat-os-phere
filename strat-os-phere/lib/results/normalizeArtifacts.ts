@@ -18,6 +18,10 @@ import {
   type OpportunitiesArtifactContent,
 } from '@/lib/schemas/opportunities'
 import {
+  OpportunityV3ArtifactContentSchema,
+  type OpportunityV3ArtifactContent,
+} from '@/lib/schemas/opportunityV3'
+import {
   ScoringMatrixArtifactContentSchema,
   type ScoringMatrixArtifactContent,
 } from '@/lib/schemas/scoring'
@@ -89,6 +93,14 @@ export interface NormalizedOpportunitiesV2Artifact {
   artifactCreatedAt: string
 }
 
+export interface NormalizedOpportunitiesV3Artifact {
+  type: 'opportunities_v3'
+  runId: string | null
+  generatedAt: string | null
+  content: OpportunityV3ArtifactContent
+  artifactCreatedAt: string
+}
+
 export interface NormalizedScoringMatrixArtifact {
   type: 'scoring_matrix'
   runId: string | null
@@ -110,6 +122,7 @@ export interface NormalizedResultsArtifacts {
   synthesis: NormalizedSynthesisArtifact | null
   jtbd: NormalizedJtbdArtifact | null
   opportunitiesV2: NormalizedOpportunitiesV2Artifact | null
+  opportunitiesV3: NormalizedOpportunitiesV3Artifact | null
   scoringMatrix: NormalizedScoringMatrixArtifact | null
   strategicBets: NormalizedStrategicBetsArtifact | null
   runId: string | null
@@ -245,6 +258,25 @@ function normalizeOpportunitiesV2Artifact(
   }
 }
 
+function normalizeOpportunitiesV3Artifact(
+  artifact: Artifact
+): NormalizedOpportunitiesV3Artifact | null {
+  if ((artifact.type as string) !== 'opportunities_v3') return null
+
+  const parsed = OpportunityV3ArtifactContentSchema.safeParse(
+    artifact.content_json
+  )
+  if (!parsed.success) return null
+
+  return {
+    type: 'opportunities_v3',
+    runId: parsed.data.meta.run_id ?? null,
+    generatedAt: parsed.data.meta.generated_at ?? null,
+    content: parsed.data,
+    artifactCreatedAt: artifact.created_at,
+  }
+}
+
 function normalizeScoringMatrixArtifact(
   artifact: Artifact
 ): NormalizedScoringMatrixArtifact | null {
@@ -292,6 +324,7 @@ export function normalizeResultsArtifacts(
       synthesis: null,
       jtbd: null,
       opportunitiesV2: null,
+      opportunitiesV3: null,
       scoringMatrix: null,
       strategicBets: null,
       runId: null,
@@ -321,6 +354,13 @@ export function normalizeResultsArtifacts(
     .map(normalizeOpportunitiesV2Artifact)
     .filter(
       (value): value is NormalizedOpportunitiesV2Artifact => value !== null
+    )
+
+  const opportunitiesV3List = artifacts
+    .filter((artifact) => (artifact.type as string) === 'opportunities_v3')
+    .map(normalizeOpportunitiesV3Artifact)
+    .filter(
+      (value): value is NormalizedOpportunitiesV3Artifact => value !== null
     )
 
   const scoringMatrixList = artifacts
@@ -365,7 +405,15 @@ export function normalizeResultsArtifacts(
   let selectedProfiles = profilesList[0] ?? null
   let selectedSynthesis = synthesisList[0] ?? null
   const selectedJtbd = selectV2Artifact(jtbdList)
-  const selectedOpportunitiesV2 = selectV2Artifact(opportunitiesV2List)
+  // Prefer v3 over v2, then v2 over v1
+  const selectedOpportunitiesV3 = opportunitiesV3List.length > 0
+    ? opportunitiesV3List.sort(
+        (a, b) =>
+          new Date(b.artifactCreatedAt).getTime() -
+          new Date(a.artifactCreatedAt).getTime()
+      )[0]
+    : null
+  const selectedOpportunitiesV2 = selectedOpportunitiesV3 ? null : selectV2Artifact(opportunitiesV2List)
   const selectedScoringMatrix = selectV2Artifact(scoringMatrixList)
   const selectedStrategicBets = selectV2Artifact(strategicBetsList)
 
@@ -392,6 +440,7 @@ export function normalizeResultsArtifacts(
     selectedProfiles?.runId ??
     selectedSynthesis?.runId ??
     selectedJtbd?.runId ??
+    selectedOpportunitiesV3?.runId ??
     selectedOpportunitiesV2?.runId ??
     selectedScoringMatrix?.runId ??
     selectedStrategicBets?.runId ??
@@ -401,12 +450,14 @@ export function normalizeResultsArtifacts(
     selectedProfiles?.generatedAt ??
     selectedSynthesis?.generatedAt ??
     selectedJtbd?.generatedAt ??
+    selectedOpportunitiesV3?.generatedAt ??
     selectedOpportunitiesV2?.generatedAt ??
     selectedScoringMatrix?.generatedAt ??
     selectedStrategicBets?.generatedAt ??
     selectedProfiles?.artifactCreatedAt ??
     selectedSynthesis?.artifactCreatedAt ??
     selectedJtbd?.artifactCreatedAt ??
+    selectedOpportunitiesV3?.artifactCreatedAt ??
     selectedOpportunitiesV2?.artifactCreatedAt ??
     selectedScoringMatrix?.artifactCreatedAt ??
     selectedStrategicBets?.artifactCreatedAt ??
@@ -422,6 +473,7 @@ export function normalizeResultsArtifacts(
     synthesis: selectedSynthesis,
     jtbd: selectedJtbd,
     opportunitiesV2: selectedOpportunitiesV2,
+    opportunitiesV3: selectedOpportunitiesV3,
     scoringMatrix: selectedScoringMatrix,
     strategicBets: selectedStrategicBets,
     runId,
@@ -899,6 +951,111 @@ export function formatStrategicBetsToMarkdown(
       lines.push('**Supporting evidence:**')
       for (const signal of bet.supporting_signals) {
         lines.push(`- ${signal.source_type} (${signal.citation_count} citations)`)
+      }
+      lines.push('')
+    }
+  }
+
+  return lines.join('\n').trimEnd()
+}
+
+export function formatOpportunitiesV3ToMarkdown(
+  opportunities: OpportunityV3ArtifactContent | null | undefined
+): string {
+  if (!opportunities || !opportunities.opportunities?.length) {
+    return 'No opportunities are available yet.'
+  }
+
+  // Sort by score descending
+  const sorted = [...opportunities.opportunities].sort(
+    (a, b) => b.scoring.total - a.scoring.total
+  )
+
+  const lines: string[] = ['# Opportunities', '']
+
+  for (const opp of sorted) {
+    lines.push(
+      `## [Score: ${opp.scoring.total}/100] ${opp.title}`,
+      '',
+      `**One-liner:** ${opp.one_liner}`,
+      `**Customer:** ${opp.customer}`,
+      ''
+    )
+
+    lines.push('**Problem Today:**', opp.problem_today, '')
+    lines.push('**Proposed Move:**', opp.proposed_move, '')
+    lines.push('**Why Now:**', opp.why_now, '')
+
+    if (opp.proof_points?.length) {
+      lines.push('**Proof Points:**')
+      for (const proof of opp.proof_points) {
+        lines.push(`- ${proof.claim}`)
+        if (proof.citations?.length) {
+          for (const citation of proof.citations) {
+            lines.push(`  - ${citation.source_type}${citation.domain ? ` (${citation.domain})` : ''}: ${citation.url}`)
+          }
+        }
+      }
+      lines.push('')
+    }
+
+    lines.push('**Score Breakdown:**')
+    for (const [key, value] of Object.entries(opp.scoring.breakdown)) {
+      lines.push(`- ${key.replace(/_/g, ' ')}: ${value.toFixed(1)}/10`)
+    }
+    lines.push('')
+
+    if (opp.scoring.explainability?.length) {
+      lines.push('**Score Explanation:**')
+      for (const explanation of opp.scoring.explainability) {
+        lines.push(`- ${explanation.explanation}`)
+      }
+      lines.push('')
+    }
+
+    if (opp.tradeoffs.what_we_say_no_to?.length) {
+      lines.push('**What We Say No To:**')
+      for (const item of opp.tradeoffs.what_we_say_no_to) {
+        lines.push(`- ${item}`)
+      }
+      lines.push('')
+    }
+
+    if (opp.tradeoffs.capability_forced?.length) {
+      lines.push('**Capability Forced:**')
+      for (const capability of opp.tradeoffs.capability_forced) {
+        lines.push(`- ${capability}`)
+      }
+      lines.push('')
+    }
+
+    if (opp.tradeoffs.why_competitors_wont_follow?.length) {
+      lines.push('**Why Competitors Won\'t Follow:**')
+      for (const reason of opp.tradeoffs.why_competitors_wont_follow) {
+        lines.push(`- ${reason}`)
+      }
+      lines.push('')
+    }
+
+    if (opp.experiments?.length) {
+      lines.push('**First Experiments:**')
+      for (const exp of opp.experiments) {
+        lines.push(`- **Hypothesis:** ${exp.hypothesis}`)
+        lines.push(`  - Test: ${exp.smallest_test}`)
+        lines.push(`  - Success Metric: ${exp.success_metric}`)
+        lines.push(`  - Timeframe: ${exp.expected_timeframe}`)
+        lines.push(`  - Risk Reduced: ${exp.risk_reduced}`)
+      }
+      lines.push('')
+    }
+
+    if (opp.citations?.length) {
+      lines.push('**Citations:**')
+      for (const citation of opp.citations) {
+        lines.push(`- ${citation.source_type}${citation.domain ? ` (${citation.domain})` : ''}: ${citation.url}`)
+        if (citation.title) {
+          lines.push(`  - ${citation.title}`)
+        }
       }
       lines.push('')
     }

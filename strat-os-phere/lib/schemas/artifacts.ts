@@ -4,6 +4,7 @@ import { CompetitorSnapshotSchema } from './competitorSnapshot'
 import { MarketSynthesisSchema } from './marketSynthesis'
 import { JtbdArtifactContentSchema } from './jtbd'
 import { OpportunitiesArtifactContentSchema } from './opportunities'
+import { OpportunityV3ArtifactContentSchema } from './opportunityV3'
 import { ScoringMatrixArtifactContentSchema } from './scoring'
 import { StrategicBetsArtifactContentSchema } from './strategicBet'
 
@@ -12,6 +13,7 @@ export const ArtifactTypeSchema = z.enum([
   'synthesis',
   'jtbd',
   'opportunities_v2',
+  'opportunities_v3',
   'scoring_matrix',
   'strategic_bets',
 ])
@@ -38,6 +40,11 @@ export const OpportunitiesV2ArtifactSchema = z.object({
   content: OpportunitiesArtifactContentSchema,
 })
 
+export const OpportunitiesV3ArtifactSchema = z.object({
+  type: z.literal('opportunities_v3'),
+  content: OpportunityV3ArtifactContentSchema,
+})
+
 export const ScoringMatrixArtifactSchema = z.object({
   type: z.literal('scoring_matrix'),
   content: ScoringMatrixArtifactContentSchema,
@@ -53,6 +60,7 @@ export const ArtifactSchema = z.discriminatedUnion('type', [
   SynthesisArtifactSchema,
   JtbdArtifactSchema,
   OpportunitiesV2ArtifactSchema,
+  OpportunitiesV3ArtifactSchema,
   ScoringMatrixArtifactSchema,
   StrategicBetsArtifactSchema,
 ])
@@ -61,6 +69,7 @@ export type ProfilesArtifact = z.infer<typeof ProfilesArtifactSchema>
 export type SynthesisArtifact = z.infer<typeof SynthesisArtifactSchema>
 export type JtbdArtifact = z.infer<typeof JtbdArtifactSchema>
 export type OpportunitiesV2Artifact = z.infer<typeof OpportunitiesV2ArtifactSchema>
+export type OpportunitiesV3Artifact = z.infer<typeof OpportunitiesV3ArtifactSchema>
 export type ScoringMatrixArtifact = z.infer<typeof ScoringMatrixArtifactSchema>
 export type StrategicBetsArtifact = z.infer<typeof StrategicBetsArtifactSchema>
 export type Artifact = z.infer<typeof ArtifactSchema>
@@ -78,6 +87,9 @@ export type JtbdArtifactContent = z.infer<typeof JtbdArtifactContentSchema>
 export type OpportunitiesV2ArtifactContent = z.infer<
   typeof OpportunitiesArtifactContentSchema
 >
+export type OpportunitiesV3ArtifactContent = z.infer<
+  typeof OpportunityV3ArtifactContentSchema
+>
 export type ScoringMatrixArtifactContent = z.infer<
   typeof ScoringMatrixArtifactContentSchema
 >
@@ -90,6 +102,7 @@ export type ArtifactContent =
   | SynthesisArtifactContent
   | JtbdArtifactContent
   | OpportunitiesV2ArtifactContent
+  | OpportunitiesV3ArtifactContent
   | ScoringMatrixArtifactContent
   | StrategicBetsArtifactContent
 
@@ -105,6 +118,8 @@ export function getArtifactContentSchema(
       return JtbdArtifactContentSchema
     case 'opportunities_v2':
       return OpportunitiesArtifactContentSchema
+    case 'opportunities_v3':
+      return OpportunityV3ArtifactContentSchema
     case 'scoring_matrix':
       return ScoringMatrixArtifactContentSchema
     case 'strategic_bets':

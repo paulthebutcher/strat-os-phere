@@ -77,3 +77,21 @@ export async function getEvidenceSourcesByCompetitor(
   return data ?? []
 }
 
+export async function getEvidenceSourcesForProject(
+  client: Client,
+  projectId: string
+): Promise<EvidenceSource[]> {
+  const typedClient = getTypedClient(client)
+  const { data, error } = await typedClient
+    .from('evidence_sources')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('extracted_at', { ascending: false })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data ?? []
+}
+

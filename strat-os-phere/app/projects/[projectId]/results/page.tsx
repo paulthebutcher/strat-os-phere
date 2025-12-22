@@ -22,6 +22,7 @@ import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { getProjectById } from '@/lib/data/projects'
 import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
+import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { ScoringMatrixArtifactContent } from '@/lib/schemas/scoring'
 import type { StrategicBetsArtifactContent } from '@/lib/schemas/strategicBet'
 import {
@@ -33,12 +34,14 @@ import {
   formatAnglesToMarkdown,
   formatJtbdToMarkdown,
   formatOpportunitiesV2ToMarkdown,
+  formatOpportunitiesV3ToMarkdown,
   formatScoringMatrixToMarkdown,
   formatStrategicBetsToMarkdown,
   type NormalizedProfilesArtifact,
   type NormalizedSynthesisArtifact,
   type NormalizedJtbdArtifact,
   type NormalizedOpportunitiesV2Artifact,
+  type NormalizedOpportunitiesV3Artifact,
   type NormalizedScoringMatrixArtifact,
   type NormalizedStrategicBetsArtifact,
 } from '@/lib/results/normalizeArtifacts'
@@ -60,6 +63,7 @@ import {
 } from '@/lib/results/diffHelpers'
 import { createClient } from '@/lib/supabase/server'
 
+
 type TabId =
   | 'profiles'
   | 'themes'
@@ -69,11 +73,13 @@ type TabId =
   | 'jobs'
   | 'scorecard'
   | 'opportunities_v2'
+  | 'opportunities_v3'
   | 'strategic_bets'
 
 const TABS: { id: TabId; label: string }[] = [
+  { id: 'opportunities_v3', label: 'Opportunities' },
   { id: 'strategic_bets', label: 'Strategic Bets' },
-  { id: 'opportunities_v2', label: 'Opportunities' },
+  { id: 'opportunities_v2', label: 'Opportunities (v2)' },
   { id: 'scorecard', label: 'Scorecard' },
   { id: 'jobs', label: 'Jobs' },
   { id: 'themes', label: 'Themes' },
@@ -174,9 +180,11 @@ export default async function ResultsPage(props: ResultsPageProps) {
   const viewResults = searchParamsObj.view === 'results'
   const showNewBadge = searchParamsObj.new === 'true'
 
+  // Prefer opportunities_v3 if available, otherwise default to strategic_bets
+  const defaultTab = opportunitiesV3 ? 'opportunities_v3' : 'strategic_bets'
   const activeTab: TabId =
     (TABS.find((tab) => tab.id === tabParam)?.id as TabId | undefined) ??
-    'strategic_bets' // Default to Strategic Bets - the primary decision output
+    defaultTab
   
   const activeFrame: ResultsFrame =
     (frameParam as ResultsFrame | undefined) ?? 'jobs'
@@ -208,6 +216,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
     synthesis,
     jtbd,
     opportunitiesV2,
+    opportunitiesV3,
     scoringMatrix,
     strategicBets,
     runId,
@@ -229,7 +238,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
     }
   )
   const hasAnyArtifacts = Boolean(
-    profiles || synthesis || jtbd || opportunitiesV2 || scoringMatrix || strategicBets
+    profiles || synthesis || jtbd || opportunitiesV2 || opportunitiesV3 || scoringMatrix || strategicBets
   )
   const effectiveCompetitorCount =
     normalized.competitorCount ?? competitorCount
@@ -282,6 +291,8 @@ export default async function ResultsPage(props: ResultsPageProps) {
       ? opportunitiesV2Markdown
       : activeTab === 'strategic_bets'
       ? strategicBetsMarkdown
+      : activeTab === 'opportunities_v3'
+      ? formatOpportunitiesV3ToMarkdown(opportunitiesV3?.content)
       : scoringMarkdown
 
   return (
@@ -478,6 +489,14 @@ export default async function ResultsPage(props: ResultsPageProps) {
                   opportunities={opportunitiesV2?.content}
                   projectId={project.id}
                   frame={activeFrame}
+                />
+              </ProgressiveReveal>
+            ) : null}
+            {activeTab === 'opportunities_v3' ? (
+              <ProgressiveReveal order={0} enabled={Boolean(opportunitiesV3)}>
+                <OpportunitiesV3Section
+                  opportunities={opportunitiesV3?.content}
+                  projectId={project.id}
                 />
               </ProgressiveReveal>
             ) : null}
@@ -1413,6 +1432,209 @@ function ScoringSection({ scoring, projectId }: ScoringSectionProps) {
           <p className="text-sm text-muted-foreground leading-relaxed">{scoring.notes}</p>
         </article>
       ) : null}
+    </section>
+  )
+}
+
+interface OpportunitiesV3SectionProps {
+  opportunities: OpportunityV3ArtifactContent | null | undefined
+  projectId: string
+}
+
+function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3SectionProps) {
+  if (!opportunities || !opportunities.opportunities?.length) {
+    return (
+      <section className="flex flex-col items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md space-y-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Opportunities will appear here after analysis is generated.
+          </p>
+          <GenerateResultsV2Button
+            projectId={projectId}
+            label="Generate Analysis"
+          />
+        </div>
+      </section>
+    )
+  }
+
+  // Sort by score descending
+  const sortedOpportunities = [...opportunities.opportunities].sort(
+    (a, b) => b.scoring.total - a.scoring.total
+  )
+
+  return (
+    <section className="space-y-6">
+      {/* Explainer */}
+      <div className="rounded-lg bg-muted/50 border border-border p-4">
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Ranked opportunities with citation-backed proof points, deterministic score breakdowns, and actionable experiments. Each opportunity includes what makes it defensible and why competitors won't follow.
+        </p>
+      </div>
+
+      {sortedOpportunities.map((opp, index) => (
+        <article key={opp.id || index} className="panel p-6 space-y-6">
+          <header className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-foreground leading-tight">{opp.title}</h2>
+                <p className="mt-2 text-sm text-foreground leading-relaxed">{opp.one_liner}</p>
+              </div>
+              <Badge variant="primary" className="shrink-0 text-base px-3 py-1">
+                {opp.scoring.total}/100
+              </Badge>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              <span>
+                <span className="font-medium text-foreground">Customer:</span> {opp.customer}
+              </span>
+            </div>
+          </header>
+
+          {/* Score Breakdown */}
+          <div className="border-t border-b border-border py-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+              Score Breakdown
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(opp.scoring.breakdown).map(([key, value]) => (
+                <div key={key}>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-muted rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full"
+                        style={{ width: `${(value / 10) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-foreground w-8 text-right">
+                      {value.toFixed(1)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="space-y-5 text-sm">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                Problem Today
+              </h3>
+              <p className="text-foreground leading-relaxed">{opp.problem_today}</p>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                Proposed Move
+              </h3>
+              <p className="text-foreground leading-relaxed">{opp.proposed_move}</p>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                Why Now
+              </h3>
+              <p className="text-foreground leading-relaxed">{opp.why_now}</p>
+            </div>
+
+            {/* Proof Points */}
+            {opp.proof_points?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Proof Points
+                </h3>
+                <ul className="space-y-3">
+                  {opp.proof_points.map((proof, proofIndex) => (
+                    <li key={proofIndex} className="space-y-2">
+                      <p className="text-foreground leading-relaxed">{proof.claim}</p>
+                      {proof.citations?.length ? (
+                        <div className="flex flex-wrap gap-2">
+                          {proof.citations.map((citation, citIndex) => (
+                            <Badge
+                              key={citIndex}
+                              variant="secondary"
+                              className="text-xs"
+                              title={citation.url}
+                            >
+                              {citation.source_type} {citation.domain ? `(${citation.domain})` : ''}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {/* Tradeoffs */}
+            <div className="grid gap-4 md:grid-cols-3 border-t border-b border-border pt-4 pb-4">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  What We Say No To
+                </h3>
+                <ul className="space-y-2">
+                  {opp.tradeoffs.what_we_say_no_to.map((item, itemIndex) => (
+                    <li key={itemIndex} className="text-sm text-foreground leading-relaxed">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Capability Forced
+                </h3>
+                <ul className="space-y-2">
+                  {opp.tradeoffs.capability_forced.map((capability, capIndex) => (
+                    <li key={capIndex} className="text-sm text-foreground leading-relaxed">
+                      {capability}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Why Competitors Won't Follow
+                </h3>
+                <ul className="space-y-2">
+                  {opp.tradeoffs.why_competitors_wont_follow.map((reason, reasonIndex) => (
+                    <li key={reasonIndex} className="text-sm text-foreground leading-relaxed">
+                      {reason}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Experiments */}
+            {opp.experiments?.length ? (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  First Experiments
+                </h3>
+                <ul className="space-y-4">
+                  {opp.experiments.map((exp, expIndex) => (
+                    <li key={expIndex} className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">{exp.hypothesis}</p>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p><span className="font-medium">Test:</span> {exp.smallest_test}</p>
+                        <p><span className="font-medium">Success:</span> {exp.success_metric}</p>
+                        <p><span className="font-medium">Timeframe:</span> {exp.expected_timeframe}</p>
+                        <p><span className="font-medium">Risk Reduced:</span> {exp.risk_reduced}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        </article>
+      ))}
     </section>
   )
 }
