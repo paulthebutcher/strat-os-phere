@@ -101,6 +101,12 @@ import {
   TAB_IDS,
 } from '@/lib/ui/resultsTab'
 import { logger } from '@/lib/logger'
+import { isFlagEnabled } from '@/lib/flags'
+import { computeEvidenceCoverage } from '@/lib/results/coverage'
+import { compressOpportunities } from '@/lib/results/opportunityCompression'
+import { EvidenceCoveragePanel } from '@/components/results/EvidenceCoveragePanel'
+import { MergeBadge } from '@/components/results/MergeBadge'
+import { CounterfactualCallout } from '@/components/results/CounterfactualCallout'
 
 /**
  * Safely narrows a string value to a valid TabId
@@ -1468,11 +1474,19 @@ function OpportunitiesV2Section({
   // Extract citations from opportunities artifact
   const citations = extractCitationsFromArtifact(opportunities ?? null)
   
+  // Feature flag check
+  const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')
+  
   if (!opportunities || !opportunities.opportunities?.length) {
     return (
       <section className="space-y-6">
         {/* Evidence panel - show even when no opportunities yet */}
         <EvidenceConfidencePanel citations={citations} />
+        
+        {/* Evidence Coverage Panel (feature-flagged) */}
+        {qualityPackEnabled && (
+          <EvidenceCoveragePanel artifact={opportunities} />
+        )}
         
         <div className="flex flex-col items-center justify-center py-12 px-6">
           <div className="w-full max-w-md space-y-4 text-center">
@@ -1499,20 +1513,49 @@ function OpportunitiesV2Section({
     )
   }
 
+  // Apply compression if feature flag is enabled
+  let opportunitiesToUse = opportunities
+  let compressionStats: { original: number; merged: number } | null = null
+  
+  if (qualityPackEnabled) {
+    const compressed = compressOpportunities(opportunities.opportunities)
+    compressionStats = compressed.stats
+    
+    // Create a modified opportunities object with compressed items
+    // Note: CompressedOpportunity extends OpportunityLike, so we cast to maintain compatibility
+    // Using unknown first to satisfy TypeScript's strict type checking
+    opportunitiesToUse = {
+      ...opportunities,
+      opportunities: compressed.items as unknown as typeof opportunities.opportunities,
+    }
+  }
+
   // Apply frame-based reorganization
   const frameGroups =
     frame === 'differentiation_themes'
-      ? selectByDifferentiationThemes(opportunities)
+      ? selectByDifferentiationThemes(opportunitiesToUse)
       : frame === 'strategic_bets'
-      ? selectByStrategicBets(opportunities)
+      ? selectByStrategicBets(opportunitiesToUse)
       : frame === 'customer_struggles'
       ? [] // Struggles frame handled separately
-      : selectByDifferentiationThemes(opportunities) // Default
+      : selectByDifferentiationThemes(opportunitiesToUse) // Default
 
   return (
     <section className="space-y-6">
       {/* Evidence & Confidence Panel - at the top */}
       <EvidenceConfidencePanel citations={citations} />
+      
+      {/* Evidence Coverage Panel (feature-flagged) */}
+      {qualityPackEnabled && (
+        <EvidenceCoveragePanel artifact={opportunities} />
+      )}
+      
+      {/* Compression stats (feature-flagged) */}
+      {qualityPackEnabled && compressionStats && compressionStats.merged > 0 && (
+        <div className="text-sm text-muted-foreground">
+          Merged {compressionStats.merged} duplicate{compressionStats.merged !== 1 ? 's' : ''}
+        </div>
+      )}
       
       {/* Explainer */}
       <div className="rounded-lg bg-muted/50 border border-border p-4">
@@ -1538,12 +1581,35 @@ function OpportunitiesV2Section({
             )
             .map((item, index) => {
               const opp = item.opportunity
-              const lineage = getOpportunityLineage(opp, opportunities)
+              const lineage = getOpportunityLineage(opp, opportunitiesToUse)
+              
+              // Determine if this is in top 3 (for counterfactual)
+              const allOpportunities = frameGroups.flatMap(g => 
+                g.items
+                  .filter((i): i is { type: 'opportunity'; opportunity: import('@/lib/schemas/opportunities').OpportunityItem } => 
+                    i.type === 'opportunity'
+                  )
+                  .map(i => i.opportunity)
+              )
+              const sortedAll = [...allOpportunities].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+              const isTop3 = sortedAll.indexOf(opp) < 3
+              
               return (
                 <article key={`${group.id}-${index}`} className="panel p-6 transition-all duration-150 hover:shadow-sm">
                   <header className="mb-5 space-y-3">
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="text-base font-semibold text-foreground leading-snug">{opp.title}</h2>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2">
+                          <h2 className="text-base font-semibold text-foreground leading-snug">{opp.title}</h2>
+                          {/* Merge Badge (feature-flagged) */}
+                          {qualityPackEnabled && 'mergedCount' in opp && typeof opp.mergedCount === 'number' && opp.mergedCount > 1 && (
+                            <MergeBadge
+                              mergedCount={opp.mergedCount}
+                              mergedTitles={('mergedTitles' in opp && Array.isArray(opp.mergedTitles)) ? (opp.mergedTitles as string[]) : []}
+                            />
+                          )}
+                        </div>
+                      </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <LineageLink lineage={lineage} title={opp.title} />
                         <div className="flex flex-col items-end gap-1">
@@ -1638,6 +1704,13 @@ function OpportunitiesV2Section({
                       </div>
                     ) : null}
                   </div>
+                  
+                  {/* Counterfactual Callout (feature-flagged, top 3 only) */}
+                  {qualityPackEnabled && isTop3 && (
+                    <div className="mt-4">
+                      <CounterfactualCallout opportunity={opp} />
+                    </div>
+                  )}
                 </article>
               )
             })}
@@ -1795,11 +1868,19 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
   // Extract citations from opportunities artifact
   const citations = extractCitationsFromArtifact(opportunities ?? null)
   
+  // Feature flag check
+  const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')
+  
   if (!opportunities || !opportunities.opportunities?.length) {
     return (
       <section className="space-y-6">
         {/* Evidence panel - show even when no opportunities yet */}
         <EvidenceConfidencePanel citations={citations} />
+        
+        {/* Evidence Coverage Panel (feature-flagged) */}
+        {qualityPackEnabled && (
+          <EvidenceCoveragePanel artifact={opportunities} />
+        )}
         
         <SectionCard className="py-16">
           <div className="w-full max-w-md space-y-6 text-center mx-auto">
@@ -1828,8 +1909,19 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
     )
   }
 
+  // Apply compression if feature flag is enabled
+  let opportunitiesToRender = opportunities.opportunities
+  let compressionStats: { original: number; merged: number } | null = null
+  
+  if (qualityPackEnabled) {
+    const compressed = compressOpportunities(opportunities.opportunities)
+    // Using unknown first to satisfy TypeScript's strict type checking
+    opportunitiesToRender = compressed.items as unknown as typeof opportunities.opportunities
+    compressionStats = compressed.stats
+  }
+
   // Sort by score descending
-  const sortedOpportunities = [...opportunities.opportunities].sort((a, b) => {
+  const sortedOpportunities = [...opportunitiesToRender].sort((a, b) => {
     const scoreA = getOpportunityScore(a) ?? 0
     const scoreB = getOpportunityScore(b) ?? 0
     return scoreB - scoreA
@@ -1873,6 +1965,18 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
     <section className="space-y-6">
       {/* Evidence & Confidence Panel - at the top */}
       <EvidenceConfidencePanel citations={citations} />
+      
+      {/* Evidence Coverage Panel (feature-flagged) */}
+      {qualityPackEnabled && (
+        <EvidenceCoveragePanel artifact={opportunities} />
+      )}
+      
+      {/* Compression stats (feature-flagged) */}
+      {qualityPackEnabled && compressionStats && compressionStats.merged > 0 && (
+        <div className="text-sm text-muted-foreground">
+          Merged {compressionStats.merged} duplicate{compressionStats.merged !== 1 ? 's' : ''}
+        </div>
+      )}
       
       {/* Results header with progressive reveal message */}
       <ProgressiveRevealWrapper section="top" storageKey="opportunities-progressive-reveal">
@@ -1965,7 +2069,16 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
           <header className="space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <h2 className="text-2xl font-semibold text-foreground leading-tight mb-2">{opp.title}</h2>
+                <div className="flex items-start gap-2 mb-2">
+                  <h2 className="text-2xl font-semibold text-foreground leading-tight">{opp.title}</h2>
+                  {/* Merge Badge (feature-flagged) */}
+                  {qualityPackEnabled && 'mergedCount' in opp && typeof opp.mergedCount === 'number' && opp.mergedCount > 1 && (
+                    <MergeBadge
+                      mergedCount={opp.mergedCount}
+                      mergedTitles={('mergedTitles' in opp && Array.isArray(opp.mergedTitles)) ? (opp.mergedTitles as string[]) : []}
+                    />
+                  )}
+                </div>
                 <p className="text-base text-foreground leading-relaxed">{opp.one_liner}</p>
               </div>
               {getOpportunityScore(opp) !== null && (
@@ -1998,6 +2111,11 @@ function OpportunitiesV3Section({ opportunities, projectId }: OpportunitiesV3Sec
 
           {/* Decision Confidence Panel */}
           <DecisionConfidencePanel confidence={confidence} />
+
+          {/* Counterfactual Callout (feature-flagged, top 3 only) */}
+          {qualityPackEnabled && index < 3 && (
+            <CounterfactualCallout opportunity={opp} />
+          )}
 
           {/* Hard to copy because - prominent callout */}
           <HardToCopyCallout opportunity={opp} />
