@@ -157,7 +157,7 @@ export function ArtifactPreviewHero() {
             </div>
             
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start pt-2">
-              <Link href="/try">
+              <Link href="/new">
                 <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105">
                   Try Plinth
                 </Button>

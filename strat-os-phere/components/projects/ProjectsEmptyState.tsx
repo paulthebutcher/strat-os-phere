@@ -19,7 +19,7 @@ export function ProjectsEmptyState() {
 
       <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
         <Button asChild size="lg" variant="brand" className="w-full sm:w-auto">
-          <Link href="/projects/new?onboarding=1">Start guided analysis</Link>
+          <Link href="/new?onboarding=1">Start guided analysis</Link>
         </Button>
         <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
           <Link href="/samples">Try an example</Link>

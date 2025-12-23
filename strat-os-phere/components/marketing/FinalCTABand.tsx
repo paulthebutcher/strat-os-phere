@@ -26,7 +26,7 @@ export function FinalCTABand() {
               Start with a company and your decision context. We'll gather evidence and deliver ranked, defensible strategic bets with citations.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
-              <Link href="/try">
+              <Link href="/new">
                 <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow">
                   Start a new analysis
                 </Button>

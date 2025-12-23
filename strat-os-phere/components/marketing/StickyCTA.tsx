@@ -23,7 +23,7 @@ export function StickyCTA() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 transition-opacity duration-300 opacity-100">
-      <Link href="/try">
+      <Link href="/new">
         <Button
           size="lg"
           className={cn(

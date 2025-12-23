@@ -73,7 +73,7 @@ export default async function SamplesPage() {
 
           <div className="pt-6 border-t border-border">
             <Button asChild variant="brand">
-              <Link href="/projects/new">
+              <Link href="/new">
                 Create your own analysis
               </Link>
             </Button>

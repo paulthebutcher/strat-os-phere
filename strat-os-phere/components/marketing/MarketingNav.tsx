@@ -79,7 +79,7 @@ export function MarketingNav() {
             </Button>
           </Link>
           <HelpDrawer />
-          <Link href="/try">
+          <Link href="/new">
             <Button
               size="sm"
               className="shadow-sm hover:shadow-md transition-all"
@@ -143,7 +143,7 @@ export function MarketingNav() {
             <div className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
               <HelpDrawer />
             </div>
-            <Link href="/try" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/new" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
               <Button size="sm" className="w-full shadow-sm hover:shadow-md transition-all">
                 Try
               </Button>

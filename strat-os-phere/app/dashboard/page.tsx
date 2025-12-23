@@ -74,7 +74,7 @@ export default async function DashboardPage() {
           title="Projects"
           subtitle="Create and manage competitive analyses. Start new or resume recent work."
           primaryAction={
-            <Link href="/projects/new">
+            <Link href="/new">
               <Button size="lg" variant="brand">New analysis</Button>
             </Link>
           }
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
             action={
               <>
                 <Button asChild size="lg" variant="brand" className="w-full sm:w-auto">
-                  <Link href="/projects/new?onboarding=1">Start guided analysis</Link>
+                  <Link href="/new?onboarding=1">Start guided analysis</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
                   <Link href="/samples">Try an example</Link>

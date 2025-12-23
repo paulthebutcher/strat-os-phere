@@ -68,7 +68,7 @@ export default async function SamplePage(props: SamplePageProps) {
   // CTA for sample mode
   const cta = {
     label: 'Run your own analysis',
-    href: '/projects/new',
+    href: '/new',
   }
 
   return (

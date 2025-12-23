@@ -55,7 +55,7 @@ export const guidanceContent: Record<PageId, PageGuidance> = {
       'Not naming projects clearly enough to find them later',
     ],
     links: [
-      { label: 'Create new analysis', href: '/projects/new' },
+      { label: 'Create new analysis', href: '/new' },
       { label: 'Help center', href: '/help' },
     ],
   },

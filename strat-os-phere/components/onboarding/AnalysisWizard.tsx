@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CheckCircle2, Circle } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
@@ -15,22 +15,69 @@ import { Section } from '@/components/layout/Section'
 
 interface AnalysisWizardProps {
   onComplete?: (state: WizardState) => void
+  onStateChange?: (state: Partial<WizardState>) => void
   isGuidedMode?: boolean
+  isAuthenticated?: boolean
+  initialState?: WizardState
 }
 
-export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWizardProps) {
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
-  const [wizardState, setWizardState] = useState<WizardState>({
+const getInitialState = (initialState?: WizardState): WizardState => {
+  if (initialState) {
+    return initialState
+  }
+  return {
     primaryCompanyName: '',
     contextText: undefined,
     resolvedSources: [],
     suggestedCompetitors: [],
     selectedCompetitors: [],
     evidenceWindowDays: 90,
-  })
+  }
+}
+
+const getInitialStep = (state: WizardState): 1 | 2 | 3 => {
+  // If we have company name and competitors, go to step 3
+  if (state.primaryCompanyName && state.selectedCompetitors.length > 0) {
+    return 3
+  }
+  // If we have company name, go to step 2
+  if (state.primaryCompanyName) {
+    return 2
+  }
+  return 1
+}
+
+export function AnalysisWizard({ 
+  onComplete, 
+  onStateChange,
+  isGuidedMode = false,
+  isAuthenticated = true,
+  initialState,
+}: AnalysisWizardProps) {
+  const initialWizardState = getInitialState(initialState)
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(getInitialStep(initialWizardState))
+  const [wizardState, setWizardState] = useState<WizardState>(initialWizardState)
+
+  // Update state when initialState changes (e.g., after login)
+  useEffect(() => {
+    if (initialState) {
+      setWizardState(initialState)
+      setCurrentStep(getInitialStep(initialState))
+    }
+  }, [initialState])
+
+  const updateState = (updates: Partial<WizardState>) => {
+    setWizardState((prev) => {
+      const updated = { ...prev, ...updates }
+      if (onStateChange) {
+        onStateChange(updates)
+      }
+      return updated
+    })
+  }
 
   const handleStep1Complete = (state: Partial<WizardState>) => {
-    setWizardState((prev) => ({ ...prev, ...state }))
+    updateState(state)
     setCurrentStep(2)
   }
 
@@ -39,7 +86,7 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
   }
 
   const handleStep2Complete = (state: Partial<WizardState>) => {
-    setWizardState((prev) => ({ ...prev, ...state }))
+    updateState(state)
     setCurrentStep(3)
   }
 
@@ -49,6 +96,7 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
 
   const handleStep3Complete = (state: Partial<WizardState>) => {
     const finalState = { ...wizardState, ...state }
+    updateState(state)
     if (onComplete) {
       onComplete(finalState)
     }
@@ -205,6 +253,7 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
                 state={wizardState}
                 onBack={handleStep3Back}
                 onComplete={handleStep3Complete}
+                isAuthenticated={isAuthenticated}
               />
             </Section>
           </div>

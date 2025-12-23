@@ -29,7 +29,7 @@ export function CTABand() {
               Start with a company + your decision. We'll do the research and give you ranked, defensible options.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
-              <Link href="/try">
+              <Link href="/new">
                 <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   Try Plinth
                 </Button>

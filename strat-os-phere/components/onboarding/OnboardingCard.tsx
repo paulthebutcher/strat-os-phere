@@ -58,7 +58,7 @@ export function OnboardingCard({ onDismiss }: OnboardingCardProps) {
         </div>
 
         <div className="flex items-center gap-3 pt-2">
-          <Link href="/projects/new?onboarding=1">
+          <Link href="/new?onboarding=1">
             <Button size="lg" variant="brand" className="flex-1">
               Start guided analysis
             </Button>

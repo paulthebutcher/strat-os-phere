@@ -16,6 +16,7 @@ interface WizardStep3DetailsProps {
   state: WizardState
   onBack: () => void
   onComplete: (state: Partial<WizardState>) => void
+  isAuthenticated?: boolean
 }
 
 const PRICING_MODEL_OPTIONS: PricingModel[] = [
@@ -35,6 +36,7 @@ export function WizardStep3Details({
   state,
   onBack,
   onComplete,
+  isAuthenticated = true,
 }: WizardStep3DetailsProps) {
   const router = useRouter()
   const [projectName, setProjectName] = useState(state.projectName || '')
@@ -52,6 +54,12 @@ export function WizardStep3Details({
   const handleGenerateAnalysis = async () => {
     if (!canGenerate) {
       setError('Project name is required')
+      return
+    }
+
+    // If not authenticated, redirect to login
+    if (!isAuthenticated) {
+      router.push(`/login?next=${encodeURIComponent('/new')}`)
       return
     }
 
@@ -314,31 +322,40 @@ export function WizardStep3Details({
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between gap-4 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onBack}
-          disabled={running}
-        >
-          Back to competitors
-        </Button>
-        <Button
-          type="button"
-          onClick={handleGenerateAnalysis}
-          disabled={!canGenerate || running}
-          variant="brand"
-          size="lg"
-        >
-          {running ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Generating...
-            </>
-          ) : (
-            'Generate analysis'
-          )}
-        </Button>
+      <div className="flex flex-col gap-4 pt-2">
+        {!isAuthenticated && (
+          <div className="rounded-lg border border-border bg-surface-muted/50 px-4 py-3">
+            <p className="text-sm text-muted-foreground">
+              You'll be asked to sign in to save and generate results.
+            </p>
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onBack}
+            disabled={running}
+          >
+            Back to competitors
+          </Button>
+          <Button
+            type="button"
+            onClick={handleGenerateAnalysis}
+            disabled={!canGenerate || running}
+            variant="brand"
+            size="lg"
+          >
+            {running ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Generating...
+              </>
+            ) : (
+              'Generate analysis'
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   )

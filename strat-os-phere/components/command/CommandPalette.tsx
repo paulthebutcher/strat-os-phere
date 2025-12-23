@@ -47,7 +47,7 @@ const COMMANDS: CommandItem[] = [
     label: 'New Analysis',
     keywords: 'new project create analysis',
     section: 'Navigate',
-    href: '/projects/new',
+    href: '/new',
     icon: Plus,
   },
   {
