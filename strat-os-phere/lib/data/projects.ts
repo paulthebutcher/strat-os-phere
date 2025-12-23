@@ -1,7 +1,8 @@
 import type { TypedSupabaseClient, Project, NewProject } from '@/lib/supabase/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
-import { PROJECT_FULL_SELECT, PROJECT_LIST_SELECT } from './projectSelect'
+import { PROJECT_FULL_SELECT, PROJECT_LIST_SELECT, PROJECT_DASHBOARD_SELECT } from './projectSelect'
+import { isMissingColumnError } from '@/lib/db/safeDb'
 
 type Client = TypedSupabaseClient
 
@@ -42,15 +43,19 @@ export async function listProjectsForOwner(
   ownerId: string
 ): Promise<Project[]> {
   const typedClient = getTypedClient(client)
-  // Use safe selector that excludes non-existent columns (starting_point, customer_profile)
+  // Use safe dashboard selector that only includes confirmed production columns
   const { data, error } = await typedClient
     .from('projects')
-    .select(PROJECT_FULL_SELECT)
+    .select(PROJECT_DASHBOARD_SELECT)
     .eq('user_id', ownerId)
     .order('created_at', { ascending: false })
 
   if (error) {
-    throw new Error(error.message)
+    // Re-throw with context for error handling
+    const enhancedError = new Error(`Failed to list projects: ${error.message}`)
+    ;(enhancedError as any).originalError = error
+    ;(enhancedError as any).isMissingColumn = isMissingColumnError(error)
+    throw enhancedError
   }
 
   return data ?? []
@@ -128,15 +133,19 @@ export async function listProjectsWithCounts(
 ): Promise<ProjectWithCounts[]> {
   const typedClient = getTypedClient(client)
   
-  // Fetch all projects using safe selector that excludes non-existent columns
+  // Fetch all projects using safe dashboard selector that only includes confirmed production columns
   const { data: projects, error: projectsError } = await typedClient
     .from('projects')
-    .select(PROJECT_FULL_SELECT)
+    .select(PROJECT_DASHBOARD_SELECT)
     .eq('user_id', ownerId)
     .order('created_at', { ascending: false })
 
   if (projectsError) {
-    throw new Error(projectsError.message)
+    // Re-throw with context for error handling
+    const enhancedError = new Error(`Failed to list projects with counts: ${projectsError.message}`)
+    ;(enhancedError as any).originalError = projectsError
+    ;(enhancedError as any).isMissingColumn = isMissingColumnError(projectsError)
+    throw enhancedError
   }
 
   if (!projects || projects.length === 0) {
@@ -237,14 +246,19 @@ export async function listProjectsWithCounts(
   // Combine data
   return projectList.map((project): ProjectWithCounts => {
     const projectId = project.id
+    // Safely extract updated_at (may not exist in schema)
+    const updatedAt = 'updated_at' in project && typeof (project as any).updated_at === 'string'
+      ? (project as any).updated_at
+      : null
+    
     return {
       id: project.id,
       name: project.name,
       market: project.market,
-      latest_successful_run_id: project.latest_successful_run_id,
-      latest_run_id: project.latest_run_id,
+      latest_successful_run_id: project.latest_successful_run_id ?? null,
+      latest_run_id: project.latest_run_id ?? null,
       created_at: project.created_at,
-      updated_at: 'updated_at' in project ? (project as any).updated_at : null,
+      updated_at: updatedAt,
       competitorCount: competitorCountMap.get(projectId) ?? 0,
       competitorsWithEvidenceCount: competitorsWithEvidenceMap.get(projectId) ?? 0,
       evidenceSourceCount: evidenceCountMap.get(projectId) ?? 0,

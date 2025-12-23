@@ -17,6 +17,7 @@ import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Section } from '@/components/layout/Section'
 import { EmptyState } from '@/components/layout/EmptyState'
+import { PageErrorState } from '@/components/system/PageErrorState'
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
@@ -42,15 +43,49 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Fetch projects with counts for table view
-  const projectsWithCounts = await listProjectsWithCounts(supabase, user.id)
-  
-  // Map to table rows
-  const tableRows = projectsWithCounts.map(toProjectsListRow)
+  console.log('[dashboard] loading projects for user', user.id)
 
-  // Also fetch basic projects for ContinuePanel and OnboardingCardWrapper (they use ProjectCardModel)
-  const projects = await listProjectsForOwner(supabase, user.id)
-  const projectCards = projects.map(toProjectCardModel)
+  // Fetch projects with error handling
+  let projectsWithCounts
+  let projects
+  let tableRows: ReturnType<typeof toProjectsListRow>[] = []
+  let projectCards: ReturnType<typeof toProjectCardModel>[] = []
+
+  try {
+    // Fetch projects with counts for table view
+    projectsWithCounts = await listProjectsWithCounts(supabase, user.id)
+    tableRows = projectsWithCounts.map(toProjectsListRow)
+
+    // Also fetch basic projects for ContinuePanel and OnboardingCardWrapper (they use ProjectCardModel)
+    projects = await listProjectsForOwner(supabase, user.id)
+    projectCards = projects.map(toProjectCardModel)
+  } catch (error: any) {
+    console.error('[dashboard] failed to load projects', error)
+    
+    // Check if this is a missing column error
+    const isMissingColumn = error?.isMissingColumn ?? false
+    const originalError = error?.originalError ?? error
+
+    // Render error state instead of crashing
+    return (
+      <DashboardPageClient>
+        <PageShell data-testid="projects-page">
+          <PageHeader
+            title="Projects"
+            subtitle="Create and manage competitive analyses. Start new or resume recent work."
+            primaryAction={
+              <Link href="/new">
+                <Button size="lg" variant="brand">New analysis</Button>
+              </Link>
+            }
+          />
+          <Section>
+            <PageErrorState isMissingColumn={isMissingColumn} />
+          </Section>
+        </PageShell>
+      </DashboardPageClient>
+    )
+  }
 
   // Find most recent project for "Continue" panel
   const mostRecentProject = projectCards.length > 0

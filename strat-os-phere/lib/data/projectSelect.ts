@@ -106,3 +106,21 @@ export const PROJECT_RESULTS_SELECT = `
   created_at
 `.trim().replace(/\s+/g, ' ')
 
+/**
+ * Minimal project fields for /dashboard page.
+ * Only includes columns confirmed to exist in production:
+ * id, user_id, name, market, created_at
+ * 
+ * Also includes latest_successful_run_id and latest_run_id which are
+ * needed for dashboard table functionality and were added via migration.
+ */
+export const PROJECT_DASHBOARD_SELECT = `
+  id,
+  user_id,
+  name,
+  market,
+  latest_successful_run_id,
+  latest_run_id,
+  created_at
+`.trim().replace(/\s+/g, ' ')
+
