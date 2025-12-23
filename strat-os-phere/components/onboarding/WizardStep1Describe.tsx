@@ -208,163 +208,159 @@ export function WizardStep1Describe({
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        {/* Left column: Main form */}
-        <div className="min-w-0">
-          <AnalysisContextForm
-            companyName={companyName}
-            decision={decision}
-            market={market}
-            notes={notes}
-            onCompanyNameChange={(value) => {
-              setCompanyName(value)
-              setError(null)
-            }}
-            onDecisionChange={(value) => {
-              setDecision(value)
-              setError(null)
-            }}
-            onMarketChange={(value) => {
-              setMarket(value)
-              setError(null)
-            }}
-            onNotesChange={(value) => {
-              setNotes(value)
-              setError(null)
-            }}
-          />
+      {/* Main form - full width */}
+      <div className="space-y-6">
+        <AnalysisContextForm
+          companyName={companyName}
+          decision={decision}
+          market={market}
+          notes={notes}
+          onCompanyNameChange={(value) => {
+            setCompanyName(value)
+            setError(null)
+          }}
+          onDecisionChange={(value) => {
+            setDecision(value)
+            setError(null)
+          }}
+          onMarketChange={(value) => {
+            setMarket(value)
+            setError(null)
+          }}
+          onNotesChange={(value) => {
+            setNotes(value)
+            setError(null)
+          }}
+        />
 
-          {/* Status messages */}
-          {isLoading && (
-            <div className="mt-6 flex items-center gap-3 p-4 rounded-lg border border-border bg-muted/30">
-              <Loader2 className="h-5 w-5 animate-spin text-indigo-600 dark:text-indigo-400" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">
-                  {status === 'searching' && 'Searching the web...'}
-                  {status === 'finding_sources' &&
-                    'Finding pricing/docs/changelog...'}
-                  {status === 'recommending_competitors' &&
-                    'Recommending competitors...'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Error message */}
-          {error && (
-            <div className="mt-6 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3">
-              <p className="text-sm font-medium text-destructive">{error}</p>
-              {error.includes('Tavily') && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Try adding 'software' or 'platform' to the company name, or
-                  check your internet connection.
-                </p>
-              )}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleDiscover}
-                disabled={isLoading}
-                className="mt-3"
-              >
-                Retry
-              </Button>
-            </div>
-          )}
-
-          {/* Success message */}
-          {status === 'success' && discoveryResult && (
-            <div className="mt-6 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20 px-4 py-3">
+        {/* Status messages */}
+        {isLoading && (
+          <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-muted/30">
+            <Loader2 className="h-5 w-5 animate-spin text-indigo-600 dark:text-indigo-400" />
+            <div className="flex-1">
               <p className="text-sm font-medium text-foreground">
-                Found {discoveryResult.sources.length} sources and{' '}
-                {discoveryResult.competitors.length} competitor suggestions
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Proceeding to next step...
+                {status === 'searching' && 'Searching the web...'}
+                {status === 'finding_sources' &&
+                  'Finding pricing/docs/changelog...'}
+                {status === 'recommending_competitors' &&
+                  'Recommending competitors...'}
               </p>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Actions */}
-          <div className="mt-6 space-y-3">
-            <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                onClick={handleDiscover}
-                disabled={isLoading || !canContinue}
-                className="flex-1"
-                size="lg"
-                variant="brand"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Generating research plan...
-                  </>
-                ) : (
-                  <>
-                    <Search className="h-4 w-4 mr-2" />
-                    Generate research plan
-                  </>
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleTryExample}
-                disabled={isLoading}
-                size="lg"
-              >
-                Try an example
-              </Button>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground text-center">
-                We'll find official pages, pricing, docs, and likely competitors.
+        {/* Error message */}
+        {error && (
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3">
+            <p className="text-sm font-medium text-destructive">{error}</p>
+            {error.includes('Tavily') && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Try adding 'software' or 'platform' to the company name, or
+                check your internet connection.
               </p>
-              <p className="text-xs text-muted-foreground text-center">
-                Step 2: confirm competitors → Step 3: generate opportunities
-              </p>
-            </div>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDiscover}
+              disabled={isLoading}
+              className="mt-3"
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {/* Success message */}
+        {status === 'success' && discoveryResult && (
+          <div className="rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20 px-4 py-3">
+            <p className="text-sm font-medium text-foreground">
+              Found {discoveryResult.sources.length} sources and{' '}
+              {discoveryResult.competitors.length} competitor suggestions
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Proceeding to next step...
+            </p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              onClick={handleDiscover}
+              disabled={isLoading || !canContinue}
+              className="flex-1"
+              size="lg"
+              variant="brand"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Generating research plan...
+                </>
+              ) : (
+                <>
+                  <Search className="h-4 w-4 mr-2" />
+                  Generate research plan
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleTryExample}
+              disabled={isLoading}
+              size="lg"
+            >
+              Try an example
+            </Button>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground text-center">
+              We'll find official pages, pricing, docs, and likely competitors.
+            </p>
+            <p className="text-xs text-muted-foreground text-center">
+              Step 2: confirm competitors → Step 3: generate opportunities
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Right column: Stacked side rail */}
-        <aside className="flex flex-col gap-4">
-          <div className="lg:sticky lg:top-20 space-y-4">
-            <AnalysisFramingCard
-              companyName={companyName}
-              decision={decision}
-              market={market}
-            />
-            <SurfaceCard className="p-6 shadow-md">
-              <h3 className="text-base font-semibold text-foreground mb-4">
-                What you'll get
-              </h3>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <span>Ranked opportunities with scores</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <span>Evidence & confidence metrics</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <span>Citations and source links</span>
-                </li>
-              </ul>
-              <div className="mt-6 pt-6 border-t border-border">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Only public pages are used. Don't paste confidential
-                  information.
-                </p>
-              </div>
-            </SurfaceCard>
+      {/* Bottom row: Info cards side-by-side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AnalysisFramingCard
+          companyName={companyName}
+          decision={decision}
+          market={market}
+        />
+        <SurfaceCard className="p-6 shadow-md">
+          <h3 className="text-base font-semibold text-foreground mb-4">
+            What you'll get
+          </h3>
+          <ul className="space-y-3 text-sm text-muted-foreground">
+            <li className="flex items-start gap-2.5">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <span>Ranked opportunities with scores</span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <span>Evidence & confidence metrics</span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <span>Citations and source links</span>
+            </li>
+          </ul>
+          <div className="mt-6 pt-6 border-t border-border">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Only public pages are used. Don't paste confidential
+              information.
+            </p>
           </div>
-        </aside>
+        </SurfaceCard>
       </div>
     </div>
   )

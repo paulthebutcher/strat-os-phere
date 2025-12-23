@@ -60,7 +60,7 @@ export function AnalysisFramingCard({
                   {companyName}
                 </span>
               ) : (
-                <span className="text-muted-foreground italic">[company name]</span>
+                <span className="text-muted-foreground italic">—</span>
               )}
             </span>
           </div>
@@ -71,18 +71,20 @@ export function AnalysisFramingCard({
               {hasMarket ? (
                 market
               ) : (
-                <span className="text-muted-foreground italic">your market</span>
+                <span className="text-muted-foreground italic">—</span>
               )}
             </span>
           </div>
           
           <div className="flex items-start gap-2">
-            <span className="text-muted-foreground shrink-0">To decide:</span>
+            <span className="text-muted-foreground shrink-0">Decision:</span>
             <span className="font-medium text-foreground">
               {hasDecision ? (
-                <span className="line-clamp-2">{decision}</span>
+                <span className="line-clamp-2">
+                  {decision.length > 80 ? `${decision.substring(0, 80)}...` : decision}
+                </span>
               ) : (
-                <span className="text-muted-foreground italic">[decision]</span>
+                <span className="text-muted-foreground italic">—</span>
               )}
             </span>
           </div>
@@ -114,7 +116,7 @@ export function AnalysisFramingCard({
           ))}
         </div>
         <div className="mt-1.5 text-xs text-muted-foreground">
-          {filledCount}/3 fields
+          {filledCount} / 3 signals provided
         </div>
       </div>
     </SurfaceCard>

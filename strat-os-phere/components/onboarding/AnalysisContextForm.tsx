@@ -4,8 +4,12 @@ import { useState } from 'react'
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Collapsible } from '@/components/ui/collapsible'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 
 interface AnalysisContextFormProps {
   companyName: string
@@ -28,14 +32,11 @@ export function AnalysisContextForm({
   onMarketChange,
   onNotesChange,
 }: AnalysisContextFormProps) {
-  const [oneLiner, setOneLiner] = useState('')
-  const [showApplyHelper, setShowApplyHelper] = useState(false)
-
-  // Rotating placeholder examples
+  // Rotating placeholder examples for the magic input
   const placeholderExamples = [
     "We're building for IT ops—how should we differentiate vs PagerDuty?",
-    'Which segment should we enter first in APAC?',
-    'Why are we losing deals to monday.com?',
+    'Which segment should we enter first, and why?',
+    'Why are we losing deals to Asana?',
   ]
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
 
@@ -51,175 +52,127 @@ export function AnalysisContextForm({
     return null
   }
 
-  const handleOneLinerChange = (value: string) => {
-    setOneLiner(value)
-    setShowApplyHelper(value.trim().length > 0)
-  }
-
-  const handleApplyToFields = () => {
-    if (!oneLiner.trim()) return
-
-    // Try to extract company name
-    const extractedCompany = extractCompanyFromText(oneLiner)
+  // Handle magic input - map to decision field primarily, but try to extract company
+  const handleMagicInputChange = (value: string) => {
+    // Update decision field (primary mapping)
+    onDecisionChange(value)
+    
+    // Try to extract company name if not already set
+    const extractedCompany = extractCompanyFromText(value)
     if (extractedCompany && !companyName.trim()) {
       onCompanyNameChange(extractedCompany)
     }
-
-    // Copy one-liner to decision if empty
-    if (!decision.trim()) {
-      onDecisionChange(oneLiner.trim())
-    }
-
-    // Clear the one-liner after applying
-    setOneLiner('')
-    setShowApplyHelper(false)
   }
 
+  // Use decision as the primary "magic input" value
+  const magicInputValue = decision
+
   return (
-    <SurfaceCard className="p-6 shadow-md">
+    <SurfaceCard className="p-6 md:p-8 shadow-md border-t-4 border-t-primary/20">
       <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-semibold text-foreground mb-2 tracking-tight">
-            Describe your situation
-          </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Start with the context for your analysis. We'll help you gather evidence and identify opportunities.
-          </p>
-        </div>
-
-        {/* One-liner starter field */}
+        {/* Magic input - primary field */}
         <div className="space-y-2">
           <label
-            htmlFor="oneLiner"
+            htmlFor="magicInput"
             className="text-sm font-semibold text-foreground"
           >
-            In one line, what are you trying to figure out?
-            <span className="text-muted-foreground font-normal ml-1">
-              (optional)
-            </span>
-          </label>
-          <div className="space-y-2">
-            <Textarea
-              id="oneLiner"
-              value={oneLiner}
-              onChange={(e) => handleOneLinerChange(e.target.value)}
-              placeholder={placeholderExamples[placeholderIndex]}
-              rows={2}
-              className="text-base"
-              onFocus={() => {
-                // Rotate placeholder on focus
-                setPlaceholderIndex((prev) => (prev + 1) % placeholderExamples.length)
-              }}
-            />
-            {showApplyHelper && (
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
-                  We'll use this to pre-fill the fields below.
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleApplyToFields}
-                >
-                  Apply to fields
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Company or product name */}
-        <div className="space-y-2">
-          <label
-            htmlFor="companyName"
-            className="text-sm font-semibold text-foreground"
-          >
-            Company or product name
-            <span className="text-destructive ml-1">*</span>
-          </label>
-          <Input
-            id="companyName"
-            type="text"
-            value={companyName}
-            onChange={(e) => onCompanyNameChange(e.target.value)}
-            placeholder="e.g. monday.com, Asana, PagerDuty"
-            required
-            className="text-base"
-          />
-        </div>
-
-        {/* Decision */}
-        <div className="space-y-2">
-          <label
-            htmlFor="decision"
-            className="text-sm font-semibold text-foreground"
-          >
-            What decision are you making?
+            What are you trying to decide?
             <span className="text-destructive ml-1">*</span>
           </label>
           <Textarea
-            id="decision"
-            value={decision}
-            onChange={(e) => onDecisionChange(e.target.value)}
-            placeholder="e.g., Which segment should we enter? What should we build next? Why are we losing deals?"
+            id="magicInput"
+            value={magicInputValue}
+            onChange={(e) => handleMagicInputChange(e.target.value)}
+            placeholder={placeholderExamples[placeholderIndex]}
             rows={3}
             required
             className="text-base"
+            onFocus={() => {
+              // Rotate placeholder on focus
+              setPlaceholderIndex((prev) => (prev + 1) % placeholderExamples.length)
+            }}
           />
+          <p className="text-xs text-muted-foreground">
+            Write it like you'd text a teammate. We'll infer what to research.
+          </p>
         </div>
 
-        {/* Market / category - now optional with soft warning */}
-        <div className="space-y-2">
-          <label
-            htmlFor="market"
-            className="text-sm font-semibold text-foreground"
-          >
-            Market / category
-            <span className="text-muted-foreground font-normal ml-1">
-              (optional)
-            </span>
-          </label>
-          <Input
-            id="market"
-            type="text"
-            value={market}
-            onChange={(e) => onMarketChange(e.target.value)}
-            placeholder="e.g. Project management software, Incident management platforms"
-            className="text-base"
-          />
-          {!market.trim() && (companyName.trim() || decision.trim()) && (
-            <p className="text-xs text-muted-foreground">
-              Market helps improve competitor recommendations. You can add it later.
-            </p>
-          )}
-        </div>
+        {/* Progressive disclosure: Add details accordion */}
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="details" className="border-none">
+            <AccordionTrigger className="py-2 hover:no-underline text-sm font-medium text-foreground">
+              Add details (recommended)
+            </AccordionTrigger>
+            <AccordionContent className="pt-4 pb-0 space-y-4">
+              {/* Company or product name */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="companyName"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Company or product name
+                    <span className="text-destructive ml-1">*</span>
+                  </label>
+                  <span className="text-xs text-muted-foreground">Helps us find official sources</span>
+                </div>
+                <Input
+                  id="companyName"
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => onCompanyNameChange(e.target.value)}
+                  placeholder="e.g. monday.com, Asana, PagerDuty"
+                  required
+                  className="text-sm"
+                />
+              </div>
 
-        {/* Optional details - collapsed by default */}
-        {onNotesChange && (
-          <Collapsible
-            title="Optional details"
-            description="Constraints, geography, pricing, ICP"
-            defaultOpen={false}
-          >
-            <div className="space-y-2">
-              <label
-                htmlFor="notes"
-                className="text-sm font-semibold text-foreground"
-              >
-                Notes / constraints
-              </label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => onNotesChange(e.target.value)}
-                placeholder="Any additional context, constraints, or considerations..."
-                rows={3}
-                className="text-sm"
-              />
-            </div>
-          </Collapsible>
-        )}
+              {/* Market / category */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="market"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Market / category
+                  </label>
+                  <span className="text-xs text-muted-foreground">Improves competitor relevance</span>
+                </div>
+                <Input
+                  id="market"
+                  type="text"
+                  value={market}
+                  onChange={(e) => onMarketChange(e.target.value)}
+                  placeholder="e.g. Project management software, Incident management platforms"
+                  className="text-sm"
+                />
+              </div>
+
+              {/* Notes / constraints */}
+              {onNotesChange && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="notes"
+                      className="text-sm font-medium text-foreground"
+                    >
+                      Notes / constraints
+                    </label>
+                    <span className="text-xs text-muted-foreground">Constraints we should respect</span>
+                  </div>
+                  <Textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e) => onNotesChange(e.target.value)}
+                    placeholder="Any additional context, constraints, or considerations..."
+                    rows={3}
+                    className="text-sm"
+                  />
+                </div>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </SurfaceCard>
   )

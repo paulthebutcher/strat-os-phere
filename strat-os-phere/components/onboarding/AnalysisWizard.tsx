@@ -1,11 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, Circle, Sparkles } from 'lucide-react'
+import { CheckCircle2, Circle } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
-import { Button } from '@/components/ui/button'
-import { HeroPanel } from '@/components/shared/HeroPanel'
 import type { WizardState } from '@/lib/onboarding/types'
 import { WizardStep1Describe } from './WizardStep1Describe'
 import { WizardStep2Confirm } from './WizardStep2Confirm'
@@ -45,30 +43,17 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 md:px-6 animate-fade-in">
-      {/* Hero Panel - Only show on step 1 */}
+      {/* Compact header - Only show on step 1 */}
       {currentStep === 1 && (
-        <div className="mb-8">
-          <HeroPanel
-            title="Create a new analysis"
-            subtitle="Tell us what to analyze and we'll discover sources, recommend competitors, and generate strategic opportunities."
-            icon={<Sparkles className="h-8 w-8 text-white/90" />}
-            gradient={true}
-          >
-            <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 text-sm">
-              <li className="flex items-start gap-2 text-white/90">
-                <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
-                <span>Automated source discovery</span>
-              </li>
-              <li className="flex items-start gap-2 text-white/90">
-                <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
-                <span>Competitor recommendations</span>
-              </li>
-              <li className="flex items-start gap-2 text-white/90">
-                <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
-                <span>Ranked opportunities</span>
-              </li>
-            </ul>
-          </HeroPanel>
+        <div className="mb-6">
+          <div className="space-y-2">
+            <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+              Create a new analysis
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Tell us what to analyze and we'll discover sources, recommend competitors, and generate strategic opportunities.
+            </p>
+          </div>
         </div>
       )}
 
