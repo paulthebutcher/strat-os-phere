@@ -22,6 +22,8 @@ import { getParam } from '@/lib/routing/searchParams'
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Section } from '@/components/layout/Section'
+import { safeQuery } from '@/lib/db/safeQuery'
+import { InlineErrorState } from '@/components/system/InlineErrorState'
 
 interface OverviewPageProps {
   params: Promise<{
@@ -61,7 +63,36 @@ export default async function OverviewPage(props: OverviewPageProps) {
     notFound()
   }
 
-  const project = await getProjectById(supabase, projectId)
+  // Use safe query wrapper to handle schema drift gracefully
+  const projectResult = await safeQuery(
+    'getProjectById',
+    `/projects/${projectId}/overview`,
+    () => getProjectById(supabase, projectId)
+  )
+
+  if (!projectResult.success) {
+    // If it's a schema drift error, show user-friendly error state
+    if (projectResult.isSchemaDrift) {
+      return (
+        <PageShell>
+          <PageHeader
+            title="Project Overview"
+            subtitle="Review project status, readiness, and next actions"
+          />
+          <Section>
+            <InlineErrorState
+              title="We hit a data mismatch"
+              subtitle="This usually means the app is ahead of the database schema. We're fixing it."
+            />
+          </Section>
+        </PageShell>
+      )
+    }
+    // For other errors, throw to show Next.js error page
+    throw new Error(projectResult.error)
+  }
+
+  const project = projectResult.data
 
   if (!project || project.user_id !== user.id) {
     notFound()

@@ -73,10 +73,9 @@ export async function createProjectFromForm(
       explicit_non_goals: payload.explicitNonGoals ?? null,
       input_confidence: payload.inputConfidence ?? null,
       // New hypothesis-first fields
-      starting_point: payload.startingPoint ?? 'product', // Default to 'product' for backwards compatibility
+      // Note: starting_point and customer_profile removed - these columns don't exist in production
       hypothesis: payload.hypothesis ?? null,
       problem_statement: payload.problemStatement ?? null,
-      customer_profile: payload.customerProfile ?? null,
       market_context: payload.marketContext ?? null,
       solution_idea: payload.solutionIdea ?? null,
       // Decision framing

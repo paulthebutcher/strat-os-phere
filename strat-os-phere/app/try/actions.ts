@@ -48,10 +48,9 @@ export async function createProjectFromTryDraft(
       decision_level: null,
       explicit_non_goals: null,
       input_confidence: null,
-      starting_point: 'product',
+      // Note: starting_point and customer_profile removed - these columns don't exist in production
       hypothesis: null,
       problem_statement: null,
-      customer_profile: null,
       market_context: null,
       solution_idea: null,
       decision_framing: null,

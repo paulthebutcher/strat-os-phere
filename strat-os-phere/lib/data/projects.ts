@@ -1,6 +1,7 @@
 import type { TypedSupabaseClient, Project, NewProject } from '@/lib/supabase/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
+import { PROJECT_FULL_SELECT, PROJECT_LIST_SELECT } from './projectSelect'
 
 type Client = TypedSupabaseClient
 
@@ -22,8 +23,8 @@ export async function createProject(
       }
     }
   }
-  // Explicitly list columns to avoid customer_profile schema cache error
-  const { data, error } = await query.insert(insertPayload).select('id,user_id,name,market,target_customer,your_product,business_goal,geography,primary_constraint,risk_posture,ambition_level,organizational_capabilities,decision_level,explicit_non_goals,input_confidence,starting_point,hypothesis,problem_statement,market_context,solution_idea,decision_framing,latest_successful_run_id,latest_run_id,created_at').single()
+  // Use safe selector that excludes non-existent columns (starting_point, customer_profile)
+  const { data, error } = await query.insert(insertPayload).select(PROJECT_FULL_SELECT).single()
 
   if (error !== null) {
     throw new Error(error.message)
@@ -41,10 +42,10 @@ export async function listProjectsForOwner(
   ownerId: string
 ): Promise<Project[]> {
   const typedClient = getTypedClient(client)
-  // Explicitly list columns to avoid customer_profile schema cache error
+  // Use safe selector that excludes non-existent columns (starting_point, customer_profile)
   const { data, error } = await typedClient
     .from('projects')
-    .select('id,user_id,name,market,target_customer,your_product,business_goal,geography,primary_constraint,risk_posture,ambition_level,organizational_capabilities,decision_level,explicit_non_goals,input_confidence,starting_point,hypothesis,problem_statement,market_context,solution_idea,decision_framing,latest_successful_run_id,latest_run_id,created_at')
+    .select(PROJECT_FULL_SELECT)
     .eq('user_id', ownerId)
     .order('created_at', { ascending: false })
 
@@ -60,10 +61,10 @@ export async function getProjectById(
   projectId: string
 ): Promise<Project | null> {
   const typedClient = getTypedClient(client)
-  // Explicitly list columns to avoid customer_profile schema cache error
+  // Use safe selector that excludes non-existent columns (starting_point, customer_profile)
   const { data, error } = await typedClient
     .from('projects')
-    .select('id,user_id,name,market,target_customer,your_product,business_goal,geography,primary_constraint,risk_posture,ambition_level,organizational_capabilities,decision_level,explicit_non_goals,input_confidence,starting_point,hypothesis,problem_statement,market_context,solution_idea,decision_framing,latest_successful_run_id,latest_run_id,created_at')
+    .select(PROJECT_FULL_SELECT)
     .eq('id', projectId)
     .single()
 
@@ -127,11 +128,10 @@ export async function listProjectsWithCounts(
 ): Promise<ProjectWithCounts[]> {
   const typedClient = getTypedClient(client)
   
-  // Fetch all projects
-  // Explicitly list columns to avoid customer_profile schema cache error
+  // Fetch all projects using safe selector that excludes non-existent columns
   const { data: projects, error: projectsError } = await typedClient
     .from('projects')
-    .select('id,user_id,name,market,target_customer,your_product,business_goal,geography,primary_constraint,risk_posture,ambition_level,organizational_capabilities,decision_level,explicit_non_goals,input_confidence,starting_point,hypothesis,problem_statement,market_context,solution_idea,decision_framing,latest_successful_run_id,latest_run_id,created_at')
+    .select(PROJECT_FULL_SELECT)
     .eq('user_id', ownerId)
     .order('created_at', { ascending: false })
 
