@@ -16,8 +16,8 @@ export function PageErrorState({
   isMissingColumn = false
 }: PageErrorStateProps) {
   const defaultSubtitle = isMissingColumn
-    ? "This is usually caused by the app being ahead of the database schema."
-    : "Something went wrong while loading your data. Please try again."
+    ? "We hit a data mismatch — your project data is safe. Try again or create a new analysis."
+    : "Something went wrong while loading your data. Your project data is safe. Please try again."
   
   const finalSubtitle = subtitle ?? defaultSubtitle
 

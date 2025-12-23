@@ -11,7 +11,7 @@ function generateRunId(): string {
   }
   return `run_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`
 }
-import { updateProjectRunFields } from '@/lib/data/projects'
+import { updateProjectSafe } from '@/lib/data/projectsContract'
 import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
@@ -76,13 +76,19 @@ export async function POST(request: Request) {
     generateResultsV2(projectId, user.id, { runId })
       .then(async (result) => {
         if (result.ok) {
-          // Update project with latest successful run
-          // Note: latest_run_id is not updated as it doesn't exist in production schema
-          // Latest run info is now derived from artifacts table via lib/data/latestRun.ts
-          await updateProjectRunFields(supabase, projectId, {
+          // Update project with latest successful run using safe contract
+          const updateResult = await updateProjectSafe(supabase, projectId, {
             latest_successful_run_id: runId,
           })
-          logger.info('Background generation completed', { runId, projectId })
+          if (updateResult.ok) {
+            logger.info('Background generation completed', { runId, projectId })
+          } else {
+            logger.error('Failed to update project after generation', {
+              runId,
+              projectId,
+              error: updateResult.error,
+            })
+          }
         } else {
           logger.error('Background generation failed', {
             runId,

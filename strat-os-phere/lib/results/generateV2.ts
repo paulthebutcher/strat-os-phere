@@ -6,7 +6,7 @@ import {
 } from '@/lib/constants'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { createArtifact, listArtifacts } from '@/lib/data/artifacts'
-import { getProjectById } from '@/lib/data/projects'
+import { getProjectSafe } from '@/lib/data/projectsContract'
 import {
   assertHasCompetitors,
   COMPETITOR_PROFILE_ARTIFACT_TYPES,
@@ -168,8 +168,20 @@ export async function generateResultsV2(
       onProgress?.(event)
     }
 
-    const project = await getProjectById(supabase, projectId)
+    // Use safe contract to get project
+    const projectResult = await getProjectSafe(supabase, projectId)
+    if (!projectResult.ok) {
+      return {
+        ok: false,
+        error: {
+          code: projectResult.error.code || 'PROJECT_FETCH_ERROR',
+          message: projectResult.error.message || 'Failed to load project data.',
+        },
+        details: { isMissingColumn: projectResult.error.isMissingColumn },
+      }
+    }
 
+    const project = projectResult.data
     if (!project || project.user_id !== userId) {
       return {
         ok: false,

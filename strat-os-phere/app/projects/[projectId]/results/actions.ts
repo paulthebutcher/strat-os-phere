@@ -7,7 +7,7 @@ import {
 } from '@/lib/constants'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { createArtifact } from '@/lib/data/artifacts'
-import { getProjectById, updateProjectRunFields } from '@/lib/data/projects'
+import { getProjectSafe, updateProjectSafe } from '@/lib/data/projectsContract'
 import { callLLM } from '@/lib/llm/callLLM'
 import {
   COMPETITOR_SNAPSHOT_SCHEMA_SHAPE,
@@ -85,7 +85,21 @@ export async function generateAnalysis(
       }
     }
 
-    const project = await getProjectById(supabase, projectId)
+    // Use safe contract to get project
+    const projectResult = await getProjectSafe(supabase, projectId)
+    if (!projectResult.ok) {
+      return {
+        ok: false,
+        message: projectResult.error.message || 'Failed to load project.',
+      }
+    }
+    const project = projectResult.data
+    if (!project) {
+      return {
+        ok: false,
+        message: 'Project not found.',
+      }
+    }
 
     if (!project || project.user_id !== user.id) {
       return {
@@ -383,12 +397,20 @@ export async function generateAnalysis(
       },
     })
 
-    // Update project with latest successful run (both artifacts created successfully)
+    // Update project with latest successful run using safe contract
     // Note: latest_run_id is not updated as it doesn't exist in production schema
     // Latest run info is now derived from artifacts table via lib/data/latestRun.ts
-    await updateProjectRunFields(supabase, projectId, {
+    const updateResult = await updateProjectSafe(supabase, projectId, {
       latest_successful_run_id: runId,
     })
+    if (!updateResult.ok) {
+      logger.error('Failed to update project after synthesis', {
+        projectId,
+        runId,
+        error: updateResult.error,
+      })
+      // Continue - the artifacts were created successfully
+    }
 
     return {
       ok: true,

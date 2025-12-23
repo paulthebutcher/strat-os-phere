@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { Button } from '@/components/ui/button'
-import { listProjectsForOwner, listProjectsWithCounts } from '@/lib/data/projects'
+import { listProjectsForOwnerSafe, type SafeProject } from '@/lib/data/projectsContract'
+import { listProjectsWithCounts } from '@/lib/data/projects'
 import { createClient } from '@/lib/supabase/server'
 import { createPageMetadata } from '@/lib/seo/metadata'
 import { toProjectCardModel } from '@/components/projects/mappers'
@@ -45,67 +46,49 @@ export default async function DashboardPage() {
 
   console.log('[dashboard] loading projects for user', user.id)
 
-  // Fetch projects with error handling
+  // Fetch projects with safe error handling using contract
   let projectsWithCounts
-  let projects
+  let projects: SafeProject[] = []
   let tableRows: ReturnType<typeof toProjectsListRow>[] = []
   let projectCards: ReturnType<typeof toProjectCardModel>[] = []
+  let hasError = false
+  let errorInfo: { isMissingColumn?: boolean; message?: string } = {}
 
+  // Fetch projects with counts for table view (may fail, but we'll degrade gracefully)
   try {
-    // Fetch projects with counts for table view
-    try {
-      projectsWithCounts = await listProjectsWithCounts(supabase, user.id)
-      tableRows = projectsWithCounts.map(toProjectsListRow)
-    } catch (e) {
-      const error = e as any
-      const originalError = error?.originalError ?? error
-      const msg = originalError?.message ?? String(originalError)
-      const code = originalError?.code ?? originalError?.details ?? null
-      const isMissingColumn =
-        typeof msg === "string" &&
-        (msg.toLowerCase().includes("does not exist") || msg.toLowerCase().includes("column"))
-      console.error("[dashboard] failed in listProjectsWithCounts", { 
-        stage: "listProjectsWithCounts", 
-        msg, 
-        code, 
-        originalError 
-      })
-      throw { originalError, stage: "listProjectsWithCounts", msg, code, isMissingColumn }
-    }
-
-    // Also fetch basic projects for ContinuePanel and OnboardingCardWrapper (they use ProjectCardModel)
-    try {
-      projects = await listProjectsForOwner(supabase, user.id)
-      projectCards = projects.map(toProjectCardModel)
-    } catch (e) {
-      const error = e as any
-      const originalError = error?.originalError ?? error
-      const msg = originalError?.message ?? String(originalError)
-      const code = originalError?.code ?? originalError?.details ?? null
-      const isMissingColumn =
-        typeof msg === "string" &&
-        (msg.toLowerCase().includes("does not exist") || msg.toLowerCase().includes("column"))
-      console.error("[dashboard] failed in listProjectsForOwner/toProjectCardModel", { 
-        stage: "listProjectsForOwner/toProjectCardModel", 
-        msg, 
-        code, 
-        originalError 
-      })
-      throw { originalError, stage: "listProjectsForOwner/toProjectCardModel", msg, code, isMissingColumn }
-    }
-  } catch (error: any) {
-    // Extract error details with robust introspection
+    projectsWithCounts = await listProjectsWithCounts(supabase, user.id)
+    tableRows = projectsWithCounts.map(toProjectsListRow)
+  } catch (e) {
+    const error = e as any
     const originalError = error?.originalError ?? error
     const msg = originalError?.message ?? String(originalError)
-    const code = originalError?.code ?? originalError?.details ?? null
-    const stage = error?.stage ?? "unknown"
     const isMissingColumn =
       typeof msg === "string" &&
       (msg.toLowerCase().includes("does not exist") || msg.toLowerCase().includes("column"))
     
-    console.error("[dashboard] failed to load projects", { stage, msg, code, originalError })
+    console.error("[dashboard] failed in listProjectsWithCounts", { msg, isMissingColumn })
+    hasError = true
+    errorInfo = { isMissingColumn, message: msg }
+    // Continue - we'll try to load basic projects
+  }
 
-    // Render error state instead of crashing
+  // Fetch basic projects using safe contract
+  const projectsResult = await listProjectsForOwnerSafe(supabase, user.id)
+  if (projectsResult.ok) {
+    projects = projectsResult.data
+    projectCards = projects.map(toProjectCardModel)
+  } else {
+    console.error("[dashboard] failed in listProjectsForOwnerSafe", projectsResult.error)
+    hasError = true
+    errorInfo = {
+      isMissingColumn: projectsResult.error.isMissingColumn,
+      message: projectsResult.error.message,
+    }
+    // Continue with empty arrays - page will show empty state
+  }
+
+  // If we have errors but no projects, show recoverable error state
+  if (hasError && projects.length === 0 && tableRows.length === 0) {
     return (
       <DashboardPageClient>
         <PageShell data-testid="projects-page">
@@ -119,7 +102,10 @@ export default async function DashboardPage() {
             }
           />
           <Section>
-            <PageErrorState isMissingColumn={isMissingColumn} />
+            <PageErrorState 
+              isMissingColumn={errorInfo.isMissingColumn}
+              subtitle="We hit a data mismatch — your project data is safe. Try again or create a new analysis."
+            />
           </Section>
         </PageShell>
       </DashboardPageClient>
