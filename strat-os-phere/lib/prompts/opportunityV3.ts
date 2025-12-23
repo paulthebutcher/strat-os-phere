@@ -13,6 +13,7 @@ export interface OpportunityV3PromptInput {
   evidenceSourcesJson?: string
   evidenceBundleBlock?: string // Formatted evidence bundle for prompt
   hasFirstPartySources?: boolean // Whether first-party sources exist in bundle
+  followUpAnswer?: string // Optional follow-up answer to incorporate into context
 }
 
 export const OPPORTUNITY_V3_SCHEMA_SHAPE = {
@@ -150,7 +151,7 @@ const BANNED_VAGUE_VERBS = [
 export function buildOpportunityV3Messages(
   input: OpportunityV3PromptInput
 ): Message[] {
-  const { project, snapshotsJson, jtbdJson, scoringJson, evidenceSourcesJson, evidenceBundleBlock, hasFirstPartySources } = input
+  const { project, snapshotsJson, jtbdJson, scoringJson, evidenceSourcesJson, evidenceBundleBlock, hasFirstPartySources, followUpAnswer } = input
 
   // Build project context with hypothesis-first approach
   const lens = project.lens || project.starting_point || 'product'
@@ -253,6 +254,16 @@ export function buildOpportunityV3Messages(
       ? [
           '',
           'NOTE: Evidence bundle not available. Be explicit about uncertainty when making claims without supporting evidence.',
+          '',
+        ]
+      : []),
+    ...(followUpAnswer
+      ? [
+          '',
+          'DECISION CONTEXT CLARIFIER',
+          'The user provided the following clarification to help prioritize opportunities:',
+          followUpAnswer,
+          'Use this context to inform opportunity ranking and prioritization.',
           '',
         ]
       : []),

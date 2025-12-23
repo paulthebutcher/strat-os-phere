@@ -13,6 +13,7 @@ import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 import type { NormalizedEvidenceBundle } from '@/lib/evidence/types'
 
 interface EvidenceContentProps {
+  projectId: string
   opportunitiesV3: OpportunityV3ArtifactContent | null | undefined
   opportunitiesV2: OpportunitiesArtifactContent | null | undefined
   profiles: { snapshots: CompetitorSnapshot[] } | null | undefined
@@ -22,6 +23,7 @@ interface EvidenceContentProps {
 }
 
 export function EvidenceContent({
+  projectId,
   opportunitiesV3,
   opportunitiesV2,
   profiles,
@@ -63,7 +65,7 @@ export function EvidenceContent({
       </div>
 
       {/* Evidence & Confidence Panel */}
-      <EvidenceConfidencePanel citations={citations} bundle={bundle} />
+      <EvidenceConfidencePanel citations={citations} bundle={bundle} projectId={projectId} />
       
       {/* Evidence Coverage Panel (feature-flagged) */}
       {qualityPackEnabled && opportunities && (

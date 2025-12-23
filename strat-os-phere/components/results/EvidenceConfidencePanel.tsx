@@ -11,6 +11,8 @@ import { deriveEvidenceTrustStats } from '@/lib/evidence/trustStats'
 import { EvidenceDrawer } from '@/components/evidence/EvidenceDrawer'
 import { EmptyEvidenceState } from '@/components/evidence/EmptyEvidenceState'
 import { CitationList } from '@/components/citations/CitationList'
+import { ClaimsDrawer } from '@/components/claims/ClaimsDrawer'
+import { FLAGS } from '@/lib/flags'
 
 interface EvidenceConfidencePanelProps {
   title?: string
@@ -18,6 +20,8 @@ interface EvidenceConfidencePanelProps {
   bundle?: NormalizedEvidenceBundle | null
   compact?: boolean
   className?: string
+  projectId?: string
+  competitorId?: string
 }
 
 /**
@@ -85,6 +89,8 @@ export function EvidenceConfidencePanel({
   bundle,
   compact = false,
   className,
+  projectId,
+  competitorId,
 }: EvidenceConfidencePanelProps) {
   // If no bundle and no citations, show empty state
   if (!bundle && citations.length === 0) {
@@ -250,7 +256,12 @@ export function EvidenceConfidencePanel({
       )}
 
       {/* View evidence drawer (bundle) or collapsible sources (citations) */}
-      {useBundle && bundle && <EvidenceDrawer bundle={bundle} />}
+      <div className="flex items-center gap-2 pt-2 border-t border-border">
+        {useBundle && bundle && <EvidenceDrawer bundle={bundle} />}
+        {FLAGS.claimsEnabled && projectId && (
+          <ClaimsDrawer projectId={projectId} competitorId={competitorId} />
+        )}
+      </div>
 
       {!useBundle && citations.length > 0 && (
         <Collapsible title="View sources" defaultOpen={false}>

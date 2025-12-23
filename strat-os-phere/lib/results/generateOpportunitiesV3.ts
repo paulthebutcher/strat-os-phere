@@ -49,6 +49,8 @@ import {
   filterCitationsByAllowedUrls,
   type Citation,
 } from '@/lib/evidence/citations'
+import { readFollowUpAnswer } from '@/lib/followup/readAnswer'
+import { FLAGS } from '@/lib/flags'
 
 export type GenerateOpportunitiesV3SuccessResult = {
   ok: true
@@ -417,6 +419,24 @@ export async function generateOpportunitiesV3(
       })
     )
 
+    // Load follow-up answer if feature is enabled
+    let followUpAnswer: string | undefined
+    if (FLAGS.followupEnabled) {
+      try {
+        const answer = await readFollowUpAnswer(supabase, projectId)
+        if (answer) {
+          followUpAnswer = answer.answer
+        }
+      } catch (error) {
+        // Don't fail generation if follow-up answer loading fails
+        logger.warn('Failed to load follow-up answer', {
+          runId,
+          projectId,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
+    }
+
     const opportunityMessages = buildOpportunityV3Messages({
       project: projectContext,
       snapshotsJson,
@@ -425,6 +445,7 @@ export async function generateOpportunitiesV3(
       evidenceSourcesJson,
       evidenceBundleBlock,
       hasFirstPartySources,
+      followUpAnswer,
     })
 
     let opportunityResponse = await callLLM({

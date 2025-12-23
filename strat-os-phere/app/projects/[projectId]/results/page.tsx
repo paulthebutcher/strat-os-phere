@@ -26,6 +26,7 @@ import { selectReadoutData } from '@/lib/results/selectors'
 import type { SearchParams } from '@/lib/routing/searchParams'
 import { getParam } from '@/lib/routing/searchParams'
 import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
+import { FollowUpQuestionWrapper } from '@/components/followup/FollowUpQuestionWrapper'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -143,6 +144,16 @@ export default async function ResultsPage(props: ResultsPageProps) {
             <InProgressBanner run={results.activeRun} projectId={projectId} />
           )}
 
+          {/* Follow-up question (after analysis completes) */}
+          {!isRunning && hasArtifacts && (
+            <FollowUpQuestionWrapper
+              projectId={projectId}
+              evidenceBundle={evidenceBundle}
+              claimsBundle={null} // Will be generated client-side if needed
+              hasCompletedRun={true}
+            />
+          )}
+
           {!hasArtifacts ? (
             // Empty state: no successful run
             <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
@@ -204,6 +215,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
               )}
               {tab === 'evidence' && (
                 <EvidenceContent
+                  projectId={projectId}
                   opportunitiesV3={opportunities.v3?.content}
                   opportunitiesV2={opportunities.v2?.content}
                   profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}

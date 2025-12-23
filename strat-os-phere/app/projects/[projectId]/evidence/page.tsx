@@ -61,6 +61,7 @@ export default async function EvidencePage(props: EvidencePageProps) {
     <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
       <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
         <EvidenceContent
+          projectId={projectId}
           opportunitiesV3={opportunitiesV3?.content}
           opportunitiesV2={opportunitiesV2?.content}
           profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
