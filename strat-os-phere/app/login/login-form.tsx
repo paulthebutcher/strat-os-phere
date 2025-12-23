@@ -57,6 +57,10 @@ export function LoginForm({ next }: LoginFormProps) {
           required
           placeholder="you@example.com"
         />
+        <p className="text-sm text-muted-foreground mt-1">
+          We'll only use your email to send a secure magic link and protect your analysis.
+          No marketing emails. Ever.
+        </p>
       </div>
       <Button type="submit" disabled={loading}>
         {loading ? 'Sending...' : 'Send magic link'}

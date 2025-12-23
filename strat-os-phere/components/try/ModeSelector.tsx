@@ -10,7 +10,7 @@ interface ModeSelectorProps {
 
 export function ModeSelector({ value, onValueChange }: ModeSelectorProps) {
   return (
-    <Tabs value={value} onValueChange={onValueChange}>
+    <Tabs value={value} onValueChange={(v) => onValueChange(v as TryMode)}>
       <TabsList className="w-full grid grid-cols-3">
         <TabsTrigger value="company">Company</TabsTrigger>
         <TabsTrigger value="market">Market</TabsTrigger>

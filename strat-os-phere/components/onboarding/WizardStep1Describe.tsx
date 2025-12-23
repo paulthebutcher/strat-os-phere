@@ -335,7 +335,7 @@ export function WizardStep1Describe({
                 inputs={{
                   name: companyName,
                   market: market,
-                  customer: decision,
+                  targetCustomer: decision,
                 }}
               />
             )}

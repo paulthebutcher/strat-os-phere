@@ -51,8 +51,8 @@ export function WizardStep2Confirm({
   const enabledSources = sources.filter((s) => s.enabled)
   const REQUIRED_COMPETITORS = 3
   const hasRequiredCompetitors = selectedCompetitors.length >= REQUIRED_COMPETITORS
-  const hasDecision = state.decisionFraming?.decision?.trim().length > 0
-  const hasMarket = state.marketCategory?.trim().length > 0
+  const hasDecision = (state.decisionFraming?.decision?.trim()?.length ?? 0) > 0
+  const hasMarket = (state.marketCategory?.trim()?.length ?? 0) > 0
   const canRun = enabledSources.length > 0 && hasRequiredCompetitors && hasDecision && hasMarket
 
   const handleSourceToggle = (index: number) => {
