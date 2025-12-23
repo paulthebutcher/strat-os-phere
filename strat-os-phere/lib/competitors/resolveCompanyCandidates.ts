@@ -59,8 +59,9 @@ const RESEARCH_KEYWORDS = [
 
 /**
  * Checks if a page is likely a research/list page (not a company homepage)
+ * Exported for use in diagnostics and safeguards.
  */
-function isResearchPage(page: SourcePage): boolean {
+export function isPrimaryResearchPage(page: SourcePage): boolean {
   const titleLower = (page.title || '').toLowerCase()
   const urlLower = page.url.toLowerCase()
   const domain = page.domain || toDisplayDomain(page.url)
@@ -160,14 +161,27 @@ function generateLogoUrl(domain: string): string {
 
 /**
  * Generates seed URLs for a company candidate
+ * Uses the primary URL's base to ensure consistent protocol and domain
  */
 function generateSeedUrls(primaryUrl: string, domain: string): string[] {
   const seeds: string[] = [primaryUrl]
   
+  // Extract base URL from primary URL (protocol + domain)
+  let baseUrl: string
+  try {
+    const urlObj = new URL(primaryUrl)
+    baseUrl = `${urlObj.protocol}//${urlObj.hostname}`
+  } catch {
+    // Fallback to https if parsing fails
+    baseUrl = `https://${domain}`
+  }
+  
   // Add common vendor-owned pages (deterministic, no scraping)
-  const commonPaths = ['/pricing', '/docs', '/documentation', '/security', '/changelog']
+  const commonPaths = ['/pricing', '/docs', '/documentation', '/security', '/changelog', '/release-notes']
   for (const path of commonPaths) {
-    seeds.push(`https://${domain}${path}`)
+    // Ensure path starts with /
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`
+    seeds.push(`${baseUrl}${normalizedPath}`)
   }
   
   return seeds
@@ -181,7 +195,7 @@ function normalizeDomain(domain: string): string {
 }
 
 /**
- * Resolves company candidates from Tavily search results
+ * Resolves company candidates from source pages
  * 
  * Strategy:
  * 1. Filter out obvious research pages
@@ -190,21 +204,46 @@ function normalizeDomain(domain: string): string {
  * 4. Generate seed URLs for each candidate
  */
 export function resolveCompanyCandidates(
-  tavilyResults: TavilyRawResult[],
-  maxCandidates: number = 20
+  input: SourcePage[],
+  opts?: { limit?: number }
+): CompanyCandidate[]
+/**
+ * Resolves company candidates from Tavily search results (backward compatibility)
+ */
+export function resolveCompanyCandidates(
+  input: TavilyRawResult[],
+  maxCandidates?: number
+): CompanyCandidate[]
+export function resolveCompanyCandidates(
+  input: SourcePage[] | TavilyRawResult[],
+  optsOrMax?: { limit?: number } | number
 ): CompanyCandidate[] {
   const candidates = new Map<string, CompanyCandidate>()
-  const sourcePages: SourcePage[] = tavilyResults.map(result => ({
-    title: result.title || '',
-    url: result.url,
-    domain: toDisplayDomain(result.url),
-    content: result.content,
-  }))
+  
+  // Normalize input to SourcePage[]
+  let sourcePages: SourcePage[]
+  let maxCandidates: number
+  
+  if (typeof optsOrMax === 'number') {
+    // Legacy signature: (TavilyRawResult[], number)
+    maxCandidates = optsOrMax
+    const tavilyResults = input as TavilyRawResult[]
+    sourcePages = tavilyResults.map(result => ({
+      title: result.title || '',
+      url: result.url,
+      domain: toDisplayDomain(result.url),
+      content: result.content,
+    }))
+  } else {
+    // New signature: (SourcePage[], { limit? })
+    maxCandidates = optsOrMax?.limit ?? 20
+    sourcePages = input as SourcePage[]
+  }
 
   // Process each result
   for (const page of sourcePages.slice(0, 8)) { // Cap at 8 source pages
     // Skip research pages
-    if (isResearchPage(page)) {
+    if (isPrimaryResearchPage(page)) {
       continue
     }
 
@@ -235,8 +274,24 @@ export function resolveCompanyCandidates(
       confidence = 'medium'
     }
 
-    // Create candidate
-    const primaryUrl = page.url.startsWith('http') ? page.url : `https://${page.url}`
+    // Create candidate with normalized primary URL
+    // Normalize: enforce https://, strip trailing slashes, lowercase domain
+    let primaryUrl = page.url.startsWith('http') ? page.url : `https://${page.url}`
+    try {
+      const urlObj = new URL(primaryUrl)
+      // Enforce https
+      urlObj.protocol = 'https:'
+      // Strip trailing slash from pathname (but keep root path)
+      urlObj.pathname = urlObj.pathname.replace(/\/$/, '') || '/'
+      // Lowercase hostname
+      urlObj.hostname = urlObj.hostname.toLowerCase()
+      primaryUrl = urlObj.toString()
+    } catch {
+      // If URL parsing fails, at least ensure https:// prefix
+      if (!primaryUrl.startsWith('http')) {
+        primaryUrl = `https://${primaryUrl}`
+      }
+    }
     const candidate: CompanyCandidate = {
       name: companyName,
       primaryUrl,
@@ -264,15 +319,32 @@ export function resolveCompanyCandidates(
 }
 
 /**
+ * Resolves company candidates from Tavily search results (backward compatibility wrapper)
+ * @deprecated Use resolveCompanyCandidates with SourcePage[] instead
+ */
+export function resolveCompanyCandidatesFromTavily(
+  tavilyResults: TavilyRawResult[],
+  maxCandidates: number = 20
+): CompanyCandidate[] {
+  const sourcePages: SourcePage[] = tavilyResults.map(result => ({
+    title: result.title || '',
+    url: result.url,
+    domain: toDisplayDomain(result.url),
+    content: result.content,
+  }))
+  return resolveCompanyCandidates(sourcePages, { limit: maxCandidates })
+}
+
+/**
  * Fallback: if no candidates found, return empty array
  * (UI will show manual entry option)
  */
 export function resolveCompanyCandidatesSafe(
-  tavilyResults: TavilyRawResult[],
-  maxCandidates: number = 20
+  input: SourcePage[] | TavilyRawResult[],
+  optsOrMax?: { limit?: number } | number
 ): CompanyCandidate[] {
   try {
-    return resolveCompanyCandidates(tavilyResults, maxCandidates)
+    return resolveCompanyCandidates(input, optsOrMax as any)
   } catch (error) {
     console.error('[resolveCompanyCandidates] Error resolving candidates:', error)
     return []

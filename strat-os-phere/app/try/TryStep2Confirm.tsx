@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import type { TryDraft } from '@/lib/tryDraft'
 import { normalizeUrl } from '@/lib/url/normalizeUrl'
-import type { CompanyCandidate } from '@/lib/competitors/resolveCompanyCandidates'
+import type { CompanyCandidate, SourcePage } from '@/lib/competitors/resolveCompanyCandidates'
+import { isPrimaryResearchPage } from '@/lib/competitors/resolveCompanyCandidates'
 import {
   Tooltip,
   TooltipContent,
@@ -52,6 +53,13 @@ export function TryStep2Confirm({
     }).filter(Boolean))
   )
 
+  // Dev-only marker: confirm we're in the updated component
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Step2] Add competitors component mounted: vNEXT_COMPANY_CANDIDATES')
+    }
+  }, [])
+
   // Fetch company candidates on mount
   useEffect(() => {
     const fetchCandidates = async () => {
@@ -72,8 +80,31 @@ export function TryStep2Confirm({
         const data = await response.json()
 
         if (data.candidates && Array.isArray(data.candidates)) {
-          setCandidates(data.candidates)
-          if (data.candidates.length === 0 && data.error) {
+          // Runtime safeguard: filter out any listicles that might have slipped through
+          const safeCandidates = data.candidates.filter((candidate: CompanyCandidate) => {
+            // Check if candidate name looks like a listicle title
+            const nameLower = candidate.name.toLowerCase()
+            const isSuspicious = ['alternatives', 'competitors', 'top', 'best', 'vs', 'compare', 'list of'].some(
+              kw => nameLower.includes(kw)
+            )
+            if (isSuspicious && process.env.NODE_ENV === 'development') {
+              console.warn('[Step2] Filtered suspicious candidate:', candidate.name)
+            }
+            return !isSuspicious
+          })
+
+          setCandidates(safeCandidates)
+
+          // Diagnostic logging
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[Step2] Received candidates:', {
+              total: data.candidates.length,
+              safe: safeCandidates.length,
+              filtered: data.candidates.length - safeCandidates.length,
+            })
+          }
+
+          if (safeCandidates.length === 0 && data.error) {
             // Non-blocking: just log, don't show error
             console.log('[TryStep2] No candidates found:', data.error)
           }
@@ -230,6 +261,13 @@ export function TryStep2Confirm({
 
   return (
     <div className="space-y-6">
+      {/* Dev-only badge */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="text-xs text-muted-foreground text-center">
+          Step2: company-candidates
+        </div>
+      )}
+
       {/* Summary card */}
       <SurfaceCard className="p-6 shadow-md">
         <div className="space-y-3">

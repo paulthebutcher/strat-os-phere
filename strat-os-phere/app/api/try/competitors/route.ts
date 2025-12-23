@@ -2,7 +2,7 @@ import 'server-only'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { tavilySearch } from '@/lib/tavily/client'
-import { resolveCompanyCandidatesSafe } from '@/lib/competitors/resolveCompanyCandidates'
+import { resolveCompanyCandidatesSafe, isPrimaryResearchPage, type SourcePage } from '@/lib/competitors/resolveCompanyCandidates'
 import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
@@ -78,8 +78,39 @@ export async function POST(request: Request): Promise<NextResponse> {
       })
     }
 
-    // Resolve company candidates from Tavily results
-    const candidates = resolveCompanyCandidatesSafe(tavilyResponse.results, 20)
+    // Convert Tavily results to SourcePage format
+    const sourcePages: SourcePage[] = tavilyResponse.results.map(result => ({
+      title: result.title || '',
+      url: result.url,
+      domain: result.url ? new URL(result.url).hostname.replace(/^www\./, '') : undefined,
+      content: result.content,
+    }))
+
+    // Resolve company candidates from source pages
+    const candidates = resolveCompanyCandidatesSafe(sourcePages, { limit: 20 })
+
+    // Diagnostic logging (dev/prod)
+    const blockedExamples = sourcePages.filter(isPrimaryResearchPage).slice(0, 5)
+    logger.info('[try/competitors] Resolved candidates', {
+      sourcePagesCount: sourcePages.length,
+      candidatesCount: candidates.length,
+      blockedExamples: blockedExamples.map(p => ({ title: p.title, url: p.url })),
+      query: competitorQuery,
+    })
+
+    // Runtime safeguard: log if any listicles slipped through
+    if (candidates.length > 0) {
+      const candidateTitles = candidates.map(c => c.name.toLowerCase())
+      const suspiciousTitles = candidateTitles.filter(title => 
+        ['alternatives', 'competitors', 'top', 'best', 'vs', 'compare'].some(kw => title.includes(kw))
+      )
+      if (suspiciousTitles.length > 0) {
+        logger.warn('[try/competitors] Suspicious candidate titles detected', {
+          suspiciousTitles,
+          candidates: candidates.map(c => ({ name: c.name, domain: c.domain })),
+        })
+      }
+    }
 
     return NextResponse.json({
       candidates,
