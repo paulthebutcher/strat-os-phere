@@ -1,11 +1,15 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { badgeToneClass } from "@/lib/ui/badgeTone";
+import { CoverageScoreBadge } from "@/components/trust/CoverageScoreBadge";
+import type { NormalizedEvidenceBundle } from "@/lib/evidence/types";
 
 export interface OpportunityCardProps {
   title: string;
   description?: string;
-  score?: number;
+  score?: number; // Legacy: use bundle instead when available
+  bundle?: NormalizedEvidenceBundle | null; // New: evidence bundle for coverage scoring
+  competitorDomains?: string[]; // Optional: competitor domains for first-party detection
   badges?: Array<{ label: string; tone?: "info" | "success" | "warning" }>;
   citationsCount?: number;
   evidenceLine?: string;
@@ -22,11 +26,17 @@ export function OpportunityCard({
   title,
   description,
   score,
+  bundle,
+  competitorDomains = [],
   badges = [],
   citationsCount,
   evidenceLine,
   className,
 }: OpportunityCardProps) {
+  // Prefer bundle-based scoring, fall back to legacy score prop
+  const showCoverageScore = bundle !== undefined;
+  const showLegacyScore = !showCoverageScore && score !== undefined;
+
   return (
     <div className={cn("p-6 md:p-8", className)}>
       <div className="mb-4 flex items-start justify-between gap-4">
@@ -40,7 +50,16 @@ export function OpportunityCard({
             </p>
           )}
         </div>
-        {score !== undefined && (
+        {showCoverageScore && (
+          <div className="flex shrink-0">
+            <CoverageScoreBadge
+              bundle={bundle}
+              competitorDomains={competitorDomains}
+              variant="compact"
+            />
+          </div>
+        )}
+        {showLegacyScore && (
           <div className="flex shrink-0 items-center gap-2 rounded-lg bg-[rgba(var(--plinth-accent)/0.1)] px-3 py-1.5">
             <span className="text-lg font-bold text-[rgb(var(--plinth-accent))]">
               {score.toFixed(1)}

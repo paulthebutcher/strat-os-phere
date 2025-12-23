@@ -12,13 +12,22 @@ import { computeScoreFromScoringMatrix } from '@/lib/scoring/computeScoreFromSco
 import { ScorePill } from '@/components/ui/ScorePill'
 import { extractCitationsFromArtifact, normalizeCitation, type NormalizedCitation } from '@/lib/results/evidence'
 import type { CitationInput } from '@/lib/scoring/extractEvidenceFromArtifacts'
+import { CoverageScoreBadge } from '@/components/trust/CoverageScoreBadge'
+import type { NormalizedEvidenceBundle } from '@/lib/evidence/types'
 
 interface ScorecardContentProps {
   projectId: string
   scoring: ScoringMatrixArtifactContent | null | undefined
+  evidenceBundle?: NormalizedEvidenceBundle | null
+  competitorDomains?: string[]
 }
 
-export function ScorecardContent({ projectId, scoring }: ScorecardContentProps) {
+export function ScorecardContent({ 
+  projectId, 
+  scoring,
+  evidenceBundle,
+  competitorDomains = [],
+}: ScorecardContentProps) {
   if (!scoring) {
     return (
       <section className="space-y-6">
@@ -67,6 +76,25 @@ export function ScorecardContent({ projectId, scoring }: ScorecardContentProps) 
         </div>
         <CopySectionButton content={copyContent} label="Copy all" />
       </div>
+
+      {/* Evidence Coverage Score */}
+      {evidenceBundle !== undefined && (
+        <SectionCard>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground mb-1">Evidence Coverage</h2>
+              <p className="text-sm text-muted-foreground">
+                Overall quality and completeness of evidence used for scoring
+              </p>
+            </div>
+            <CoverageScoreBadge
+              bundle={evidenceBundle}
+              competitorDomains={competitorDomains}
+              variant="default"
+            />
+          </div>
+        </SectionCard>
+      )}
 
       {scoring.criteria && scoring.criteria.length > 0 && (
         <SectionCard>

@@ -72,6 +72,14 @@ export interface SelectedCompetitor {
   url: string
 }
 
+export type PricingModel = 
+  | 'Free'
+  | 'Freemium'
+  | 'Per-seat'
+  | 'Usage-based'
+  | 'Contract/enterprise'
+  | 'Other'
+
 export interface WizardState {
   primaryCompanyName: string
   contextText?: string
@@ -82,6 +90,13 @@ export interface WizardState {
   evidenceWindowDays: number
   decisionFraming?: DecisionFraming
   errors?: { message: string; id?: string }
+  // Step 3 fields
+  projectName?: string
+  product?: string
+  targetCustomer?: string
+  geography?: string
+  pricingModel?: PricingModel
+  constraints?: string
 }
 
 export interface DiscoveryResponse {

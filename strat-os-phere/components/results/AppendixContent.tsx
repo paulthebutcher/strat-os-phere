@@ -11,6 +11,7 @@ import {
   type NormalizedSynthesisArtifact,
   type NormalizedJtbdArtifact,
 } from '@/lib/results/normalizeArtifacts'
+import { JTBDScoreBadge } from '@/components/trust/JTBDScoreBadge'
 
 interface AppendixContentProps {
   projectId: string
@@ -70,7 +71,12 @@ export function AppendixContent({ projectId, normalized }: AppendixContentProps)
           <div className="space-y-4">
             {jtbd.content.jobs?.map((job, index) => (
               <div key={index} className="space-y-2">
-                <h3 className="text-base font-semibold text-foreground">{job.job_statement}</h3>
+                <div className="flex items-start justify-between gap-4">
+                  <h3 className="text-base font-semibold text-foreground flex-1">{job.job_statement}</h3>
+                  <div className="flex shrink-0">
+                    <JTBDScoreBadge jtbd={job} variant="compact" />
+                  </div>
+                </div>
                 <div className="space-y-2 text-sm text-foreground">
                   <p><span className="font-medium">Context:</span> {job.context}</p>
                   <p><span className="font-medium">Who:</span> {job.who}</p>

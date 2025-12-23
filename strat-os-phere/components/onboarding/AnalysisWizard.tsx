@@ -7,6 +7,7 @@ import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import type { WizardState } from '@/lib/onboarding/types'
 import { WizardStep1Describe } from './WizardStep1Describe'
 import { WizardStep2Confirm } from './WizardStep2Confirm'
+import { WizardStep3Details } from './WizardStep3Details'
 import { FirstWinChecklist } from './FirstWinChecklist'
 
 interface AnalysisWizardProps {
@@ -15,7 +16,7 @@ interface AnalysisWizardProps {
 }
 
 export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWizardProps) {
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1)
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
   const [wizardState, setWizardState] = useState<WizardState>({
     primaryCompanyName: '',
     contextText: undefined,
@@ -35,6 +36,15 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
   }
 
   const handleStep2Complete = (state: Partial<WizardState>) => {
+    setWizardState((prev) => ({ ...prev, ...state }))
+    setCurrentStep(3)
+  }
+
+  const handleStep3Back = () => {
+    setCurrentStep(2)
+  }
+
+  const handleStep3Complete = (state: Partial<WizardState>) => {
     const finalState = { ...wizardState, ...state }
     if (onComplete) {
       onComplete(finalState)
@@ -73,7 +83,7 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
                   : 'text-muted-foreground'
               }`}
             >
-              Step 1: Describe your situation
+              Step 1: Describe
             </span>
           </div>
           <div className="h-px flex-1 bg-border" />
@@ -93,6 +103,23 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
               Step 2: Add competitors
             </span>
           </div>
+          <div className="h-px flex-1 bg-border" />
+          <div className="flex items-center gap-2">
+            {currentStep >= 3 ? (
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+            ) : (
+              <Circle className="h-5 w-5 text-muted-foreground" />
+            )}
+            <span
+              className={`text-sm font-semibold ${
+                currentStep >= 3
+                  ? 'text-foreground'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              Step 3: Details
+            </span>
+          </div>
         </div>
       </div>
 
@@ -103,7 +130,7 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
           onComplete={handleStep1Complete}
           isGuidedMode={isGuidedMode}
         />
-      ) : (
+      ) : currentStep === 2 ? (
         // Step 2 uses the original layout
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8">
@@ -111,6 +138,46 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
               state={wizardState}
               onBack={handleStep2Back}
               onComplete={handleStep2Complete}
+            />
+          </div>
+          <div className="lg:col-span-4">
+            <div className="lg:sticky lg:top-20 space-y-4">
+              <SurfaceCard className="p-6 shadow-md">
+                <h3 className="text-base font-semibold text-foreground mb-4">
+                  What you'll get
+                </h3>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>Ranked opportunities with scores</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>Evidence & confidence metrics</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>Citations and source links</span>
+                  </li>
+                </ul>
+                <div className="mt-6 pt-6 border-t border-border">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Only public pages are used. Don't paste confidential
+                    information.
+                  </p>
+                </div>
+              </SurfaceCard>
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Step 3: Details
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8">
+            <WizardStep3Details
+              state={wizardState}
+              onBack={handleStep3Back}
+              onComplete={handleStep3Complete}
             />
           </div>
           <div className="lg:col-span-4">

@@ -23,6 +23,11 @@ export function AppendixSection({
       enabled: Boolean(normalized.opportunities.best),
     },
     {
+      id: 'jobs',
+      label: 'Jobs To Be Done',
+      enabled: Boolean(normalized.jtbd),
+    },
+    {
       id: 'strategic_bets',
       label: 'Strategic Bets',
       enabled: Boolean(normalized.strategicBets),
@@ -31,11 +36,6 @@ export function AppendixSection({
       id: 'profiles',
       label: 'Competitor Profiles',
       enabled: Boolean(normalized.profiles),
-    },
-    {
-      id: 'jobs',
-      label: 'Jobs',
-      enabled: Boolean(normalized.jtbd),
     },
     {
       id: 'scorecard',

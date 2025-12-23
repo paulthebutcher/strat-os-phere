@@ -198,6 +198,8 @@ export default async function ResultsPage(props: ResultsPageProps) {
                 <ScorecardContent
                   projectId={projectId}
                   scoring={scoringMatrix}
+                  evidenceBundle={evidenceBundle}
+                  competitorDomains={competitors.map(c => c.url).filter((u): u is string => Boolean(u))}
                 />
               )}
               {tab === 'evidence' && (

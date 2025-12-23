@@ -41,6 +41,9 @@ export function CTABand() {
                 </Button>
               </Link>
             </div>
+            <p className="mt-6 text-sm text-text-muted max-w-md mx-auto">
+              No marketing. We only use your email to send a magic link and secure your work.
+            </p>
           </div>
         </div>
       </MarketingContainer>

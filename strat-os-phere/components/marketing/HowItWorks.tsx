@@ -6,7 +6,6 @@
 import { Target, Search, TrendingUp } from "lucide-react"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
-import { WorkflowIllustration } from "@/components/graphics"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 
@@ -20,24 +19,24 @@ export function HowItWorks() {
   const steps = [
     {
       number: "1",
-      title: "Define market, target customer, competitors",
-      description: "Set up your analysis by defining your market, target customer profile, and adding competitors by URL or name.",
+      title: "Describe your decision",
+      description: "Tell us what you're evaluating—your market, target customer, and competitors. Start with lightweight context; you can add details later.",
       borderColor: "marketing-accent-border-indigo",
       gradient: "from-accent-primary to-accent-primary/80",
       icon: "target",
     },
     {
       number: "2",
-      title: "Pull evidence from public sources (last 90 days)",
-      description: "Automatically scans pricing pages, reviews, job postings, changelogs, and documentation from the last 90 days.",
+      title: "We gather credible signals",
+      description: "Automatically scans public sources from the last 90 days: pricing pages, reviews, job postings, changelogs, and documentation.",
       borderColor: "marketing-accent-border-teal",
       gradient: "from-[hsl(var(--marketing-accent-teal))] to-[hsl(var(--marketing-accent-teal)/0.8)]",
       icon: "search",
     },
     {
       number: "3",
-      title: "Produce opportunities with confidence + citations",
-      description: "Get ranked opportunities with confidence scores and full citations. Every insight is defensible and traceable.",
+      title: "Get ranked opportunities",
+      description: "Receive ranked opportunities with confidence scores and full citations. Every insight is defensible and traceable to its source.",
       borderColor: "marketing-accent-border-coral",
       gradient: "from-[hsl(var(--marketing-accent-coral))] to-[hsl(var(--marketing-accent-coral)/0.8)]",
       icon: "trending",
@@ -45,23 +44,17 @@ export function HowItWorks() {
   ]
 
   return (
-    <MarketingSection id="how-it-works" variant="bordered">
+    <MarketingSection id="how-it-works" variant="default">
       <MarketingContainer maxWidth="7xl">
-        <div className="mx-auto max-w-3xl text-center space-y-4">
+        <div className="mx-auto max-w-3xl text-center space-y-4 mb-16">
           <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-            How Plinth works in 3 steps
+            How it works
           </h2>
           <p className="text-base md:text-lg leading-relaxed text-text-secondary">
             Everything is backed by evidence with citations you can validate
           </p>
         </div>
-        <div className="mx-auto mt-20 max-w-5xl">
-          {/* Workflow illustration above steps */}
-          <div className="mb-12 flex justify-center">
-            <div className="w-full max-w-md h-32 opacity-60">
-              <WorkflowIllustration />
-            </div>
-          </div>
+        <div className="mx-auto max-w-5xl">
           <div className="grid gap-6 md:grid-cols-3">
             {steps.map((step, index) => {
               const Icon = iconMap[step.icon as keyof typeof iconMap]

@@ -23,8 +23,8 @@ export function MarketingNav() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-black/5 bg-white/70 backdrop-blur-md shadow-sm">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <nav className="sticky top-0 z-50 w-full border-b border-border-subtle bg-background/80 backdrop-blur-md shadow-sm">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Logo
           href="/"
           variant="lockup"
@@ -36,20 +36,20 @@ export function MarketingNav() {
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-8 md:flex">
           <Link
-            href="#outputs"
+            href="#sample-output"
             className={cn(
-              "relative text-sm font-medium text-slate-700 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
-              "after:absolute after:left-0 after:-bottom-2 after:h-[2px] after:w-full after:rounded-full after:bg-slate-900 after:content-[''] after:opacity-0 after:transition-opacity",
+              "relative text-sm font-medium text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
+              "after:absolute after:left-0 after:-bottom-2 after:h-[2px] after:w-full after:rounded-full after:bg-accent-primary after:content-[''] after:opacity-0 after:transition-opacity",
               "hover:after:opacity-100"
             )}
           >
-            Outputs
+            Sample output
           </Link>
           <Link
             href="#how-it-works"
             className={cn(
-              "relative text-sm font-medium text-slate-700 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
-              "after:absolute after:left-0 after:-bottom-2 after:h-[2px] after:w-full after:rounded-full after:bg-slate-900 after:content-[''] after:opacity-0 after:transition-opacity",
+              "relative text-sm font-medium text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
+              "after:absolute after:left-0 after:-bottom-2 after:h-[2px] after:w-full after:rounded-full after:bg-accent-primary after:content-[''] after:opacity-0 after:transition-opacity",
               "hover:after:opacity-100"
             )}
           >
@@ -60,8 +60,8 @@ export function MarketingNav() {
               variant="ghost"
               size="sm"
               className={cn(
-                "text-sm font-medium text-slate-700 hover:text-slate-900",
-                isActive("/login") && "text-slate-900"
+                "text-sm font-medium text-text-secondary hover:text-text-primary",
+                isActive("/login") && "text-text-primary"
               )}
               aria-current={isActive("/login") ? "page" : undefined}
             >
@@ -72,7 +72,7 @@ export function MarketingNav() {
           <Link href="/try">
             <Button
               size="sm"
-              className="rounded-xl px-5 py-2 shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all"
+              className="shadow-sm hover:shadow-md transition-all"
             >
               Try Plinth
             </Button>
@@ -87,27 +87,27 @@ export function MarketingNav() {
           aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? (
-            <X className="h-5 w-5 text-slate-700" />
+            <X className="h-5 w-5 text-text-primary" />
           ) : (
-            <Menu className="h-5 w-5 text-slate-700" />
+            <Menu className="h-5 w-5 text-text-primary" />
           )}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="border-t border-black/5 bg-white/95 backdrop-blur-md md:hidden">
-          <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3 sm:px-6">
+        <div className="border-t border-border-subtle bg-background/95 backdrop-blur-md md:hidden">
+          <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3 sm:px-6 lg:px-8">
             <Link
-              href="#outputs"
-              className="px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              href="#sample-output"
+              className="px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Outputs
+              Sample output
             </Link>
             <Link
               href="#how-it-works"
-              className="px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               How it works
@@ -115,8 +115,8 @@ export function MarketingNav() {
             <Link
               href="/login"
               className={cn(
-                "px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                isActive("/login") && "text-slate-900 bg-slate-50"
+                "px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                isActive("/login") && "text-text-primary bg-surface-muted"
               )}
               onClick={() => setMobileMenuOpen(false)}
               aria-current={isActive("/login") ? "page" : undefined}
@@ -127,7 +127,7 @@ export function MarketingNav() {
               <HelpDrawer />
             </div>
             <Link href="/try" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
-              <Button size="sm" className="w-full rounded-xl shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all">
+              <Button size="sm" className="w-full shadow-sm hover:shadow-md transition-all">
                 Try Plinth
               </Button>
             </Link>

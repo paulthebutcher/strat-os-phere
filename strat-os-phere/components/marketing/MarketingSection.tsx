@@ -9,7 +9,7 @@ import { ReactNode } from "react"
 
 interface MarketingSectionProps {
   children: ReactNode
-  variant?: "default" | "muted" | "gradient" | "bordered"
+  variant?: "default" | "muted" | "gradient" | "bordered" | "tinted"
   bleed?: boolean
   className?: string
   id?: string
@@ -29,6 +29,7 @@ export function MarketingSection({
     muted: "bg-surface-muted/30",
     gradient: "bg-gradient-to-b from-accent-primary/5 via-transparent to-transparent",
     bordered: "bg-background border-y border-border-subtle",
+    tinted: "bg-surface-muted/50",
   }
 
   const spacingClasses = "py-16 md:py-24"

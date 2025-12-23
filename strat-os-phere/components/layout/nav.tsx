@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/brand/Logo'
 import { HelpDrawer } from '@/components/guidance/HelpDrawer'
 import { NavRunStatusChip } from '@/components/results/NavRunStatusChip'
+import { CommandPaletteProvider } from '@/components/command/CommandPaletteProvider'
 
 export async function Nav() {
   const supabase = await createClient()
@@ -18,54 +19,57 @@ export async function Nav() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-8">
-          <Logo
-            href="/dashboard"
-            variant="lockup"
-            size="sm"
-            className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
-          />
-          <div className="hidden items-center gap-4 md:flex">
-            <Link
+    <>
+      <nav className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-8">
+            <Logo
               href="/dashboard"
-              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Projects
-            </Link>
-            <span className="text-xs text-muted-foreground">·</span>
-            <Link
-              href="/dashboard"
-              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Insights
-            </Link>
-            <span className="text-xs text-muted-foreground">·</span>
-            <Link
-              href="/help"
-              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Help
-            </Link>
+              variant="lockup"
+              size="sm"
+              className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
+            />
+            <div className="hidden items-center gap-4 md:flex">
+              <Link
+                href="/dashboard"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Projects
+              </Link>
+              <span className="text-xs text-muted-foreground">·</span>
+              <Link
+                href="/dashboard"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Insights
+              </Link>
+              <span className="text-xs text-muted-foreground">·</span>
+              <Link
+                href="/help"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Help
+              </Link>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <NavRunStatusChip />
+            {user?.email && (
+              <span className="hidden text-xs text-muted-foreground sm:inline-block">
+                {user.email}
+              </span>
+            )}
+            <HelpDrawer />
+            <form action={signOut}>
+              <Button type="submit" variant="ghost" size="sm">
+                Sign out
+              </Button>
+            </form>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <NavRunStatusChip />
-          {user?.email && (
-            <span className="hidden text-xs text-muted-foreground sm:inline-block">
-              {user.email}
-            </span>
-          )}
-          <HelpDrawer />
-          <form action={signOut}>
-            <Button type="submit" variant="ghost" size="sm">
-              Sign out
-            </Button>
-          </form>
-        </div>
-      </div>
-    </nav>
+      </nav>
+      <CommandPaletteProvider />
+    </>
   )
 }
 

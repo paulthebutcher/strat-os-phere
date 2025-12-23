@@ -1,16 +1,13 @@
 import { redirect } from "next/navigation"
 import type { Metadata } from "next"
 import { ArtifactPreviewHero } from "@/components/marketing/ArtifactPreviewHero"
-import { Problem } from "@/components/marketing/Problem"
-import { HowItWorks } from "@/components/marketing/HowItWorks"
-import { Outputs } from "@/components/marketing/Outputs"
-import { SampleOutput } from "@/components/marketing/SampleOutput"
-import { Differentiators } from "@/components/marketing/Differentiators"
-import { WhoItsFor } from "@/components/marketing/WhoItsFor"
-import { Trust } from "@/components/marketing/Trust"
 import { SocialProof } from "@/components/marketing/SocialProof"
+import { HowItWorks } from "@/components/marketing/HowItWorks"
+import { SampleOutput } from "@/components/marketing/SampleOutput"
+import { TrustTiles } from "@/components/marketing/TrustTiles"
 import { CTABand } from "@/components/marketing/CTABand"
 import { Footer } from "@/components/marketing/Footer"
+import { StickyCTA } from "@/components/marketing/StickyCTA"
 import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -52,16 +49,13 @@ export default async function Home(props: HomeProps) {
   return (
     <main className="marketing-landing min-h-screen">
       <ArtifactPreviewHero />
-      <Problem />
-      <Outputs />
-      <SampleOutput />
-      <HowItWorks />
-      <Differentiators />
-      <WhoItsFor />
-      <Trust />
       <SocialProof />
+      <HowItWorks />
+      <SampleOutput />
+      <TrustTiles />
       <CTABand />
       <Footer />
+      <StickyCTA />
     </main>
   )
 }

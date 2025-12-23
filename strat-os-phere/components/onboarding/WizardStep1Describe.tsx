@@ -323,7 +323,7 @@ export function WizardStep1Describe({
               We'll find official pages, pricing, docs, and likely competitors.
             </p>
             <p className="text-xs text-muted-foreground text-center">
-              Step 2: confirm competitors → Step 3: generate opportunities
+              Step 2: Add competitors → Step 3: Details → Generate analysis
             </p>
           </div>
         </div>

@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Loader2, Plus, X, ExternalLink } from 'lucide-react'
+import { Plus, X, ExternalLink } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
@@ -15,9 +14,6 @@ import type {
   SelectedCompetitor,
 } from '@/lib/onboarding/types'
 import { normalizeUrl } from '@/lib/url/normalizeUrl'
-import { createProjectFromForm } from '@/app/projects/actions'
-import { createCompetitorForProject } from '@/app/projects/[projectId]/competitors/actions'
-import { GenerateChecklist } from './GenerateChecklist'
 
 interface WizardStep2ConfirmProps {
   state: WizardState
@@ -32,7 +28,6 @@ export function WizardStep2Confirm({
   onBack,
   onComplete,
 }: WizardStep2ConfirmProps) {
-  const router = useRouter()
   const [sources, setSources] = useState<ResolvedSource[]>(state.resolvedSources)
   const [selectedCompetitors, setSelectedCompetitors] = useState<SelectedCompetitor[]>(
     state.selectedCompetitors
@@ -45,15 +40,11 @@ export function WizardStep2Confirm({
   const [newCompetitorName, setNewCompetitorName] = useState('')
   const [newCompetitorUrl, setNewCompetitorUrl] = useState('')
   const [showAddCompetitor, setShowAddCompetitor] = useState(false)
-  const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const enabledSources = sources.filter((s) => s.enabled)
   const REQUIRED_COMPETITORS = 3
   const hasRequiredCompetitors = selectedCompetitors.length >= REQUIRED_COMPETITORS
-  const hasDecision = (state.decisionFraming?.decision?.trim()?.length ?? 0) > 0
-  const hasMarket = (state.marketCategory?.trim()?.length ?? 0) > 0
-  const canRun = enabledSources.length > 0 && hasRequiredCompetitors && hasDecision && hasMarket
 
   const handleSourceToggle = (index: number) => {
     const newSources = [...sources]
@@ -134,74 +125,18 @@ export function WizardStep2Confirm({
     setError(null)
   }
 
-  const handleRunAnalysis = async () => {
-    if (!canRun) {
-      if (!hasDecision) {
-        setError('Please add a decision')
-      } else if (!hasMarket) {
-        setError('Please add a market/category')
-      } else if (enabledSources.length === 0) {
-        setError('Please enable at least 1 source')
-      } else if (selectedCompetitors.length < REQUIRED_COMPETITORS) {
-        setError(`Please add ${REQUIRED_COMPETITORS} competitors (currently ${selectedCompetitors.length})`)
-      } else {
-        setError('Please complete all required fields')
-      }
+  const handleContinue = () => {
+    if (!hasRequiredCompetitors) {
+      setError(`Please add ${REQUIRED_COMPETITORS} competitors (currently ${selectedCompetitors.length})`)
       return
     }
 
-    setRunning(true)
-    setError(null)
-
-    try {
-      // Generate project name
-      const projectName = `Competitive analysis: ${state.primaryCompanyName}`
-
-      // Create project
-      const projectResult = await createProjectFromForm({
-        name: projectName,
-        marketCategory: state.marketCategory || 'Competitive analysis',
-        targetCustomer: 'Target customers',
-        goal: state.decisionFraming?.decision || 'Generate competitive insights',
-        decisionFraming: state.decisionFraming ? (state.decisionFraming as unknown as any) : undefined,
-      })
-
-      if (!projectResult?.success || !projectResult.projectId) {
-        throw new Error(projectResult?.message || 'Failed to create project')
-      }
-
-      const projectId = projectResult.projectId
-
-      // Store enabled sources in project metadata (we'll store as JSON in a note or similar)
-      // For now, we'll just create competitors - sources will be used during evidence generation
-
-      // Create competitors
-      for (const competitor of selectedCompetitors) {
-        try {
-          const result = await createCompetitorForProject(projectId, {
-            name: competitor.name,
-            website: competitor.url,
-            evidence: `## ${competitor.name}\n\nEvidence generation in progress.`,
-          })
-          if (!result.success) {
-            console.error(`Failed to create competitor ${competitor.name}:`, result.message)
-          }
-        } catch (err) {
-          console.error(`Failed to create competitor ${competitor.name}:`, err)
-          // Continue with other competitors
-        }
-      }
-
-      // Navigate to competitors page (or results if analysis auto-runs)
-      router.push(`/projects/${projectId}/competitors`)
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to run analysis. Please try again.'
-      )
-      setRunning(false)
-    }
+    // Update state and continue to Step 3
+    onComplete({
+      selectedCompetitors,
+      resolvedSources: sources,
+      evidenceWindowDays,
+    })
   }
 
   // Group sources by type
@@ -592,34 +527,23 @@ export function WizardStep2Confirm({
           type="button"
           variant="outline"
           onClick={onBack}
-          disabled={running}
         >
           Back
         </Button>
         <div className="flex items-center gap-4">
-          {!canRun && (
-            <GenerateChecklist
-              hasDecision={hasDecision}
-              hasMarket={hasMarket}
-              competitorCount={selectedCompetitors.length}
-              requiredCompetitors={REQUIRED_COMPETITORS}
-            />
+          {!hasRequiredCompetitors && (
+            <p className="text-xs text-muted-foreground">
+              {REQUIRED_COMPETITORS} competitors required (currently {selectedCompetitors.length})
+            </p>
           )}
           <Button
             type="button"
-            onClick={handleRunAnalysis}
-            disabled={!canRun || running}
+            onClick={handleContinue}
+            disabled={!hasRequiredCompetitors}
             variant="brand"
             size="lg"
           >
-            {running ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Generating...
-              </>
-            ) : (
-              'Generate prioritized opportunities'
-            )}
+            Continue → Details
           </Button>
         </div>
       </div>
