@@ -25,13 +25,19 @@ export function Hero() {
                 "text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-text-primary",
                 "leading-tight"
               )}>
-                Competitive strategy, grounded in evidence.
+                Find your unfair advantage
               </h1>
               <p className={cn(
                 "text-lg md:text-xl leading-relaxed text-text-secondary max-w-prose",
                 "mx-auto lg:mx-0"
               )}>
-                Plinth turns public market signals—pricing, docs, changelogs, reviews—into ranked strategic opportunities with citations and confidence.
+                Plinth turns public market evidence into ranked strategic bets — with citations, confidence, and VP-ready framing.
+              </p>
+              <p className={cn(
+                "text-sm md:text-base text-text-muted italic max-w-prose",
+                "mx-auto lg:mx-0"
+              )}>
+                Decision credibility over AI novelty.
               </p>
             </div>
             
@@ -42,9 +48,9 @@ export function Hero() {
                   Start a new analysis
                 </Button>
               </Link>
-              <Link href="#how-it-works">
+              <Link href="#example-output">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
-                  See how it works
+                  See example output
                 </Button>
               </Link>
             </div>
@@ -67,62 +73,97 @@ export function Hero() {
           <div className="relative">
             <div className="relative rounded-2xl border-2 border-border-subtle shadow-xl bg-surface overflow-hidden">
               {/* Mock browser chrome */}
-              <div className="p-4 bg-surface-muted border-b border-border-subtle">
+              <div className="p-3 bg-surface-muted border-b border-border-subtle">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-danger"></div>
                   <div className="h-2 w-2 rounded-full bg-warning"></div>
                   <div className="h-2 w-2 rounded-full bg-success"></div>
-                  <span className="ml-4 text-xs font-medium text-text-muted">Ranked Opportunities</span>
+                  <span className="ml-4 text-xs font-medium text-text-muted">Plinth Analysis</span>
                 </div>
               </div>
               
-              {/* Mock product preview */}
-              <div className="p-6 space-y-4 bg-surface">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-4 rounded-lg border border-border-subtle bg-surface-muted/50">
+              {/* Evidence sources bar */}
+              <div className="px-4 py-2.5 bg-surface-muted/50 border-b border-border-subtle">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-xs font-medium text-text-muted">Evidence sources:</span>
+                  <Badge variant="secondary" className="text-xs">Pricing</Badge>
+                  <Badge variant="secondary" className="text-xs">Docs</Badge>
+                  <Badge variant="secondary" className="text-xs">Changelog</Badge>
+                  <Badge variant="secondary" className="text-xs">Reviews</Badge>
+                </div>
+              </div>
+              
+              {/* Mock product preview - Opportunity card with details */}
+              <div className="p-5 space-y-4 bg-surface">
+                {/* Main opportunity card */}
+                <div className="p-4 rounded-lg border border-border-subtle bg-surface-muted/50">
+                  <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant="primary" className="text-xs font-semibold">8.7</Badge>
                         <span className="text-xs text-text-muted">High confidence</span>
                       </div>
-                      <h4 className="text-sm font-semibold text-text-primary mb-1">
-                        Launch feature X that addresses gap Y
+                      <h4 className="text-sm font-semibold text-text-primary mb-2">
+                        Launch enterprise SSO to match competitor positioning
                       </h4>
-                      <p className="text-xs text-text-secondary leading-relaxed">
-                        Evidence from 12 sources across pricing, docs, and reviews...
-                      </p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start gap-3 p-4 rounded-lg border border-border-subtle bg-surface-muted/30">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="primary" className="text-xs font-semibold">7.9</Badge>
-                        <span className="text-xs text-text-muted">High confidence</span>
+                  {/* Top evidence citations */}
+                  <div className="mb-3 space-y-1.5">
+                    <p className="text-xs font-medium text-text-muted mb-1.5">Top evidence:</p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-xs text-text-secondary">
+                        <span className="w-1 h-1 rounded-full bg-accent-primary"></span>
+                        <span>Competitor A pricing page — Enterprise tier</span>
                       </div>
-                      <h4 className="text-sm font-semibold text-text-primary mb-1">
-                        Improve capability Z based on competitor signals
-                      </h4>
-                      <p className="text-xs text-text-secondary leading-relaxed">
-                        Evidence from 8 sources...
-                      </p>
+                      <div className="flex items-center gap-2 text-xs text-text-secondary">
+                        <span className="w-1 h-1 rounded-full bg-accent-primary"></span>
+                        <span>Competitor B docs — SSO integration guide</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-text-secondary">
+                        <span className="w-1 h-1 rounded-full bg-accent-primary"></span>
+                        <span>Review site — Feature request thread</span>
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-start gap-3 p-4 rounded-lg border border-border-subtle bg-surface-muted/20">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="primary" className="text-xs font-semibold">7.2</Badge>
-                        <span className="text-xs text-text-muted">Medium confidence</span>
+                  {/* Scoring breakdown */}
+                  <div className="pt-3 border-t border-border-subtle">
+                    <p className="text-xs font-medium text-text-muted mb-2">Scoring drivers:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-text-secondary">Evidence strength</span>
+                        <span className="font-medium text-text-primary">8.9</span>
                       </div>
-                      <h4 className="text-sm font-semibold text-text-primary mb-1">
-                        Strategic opportunity with citations
-                      </h4>
-                      <p className="text-xs text-text-secondary leading-relaxed">
-                        Evidence from 6 sources...
-                      </p>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-text-secondary">Defensibility</span>
+                        <span className="font-medium text-text-primary">8.5</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-text-secondary">Market timing</span>
+                        <span className="font-medium text-text-primary">8.2</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-text-secondary">Strategic fit</span>
+                        <span className="font-medium text-text-primary">9.1</span>
+                      </div>
                     </div>
                   </div>
+                </div>
+                
+                {/* Secondary opportunity (smaller) */}
+                <div className="p-3 rounded-lg border border-border-subtle bg-surface-muted/30">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Badge variant="primary" className="text-xs font-semibold">7.9</Badge>
+                    <span className="text-xs text-text-muted">High confidence</span>
+                  </div>
+                  <h4 className="text-xs font-semibold text-text-primary mb-1">
+                    Improve API rate limits based on competitor signals
+                  </h4>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    8 sources • Docs, changelog
+                  </p>
                 </div>
               </div>
             </div>

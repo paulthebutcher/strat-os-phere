@@ -31,9 +31,9 @@ export function FinalCTABand() {
                   Start a new analysis
                 </Button>
               </Link>
-              <Link href="#how-it-works">
+              <Link href="#example-output">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
-                  See how it works
+                  See example output
                 </Button>
               </Link>
             </div>

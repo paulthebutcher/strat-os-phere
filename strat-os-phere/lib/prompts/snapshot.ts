@@ -24,13 +24,8 @@ export interface ProjectContext {
   decision_level?: DecisionLevel | null
   explicit_non_goals?: string | null
   input_confidence?: InputConfidence | null
-  // New hypothesis-first fields
-  starting_point?: 'product' | 'problem' | 'customer' | 'market' | null
-  hypothesis?: string | null
-  problem_statement?: string | null
-  customer_profile?: string | null
-  market_context?: string | null
-  solution_idea?: string | null
+  // Note: starting_point, hypothesis, problem_statement, customer_profile, market_context, solution_idea
+  // columns do not exist in production schema and are not used
   // Computed context summary (from buildProjectContext)
   lens?: 'product' | 'problem' | 'customer' | 'market'
   summaryText?: string
@@ -101,15 +96,8 @@ export function buildSnapshotMessages(input: SnapshotPromptInput): Message[] {
     projectLines.push(`Target customer: ${project.target_customer}`)
   }
 
-  // Problem statement (for problem lens)
-  if (project.problem_statement) {
-    projectLines.push(`Problem: ${project.problem_statement}`)
-  }
-
-  // Solution idea (for product lens)
-  if (project.solution_idea) {
-    projectLines.push(`Solution: ${project.solution_idea}`)
-  }
+  // Note: problem_statement and solution_idea columns do not exist in production
+  // These fields are not available for prompt building
 
   if (project.geography) {
     projectLines.push(`Geography: ${project.geography}`)

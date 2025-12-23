@@ -11,19 +11,19 @@ import { MarketingContainer } from "./MarketingContainer"
 
 const steps = [
   {
-    icon: Target,
-    title: "Define the decision context",
-    description: "Describe what you're evaluating. We infer what signals to gather.",
+    icon: Search,
+    title: "Collect public evidence",
+    description: "We gather evidence from pricing pages, docs, changelogs, and reviews across your competitors.",
   },
   {
-    icon: Search,
-    title: "Add competitors",
-    description: "Select 3-7 competitors. We pull evidence from their public pages.",
+    icon: Target,
+    title: "Normalize",
+    description: "Evidence is organized by type with recency indicators. We structure signals into a unified evidence base.",
   },
   {
     icon: TrendingUp,
-    title: "Generate ranked opportunities",
-    description: "Get prioritized strategic bets with citations, confidence, and defensibility scores.",
+    title: "Generate ranked bets",
+    description: "Get prioritized strategic opportunities with citations, confidence scores, and defensibility metrics.",
   },
 ]
 
@@ -36,7 +36,7 @@ export function HowItWorksStepper() {
             How it works
           </h2>
           <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-            Three steps from decision context to ranked opportunities.
+            Three steps from public evidence to ranked strategic bets.
           </p>
         </div>
         

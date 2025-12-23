@@ -178,15 +178,8 @@ export function buildOpportunityV3Messages(
     projectLines.push(`Target customer: ${project.target_customer}`)
   }
 
-  // Problem statement (for problem lens)
-  if (project.problem_statement) {
-    projectLines.push(`Problem: ${project.problem_statement}`)
-  }
-
-  // Solution idea (for product lens)
-  if (project.solution_idea) {
-    projectLines.push(`Solution: ${project.solution_idea}`)
-  }
+  // Note: problem_statement and solution_idea columns do not exist in production
+  // These fields are not available for prompt building
 
   if (project.geography) {
     projectLines.push(`Geography: ${project.geography}`)

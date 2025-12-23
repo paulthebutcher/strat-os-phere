@@ -4,7 +4,9 @@ import { Hero } from "@/components/marketing/Hero"
 import { ProblemOutcome } from "@/components/marketing/ProblemOutcome"
 import { HowItWorksStepper } from "@/components/marketing/HowItWorksStepper"
 import { BentoFeatureGrid } from "@/components/marketing/BentoFeatureGrid"
+import { ExampleOutput } from "@/components/marketing/ExampleOutput"
 import { TrustMethod } from "@/components/marketing/TrustMethod"
+import { MiniFAQ } from "@/components/marketing/MiniFAQ"
 import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
@@ -12,9 +14,9 @@ import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Plinth — Competitive analysis that ends in a decision",
+    title: "Plinth — Find your unfair advantage",
     description:
-      "Turn competitor signals into decision-ready outputs: Jobs-to-be-Done, scorecards, opportunities, and Strategic Bets—backed by live evidence and citations.",
+      "Plinth turns public market evidence into ranked strategic bets — with citations, confidence, and VP-ready framing. Decision credibility over AI novelty.",
     path: "/",
     ogVariant: "default",
     canonical: true,
@@ -61,10 +63,16 @@ export default async function Home(props: HomeProps) {
         {/* 4. What you get */}
         <BentoFeatureGrid />
         
-        {/* 5. Trust / Method */}
+        {/* 5. Example output */}
+        <ExampleOutput />
+        
+        {/* 6. Trust / Method */}
         <TrustMethod />
         
-        {/* 6. Final CTA */}
+        {/* 7. Mini FAQ */}
+        <MiniFAQ />
+        
+        {/* 8. Final CTA */}
         <FinalCTABand />
         
         <Footer />

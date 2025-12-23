@@ -5,19 +5,21 @@
  * to prevent "column does not exist in schema cache" errors.
  */
 
-import { PROJECTS_ALLOWED_COLUMNS } from "./projectsSchema";
+import { PROJECT_ALLOWED_COLUMNS } from "./projectsSchema";
 
 type AnyObj = Record<string, any>;
 
 /**
  * Filters an object to only include allowed project columns.
- * Removes any keys that are not in PROJECTS_ALLOWED_COLUMNS.
+ * Removes any keys that are not in PROJECT_ALLOWED_COLUMNS.
+ * This is the whitelist picker that must be used for all project inserts/updates.
  * 
- * @param input - Object with potential project fields
- * @returns Object with only allowed columns (excluding undefined values)
+ * @param input - Object with potential project fields (can be unknown shape)
+ * @returns New object with only allowed columns (excluding undefined values)
+ *          Does not mutate the input object.
  */
 export function pickAllowedProjectFields<T extends AnyObj>(input: T): Partial<T> {
-  const allowed = new Set(PROJECTS_ALLOWED_COLUMNS);
+  const allowed = new Set(PROJECT_ALLOWED_COLUMNS);
   const out: AnyObj = {};
   for (const [k, v] of Object.entries(input)) {
     if (allowed.has(k as any) && v !== undefined) {

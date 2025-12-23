@@ -84,6 +84,36 @@ export function TrustMethod() {
           </div>
         </div>
         
+        {/* Trust cues */}
+        <div className="mt-12 pt-12 border-t border-border-subtle">
+          <div className="grid md:grid-cols-3 gap-6 text-center">
+            <div>
+              <p className="text-sm font-semibold text-text-primary mb-1">
+                Built for VP+ Product, UX, Strategy
+              </p>
+              <p className="text-xs text-text-muted">
+                Decision-ready outputs, not research dumps
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-text-primary mb-1">
+                Evidence-bound claims
+              </p>
+              <p className="text-xs text-text-muted">
+                Every recommendation tied to sources
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-text-primary mb-1">
+                No black-box dashboards
+              </p>
+              <p className="text-xs text-text-muted">
+                Inspect evidence, confidence, and scoring
+              </p>
+            </div>
+          </div>
+        </div>
+        
         {/* Footnote */}
         <div className="mt-12 text-center">
           <p className="text-sm text-text-muted italic">
