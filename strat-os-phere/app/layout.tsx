@@ -6,6 +6,7 @@ import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { createClient } from "@/lib/supabase/server";
 import { createBaseMetadata } from "@/lib/seo/metadata";
 import { ToastProvider } from "@/components/toast/toast-provider";
+import { RunToasts } from "@/components/toasts/RunToasts";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default async function RootLayout({
           <div className="min-h-screen">
             {children}
           </div>
+          <RunToasts />
         </ToastProvider>
       </body>
     </html>

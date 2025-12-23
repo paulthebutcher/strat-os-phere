@@ -5,16 +5,17 @@ import { getRunStatus } from '@/lib/runs/status'
 import { getAnalysisRunById } from '@/lib/data/runs'
 import { getProjectById } from '@/lib/data/projects'
 import type { ArtifactRow } from '@/lib/supabase/database.types'
+import type { RunStatusResponse } from '@/lib/runs/types'
 
 /**
  * GET /api/runs/[runId]/status
- * Returns the status of an analysis run
+ * Returns the status of an analysis run in RunStatusResponse format
  * Checks analysis_runs table first, then falls back to artifacts
  */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ runId: string }> }
-): Promise<NextResponse> {
+): Promise<NextResponse<RunStatusResponse>> {
   try {
     const { runId } = await params
     const supabase = await createClient()
@@ -76,16 +77,32 @@ export async function GET(
       }
 
       const statusInfo = await getRunStatus(supabase, runId, projectId)
-      return NextResponse.json(statusInfo)
+      
+      // Convert to RunStatusResponse format
+      const response: RunStatusResponse = {
+        runId,
+        analysisId: projectId, // Using projectId as analysisId for now
+        status: statusInfo.status,
+        progress: statusInfo.progress
+          ? {
+              completed: statusInfo.progress,
+              total: 100,
+            }
+          : undefined,
+        updatedAt: statusInfo.updatedAt || new Date().toISOString(),
+      }
+      
+      return NextResponse.json(response)
     }
 
-    // If no projectId found, return unknown status
+    // If no projectId found, return queued status
     // This can happen if the run doesn't exist yet
-    return NextResponse.json({
+    const response: RunStatusResponse = {
+      runId,
       status: 'queued',
-      progress: undefined,
-      updatedAt: undefined,
-    })
+      updatedAt: new Date().toISOString(),
+    }
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Error fetching run status:', error)
     return NextResponse.json(

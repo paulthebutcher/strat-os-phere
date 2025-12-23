@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useToastContext } from '@/components/toast/toast-provider'
 import { Loader2 } from 'lucide-react'
 import type { VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
+import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
+import { addActiveRun } from '@/lib/runs/runToastStore'
 
 interface GenerateAnalysisButtonProps {
   projectId: string
@@ -21,7 +21,7 @@ interface GenerateAnalysisButtonProps {
 
 /**
  * Shared button component for triggering analysis generation
- * Handles API call, loading states, error handling, and navigation
+ * Uses the global run toast system for non-blocking progress tracking
  */
 export function GenerateAnalysisButton({
   projectId,
@@ -33,8 +33,6 @@ export function GenerateAnalysisButton({
   missingReasons = [],
   onStarted,
 }: GenerateAnalysisButtonProps) {
-  const router = useRouter()
-  const { showAnalysisRunToast } = useToastContext()
   const [isGenerating, setIsGenerating] = useState(false)
 
   const handleClick = async () => {
@@ -46,7 +44,6 @@ export function GenerateAnalysisButton({
       if (checklistElement) {
         checklistElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
-      // Show alert for now - could be enhanced with toast
       alert(`Please complete the requirements:\n\n${missingReasons.join('\n')}`)
       return
     }
@@ -62,53 +59,38 @@ export function GenerateAnalysisButton({
     }
 
     try {
-      // Check if there's already a running run
-      const statusResponse = await fetch(`/api/projects/${projectId}/latest-run`)
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json()
-        if (statusData?.status === 'running' || statusData?.status === 'queued') {
-          // Navigate to results and show toast for existing run
-          const resultsUrl = `/projects/${projectId}/results?runId=${statusData.runId}`
-          router.push(resultsUrl)
-          showAnalysisRunToast({
-            projectId,
-            runId: statusData.runId,
-            resultsUrl,
-          })
-          setIsGenerating(false)
-          return
-        }
-      }
+      const result = await startEvidenceRun({ analysisId: projectId })
 
-      // Start generation
-      const response = await fetch(`/api/projects/${projectId}/generate`, {
-        method: 'POST',
-      })
-
-      const result = await response.json()
-
-      if (response.ok && result.ok && result.runId) {
-        // Success: navigate to results and show toast
-        const resultsUrl = `/projects/${projectId}/results?runId=${result.runId}`
-        router.push(resultsUrl)
-
-        showAnalysisRunToast({
-          projectId,
+      if (result.ok) {
+        // Register the run with the global toast manager
+        addActiveRun({
           runId: result.runId,
-          resultsUrl,
+          projectId,
+          analysisId: projectId,
+          createdAt: new Date().toISOString(),
         })
+
+        // Toast will appear automatically via RunToasts component
+        // User can continue navigating - toast persists
+        // Re-enable button - don't lock the page
+        setIsGenerating(false)
       } else {
         // Error: show error message
-        const errorMessage = result.message || 'Failed to start analysis. Please try again.'
-        
+        const errorMessage =
+          result.message || 'Failed to start analysis. Please try again.'
+
         // Check if it's a validation error (like missing competitors)
-        // The API returns error messages that mention competitors, so check for that
-        if (result.message?.toLowerCase().includes('competitor') || 
-            result.message?.toLowerCase().includes('at least')) {
+        if (
+          result.message?.toLowerCase().includes('competitor') ||
+          result.message?.toLowerCase().includes('at least')
+        ) {
           // Scroll to checklist for validation errors
           const checklistElement = document.getElementById('readiness-checklist')
           if (checklistElement) {
-            checklistElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            checklistElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            })
           }
         }
 
@@ -134,7 +116,7 @@ export function GenerateAnalysisButton({
       {isGenerating ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Generating...</span>
+          <span>Starting...</span>
         </>
       ) : (
         label

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-
 import { Button } from '@/components/ui/button'
+import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
+import { addActiveRun } from '@/lib/runs/runToastStore'
 
 interface RegenerateButtonProps {
   projectId: string
@@ -14,7 +14,7 @@ interface RegenerateButtonProps {
 
 /**
  * Button that triggers analysis regeneration
- * When clicked, navigates to results page with generating=true to show AnalysisRunExperience
+ * Uses the global run toast system for non-blocking progress tracking
  */
 export function RegenerateButton({
   projectId,
@@ -22,10 +22,9 @@ export function RegenerateButton({
   competitorCount = 0,
   onStart,
 }: RegenerateButtonProps) {
-  const router = useRouter()
   const [isStarting, setIsStarting] = useState(false)
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (isStarting) return
 
     setIsStarting(true)
@@ -38,8 +37,31 @@ export function RegenerateButton({
       // Ignore sessionStorage errors
     }
 
-    // Navigate to results page with generating flag
-    router.push(`/projects/${projectId}/results?generating=true`)
+    try {
+      const result = await startEvidenceRun({ analysisId: projectId })
+
+      if (result.ok) {
+        // Register the run with the global toast manager
+        addActiveRun({
+          runId: result.runId,
+          projectId,
+          analysisId: projectId,
+          createdAt: new Date().toISOString(),
+        })
+
+        // Toast will appear automatically via RunToasts component
+        // User can continue navigating - toast persists
+        // Re-enable button - don't lock the page
+        setIsStarting(false)
+      } else {
+        alert(result.message || 'Failed to start analysis. Please try again.')
+        setIsStarting(false)
+      }
+    } catch (error) {
+      console.error('Error starting analysis:', error)
+      alert('Failed to start analysis. Please try again.')
+      setIsStarting(false)
+    }
   }
 
   return (

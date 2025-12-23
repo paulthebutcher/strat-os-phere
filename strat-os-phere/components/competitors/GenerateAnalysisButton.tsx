@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-
 import { Button } from '@/components/ui/button'
-import { useToastContext } from '@/components/toast/toast-provider'
+import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
+import { addActiveRun } from '@/lib/runs/runToastStore'
 
 interface GenerateAnalysisButtonProps {
   projectId: string
@@ -14,15 +13,13 @@ interface GenerateAnalysisButtonProps {
 
 /**
  * Button that triggers unified analysis generation (including Strategic Bets)
- * When clicked, immediately navigates to results and shows non-blocking toast
+ * Uses the global run toast system for non-blocking progress tracking
  */
 export function GenerateAnalysisButton({
   projectId,
   disabled,
   competitorCount = 0,
 }: GenerateAnalysisButtonProps) {
-  const router = useRouter()
-  const { showAnalysisRunToast } = useToastContext()
   const [isStarting, setIsStarting] = useState(false)
 
   const handleClick = async () => {
@@ -38,44 +35,22 @@ export function GenerateAnalysisButton({
     }
 
     try {
-      // Check if there's already a running run
-      const statusResponse = await fetch(`/api/projects/${projectId}/latest-run`)
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json()
-        if (statusData?.status === 'running' || statusData?.status === 'queued') {
-          // Navigate to results and show toast for existing run
-          const resultsUrl = `/projects/${projectId}/results?runId=${statusData.runId}`
-          router.push(resultsUrl)
-          showAnalysisRunToast({
-            projectId,
-            runId: statusData.runId,
-            resultsUrl,
-          })
-          setIsStarting(false)
-          return
-        }
-      }
+      const result = await startEvidenceRun({ analysisId: projectId })
 
-      // Start generation
-      const response = await fetch(`/api/projects/${projectId}/generate`, {
-        method: 'POST',
-      })
-
-      const result = await response.json()
-
-      if (result.ok && result.runId) {
-        // Immediately navigate to results
-        const resultsUrl = `/projects/${projectId}/results?runId=${result.runId}`
-        router.push(resultsUrl)
-
-        // Show toast
-        showAnalysisRunToast({
-          projectId,
+      if (result.ok) {
+        // Register the run with the global toast manager
+        addActiveRun({
           runId: result.runId,
-          resultsUrl,
+          projectId,
+          analysisId: projectId,
+          createdAt: new Date().toISOString(),
         })
+
+        // Toast will appear automatically via RunToasts component
+        // User can continue navigating - toast persists
+        // Re-enable button - don't lock the page
+        setIsStarting(false)
       } else {
-        // Show error (could be enhanced with error toast)
         console.error('Failed to start analysis:', result.message)
         alert(result.message || 'Failed to start analysis. Please try again.')
         setIsStarting(false)

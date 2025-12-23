@@ -30,6 +30,8 @@ import { FollowUpQuestionWrapper } from '@/components/followup/FollowUpQuestionW
 import { FLAGS } from '@/lib/flags'
 import { getProcessedClaims } from '@/lib/evidence/claims/getProcessedClaims'
 import { EvidenceTrustPanelWrapper } from '@/components/evidence/EvidenceTrustPanelWrapper'
+import { normalizeEvidenceBundleToLedger } from '@/lib/evidence/ledger'
+import { EvidenceLedgerSection } from '@/components/evidence/EvidenceLedgerSection'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -121,6 +123,9 @@ export default async function ResultsPage(props: ResultsPageProps) {
   // Select readout data for the new executive readout view
   const readoutData = selectReadoutData(normalized)
 
+  // Normalize evidence bundle to ledger model
+  const evidenceLedgerModel = normalizeEvidenceBundleToLedger(evidenceBundle)
+
   // Check if we have any artifacts to show
   const hasArtifacts = results.artifacts.length > 0
   
@@ -188,12 +193,18 @@ export default async function ResultsPage(props: ResultsPageProps) {
           ) : showReadout ? (
             // Default: Show executive readout view
             (opportunities.best || !isRunning) && (
-              <ResultsReadoutView
-                projectId={projectId}
-                projectName={results.project?.name || 'Results'}
-                readoutData={readoutData}
-                normalized={normalized}
-              />
+              <>
+                <ResultsReadoutView
+                  projectId={projectId}
+                  projectName={results.project?.name || 'Results'}
+                  readoutData={readoutData}
+                  normalized={normalized}
+                />
+                {/* Evidence Ledger Section */}
+                {evidenceLedgerModel && (
+                  <EvidenceLedgerSection model={evidenceLedgerModel} />
+                )}
+              </>
             )
           ) : showTabContent ? (
             // Show specific tab content (deep dives)
