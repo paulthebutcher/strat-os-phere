@@ -67,6 +67,10 @@ export const ARTIFACT_REGISTRY = {
     label: 'Strategic Bets v2 Overlay',
     schemaName: 'StrategicBetsV2Overlay',
   },
+  evidence_bundle_v1: {
+    type: 'evidence_bundle_v1',
+    label: 'Evidence Bundle',
+  },
 } as const satisfies Record<string, ArtifactRegistryEntry>
 
 /**
@@ -84,6 +88,7 @@ export const ARTIFACT_TYPES = [
   'scoring_matrix',
   'strategic_bets',
   'strategic_bets_v2_overlay',
+  'evidence_bundle_v1',
 ] as const
 
 /**

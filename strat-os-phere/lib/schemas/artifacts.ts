@@ -173,6 +173,10 @@ export function getArtifactContentSchema(
       return StrategicBetsArtifactContentSchema
     case 'strategic_bets_v2_overlay':
       return StrategicBetsV2OverlaySchema
+    case 'evidence_bundle_v1':
+      // Evidence bundles are stored as artifacts but don't have a validation schema
+      // Return z.any() to allow any content structure
+      return z.any()
     default: {
       // TypeScript should prove this is unreachable if all cases are handled
       // If this errors, it means a new artifact type was added but not handled
