@@ -1,15 +1,11 @@
-import type { TypedSupabaseClient } from '@/lib/supabase/types'
-import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/supabase/database.types'
+import type { TypedSupabaseClient, ArtifactRow } from '@/lib/supabase/types'
 import { createArtifact } from '@/lib/data/artifacts'
 import type { EvidenceBundle } from './types'
 
 type Client = TypedSupabaseClient
 
-// Helper to get a properly typed Supabase client
-function getTypedClient(client: Client): SupabaseClient<Database> {
-  return client as unknown as SupabaseClient<Database>
-}
+// Type for the selected fields from artifacts table
+type ArtifactContentSelect = Pick<ArtifactRow, 'content_json'>
 
 /**
  * Save an evidence bundle as an artifact
@@ -23,13 +19,11 @@ export async function saveEvidenceBundle(
   projectId: string,
   bundle: EvidenceBundle
 ): Promise<string> {
-  const typedClient = getTypedClient(supabase)
-  
   // Create artifact with evidence bundle content
   const artifact = await createArtifact(supabase, {
     project_id: projectId,
     type: 'evidence_bundle_v1',
-    content_json: bundle as unknown as Database['public']['Tables']['artifacts']['Row']['content_json'],
+    content_json: bundle as unknown as ArtifactRow['content_json'],
   })
 
   return artifact.id
@@ -45,17 +39,19 @@ export async function getLatestEvidenceBundle(
   supabase: Client,
   projectId: string
 ): Promise<EvidenceBundle | null> {
-  const typedClient = getTypedClient(supabase)
-  
   // Query for latest evidence bundle artifact
-  const { data, error } = await typedClient
+  // Select only content_json to ensure proper type inference
+  const { data, error } = await supabase
     .from('artifacts')
-    .select('*')
+    .select('content_json')
     .eq('project_id', projectId)
     .eq('type', 'evidence_bundle_v1')
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
+  
+  // Type the result to ensure proper inference
+  const row = data as ArtifactContentSelect | null
 
   if (error) {
     if (error.code === 'PGRST116') {
@@ -64,12 +60,13 @@ export async function getLatestEvidenceBundle(
     throw new Error(error.message)
   }
 
-  if (!data || !data.content_json) {
+  // Use optional chaining for cleaner null check
+  if (!row?.content_json) {
     return null
   }
 
   // Type assertion: content_json should be EvidenceBundle
   // In a real implementation, you might want to validate this with Zod
-  return data.content_json as unknown as EvidenceBundle
+  return row.content_json as unknown as EvidenceBundle
 }
 
