@@ -53,7 +53,6 @@ export async function createProjectFromTryDraft(
       problem_statement: null,
       market_context: null,
       solution_idea: null,
-      decision_framing: null,
     })
 
     const projectId = project.id

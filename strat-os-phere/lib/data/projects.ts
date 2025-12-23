@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import { PROJECT_FULL_SELECT, PROJECT_LIST_SELECT, PROJECT_DASHBOARD_SELECT } from './projectSelect'
 import { isMissingColumnError } from '@/lib/db/safeDb'
+import { buildProjectUpdate } from '@/lib/db/projectUpdate'
 
 type Client = TypedSupabaseClient
 
@@ -16,7 +17,8 @@ export async function createProject(
   input: NewProject
 ): Promise<Project> {
   const typedClient = getTypedClient(client)
-  const insertPayload = input as Database['public']['Tables']['projects']['Insert']
+  // Use buildProjectUpdate to filter out any unknown columns (e.g., decision_framing, starting_point, customer_profile)
+  const insertPayload = buildProjectUpdate(input) as unknown as Database['public']['Tables']['projects']['Insert']
   const query = typedClient.from('projects') as unknown as {
     insert: (values: Database['public']['Tables']['projects']['Insert']) => {
       select: (columns?: string) => {
@@ -24,7 +26,7 @@ export async function createProject(
       }
     }
   }
-  // Use safe selector that excludes non-existent columns (starting_point, customer_profile)
+  // Use safe selector that excludes non-existent columns (starting_point, customer_profile, decision_framing)
   const { data, error } = await query.insert(insertPayload).select(PROJECT_FULL_SELECT).single()
 
   if (error !== null) {

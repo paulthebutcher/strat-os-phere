@@ -52,7 +52,6 @@ export class MockSupabaseStore {
       customer_profile: data.customer_profile ?? null,
       market_context: data.market_context ?? null,
       solution_idea: data.solution_idea ?? null,
-      decision_framing: data.decision_framing ?? null,
       latest_successful_run_id: data.latest_successful_run_id ?? null,
       latest_run_id: data.latest_run_id ?? null,
       created_at: new Date().toISOString(),

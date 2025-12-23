@@ -87,7 +87,6 @@ export function WizardStep3Details({
         goal: state.decisionFraming?.decision || 'Generate competitive insights',
         geography: geography.trim() || undefined,
         primaryConstraint: finalConstraints || undefined,
-        decisionFraming: state.decisionFraming ? (state.decisionFraming as unknown as any) : undefined,
       })
 
       if (!projectResult?.success || !projectResult.projectId) {

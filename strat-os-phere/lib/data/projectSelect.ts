@@ -30,7 +30,6 @@ export const PROJECT_OVERVIEW_SELECT = `
   problem_statement,
   market_context,
   solution_idea,
-  decision_framing,
   latest_successful_run_id,
   latest_run_id,
   created_at
@@ -100,7 +99,6 @@ export const PROJECT_RESULTS_SELECT = `
   problem_statement,
   market_context,
   solution_idea,
-  decision_framing,
   latest_successful_run_id,
   latest_run_id,
   created_at
