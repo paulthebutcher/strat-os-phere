@@ -281,7 +281,7 @@ export function TryStep2Confirm({
       {/* Privacy reassurance */}
       <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
         <p className="text-xs text-muted-foreground leading-relaxed">
-          <span className="font-medium text-foreground">Privacy:</span> We won't market to you. Email is only used to send a secure magic link and protect your data.
+          <span className="font-medium text-foreground">Privacy:</span> We'll never market to you using this email—only send a magic link to access your results securely.
         </p>
       </div>
 

@@ -32,7 +32,10 @@ export function MarketingSection({
     tinted: "bg-surface-muted/50",
   }
 
-  const spacingClasses = "py-16 md:py-24"
+  const spacingClasses = "py-20 md:py-24"
+  
+  // Add border-t to all sections except gradient (which handles its own styling)
+  const borderClasses = variant !== "gradient" ? "border-t border-border-subtle" : ""
 
   return (
     <section
@@ -41,6 +44,7 @@ export function MarketingSection({
         baseClasses,
         variantClasses[variant],
         spacingClasses,
+        borderClasses,
         className
       )}
     >

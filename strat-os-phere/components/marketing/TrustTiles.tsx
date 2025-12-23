@@ -1,30 +1,8 @@
-import { Shield, FileText, Clock, Share2 } from "lucide-react"
+import { FileText, Clock, Share2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 
-const trustTiles = [
-  {
-    icon: Shield,
-    title: "Public sources only",
-    description: "We only use publicly available information—pricing pages, reviews, job postings, changelogs, and documentation. No private data or scraping.",
-  },
-  {
-    icon: FileText,
-    title: "Evidence types",
-    description: "Multiple evidence types per opportunity: pricing signals, review sentiment, hiring patterns, product updates, and documentation changes.",
-  },
-  {
-    icon: Clock,
-    title: "Recency aware",
-    description: "Evidence window focuses on the last 90 days by default (configurable). Confidence increases with coverage and freshness of signals.",
-  },
-  {
-    icon: Share2,
-    title: "Shareable exec readout",
-    description: "Export a VP-ready narrative with full citations. Every insight is defensible and traceable to its source.",
-  },
-]
 
 export function TrustTiles() {
   return (
@@ -32,39 +10,73 @@ export function TrustTiles() {
       <MarketingContainer maxWidth="6xl">
         <div className="mx-auto max-w-3xl text-center space-y-4 mb-12">
           <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-            Trust & rigor
+            Credible by design
           </h2>
           <p className="text-base md:text-lg leading-relaxed text-text-secondary">
-            Every opportunity is grounded in public evidence with full citations you can validate.
+            Plinth shows its work. Every recommendation is tied to sources and recency—so you can defend decisions in real conversations.
           </p>
         </div>
         
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {trustTiles.map((tile, index) => {
-            const Icon = tile.icon
-            return (
-              <div
-                key={index}
-                className={cn(
-                  "panel p-6 rounded-2xl border border-border-subtle",
-                  "bg-surface shadow-sm hover:shadow-md transition-all",
-                  "hover:border-accent-primary/30"
-                )}
-              >
-                <div className="mb-4 flex justify-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent-primary/10">
-                    <Icon className="h-6 w-6 text-accent-primary" />
-                  </div>
-                </div>
-                <h3 className="mb-2 text-base font-semibold text-text-primary text-center">
-                  {tile.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-text-secondary text-center">
-                  {tile.description}
-                </p>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            className={cn(
+              "panel p-6 rounded-2xl border border-border-subtle",
+              "bg-surface shadow-sm hover:shadow-md transition-all",
+              "hover:border-accent-primary/30"
+            )}
+          >
+            <div className="mb-4 flex justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent-primary/10">
+                <FileText className="h-6 w-6 text-accent-primary" />
               </div>
-            )
-          })}
+            </div>
+            <h3 className="mb-2 text-base font-semibold text-text-primary text-center">
+              Evidence grouped by type
+            </h3>
+            <p className="text-sm leading-relaxed text-text-secondary text-center">
+              Pricing, docs, reviews, and more—organized so you can see what matters.
+            </p>
+          </div>
+          
+          <div
+            className={cn(
+              "panel p-6 rounded-2xl border border-border-subtle",
+              "bg-surface shadow-sm hover:shadow-md transition-all",
+              "hover:border-accent-primary/30"
+            )}
+          >
+            <div className="mb-4 flex justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent-primary/10">
+                <Clock className="h-6 w-6 text-accent-primary" />
+              </div>
+            </div>
+            <h3 className="mb-2 text-base font-semibold text-text-primary text-center">
+              Recency signals
+            </h3>
+            <p className="text-sm leading-relaxed text-text-secondary text-center">
+              So you know what's current and what's stale.
+            </p>
+          </div>
+          
+          <div
+            className={cn(
+              "panel p-6 rounded-2xl border border-border-subtle",
+              "bg-surface shadow-sm hover:shadow-md transition-all",
+              "hover:border-accent-primary/30"
+            )}
+          >
+            <div className="mb-4 flex justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent-primary/10">
+                <Share2 className="h-6 w-6 text-accent-primary" />
+              </div>
+            </div>
+            <h3 className="mb-2 text-base font-semibold text-text-primary text-center">
+              Links back to sources
+            </h3>
+            <p className="text-sm leading-relaxed text-text-secondary text-center">
+              For verification and deeper context when you need it.
+            </p>
+          </div>
         </div>
       </MarketingContainer>
     </MarketingSection>

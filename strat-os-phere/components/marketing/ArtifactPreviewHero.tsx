@@ -130,7 +130,7 @@ export function ArtifactPreviewHero() {
                 <span className="marketing-gradient-text">defensible opportunities</span>.
               </h1>
               <p className={cn("text-lg md:text-xl leading-relaxed text-text-secondary max-w-prose", "mx-auto lg:mx-0")}>
-                Get ranked opportunities with scores and citations, backed by public evidence from the last 90 days.
+                Plinth reads the market for you—pricing, docs, reviews, and changelogs—then turns it into ranked opportunities with citations you can trust.
               </p>
             </div>
             
@@ -138,21 +138,21 @@ export function ArtifactPreviewHero() {
             <div className="space-y-4">
               <div className="flex items-start justify-center gap-3 text-base text-text-secondary lg:justify-start">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
-                  <Search className="h-5 w-5 text-accent-primary" />
-                </div>
-                <span className="font-medium">Scan public signals (pricing/reviews/jobs/changelog/docs)</span>
-              </div>
-              <div className="flex items-start justify-center gap-3 text-base text-text-secondary lg:justify-start">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
                   <TrendingUp className="h-5 w-5 text-accent-primary" />
                 </div>
-                <span className="font-medium">Generate ranked opportunities with scores + citations</span>
+                <span className="font-medium">Ranked opportunities, not dashboards</span>
               </div>
               <div className="flex items-start justify-center gap-3 text-base text-text-secondary lg:justify-start">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
                   <FileText className="h-5 w-5 text-accent-primary" />
                 </div>
-                <span className="font-medium">Export a VP-ready narrative you can defend</span>
+                <span className="font-medium">Citations + recency, built in</span>
+              </div>
+              <div className="flex items-start justify-center gap-3 text-base text-text-secondary lg:justify-start">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
+                  <Search className="h-5 w-5 text-accent-primary" />
+                </div>
+                <span className="font-medium">Shareable, exec-ready readout</span>
               </div>
             </div>
             
@@ -164,21 +164,15 @@ export function ArtifactPreviewHero() {
               </Link>
               <Link href="#sample-output">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
-                  See a sample output
+                  View sample output
                 </Button>
               </Link>
             </div>
             
-            {/* Trust row */}
-            <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start pt-2">
-              <div className="text-sm font-medium text-text-secondary">Evidence-backed</div>
-              <div className="h-1 w-1 rounded-full bg-text-muted" />
-              <div className="text-sm font-medium text-text-secondary">Exec-ready</div>
-              <div className="h-1 w-1 rounded-full bg-text-muted" />
-              <div className="text-sm font-medium text-text-secondary">Citations</div>
-              <div className="h-1 w-1 rounded-full bg-text-muted" />
-              <div className="text-sm font-medium text-text-secondary">Minutes to first output</div>
-            </div>
+            {/* Microcopy */}
+            <p className="text-sm text-text-muted text-center lg:text-left pt-2">
+              No sign-up required to start. We only ask for email when you're ready to save and view results.
+            </p>
           </div>
 
           {/* Right side: Product output preview */}

@@ -24,10 +24,10 @@ export function CTABand() {
         )}>
           <div className="space-y-6">
             <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-              Ready to try it?
+              Get to your first opportunity in minutes.
             </h2>
             <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
-              Turn competitor signals into decision-ready outputs in minutes. Get Jobs-to-be-Done, scorecards, opportunities, and Strategic Bets—all backed by live evidence with citations.
+              Start with a company + your decision. We'll do the research and give you ranked, defensible options.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
               <Link href="/try">
@@ -35,14 +35,14 @@ export function CTABand() {
                   Try Plinth
                 </Button>
               </Link>
-              <Link href="/samples">
+              <Link href="#sample-output">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
-                  See example output
+                  View sample output
                 </Button>
               </Link>
             </div>
             <p className="mt-6 text-sm text-text-muted max-w-md mx-auto">
-              No marketing. We only use your email to send a magic link and secure your work.
+              We'll never market to you using this email—only send a magic link to access your results securely.
             </p>
           </div>
         </div>

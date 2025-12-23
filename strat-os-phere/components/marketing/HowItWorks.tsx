@@ -19,16 +19,16 @@ export function HowItWorks() {
   const steps = [
     {
       number: "1",
-      title: "Describe your decision",
-      description: "Tell us what you're evaluating—your market, target customer, and competitors. Start with lightweight context; you can add details later.",
+      title: "Describe the decision",
+      description: "Write what you're deciding. We infer what to research.",
       borderColor: "marketing-accent-border-indigo",
       gradient: "from-accent-primary to-accent-primary/80",
       icon: "target",
     },
     {
       number: "2",
-      title: "We gather credible signals",
-      description: "Automatically scans public sources from the last 90 days: pricing pages, reviews, job postings, changelogs, and documentation.",
+      title: "We gather evidence",
+      description: "We pull credible signals across sources and organize them by type.",
       borderColor: "marketing-accent-border-teal",
       gradient: "from-[hsl(var(--marketing-accent-teal))] to-[hsl(var(--marketing-accent-teal)/0.8)]",
       icon: "search",
@@ -36,7 +36,7 @@ export function HowItWorks() {
     {
       number: "3",
       title: "Get ranked opportunities",
-      description: "Receive ranked opportunities with confidence scores and full citations. Every insight is defensible and traceable to its source.",
+      description: "You get prioritized moves + why they matter + citations.",
       borderColor: "marketing-accent-border-coral",
       gradient: "from-[hsl(var(--marketing-accent-coral))] to-[hsl(var(--marketing-accent-coral)/0.8)]",
       icon: "trending",
