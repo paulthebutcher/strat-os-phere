@@ -3,7 +3,7 @@
 import { SectionCard } from '@/components/results/SectionCard'
 import { EvidenceCoverageSummary } from './EvidenceCoverageSummary'
 import { EvidenceLedger } from './EvidenceLedger'
-import { EvidenceEmptyState } from './EvidenceEmptyState'
+import { EmptyEvidenceState } from './EmptyEvidenceState'
 import type { EvidenceLedgerModel } from '@/lib/evidence/ledger'
 
 interface EvidenceLedgerSectionProps {
@@ -20,7 +20,7 @@ export function EvidenceLedgerSection({
   className,
 }: EvidenceLedgerSectionProps) {
   if (!model || model.groups.length === 0) {
-    return <EvidenceEmptyState className={className} />
+    return <EmptyEvidenceState className={className} />
   }
 
   return (

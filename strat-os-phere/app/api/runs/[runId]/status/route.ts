@@ -15,7 +15,7 @@ import type { RunStatusResponse } from '@/lib/runs/types'
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ runId: string }> }
-): Promise<NextResponse<RunStatusResponse>> {
+): Promise<NextResponse<RunStatusResponse | { error: string; message?: string }>> {
   try {
     const { runId } = await params
     const supabase = await createClient()

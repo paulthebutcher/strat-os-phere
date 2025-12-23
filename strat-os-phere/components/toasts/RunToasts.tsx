@@ -277,7 +277,7 @@ export function RunToasts() {
                       ? run.errorMessage || 'Please try again.'
                       : isCompleted
                         ? 'Your analysis is ready to view.'
-                        : 'You can keep working — we'll notify you when it's ready.'}
+                        : "You can keep working — we'll notify you when it's ready."}
                   </p>
                 </div>
                 {!isCompleted && (
