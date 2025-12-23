@@ -6,6 +6,8 @@
 import { X, Check } from "lucide-react"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
+import { MarketingSection } from "./MarketingSection"
+import { MarketingContainer } from "./MarketingContainer"
 
 export function Differentiators() {
   const mostTools = [
@@ -24,14 +26,15 @@ export function Differentiators() {
   ]
 
   return (
-    <section className={cn("bg-surface-muted/30 mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
-      <div className="mx-auto max-w-3xl text-center">
-        <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
-          Why Plinth vs generic research
-        </h2>
-      </div>
-      <div className="mx-auto mt-20 grid gap-8 md:grid-cols-2 lg:max-w-5xl">
-        <div className={cn("panel p-8 md:p-10", brand.surface.base)}>
+    <MarketingSection variant="muted">
+      <MarketingContainer maxWidth="7xl">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
+            Why Plinth vs generic research
+          </h2>
+        </div>
+        <div className="mx-auto mt-20 grid gap-8 md:grid-cols-2 lg:max-w-5xl">
+          <div className={cn("panel p-8 md:p-10 rounded-2xl shadow-sm ring-1 ring-black/5", brand.surface.base)}>
           <h3 className={cn("mb-8", brand.typeScale.subhead, "text-text-primary")}>
             Most tools
           </h3>
@@ -46,7 +49,7 @@ export function Differentiators() {
             ))}
           </ul>
         </div>
-        <div className={cn("panel border-2 border-accent-primary p-8 shadow-md md:p-10", brand.surface.base)}>
+        <div className={cn("panel border-2 border-accent-primary p-8 shadow-md md:p-10 rounded-2xl", brand.surface.base)}>
           <h3 className={cn("mb-8", brand.typeScale.subhead, "text-text-primary")}>
             Plinth
           </h3>
@@ -62,7 +65,8 @@ export function Differentiators() {
           </ul>
         </div>
       </div>
-    </section>
+      </MarketingContainer>
+    </MarketingSection>
   )
 }
 

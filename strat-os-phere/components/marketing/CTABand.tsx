@@ -2,44 +2,49 @@
  * CTA Band Section
  * 
  * Enhanced with brand tokens for consistent styling and enterprise-grade appearance.
+ * Full-bleed gradient treatment for strong visual separation.
  */
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
 import { Backdrop } from "@/components/graphics"
+import { MarketingSection } from "./MarketingSection"
+import { MarketingContainer } from "./MarketingContainer"
 
 export function CTABand() {
   return (
-    <section className={cn("mx-auto max-w-[1200px] px-4 relative", brand.spacing.section)}>
-      <div className={cn(
-        "relative mx-auto max-w-4xl overflow-hidden rounded-xl border-2 border-accent-primary/20",
-        "bg-gradient-to-br from-accent-primary/10 via-accent-primary/5 to-surface",
-        "p-12 text-center shadow-lg md:p-16"
-      )}>
-        <Backdrop variant="section" density="medium" className="rounded-xl" />
-        <div className="relative z-10">
-        <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
-          Make one strategic bet this week with confidence.
-        </h2>
-        <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
-          Turn competitor signals into decision-ready outputs in minutes. Get Jobs-to-be-Done, scorecards, opportunities, and Strategic Bets—all backed by live evidence with citations.
-        </p>
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href="/try">
-            <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105">
-              Try Plinth
-            </Button>
-          </Link>
-          <Link href="/samples">
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
-              See a sample
-            </Button>
-          </Link>
+    <MarketingSection variant="gradient" className="relative overflow-hidden">
+      <Backdrop variant="section" density="medium" />
+      <MarketingContainer maxWidth="4xl" className="relative z-10">
+        <div className={cn(
+          "relative overflow-hidden rounded-2xl border-2 border-accent-primary/30",
+          "bg-gradient-to-br from-accent-primary/15 via-accent-primary/8 to-surface",
+          "p-12 text-center shadow-xl md:p-16"
+        )}>
+          <div className="space-y-6">
+            <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
+              Ready to try it?
+            </h2>
+            <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
+              Turn competitor signals into decision-ready outputs in minutes. Get Jobs-to-be-Done, scorecards, opportunities, and Strategic Bets—all backed by live evidence with citations.
+            </p>
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
+              <Link href="/try">
+                <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105">
+                  Try Plinth
+                </Button>
+              </Link>
+              <Link href="/samples">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
+                  See example output
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
-        </div>
-      </div>
-    </section>
+      </MarketingContainer>
+    </MarketingSection>
   )
 }
 

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { CheckCircle2, Circle, Sparkles } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
@@ -9,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { HeroPanel } from '@/components/shared/HeroPanel'
 import type { WizardState } from '@/lib/onboarding/types'
 import { WizardStep1Describe } from './WizardStep1Describe'
-import { DecisionFramingStep } from '@/components/projects/DecisionFramingStep'
 import { WizardStep2Confirm } from './WizardStep2Confirm'
 import { FirstWinChecklist } from './FirstWinChecklist'
 
@@ -19,8 +17,7 @@ interface AnalysisWizardProps {
 }
 
 export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWizardProps) {
-  const router = useRouter()
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1)
   const [wizardState, setWizardState] = useState<WizardState>({
     primaryCompanyName: '',
     contextText: undefined,
@@ -39,16 +36,7 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
     setCurrentStep(1)
   }
 
-  const handleStep2Complete = (framing: { decisionFraming: WizardState['decisionFraming'] }) => {
-    setWizardState((prev) => ({ ...prev, ...framing }))
-    setCurrentStep(3)
-  }
-
-  const handleStep3Back = () => {
-    setCurrentStep(2)
-  }
-
-  const handleStep3Complete = (state: Partial<WizardState>) => {
+  const handleStep2Complete = (state: Partial<WizardState>) => {
     const finalState = { ...wizardState, ...state }
     if (onComplete) {
       onComplete(finalState)
@@ -100,7 +88,7 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
                   : 'text-muted-foreground'
               }`}
             >
-              Step 1: Discover
+              Step 1: Describe your situation
             </span>
           </div>
           <div className="h-px flex-1 bg-border" />
@@ -117,24 +105,7 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
                   : 'text-muted-foreground'
               }`}
             >
-              Step 2: Frame
-            </span>
-          </div>
-          <div className="h-px flex-1 bg-border" />
-          <div className="flex items-center gap-2">
-            {currentStep >= 3 ? (
-              <CheckCircle2 className="h-5 w-5 text-primary" />
-            ) : (
-              <Circle className="h-5 w-5 text-muted-foreground" />
-            )}
-            <span
-              className={`text-sm font-semibold ${
-                currentStep >= 3
-                  ? 'text-foreground'
-                  : 'text-muted-foreground'
-              }`}
-            >
-              Step 3: Confirm
+              Step 2: Add competitors
             </span>
           </div>
         </div>
@@ -151,17 +122,10 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
             />
           )}
           {currentStep === 2 && (
-            <DecisionFramingStep
-              initialState={wizardState.decisionFraming}
-              onBack={handleStep2Back}
-              onComplete={(framing) => handleStep2Complete({ decisionFraming: framing })}
-            />
-          )}
-          {currentStep === 3 && (
             <WizardStep2Confirm
               state={wizardState}
-              onBack={handleStep3Back}
-              onComplete={handleStep3Complete}
+              onBack={handleStep2Back}
+              onComplete={handleStep2Complete}
             />
           )}
         </div>
@@ -174,8 +138,8 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
                 mode="guided"
                 inputs={{
                   name: wizardState.primaryCompanyName,
-                  market: undefined,
-                  customer: undefined,
+                  market: wizardState.marketCategory,
+                  customer: wizardState.decisionFraming?.decision,
                 }}
               />
             )}

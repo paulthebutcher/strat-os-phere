@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:deadlinks": "tsx scripts/find-dead-links.ts",
+    "harvest:evidence": "tsx scripts/harvest-evidence.ts",
     "preflight": "node scripts/preflight.mjs",
     "preflight:tests": "PREFLIGHT_TESTS=1 node scripts/preflight.mjs",
     "ci:preflight": "pnpm -s typecheck && pnpm -s lint",

@@ -48,3 +48,68 @@ export type EvidenceBundle = {
   }
 }
 
+/**
+ * PR3: Harvest-specific evidence types
+ * Used for evidence harvesting via Tavily (pipeline-isolated)
+ */
+
+export type HarvestEvidenceType =
+  | 'official_site'
+  | 'pricing'
+  | 'docs'
+  | 'changelog'
+  | 'status'
+  | 'reviews'
+  | 'jobs'
+  | 'integrations'
+  | 'security_trust'
+  | 'community'
+
+export type HarvestEvidenceCtx = {
+  company: string
+  url?: string // optional primary domain
+  context?: string // optional user context / decision
+  limitPerType?: number // default 5
+  includeTypes?: HarvestEvidenceType[] // optional filter
+}
+
+export type HarvestEvidenceSource = {
+  title?: string
+  url: string
+  domain: string
+  publishedDate?: string | null
+  snippet?: string
+  sourceType?: string // raw tavily type if present
+}
+
+export type HarvestEvidenceGroup = {
+  type: HarvestEvidenceType
+  queries: string[]
+  sources: HarvestEvidenceSource[]
+  stats: {
+    requested: number
+    returned: number
+    kept: number
+    deduped: number
+    uniqueDomains: number
+  }
+}
+
+export type HarvestEvidenceBundle = {
+  schema_version: 1
+  meta: {
+    company: string
+    url?: string
+    context?: string
+    harvested_at: string // ISO
+    limitPerType: number
+  }
+  groups: HarvestEvidenceGroup[]
+  totals: {
+    sources: number
+    uniqueUrls: number
+    uniqueDomains: number
+    byType: Record<HarvestEvidenceType, number>
+  }
+}
+

@@ -10,6 +10,8 @@ import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
 import { FileText, ExternalLink, X, ChevronRight, Search, TrendingUp } from "lucide-react"
 import { Backdrop, CompetitiveLandscapeIllustration, ConfidenceBadgeIcon, RecencyBadgeIcon, CitationsBadgeIcon } from "@/components/graphics"
+import { MarketingSection } from "./MarketingSection"
+import { MarketingContainer } from "./MarketingContainer"
 
 // Mock data for Incident Management / On-call industry
 const MOCK_SAMPLE = {
@@ -116,27 +118,24 @@ export function ArtifactPreviewHero() {
   )
 
   return (
-    <section className={cn(
-      "relative mx-auto max-w-[1200px] px-4",
-      "bg-gradient-to-b from-accent-primary/5 via-transparent to-transparent",
-      "rounded-2xl py-16 md:py-24",
-      brand.spacing.section
-    )}>
-      <Backdrop variant="hero" density="subtle" className="rounded-2xl" />
-      <div className="mx-auto max-w-6xl relative z-10">
-        <div className="grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16">
+    <MarketingSection variant="gradient" className="relative overflow-hidden">
+      <Backdrop variant="hero" density="subtle" />
+      <MarketingContainer maxWidth="7xl" className="relative z-10">
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           {/* Left side: Headline, subhead, bullets, CTAs */}
-          <div className="text-center lg:text-left">
-            <h1 className={cn(brand.typeScale.headline, "text-text-primary")}>
-              Turn competitor noise into{" "}
-              <span className="marketing-gradient-text">defensible opportunities</span>.
-            </h1>
-            <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
-              Get ranked opportunities with scores and citations, backed by public evidence from the last 90 days.
-            </p>
+          <div className="text-center lg:text-left space-y-6">
+            <div className="space-y-4">
+              <h1 className={cn("text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-text-primary")}>
+                Turn competitor noise into{" "}
+                <span className="marketing-gradient-text">defensible opportunities</span>.
+              </h1>
+              <p className={cn("text-lg md:text-xl leading-relaxed text-text-secondary max-w-prose", "mx-auto lg:mx-0")}>
+                Get ranked opportunities with scores and citations, backed by public evidence from the last 90 days.
+              </p>
+            </div>
             
             {/* 3 key bullets */}
-            <div className="mt-8 space-y-4">
+            <div className="space-y-4">
               <div className="flex items-start justify-center gap-3 text-base text-text-secondary lg:justify-start">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-primary/10">
                   <Search className="h-5 w-5 text-accent-primary" />
@@ -157,42 +156,37 @@ export function ArtifactPreviewHero() {
               </div>
             </div>
             
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start">
-              <Link href="/projects/new">
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start pt-2">
+              <Link href="/try">
                 <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105">
-                  Run an analysis
+                  Try Plinth
                 </Button>
               </Link>
               <Link href="#sample-output">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
-                  See a sample
+                  See example output
                 </Button>
               </Link>
             </div>
             
-            {/* Trust badges */}
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-              <Badge variant="info" className="text-xs flex items-center gap-1.5">
-                <ConfidenceBadgeIcon className="w-3 h-3" />
-                Evidence-backed
-              </Badge>
-              <Badge variant="info" className="text-xs flex items-center gap-1.5">
-                <RecencyBadgeIcon className="w-3 h-3" />
-                90-day window
-              </Badge>
-              <Badge variant="info" className="text-xs flex items-center gap-1.5">
-                <CitationsBadgeIcon className="w-3 h-3" />
-                Citations included
-              </Badge>
+            {/* Trust row */}
+            <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start pt-2">
+              <div className="text-sm font-medium text-text-secondary">Evidence-backed</div>
+              <div className="h-1 w-1 rounded-full bg-text-muted" />
+              <div className="text-sm font-medium text-text-secondary">Exec-ready</div>
+              <div className="h-1 w-1 rounded-full bg-text-muted" />
+              <div className="text-sm font-medium text-text-secondary">Citations</div>
+              <div className="h-1 w-1 rounded-full bg-text-muted" />
+              <div className="text-sm font-medium text-text-secondary">Minutes to first output</div>
             </div>
           </div>
 
           {/* Right side: Product output preview */}
           <div className="relative">
-            <div className="hidden lg:block absolute -right-8 top-8 w-32 h-24 opacity-30">
+            <div className="hidden lg:block absolute -right-8 top-8 w-32 h-24 opacity-30 pointer-events-none">
               <CompetitiveLandscapeIllustration />
             </div>
-            <div className="panel overflow-hidden border-2 border-border-subtle shadow-lg bg-surface relative z-10">
+            <div className="panel overflow-hidden border-2 border-border-subtle shadow-xl bg-surface relative z-10 rounded-2xl">
               {/* Header */}
               <div className="p-4 bg-surface-muted border-b border-border-subtle">
                 <div className="flex items-center justify-between">
@@ -359,8 +353,8 @@ export function ArtifactPreviewHero() {
             )}
           </div>
         </div>
-      </div>
-    </section>
+      </MarketingContainer>
+    </MarketingSection>
   )
 }
 

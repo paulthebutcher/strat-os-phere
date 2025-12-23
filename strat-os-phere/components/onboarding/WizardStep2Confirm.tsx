@@ -17,6 +17,7 @@ import type {
 import { normalizeUrl } from '@/lib/url/normalizeUrl'
 import { createProjectFromForm } from '@/app/projects/actions'
 import { createCompetitorForProject } from '@/app/projects/[projectId]/competitors/actions'
+import { GenerateChecklist } from './GenerateChecklist'
 
 interface WizardStep2ConfirmProps {
   state: WizardState
@@ -46,11 +47,13 @@ export function WizardStep2Confirm({
   const [showAddCompetitor, setShowAddCompetitor] = useState(false)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [confirmLimitedResults, setConfirmLimitedResults] = useState(false)
 
   const enabledSources = sources.filter((s) => s.enabled)
-  const hasMinimumCompetitors = selectedCompetitors.length >= 2 || (selectedCompetitors.length === 1 && confirmLimitedResults)
-  const canRun = enabledSources.length > 0 && hasMinimumCompetitors
+  const REQUIRED_COMPETITORS = 3
+  const hasRequiredCompetitors = selectedCompetitors.length >= REQUIRED_COMPETITORS
+  const hasDecision = state.decisionFraming?.decision?.trim().length > 0
+  const hasMarket = state.marketCategory?.trim().length > 0
+  const canRun = enabledSources.length > 0 && hasRequiredCompetitors && hasDecision && hasMarket
 
   const handleSourceToggle = (index: number) => {
     const newSources = [...sources]
@@ -133,14 +136,16 @@ export function WizardStep2Confirm({
 
   const handleRunAnalysis = async () => {
     if (!canRun) {
-      if (enabledSources.length === 0) {
+      if (!hasDecision) {
+        setError('Please add a decision')
+      } else if (!hasMarket) {
+        setError('Please add a market/category')
+      } else if (enabledSources.length === 0) {
         setError('Please enable at least 1 source')
-      } else if (selectedCompetitors.length === 0) {
-        setError('Please select at least 1 competitor')
-      } else if (selectedCompetitors.length === 1 && !confirmLimitedResults) {
-        setError('Please confirm that you understand results will be limited with only 1 competitor')
+      } else if (selectedCompetitors.length < REQUIRED_COMPETITORS) {
+        setError(`Please add ${REQUIRED_COMPETITORS} competitors (currently ${selectedCompetitors.length})`)
       } else {
-        setError('Please enable at least 1 source and select at least 1 competitor')
+        setError('Please complete all required fields')
       }
       return
     }
@@ -155,9 +160,9 @@ export function WizardStep2Confirm({
       // Create project
       const projectResult = await createProjectFromForm({
         name: projectName,
-        marketCategory: 'Competitive analysis',
+        marketCategory: state.marketCategory || 'Competitive analysis',
         targetCustomer: 'Target customers',
-        goal: 'Generate competitive insights',
+        goal: state.decisionFraming?.decision || 'Generate competitive insights',
         decisionFraming: state.decisionFraming ? (state.decisionFraming as unknown as any) : undefined,
       })
 
@@ -222,6 +227,37 @@ export function WizardStep2Confirm({
 
   return (
     <div className="space-y-6">
+      {/* Context summary */}
+      <SurfaceCard className="p-6 shadow-md">
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-foreground">
+            Your analysis context
+          </h3>
+          <div className="space-y-2 text-sm">
+            <div>
+              <span className="text-muted-foreground">Company: </span>
+              <span className="font-medium text-foreground">
+                {state.primaryCompanyName}
+              </span>
+            </div>
+            {state.decisionFraming?.decision && (
+              <div>
+                <span className="text-muted-foreground">Decision: </span>
+                <span className="text-foreground">
+                  {state.decisionFraming.decision}
+                </span>
+              </div>
+            )}
+            {state.marketCategory && (
+              <div>
+                <span className="text-muted-foreground">Market: </span>
+                <span className="text-foreground">{state.marketCategory}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </SurfaceCard>
+
       {/* Sources section */}
       <SurfaceCard className="p-6">
         <div className="space-y-4">
@@ -352,17 +388,19 @@ export function WizardStep2Confirm({
         </div>
       </SurfaceCard>
 
-      {/* Competitors section */}
-      <SurfaceCard className="p-6">
+      {/* Competitors section (secondary) */}
+      <SurfaceCard className="p-6 border-t-2 border-t-muted">
         <div className="space-y-4">
           <div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">
-              Recommended competitors
+            <h3 className="text-base font-semibold text-foreground mb-1">
+              Add competitors (required)
             </h3>
             <p className="text-sm text-muted-foreground">
-              Select competitors to include in your analysis. At least 2
-              competitors are required.
+              Add {REQUIRED_COMPETITORS} real alternatives so we can gather evidence and produce defensible opportunities.
             </p>
+            <div className="mt-2 text-xs font-medium text-foreground">
+              Competitors: {selectedCompetitors.length} / {REQUIRED_COMPETITORS}
+            </div>
           </div>
 
           {/* Suggested competitors */}
@@ -470,34 +508,47 @@ export function WizardStep2Confirm({
             </Button>
           )}
 
-          {selectedCompetitors.length === 1 && (
-            <div className="space-y-2 pt-2 border-t border-border">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={confirmLimitedResults}
-                  onChange={(e) => setConfirmLimitedResults(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-border text-indigo-600 focus:ring-2 focus:ring-indigo-500"
-                />
-                <span className="text-xs text-muted-foreground">
-                  I understand results will be limited with only 1 competitor
-                </span>
-              </label>
-            </div>
-          )}
-          {selectedCompetitors.length === 0 && (
+          {selectedCompetitors.length < REQUIRED_COMPETITORS && (
             <p className="text-xs text-destructive">
-              At least 1 competitor must be selected
+              {REQUIRED_COMPETITORS} competitors are required (currently {selectedCompetitors.length})
             </p>
           )}
 
-          {/* Selected competitors summary */}
+          {/* Selected competitors list */}
           {selectedCompetitors.length > 0 && (
             <div className="pt-2 border-t border-border">
-              <p className="text-xs text-muted-foreground mb-2">
-                Selected: {selectedCompetitors.length} competitor
-                {selectedCompetitors.length !== 1 ? 's' : ''}
+              <p className="text-xs font-medium text-foreground mb-2">
+                Selected competitors:
               </p>
+              <div className="space-y-2">
+                {selectedCompetitors.map((competitor, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 rounded-lg border border-border bg-muted/30"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-foreground">
+                        {competitor.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {competitor.url}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const updated = selectedCompetitors.filter((_, i) => i !== index)
+                        setSelectedCompetitors(updated)
+                      }}
+                      className="ml-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -545,20 +596,32 @@ export function WizardStep2Confirm({
         >
           Back
         </Button>
-        <Button
-          type="button"
-          onClick={handleRunAnalysis}
-          disabled={!canRun || running}
-        >
-          {running ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Running analysis...
-            </>
-          ) : (
-            'Run analysis'
+        <div className="flex items-center gap-4">
+          {!canRun && (
+            <GenerateChecklist
+              hasDecision={hasDecision}
+              hasMarket={hasMarket}
+              competitorCount={selectedCompetitors.length}
+              requiredCompetitors={REQUIRED_COMPETITORS}
+            />
           )}
-        </Button>
+          <Button
+            type="button"
+            onClick={handleRunAnalysis}
+            disabled={!canRun || running}
+            variant="brand"
+            size="lg"
+          >
+            {running ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Generating...
+              </>
+            ) : (
+              'Generate prioritized opportunities'
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   )

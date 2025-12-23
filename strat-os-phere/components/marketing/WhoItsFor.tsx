@@ -1,6 +1,8 @@
 import { Briefcase, Palette, Target } from "lucide-react"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
+import { MarketingSection } from "./MarketingSection"
+import { MarketingContainer } from "./MarketingContainer"
 
 const personas = [
   {
@@ -36,16 +38,17 @@ const personas = [
  */
 export function WhoItsFor() {
   return (
-    <section className={cn("mx-auto max-w-[1200px] px-4", brand.spacing.section)}>
-      <div className="mx-auto max-w-3xl text-center">
-        <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
-          Who it's for
-        </h2>
-        <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
-          Built for senior Product/UX strategy professionals who need decision-ready outputs, not research summaries.
-        </p>
-      </div>
-      <div className="mt-20 grid gap-6 md:grid-cols-3">
+    <MarketingSection variant="default">
+      <MarketingContainer maxWidth="7xl">
+        <div className="mx-auto max-w-3xl text-center space-y-6">
+          <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
+            Who it's for
+          </h2>
+          <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
+            Built for senior Product/UX strategy professionals who need decision-ready outputs, not research summaries.
+          </p>
+        </div>
+        <div className="mt-20 grid gap-6 md:grid-cols-3">
         {personas.map((persona, index) => {
           const Icon = persona.icon
           return (
@@ -54,7 +57,7 @@ export function WhoItsFor() {
               className={cn(
                 "panel",
                 persona.borderColor,
-                "relative flex flex-col p-8 transition-all hover:shadow-lg hover:scale-105",
+                "relative flex flex-col p-8 transition-all hover:shadow-lg hover:scale-105 rounded-2xl shadow-sm ring-1 ring-black/5",
                 brand.surface.base
               )}
             >
@@ -77,7 +80,8 @@ export function WhoItsFor() {
           )
         })}
       </div>
-    </section>
+      </MarketingContainer>
+    </MarketingSection>
   )
 }
 

@@ -9,6 +9,8 @@ import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
 import { OpportunitiesIllustration, Backdrop } from "@/components/graphics"
 import { Button } from "@/components/ui/button"
+import { MarketingSection } from "./MarketingSection"
+import { MarketingContainer } from "./MarketingContainer"
 
 const outputs = [
   {
@@ -51,70 +53,72 @@ const outputs = [
 
 export function Outputs() {
   return (
-    <section id="outputs" className={cn("mx-auto max-w-[1200px] px-4 relative", brand.spacing.section)}>
+    <MarketingSection id="outputs" variant="default" className="relative">
       <Backdrop variant="section" density="subtle" />
-      <div className="mx-auto max-w-3xl text-center relative z-10">
-        <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
-          What you'll walk away with
-        </h2>
-        <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
-          Everything is copyable, exportable, and ready to use in your strategy work. No buzzwords—just actionable insights backed by evidence.
-        </p>
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <p className={cn("text-sm", "text-text-secondary")}>
-            <strong className="text-text-primary">Evidence</strong> → <strong className="text-text-primary">Opportunities</strong> → <strong className="text-text-primary">Bets</strong>
+      <MarketingContainer maxWidth="7xl" className="relative z-10">
+        <div className="mx-auto max-w-3xl text-center space-y-6">
+          <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
+            What you'll walk away with
+          </h2>
+          <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
+            Everything is copyable, exportable, and ready to use in your strategy work. No buzzwords—just actionable insights backed by evidence.
           </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <p className="text-sm text-text-secondary">
+              <strong className="text-text-primary">Evidence</strong> → <strong className="text-text-primary">Opportunities</strong> → <strong className="text-text-primary">Bets</strong>
+            </p>
+          </div>
+          <div>
+            <Link href="/samples">
+              <Button variant="outline" size="sm" className="border-2">
+                See a sample
+              </Button>
+            </Link>
+          </div>
         </div>
-        <div className="mt-8">
-          <Link href="/samples">
-            <Button variant="outline" size="sm" className="border-2">
-              See a sample
-            </Button>
-          </Link>
-        </div>
-      </div>
-      <div className="mt-20 relative z-10">
-        {/* Opportunities illustration for opportunities card */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {outputs.map((output) => {
-            const Icon = output.icon
-            const isOpportunities = output.id === "opportunities"
-            return (
-              <div
-                key={output.id}
-                className={cn(
-                  "panel",
-                  output.borderColor,
-                  "relative flex flex-col p-6 transition-all hover:shadow-lg hover:scale-105",
-                  brand.surface.base
-                )}
-              >
-                {isOpportunities && (
-                  <div className="absolute top-4 right-4 w-24 h-16 opacity-20 pointer-events-none">
-                    <OpportunitiesIllustration />
+        <div className="mt-20">
+          {/* Opportunities illustration for opportunities card */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {outputs.map((output) => {
+              const Icon = output.icon
+              const isOpportunities = output.id === "opportunities"
+              return (
+                <div
+                  key={output.id}
+                  className={cn(
+                    "panel",
+                    output.borderColor,
+                    "relative flex flex-col p-6 transition-all hover:shadow-lg hover:scale-105 rounded-2xl shadow-sm ring-1 ring-black/5",
+                    brand.surface.base
+                  )}
+                >
+                  {isOpportunities && (
+                    <div className="absolute top-4 right-4 w-24 h-16 opacity-20 pointer-events-none">
+                      <OpportunitiesIllustration />
+                    </div>
+                  )}
+                  <div className="mb-4 flex shrink-0">
+                    <div className={cn(
+                      "flex h-12 w-12 items-center justify-center rounded-lg",
+                      output.iconBg,
+                      output.iconColor
+                    )}>
+                      <Icon className="h-6 w-6" />
+                    </div>
                   </div>
-                )}
-                <div className="mb-4 flex shrink-0">
-                  <div className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-lg",
-                    output.iconBg,
-                    output.iconColor
-                  )}>
-                    <Icon className="h-6 w-6" />
-                  </div>
+                  <h3 className={cn("mb-3", brand.typeScale.subhead, "text-text-primary")}>
+                    {output.title}
+                  </h3>
+                  <p className={cn("text-sm leading-relaxed text-text-secondary md:text-base")}>
+                    {output.description}
+                  </p>
                 </div>
-                <h3 className={cn("mb-3", brand.typeScale.subhead, "text-text-primary")}>
-                  {output.title}
-                </h3>
-                <p className={cn("text-sm leading-relaxed text-text-secondary md:text-base")}>
-                  {output.description}
-                </p>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
-      </div>
-    </section>
+      </MarketingContainer>
+    </MarketingSection>
   )
 }
 

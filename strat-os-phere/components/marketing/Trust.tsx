@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge"
 import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
 import { EvidenceConfidenceIllustration, Backdrop } from "@/components/graphics"
+import { MarketingSection } from "./MarketingSection"
+import { MarketingContainer } from "./MarketingContainer"
 
 const sourceTypes = [
   {
@@ -39,9 +41,9 @@ const sourceTypes = [
  */
 export function Trust() {
   return (
-    <section id="trust" className={cn("mx-auto max-w-[1200px] px-4 relative", brand.spacing.section)}>
+    <MarketingSection id="trust" variant="muted" className="relative">
       <Backdrop variant="section" density="medium" />
-      <div className="mx-auto max-w-4xl relative z-10">
+      <MarketingContainer maxWidth="4xl" className="relative z-10">
         {/* Callout card with highlighted border */}
         <div className={cn(
           "panel relative overflow-hidden border-2 border-accent-primary/30",
@@ -52,11 +54,11 @@ export function Trust() {
           <div className="absolute top-8 right-8 w-32 h-24 opacity-30 pointer-events-none hidden md:block">
             <EvidenceConfidenceIllustration />
           </div>
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className={cn(brand.typeScale.headline, "text-text-primary")}>
+          <div className="mx-auto max-w-3xl text-center space-y-6">
+            <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
               Evidence-backed, not vibes
             </h2>
-            <p className={cn("mt-6", brand.typeScale.bodyLarge, "text-text-secondary")}>
+            <p className="text-base md:text-lg leading-relaxed text-text-secondary">
               Every opportunity is grounded in public evidence with full citations you can validate.
             </p>
           </div>
@@ -117,8 +119,8 @@ export function Trust() {
             </p>
           </div>
         </div>
-      </div>
-    </section>
+      </MarketingContainer>
+    </MarketingSection>
   )
 }
 

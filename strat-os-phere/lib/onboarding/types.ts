@@ -75,6 +75,7 @@ export interface SelectedCompetitor {
 export interface WizardState {
   primaryCompanyName: string
   contextText?: string
+  marketCategory?: string
   resolvedSources: ResolvedSource[]
   suggestedCompetitors: SuggestedCompetitor[]
   selectedCompetitors: SelectedCompetitor[]

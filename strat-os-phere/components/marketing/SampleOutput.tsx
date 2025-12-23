@@ -5,11 +5,14 @@
  * This is static marketing copy, not wired to the app.
  */
 import { TrendingUp, ExternalLink } from "lucide-react"
+import { MarketingSection } from "./MarketingSection"
+import { MarketingContainer } from "./MarketingContainer"
 
 export function SampleOutput() {
   return (
-    <section id="sample-output" className="mx-auto max-w-[1200px] px-4 py-24 md:py-32">
-      <div className="marketing-gradient-bg relative overflow-hidden rounded-2xl border-2 border-accent-primary/20 p-8 md:p-12 shadow-lg">
+    <MarketingSection id="sample-output" variant="default">
+      <MarketingContainer maxWidth="4xl">
+        <div className="marketing-gradient-bg relative overflow-hidden rounded-2xl border-2 border-accent-primary/20 p-8 md:p-12 shadow-lg">
         <div className="relative z-10">
           <div className="mb-6 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-primary/20">
@@ -65,7 +68,8 @@ export function SampleOutput() {
           </p>
         </div>
       </div>
-    </section>
+      </MarketingContainer>
+    </MarketingSection>
   )
 }
 

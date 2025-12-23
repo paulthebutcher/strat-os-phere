@@ -50,7 +50,7 @@ export default async function Home(props: HomeProps) {
   }
 
   return (
-    <main className="marketing-landing">
+    <main className="marketing-landing min-h-screen">
       <ArtifactPreviewHero />
       <Problem />
       <Outputs />
