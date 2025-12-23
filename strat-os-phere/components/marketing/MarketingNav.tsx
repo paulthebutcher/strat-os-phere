@@ -36,14 +36,14 @@ export function MarketingNav() {
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-8 md:flex">
           <Link
-            href="#sample-output"
+            href="#product"
             className={cn(
               "relative text-sm font-medium text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
               "after:absolute after:left-0 after:-bottom-2 after:h-[2px] after:w-full after:rounded-full after:bg-accent-primary after:content-[''] after:opacity-0 after:transition-opacity",
               "hover:after:opacity-100"
             )}
           >
-            Sample output
+            Product
           </Link>
           <Link
             href="#how-it-works"
@@ -54,6 +54,16 @@ export function MarketingNav() {
             )}
           >
             How it works
+          </Link>
+          <Link
+            href="#trust"
+            className={cn(
+              "relative text-sm font-medium text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
+              "after:absolute after:left-0 after:-bottom-2 after:h-[2px] after:w-full after:rounded-full after:bg-accent-primary after:content-[''] after:opacity-0 after:transition-opacity",
+              "hover:after:opacity-100"
+            )}
+          >
+            Trust
           </Link>
           <Link href="/login">
             <Button
@@ -74,7 +84,7 @@ export function MarketingNav() {
               size="sm"
               className="shadow-sm hover:shadow-md transition-all"
             >
-              Try Plinth
+              Try
             </Button>
           </Link>
         </div>
@@ -99,11 +109,11 @@ export function MarketingNav() {
         <div className="border-t border-border-subtle bg-background/95 backdrop-blur-md md:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3 sm:px-6 lg:px-8">
             <Link
-              href="#sample-output"
+              href="#product"
               className="px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Sample output
+              Product
             </Link>
             <Link
               href="#how-it-works"
@@ -111,6 +121,13 @@ export function MarketingNav() {
               onClick={() => setMobileMenuOpen(false)}
             >
               How it works
+            </Link>
+            <Link
+              href="#trust"
+              className="px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Trust
             </Link>
             <Link
               href="/login"
@@ -128,7 +145,7 @@ export function MarketingNav() {
             </div>
             <Link href="/try" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
               <Button size="sm" className="w-full shadow-sm hover:shadow-md transition-all">
-                Try Plinth
+                Try
               </Button>
             </Link>
           </div>

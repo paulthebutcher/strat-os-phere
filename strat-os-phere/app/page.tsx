@@ -1,17 +1,13 @@
 import { redirect } from "next/navigation"
 import type { Metadata } from "next"
-import { ArtifactPreviewHero } from "@/components/marketing/ArtifactPreviewHero"
-import { SocialProof } from "@/components/marketing/SocialProof"
-import { HowItWorks } from "@/components/marketing/HowItWorks"
-import { SampleOutput } from "@/components/marketing/SampleOutput"
-import { TrustTiles } from "@/components/marketing/TrustTiles"
-import { CTABand } from "@/components/marketing/CTABand"
+import { Hero } from "@/components/marketing/Hero"
+import { ProblemOutcome } from "@/components/marketing/ProblemOutcome"
+import { HowItWorksStepper } from "@/components/marketing/HowItWorksStepper"
+import { BentoFeatureGrid } from "@/components/marketing/BentoFeatureGrid"
+import { TrustMethod } from "@/components/marketing/TrustMethod"
+import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
-import { StickyCTA } from "@/components/marketing/StickyCTA"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
-import { ProofStrip } from "@/components/marketing/ProofStrip"
-import { InteractivePreview } from "@/components/marketing/InteractivePreview"
-import { FileText, Clock, Share2 } from "lucide-react"
 import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -53,43 +49,25 @@ export default async function Home(props: HomeProps) {
   return (
     <MarketingShell>
       <main className="marketing-landing min-h-screen">
-        <ArtifactPreviewHero />
-        <ProofStrip
-          items={[
-            {
-              icon: FileText,
-              label: "Evidence grouped by type",
-              description: "Pricing, docs, reviews, and more",
-            },
-            {
-              icon: Clock,
-              label: "Recency signals",
-              description: "Know what's current",
-            },
-            {
-              icon: Share2,
-              label: "Links to sources",
-              description: "For verification",
-            },
-            {
-              icon: FileText,
-              label: "Citations included",
-              description: "Always traceable",
-            },
-          ]}
-        />
-        <SocialProof />
-        <div className="w-full py-16 md:py-24 bg-background border-t border-border-subtle">
-          <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-7xl">
-            <InteractivePreview />
-          </div>
-        </div>
-        <HowItWorks />
-        <SampleOutput />
-        <TrustTiles />
-        <CTABand />
+        {/* 1. Hero */}
+        <Hero />
+        
+        {/* 2. Problem → Outcome */}
+        <ProblemOutcome />
+        
+        {/* 3. How it works */}
+        <HowItWorksStepper />
+        
+        {/* 4. What you get */}
+        <BentoFeatureGrid />
+        
+        {/* 5. Trust / Method */}
+        <TrustMethod />
+        
+        {/* 6. Final CTA */}
+        <FinalCTABand />
+        
         <Footer />
-        <StickyCTA />
       </main>
     </MarketingShell>
   )
