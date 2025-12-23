@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, X, CheckCircle2, Circle, Info } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,13 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import type { TryDraft } from '@/lib/tryDraft'
 import { normalizeUrl } from '@/lib/url/normalizeUrl'
+import type { CompanyCandidate } from '@/lib/competitors/resolveCompanyCandidates'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface TryStep2ConfirmProps {
   draft: TryDraft
@@ -16,13 +23,6 @@ interface TryStep2ConfirmProps {
   onSeeResults: () => void
   onUpdateDraft: (updates: Partial<TryDraft>) => void
 }
-
-// Pre-defined competitor examples
-const EXAMPLE_COMPETITORS = [
-  { name: 'Monday', url: 'https://monday.com' },
-  { name: 'PagerDuty', url: 'https://pagerduty.com' },
-  { name: 'Greenhouse', url: 'https://greenhouse.io' },
-]
 
 export function TryStep2Confirm({
   draft,
@@ -37,27 +37,143 @@ export function TryStep2Confirm({
   const [newCompetitorUrl, setNewCompetitorUrl] = useState('')
   const [showAddCompetitor, setShowAddCompetitor] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Company candidates state
+  const [candidates, setCandidates] = useState<CompanyCandidate[]>([])
+  const [loadingCandidates, setLoadingCandidates] = useState(false)
+  const [selectedCandidateDomains, setSelectedCandidateDomains] = useState<Set<string>>(
+    new Set(selectedCompetitors.map(c => {
+      try {
+        const url = new URL(c.url)
+        return url.hostname.replace(/^www\./, '')
+      } catch {
+        return ''
+      }
+    }).filter(Boolean))
+  )
 
-  const handleAddExampleCompetitor = (competitor: {
-    name: string
-    url: string
-  }) => {
-    const isAlreadyAdded = selectedCompetitors.some(
-      (c) => c.url === competitor.url
-    )
-    if (isAlreadyAdded) {
-      return
+  // Fetch company candidates on mount
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      if (!draft.primaryCompanyName) return
+
+      setLoadingCandidates(true)
+
+      try {
+        const response = await fetch('/api/try/competitors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            companyName: draft.primaryCompanyName,
+            contextText: draft.contextText,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (data.candidates && Array.isArray(data.candidates)) {
+          setCandidates(data.candidates)
+          if (data.candidates.length === 0 && data.error) {
+            // Non-blocking: just log, don't show error
+            console.log('[TryStep2] No candidates found:', data.error)
+          }
+        } else {
+          setCandidates([])
+        }
+      } catch (err) {
+        console.error('[TryStep2] Failed to fetch candidates:', err)
+        setCandidates([])
+        // Non-blocking: don't set error state, just log
+      } finally {
+        setLoadingCandidates(false)
+      }
     }
 
-    const updated = [...selectedCompetitors, competitor]
-    setSelectedCompetitors(updated)
-    onUpdateDraft({ selectedCompetitors: updated })
+    fetchCandidates()
+  }, [draft.primaryCompanyName, draft.contextText])
+
+  const handleToggleCandidate = (candidate: CompanyCandidate) => {
+    const isSelected = selectedCandidateDomains.has(candidate.domain)
+    
+    if (isSelected) {
+      // Remove candidate
+      const updatedCompetitors = selectedCompetitors.filter(
+        (c) => {
+          try {
+            const url = new URL(c.url)
+            return url.hostname.replace(/^www\./, '') !== candidate.domain
+          } catch {
+            return true
+          }
+        }
+      )
+      const updatedDomains = new Set(selectedCandidateDomains)
+      updatedDomains.delete(candidate.domain)
+      
+      setSelectedCompetitors(updatedCompetitors)
+      setSelectedCandidateDomains(updatedDomains)
+      
+      // Update seed URLs
+      const updatedSeedUrls = (draft.evidenceSeedUrls || []).filter(
+        (seed) => seed.competitorDomain !== candidate.domain
+      )
+      onUpdateDraft({
+        selectedCompetitors: updatedCompetitors,
+        evidenceSeedUrls: updatedSeedUrls,
+      })
+    } else {
+      // Add candidate
+      const competitor = {
+        name: candidate.name,
+        url: candidate.primaryUrl,
+      }
+      const updatedCompetitors = [...selectedCompetitors, competitor]
+      const updatedDomains = new Set(selectedCandidateDomains)
+      updatedDomains.add(candidate.domain)
+      
+      setSelectedCompetitors(updatedCompetitors)
+      setSelectedCandidateDomains(updatedDomains)
+      
+      // Add seed URLs
+      const existingSeedUrls = draft.evidenceSeedUrls || []
+      const updatedSeedUrls = [
+        ...existingSeedUrls.filter((seed) => seed.competitorDomain !== candidate.domain),
+        {
+          competitorDomain: candidate.domain,
+          urls: candidate.seedUrls,
+        },
+      ]
+      
+      onUpdateDraft({
+        selectedCompetitors: updatedCompetitors,
+        evidenceSeedUrls: updatedSeedUrls,
+      })
+    }
   }
 
   const handleRemoveCompetitor = (url: string) => {
     const updated = selectedCompetitors.filter((c) => c.url !== url)
     setSelectedCompetitors(updated)
-    onUpdateDraft({ selectedCompetitors: updated })
+    
+    // Extract domain and remove from seed URLs
+    try {
+      const urlObj = new URL(url)
+      const domain = urlObj.hostname.replace(/^www\./, '')
+      const updatedDomains = new Set(selectedCandidateDomains)
+      updatedDomains.delete(domain)
+      setSelectedCandidateDomains(updatedDomains)
+      
+      const existingSeedUrls = draft.evidenceSeedUrls || []
+      const updatedSeedUrls = existingSeedUrls.filter(
+        (seed) => seed.competitorDomain !== domain
+      )
+      onUpdateDraft({
+        selectedCompetitors: updated,
+        evidenceSeedUrls: updatedSeedUrls,
+      })
+    } catch {
+      onUpdateDraft({ selectedCompetitors: updated })
+    }
   }
 
   const handleAddCompetitor = () => {
@@ -82,7 +198,27 @@ export function TryStep2Confirm({
     const competitor = { name: newCompetitorName.trim(), url }
     const updated = [...selectedCompetitors, competitor]
     setSelectedCompetitors(updated)
-    onUpdateDraft({ selectedCompetitors: updated })
+    
+    // Extract domain for seed URLs
+    try {
+      const urlObj = new URL(url)
+      const domain = urlObj.hostname.replace(/^www\./, '')
+      const existingSeedUrls = draft.evidenceSeedUrls || []
+      const updatedSeedUrls = [
+        ...existingSeedUrls.filter((seed) => seed.competitorDomain !== domain),
+        {
+          competitorDomain: domain,
+          urls: [url], // Just the primary URL for manually added competitors
+        },
+      ]
+      onUpdateDraft({
+        selectedCompetitors: updated,
+        evidenceSeedUrls: updatedSeedUrls,
+      })
+    } catch {
+      onUpdateDraft({ selectedCompetitors: updated })
+    }
+    
     setNewCompetitorName('')
     setNewCompetitorUrl('')
     setShowAddCompetitor(false)
@@ -179,41 +315,119 @@ export function TryStep2Confirm({
             </div>
           )}
 
-          {/* Example competitors */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground">
-              Quick add examples:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {EXAMPLE_COMPETITORS.map((example) => {
-                const isAdded = selectedCompetitors.some(
-                  (c) => c.url === example.url
-                )
-                return (
-                  <Button
-                    key={example.url}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAddExampleCompetitor(example)}
-                    disabled={isAdded}
-                  >
-                    {isAdded ? (
-                      <>
-                        <span className="mr-1">✓</span>
-                        {example.name}
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="h-3 w-3 mr-1" />
-                        {example.name}
-                      </>
-                    )}
-                  </Button>
-                )
-              })}
+          {/* Suggested competitors */}
+          {loadingCandidates ? (
+            <div className="py-4 text-sm text-muted-foreground">
+              Finding competitor suggestions...
             </div>
-          </div>
+          ) : candidates.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">
+                Suggested competitors:
+              </p>
+              <div className="border border-border rounded-lg divide-y divide-border">
+                {candidates.map((candidate) => {
+                  const isSelected = selectedCandidateDomains.has(candidate.domain)
+                  const confidenceColors = {
+                    high: 'bg-green-100 text-green-800 border-green-200',
+                    medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                    low: 'bg-gray-100 text-gray-800 border-gray-200',
+                  }
+                  
+                  return (
+                    <div
+                      key={candidate.domain}
+                      className="flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => handleToggleCandidate(candidate)}
+                    >
+                      <div className="flex-shrink-0">
+                        {isSelected ? (
+                          <CheckCircle2 className="h-5 w-5 text-primary" />
+                        ) : (
+                          <Circle className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      
+                      {/* Logo */}
+                      <div className="flex-shrink-0">
+                        <img
+                          src={candidate.logoUrl}
+                          alt={`${candidate.name} logo`}
+                          className="w-8 h-8 rounded object-contain bg-background border border-border"
+                          onError={(e) => {
+                            // Fallback to initials if logo fails
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            const parent = target.parentElement
+                            if (parent && !parent.querySelector('.logo-fallback')) {
+                              const fallback = document.createElement('div')
+                              fallback.className = 'logo-fallback w-8 h-8 rounded bg-muted flex items-center justify-center text-xs font-semibold text-foreground border border-border'
+                              fallback.textContent = candidate.name.charAt(0).toUpperCase()
+                              parent.appendChild(fallback)
+                            }
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Company info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-medium text-foreground">
+                            {candidate.name}
+                          </div>
+                          <Badge
+                            className={`text-xs ${confidenceColors[candidate.confidence]}`}
+                          >
+                            {candidate.confidence}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {candidate.domain}
+                        </div>
+                      </div>
+                      
+                      {/* Why suggested tooltip */}
+                      {candidate.derivedFrom.length > 0 && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+                              >
+                                <Info className="h-4 w-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="left" className="max-w-xs">
+                              <p className="text-xs">
+                                Suggested from:{' '}
+                                {candidate.derivedFrom
+                                  .slice(0, 2)
+                                  .map((source) => {
+                                    try {
+                                      const url = new URL(source.url)
+                                      return url.hostname.replace(/^www\./, '')
+                                    } catch {
+                                      return source.url
+                                    }
+                                  })
+                                  .join(', ')}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : candidates.length === 0 && !loadingCandidates ? (
+            <div className="py-4 text-sm text-muted-foreground">
+              We couldn't confidently detect competitors. Add them manually below.
+            </div>
+          ) : null}
 
           {/* Add competitor */}
           {showAddCompetitor ? (

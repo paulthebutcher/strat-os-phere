@@ -21,6 +21,10 @@ export interface TryDraft {
     name: string
     url: string
   }>
+  evidenceSeedUrls?: Array<{
+    competitorDomain: string
+    urls: string[]
+  }>
   createdAt: number
 }
 
