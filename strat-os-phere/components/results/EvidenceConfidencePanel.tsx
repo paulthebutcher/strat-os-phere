@@ -1,6 +1,4 @@
 'use client'
-
-import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Collapsible } from '@/components/ui/collapsible'
 import { SectionCard } from '@/components/results/SectionCard'
@@ -12,6 +10,7 @@ import type { NormalizedEvidenceBundle } from '@/lib/evidence/types'
 import { deriveEvidenceTrustStats } from '@/lib/evidence/trustStats'
 import { EvidenceDrawer } from '@/components/evidence/EvidenceDrawer'
 import { EmptyEvidenceState } from '@/components/evidence/EmptyEvidenceState'
+import { CitationList } from '@/components/citations/CitationList'
 
 interface EvidenceConfidencePanelProps {
   title?: string
@@ -46,29 +45,6 @@ function getCoverageMessage(coverage: CoverageStatus): string {
   }
 }
 
-/**
- * Extracts hostname from URL
- */
-function getHostname(url: string): string {
-  try {
-    const urlObj = new URL(url)
-    return urlObj.hostname.replace(/^www\./, '')
-  } catch {
-    // Fallback: try to extract manually
-    const match = url.match(/https?:\/\/([^\/]+)/)
-    return match ? match[1].replace(/^www\./, '') : url
-  }
-}
-
-/**
- * Formats date as YYYY-MM-DD
- */
-function formatDate(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
 
 /**
  * Format days since date
@@ -278,72 +254,11 @@ export function EvidenceConfidencePanel({
 
       {!useBundle && citations.length > 0 && (
         <Collapsible title="View sources" defaultOpen={false}>
-          <div className="space-y-4">
-            {Object.entries(
-              citations.reduce((acc, citation) => {
-                if (!acc[citation.sourceType]) {
-                  acc[citation.sourceType] = []
-                }
-                acc[citation.sourceType].push(citation)
-                return acc
-              }, {} as Record<string, NormalizedCitation[]>)
-            )
-              .sort((a, b) => b[1].length - a[1].length)
-              .map(([type, typeCitations]) => (
-                <SourceTypeGroup key={type} type={type} citations={typeCitations} />
-              ))}
-          </div>
+          <CitationList citations={citations} variant="panel" />
         </Collapsible>
       )}
     </SectionCard>
   )
 }
 
-interface SourceTypeGroupProps {
-  type: string
-  citations: NormalizedCitation[]
-}
-
-function SourceTypeGroup({ type, citations }: SourceTypeGroupProps) {
-  const [showAll, setShowAll] = useState(false)
-  const displayCount = 5
-  const hasMore = citations.length > displayCount
-  const displayedCitations = showAll ? citations : citations.slice(0, displayCount)
-  
-  return (
-    <div className="space-y-2">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {type.replace(/_/g, ' ')} ({citations.length})
-      </h4>
-      <ul className="space-y-2">
-        {displayedCitations.map((citation, index) => (
-          <li key={index} className="text-sm">
-            <a
-              href={citation.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
-            >
-              {getHostname(citation.url)}
-            </a>
-            {citation.date && (
-              <span className="text-muted-foreground ml-2">
-                ({formatDate(citation.date)})
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-      {hasMore && (
-        <button
-          type="button"
-          onClick={() => setShowAll(!showAll)}
-          className="text-xs text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
-        >
-          {showAll ? 'Show less' : `Show all ${citations.length} sources`}
-        </button>
-      )}
-    </div>
-  )
-}
 

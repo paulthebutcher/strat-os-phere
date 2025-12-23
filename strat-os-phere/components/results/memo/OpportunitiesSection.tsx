@@ -10,6 +10,7 @@ import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import type { OpportunitiesV2Overlay } from '@/lib/schemas/opportunitiesV2Overlay'
 import { getOpportunityScore } from '@/lib/results/opportunityUx'
 import { FLAGS } from '@/lib/flags'
+import { CitationList } from '@/components/citations/CitationList'
 
 interface OpportunitiesSectionProps {
   opportunities: OpportunityV3ArtifactContent | OpportunitiesArtifactContent | null
@@ -246,20 +247,7 @@ export function OpportunitiesSection({
                           <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
                             Citations ({opp.citations.length})
                           </h4>
-                          <ul className="space-y-1">
-                            {opp.citations.slice(0, 3).map((citation, idx) => (
-                              <li key={idx} className="text-sm text-muted-foreground">
-                                <a
-                                  href={citation.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-primary hover:underline"
-                                >
-                                  {citation.source_type || 'Source'} {citation.extracted_at ? `(${new Date(citation.extracted_at).toLocaleDateString()})` : ''}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
+                          <CitationList citations={opp.citations} variant="compact" max={3} />
                         </div>
                       )}
                     </>

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { SectionCard } from '@/components/results/SectionCard'
 import { pickInlineCitations } from '@/lib/results/citations'
+import { CitationList } from '@/components/citations/CitationList'
 
 interface TopOpportunity {
   title: string
@@ -130,17 +131,7 @@ export function TopOpportunitiesSection({
                   {citations.length > 0 && (
                     <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
                       <span className="text-xs text-muted-foreground">Sources:</span>
-                      {citations.map((citation, citIndex) => (
-                        <a
-                          key={citIndex}
-                          href={citation.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline"
-                        >
-                          {citation.label}
-                        </a>
-                      ))}
+                      <CitationList citations={citations.map(c => ({ url: c.url, title: c.label }))} variant="inline" />
                     </div>
                   )}
                 </div>

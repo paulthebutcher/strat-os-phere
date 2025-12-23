@@ -5,6 +5,7 @@ import { Nav } from "@/components/layout/nav";
 import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { createClient } from "@/lib/supabase/server";
 import { createBaseMetadata } from "@/lib/seo/metadata";
+import { ToastProvider } from "@/components/toast/toast-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,10 +36,12 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased plinth-page`}
       >
-        {user ? <Nav /> : <MarketingNav />}
-        <div className="min-h-screen">
-          {children}
-        </div>
+        <ToastProvider>
+          {user ? <Nav /> : <MarketingNav />}
+          <div className="min-h-screen">
+            {children}
+          </div>
+        </ToastProvider>
       </body>
     </html>
   );
