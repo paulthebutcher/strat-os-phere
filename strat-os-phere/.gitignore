@@ -41,6 +41,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+.cache/
 next-env.d.ts
 
 # Ignore npm lockfile + old node_modules

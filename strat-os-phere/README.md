@@ -117,6 +117,22 @@ A quiet workspace for serious strategy work. Plinth is an AI-enabled platform th
 - View competitor profiles and synthesis in tabs
 - Copy sections or regenerate analysis
 
+## Fast Iteration Workflow
+
+For quick verification while iterating locally (especially in Cursor):
+```bash
+pnpm preflight:fast
+```
+
+This runs linting and type checking without a full Next.js build, providing fast feedback.
+
+Before pushing or opening a PR, run the full build:
+```bash
+pnpm build
+```
+
+The full build includes the guard script to prevent stuck builds from stale `.next` lock files.
+
 ## Testing
 
 ### Unit & Integration Tests

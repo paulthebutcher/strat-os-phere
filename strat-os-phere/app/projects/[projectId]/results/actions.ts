@@ -31,6 +31,9 @@ import { safeParseLLMJson } from '@/lib/schemas/safeParseLLMJson'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { buildProjectContext } from '@/lib/results/projectContext'
+import { FLAGS } from '@/lib/flags'
+import { runEvidenceHarvestAndStore } from '@/lib/evidence/runEvidenceBundle'
+import { writeEvidenceBundleArtifact } from '@/lib/artifacts/writeEvidenceBundleArtifact'
 
 type GenerateAnalysisSuccessResult = {
   ok: true
@@ -108,6 +111,39 @@ export async function generateAnalysis(
         ok: false,
         message: 'Maximum of 7 competitors allowed.',
         details: { competitorCount },
+      }
+    }
+
+    // Harvest evidence bundle if feature flag is enabled
+    if (FLAGS.evidencePacksEnabled) {
+      try {
+        const harvestResult = await runEvidenceHarvestAndStore({
+          project,
+          competitors,
+          runId,
+          userId: user.id,
+        })
+
+        await writeEvidenceBundleArtifact({
+          supabase,
+          projectId,
+          runId,
+          bundle: harvestResult.bundle,
+          stats: harvestResult.stats,
+        })
+
+        logger.info('Evidence bundle harvested and saved', {
+          runId,
+          projectId,
+          totalSources: harvestResult.stats.totalSources,
+        })
+      } catch (error) {
+        // Log error but continue with existing generation
+        logger.warn('Evidence bundle harvest failed; continuing generation', {
+          runId,
+          projectId,
+          error: error instanceof Error ? error.message : String(error),
+        })
       }
     }
 

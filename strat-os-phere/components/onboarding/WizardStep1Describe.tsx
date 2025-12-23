@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { Loader2, Search } from 'lucide-react'
 
+import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { AnalysisContextForm } from './AnalysisContextForm'
 import { AnalysisFramingCard } from './AnalysisFramingCard'
 import { QualityMeter } from './QualityMeter'
@@ -54,18 +56,18 @@ export function WizardStep1Describe({
   } | null>(null)
 
   const handleTryExample = () => {
-    if (isGuidedMode) {
-      // Example for guided mode: Incident management SaaS
-      setCompanyName('PagerDuty')
-      setDecision('Which segment should we enter?')
-      setMarket('Incident management platforms')
-      setNotes('Incident management and on-call scheduling platform for DevOps teams. Helps teams respond to incidents faster with automated alerting, on-call scheduling, and incident response workflows.')
-    } else {
-      setCompanyName('monday')
-      setDecision('What should we build next?')
-      setMarket('Project management software')
-      setNotes('')
-    }
+    setCompanyName('PagerDuty')
+    setDecision('Where should we differentiate to win mid-market IT ops?')
+    setMarket('Incident management & on-call')
+    setNotes("Assume we're a small team; looking for wedge features.")
+    
+    // Auto-scroll to show the framing card updating
+    setTimeout(() => {
+      const framingCard = document.querySelector('[data-framing-card]')
+      if (framingCard) {
+        framingCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }
+    }, 100)
   }
 
   const handleDiscover = async () => {
@@ -77,9 +79,10 @@ export function WizardStep1Describe({
       setError('Please enter a decision')
       return
     }
+    // Market is now optional - show warning but allow proceeding
     if (!market.trim()) {
-      setError('Please enter a market/category')
-      return
+      // Show gentle warning but don't block
+      // The user can proceed without market
     }
 
     setStatus('searching')
@@ -176,7 +179,8 @@ export function WizardStep1Describe({
   }
 
   const isLoading = status !== 'idle' && status !== 'success' && status !== 'error'
-  const canContinue = companyName.trim().length > 0 && decision.trim().length > 0 && market.trim().length > 0
+  // Allow proceeding with just company + decision (market is soft requirement)
+  const canContinue = companyName.trim().length > 0 && decision.trim().length > 0
 
   return (
     <div className="space-y-6">
@@ -204,9 +208,9 @@ export function WizardStep1Describe({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* Left column: Main form */}
-        <div className="lg:col-span-8">
+        <div className="min-w-0">
           <AnalysisContextForm
             companyName={companyName}
             decision={decision}
@@ -283,38 +287,28 @@ export function WizardStep1Describe({
           )}
 
           {/* Actions */}
-          <div className="mt-6 flex items-center gap-3">
-            <Button
-              type="button"
-              onClick={handleDiscover}
-              disabled={isLoading || !canContinue}
-              className="flex-1"
-              size="lg"
-              variant="brand"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Discovering...
-                </>
-              ) : (
-                <>
-                  <Search className="h-4 w-4 mr-2" />
-                  Find sources & competitors
-                </>
-              )}
-            </Button>
-            {isGuidedMode ? (
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center gap-3">
               <Button
                 type="button"
-                variant="outline"
-                onClick={handleTryExample}
-                disabled={isLoading}
+                onClick={handleDiscover}
+                disabled={isLoading || !canContinue}
+                className="flex-1"
                 size="lg"
+                variant="brand"
               >
-                Use example: Incident management SaaS
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Generating research plan...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Generate research plan
+                  </>
+                )}
               </Button>
-            ) : (
               <Button
                 type="button"
                 variant="outline"
@@ -324,29 +318,53 @@ export function WizardStep1Describe({
               >
                 Try an example
               </Button>
-            )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground text-center">
+                We'll find official pages, pricing, docs, and likely competitors.
+              </p>
+              <p className="text-xs text-muted-foreground text-center">
+                Step 2: confirm competitors → Step 3: generate opportunities
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Right column: Preview / Quality meter */}
-        <div className="lg:col-span-4">
+        {/* Right column: Stacked side rail */}
+        <aside className="flex flex-col gap-4">
           <div className="lg:sticky lg:top-20 space-y-4">
-            {isGuidedMode && (
-              <QualityMeter
-                inputs={normalizeProjectInputs({
-                  name: companyName,
-                  market: market,
-                  customer: decision,
-                })}
-              />
-            )}
             <AnalysisFramingCard
               companyName={companyName}
               decision={decision}
               market={market}
             />
+            <SurfaceCard className="p-6 shadow-md">
+              <h3 className="text-base font-semibold text-foreground mb-4">
+                What you'll get
+              </h3>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <span>Ranked opportunities with scores</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <span>Evidence & confidence metrics</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <span>Citations and source links</span>
+                </li>
+              </ul>
+              <div className="mt-6 pt-6 border-t border-border">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Only public pages are used. Don't paste confidential
+                  information.
+                </p>
+              </div>
+            </SurfaceCard>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   )

@@ -10,6 +10,7 @@ export const FLAGS = {
   resultsQualityPackV2: process.env.NEXT_PUBLIC_RESULTS_QUALITY_PACK_V2 === 'true',
   resultsQualityPackV2Server: process.env.RESULTS_QUALITY_PACK_V2_SERVER === 'true',
   evidenceOptimize: process.env.EVIDENCE_OPTIMIZE !== 'false', // Default ON (true), can be disabled with EVIDENCE_OPTIMIZE=false
+  evidencePacksEnabled: process.env.EVIDENCE_PACKS_ENABLED === '1',
 } as const
 
 export function isFlagEnabled(flag: keyof typeof FLAGS): boolean {

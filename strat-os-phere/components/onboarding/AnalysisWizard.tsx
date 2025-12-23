@@ -111,66 +111,54 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left column: Main content */}
-        <div className="lg:col-span-8">
-          {currentStep === 1 && (
-            <WizardStep1Describe
-              initialState={wizardState}
-              onComplete={handleStep1Complete}
-              isGuidedMode={isGuidedMode}
-            />
-          )}
-          {currentStep === 2 && (
+      {currentStep === 1 ? (
+        // Step 1 handles its own layout with side rail
+        <WizardStep1Describe
+          initialState={wizardState}
+          onComplete={handleStep1Complete}
+          isGuidedMode={isGuidedMode}
+        />
+      ) : (
+        // Step 2 uses the original layout
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8">
             <WizardStep2Confirm
               state={wizardState}
               onBack={handleStep2Back}
               onComplete={handleStep2Complete}
             />
-          )}
-        </div>
-
-        {/* Right column: Preview / Quality meter */}
-        <div className="lg:col-span-4">
-          <div className="lg:sticky lg:top-20 space-y-4">
-            {isGuidedMode && currentStep === 1 && (
-              <FirstWinChecklist
-                mode="guided"
-                inputs={{
-                  name: wizardState.primaryCompanyName,
-                  market: wizardState.marketCategory,
-                  customer: wizardState.decisionFraming?.decision,
-                }}
-              />
-            )}
-            <SurfaceCard className="p-6 shadow-md">
-              <h3 className="text-base font-semibold text-foreground mb-4">
-                What you'll get
-              </h3>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <span>Ranked opportunities with scores</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <span>Evidence & confidence metrics</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <span>Citations and source links</span>
-                </li>
-              </ul>
-              <div className="mt-6 pt-6 border-t border-border">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Only public pages are used. Don't paste confidential
-                  information.
-                </p>
-              </div>
-            </SurfaceCard>
+          </div>
+          <div className="lg:col-span-4">
+            <div className="lg:sticky lg:top-20 space-y-4">
+              <SurfaceCard className="p-6 shadow-md">
+                <h3 className="text-base font-semibold text-foreground mb-4">
+                  What you'll get
+                </h3>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>Ranked opportunities with scores</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>Evidence & confidence metrics</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>Citations and source links</span>
+                  </li>
+                </ul>
+                <div className="mt-6 pt-6 border-t border-border">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Only public pages are used. Don't paste confidential
+                    information.
+                  </p>
+                </div>
+              </SurfaceCard>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
