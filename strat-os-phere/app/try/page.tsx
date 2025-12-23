@@ -19,6 +19,7 @@ export default function TryPage() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState<1 | 2>(1)
   const [draft, setDraft] = useState<TryDraft>({
+    mode: 'company',
     primaryCompanyName: '',
     contextText: undefined,
     marketCategory: undefined,
@@ -43,6 +44,7 @@ export default function TryPage() {
       const context = searchParams.get('context')
       if (company) {
         const newDraft: TryDraft = {
+          mode: 'company',
           primaryCompanyName: company,
           contextText: context || undefined,
           selectedCompetitors: [],
@@ -178,14 +180,14 @@ export default function TryPage() {
           {/* Right column: Preview */}
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-20">
-              <SurfaceCard className="p-6 shadow-md">
-                <h3 className="text-base font-semibold text-foreground mb-4">
+              <SurfaceCard className="p-5 shadow-md">
+                <h3 className="text-sm font-semibold text-foreground mb-3">
                   What you'll get
                 </h3>
-                <ul className="space-y-3 text-sm text-muted-foreground">
+                <ul className="space-y-2.5 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2.5">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Ranked opportunities with scores</span>
+                    <span>Ranked opportunities</span>
                   </li>
                   <li className="flex items-start gap-2.5">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -196,10 +198,9 @@ export default function TryPage() {
                     <span>Citations and source links</span>
                   </li>
                 </ul>
-                <div className="mt-6 pt-6 border-t border-border">
+                <div className="mt-4 pt-4 border-t border-border">
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Only public pages are used. Don't paste confidential
-                    information.
+                    You can add details later.
                   </p>
                 </div>
               </SurfaceCard>

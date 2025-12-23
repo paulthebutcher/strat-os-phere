@@ -89,7 +89,8 @@ export function TryStep2Confirm({
     setError(null)
   }
 
-  const canSeeResults = selectedCompetitors.length >= 1
+  // Allow proceeding without competitors (optional)
+  const canSeeResults = true
 
   return (
     <div className="space-y-6">
@@ -97,25 +98,33 @@ export function TryStep2Confirm({
       <SurfaceCard className="p-6 shadow-md">
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-foreground">
-            Analysis summary
+            You entered
           </h3>
           <div className="space-y-2 text-sm">
+            {draft.mode && (
+              <div>
+                <span className="text-muted-foreground">Mode: </span>
+                <span className="font-medium text-foreground capitalize">
+                  {draft.mode}
+                </span>
+              </div>
+            )}
             <div>
-              <span className="text-muted-foreground">We'll analyze: </span>
+              <span className="text-muted-foreground">
+                {draft.mode === 'market'
+                  ? 'Market: '
+                  : draft.mode === 'idea'
+                    ? 'Idea: '
+                    : 'Company: '}
+              </span>
               <span className="font-medium text-foreground">
-                {draft.primaryCompanyName}
+                {draft.primaryCompanyName || draft.marketCategory}
               </span>
             </div>
             {draft.contextText && (
               <div>
-                <span className="text-muted-foreground">Context: </span>
+                <span className="text-muted-foreground">Decision context: </span>
                 <span className="text-foreground">{draft.contextText}</span>
-              </div>
-            )}
-            {draft.marketCategory && (
-              <div>
-                <span className="text-muted-foreground">Market: </span>
-                <span className="text-foreground">{draft.marketCategory}</span>
               </div>
             )}
             {draft.targetCustomer && (
@@ -136,7 +145,7 @@ export function TryStep2Confirm({
               Competitors
             </h3>
             <p className="text-sm text-muted-foreground">
-              Add competitors to compare. You can add more after signing in.
+              Optional: add 1–3 competitors for sharper results. You can add more after signing in.
             </p>
           </div>
 
@@ -259,12 +268,6 @@ export function TryStep2Confirm({
             </Button>
           )}
 
-          {selectedCompetitors.length === 0 && (
-            <p className="text-xs text-muted-foreground">
-              Add at least one competitor to continue. You can add more after
-              signing in.
-            </p>
-          )}
 
           {/* Error */}
           {error && (
@@ -280,25 +283,14 @@ export function TryStep2Confirm({
         <Button type="button" variant="outline" onClick={onBack}>
           Back
         </Button>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onSeeResults}
-            disabled={!canSeeResults}
-          >
-            Skip competitors
-          </Button>
-          <Button
-            type="button"
-            onClick={onSeeResults}
-            disabled={!canSeeResults}
-            size="lg"
-            variant="brand"
-          >
-            See Results
-          </Button>
-        </div>
+        <Button
+          type="button"
+          onClick={onSeeResults}
+          size="lg"
+          variant="brand"
+        >
+          See Results
+        </Button>
       </div>
     </div>
   )

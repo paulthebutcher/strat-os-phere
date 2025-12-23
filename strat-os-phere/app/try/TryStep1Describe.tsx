@@ -4,55 +4,101 @@ import { useState } from 'react'
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import type { TryDraft } from '@/lib/tryDraft'
+import type { TryDraft, TryMode } from '@/lib/tryDraft'
+import { ModeSelector } from '@/components/try/ModeSelector'
+import { ExampleChips } from '@/components/try/ExampleChips'
+import { OptionalDetails } from '@/components/try/OptionalDetails'
 
 interface TryStep1DescribeProps {
   initialState: TryDraft
   onComplete: (updates: Partial<TryDraft>) => void
 }
 
+function getModeConfig(mode: TryMode) {
+  switch (mode) {
+    case 'company':
+      return {
+        label: 'Company or product',
+        placeholder: 'e.g. monday.com, Asana, PagerDuty',
+        helper: "We'll infer competitors and sources automatically.",
+      }
+    case 'market':
+      return {
+        label: 'Market / category',
+        placeholder: 'e.g. Incident management platforms',
+        helper: "We'll suggest representative competitors.",
+      }
+    case 'idea':
+      return {
+        label: 'Idea in one sentence',
+        placeholder: 'e.g. AI assistant for customer support QA',
+        helper: "We'll infer market + likely alternatives.",
+      }
+  }
+}
+
 export function TryStep1Describe({
   initialState,
   onComplete,
 }: TryStep1DescribeProps) {
-  const [companyName, setCompanyName] = useState(
-    initialState.primaryCompanyName || ''
+  const [mode, setMode] = useState<TryMode>(
+    initialState.mode || 'company'
   )
+  // For backward compatibility: if marketCategory exists but no primaryCompanyName, infer market mode
+  const initialPrimaryInput = 
+    initialState.primaryCompanyName || 
+    initialState.marketCategory || 
+    ''
+  const [primaryInput, setPrimaryInput] = useState(initialPrimaryInput)
   const [contextText, setContextText] = useState(
     initialState.contextText || ''
-  )
-  const [marketCategory, setMarketCategory] = useState(
-    initialState.marketCategory || ''
   )
   const [targetCustomer, setTargetCustomer] = useState(
     initialState.targetCustomer || ''
   )
-  const [product, setProduct] = useState(initialState.product || '')
   const [error, setError] = useState<string | null>(null)
 
+  const modeConfig = getModeConfig(mode)
+
   const handleContinue = () => {
-    if (!companyName.trim()) {
-      setError('Please enter a company or product name')
+    if (!primaryInput.trim()) {
+      setError('Add a company, market, or idea.')
       return
     }
 
     setError(null)
-    onComplete({
-      primaryCompanyName: companyName.trim(),
+    
+    // Map mode to appropriate fields
+    // Always set primaryCompanyName for backward compatibility
+    const updates: Partial<TryDraft> = {
+      mode,
+      primaryCompanyName: primaryInput.trim(),
       contextText: contextText.trim() || undefined,
-      marketCategory: marketCategory.trim() || undefined,
       targetCustomer: targetCustomer.trim() || undefined,
-      product: product.trim() || undefined,
-    })
+    }
+
+    // Set mode-specific fields
+    if (mode === 'market') {
+      updates.marketCategory = primaryInput.trim()
+    } else if (mode === 'idea') {
+      // For idea mode, if no context text was provided, use the idea as context
+      if (!contextText.trim()) {
+        updates.contextText = primaryInput.trim()
+      }
+    }
+
+    onComplete(updates)
   }
 
-  const handleTryExample = () => {
-    setCompanyName('monday')
-    setContextText('Project management and team collaboration platform')
-    setMarketCategory('Project management software')
-    setTargetCustomer('Teams and organizations')
-    setProduct('monday.com')
+  const handleExampleSelect = (exampleMode: TryMode, value: string) => {
+    setMode(exampleMode)
+    setPrimaryInput(value)
+    // Clear optional details unless already typed
+    if (!contextText && !targetCustomer) {
+      setContextText('')
+      setTargetCustomer('')
+    }
+    setError(null)
   }
 
   return (
@@ -60,116 +106,55 @@ export function TryStep1Describe({
       <SurfaceCard className="p-6 md:p-8 shadow-md">
         <div className="space-y-6">
           <div>
-            <h2 className="text-2xl font-semibold text-foreground mb-3 tracking-tight">
-              Describe what to analyze
+            <h2 className="text-2xl font-semibold text-foreground mb-2 tracking-tight">
+              What should Plinth analyze?
             </h2>
-            <p className="text-base text-muted-foreground leading-relaxed">
-              Enter a company or product name. You can optionally add context
-              about the market, target customer, or your product.
-            </p>
           </div>
 
-          {/* Company name input */}
+          {/* Mode selector */}
+          <div className="space-y-3">
+            <ModeSelector value={mode} onValueChange={setMode} />
+          </div>
+
+          {/* Primary input */}
           <div className="space-y-2">
             <label
-              htmlFor="companyName"
+              htmlFor="primaryInput"
               className="text-sm font-semibold text-foreground"
             >
-              Company or product name
+              {modeConfig.label}
               <span className="text-destructive ml-1">*</span>
             </label>
             <Input
-              id="companyName"
+              id="primaryInput"
               type="text"
-              value={companyName}
+              value={primaryInput}
               onChange={(e) => {
-                setCompanyName(e.target.value)
+                setPrimaryInput(e.target.value)
                 setError(null)
               }}
-              placeholder="e.g. monday, Asana, PagerDuty"
+              placeholder={modeConfig.placeholder}
               required
+              className="text-base"
             />
+            <p className="text-sm text-muted-foreground">
+              {modeConfig.helper}
+            </p>
           </div>
 
-          {/* Context text input */}
+          {/* Example chips */}
           <div className="space-y-2">
-            <label
-              htmlFor="contextText"
-              className="text-sm font-semibold text-foreground"
-            >
-              What are you deciding?
-              <span className="text-muted-foreground font-normal ml-1">
-                (optional)
-              </span>
-            </label>
-            <Textarea
-              id="contextText"
-              value={contextText}
-              onChange={(e) => setContextText(e.target.value)}
-              placeholder="Describe the decision you're making or the context for this analysis..."
-              rows={4}
-            />
+            <p className="text-xs text-muted-foreground">Examples:</p>
+            <ExampleChips onSelect={handleExampleSelect} />
           </div>
 
-          {/* Market/category input */}
-          <div className="space-y-2">
-            <label
-              htmlFor="marketCategory"
-              className="text-sm font-semibold text-foreground"
-            >
-              Market/category
-              <span className="text-muted-foreground font-normal ml-1">
-                (optional)
-              </span>
-            </label>
-            <Input
-              id="marketCategory"
-              type="text"
-              value={marketCategory}
-              onChange={(e) => setMarketCategory(e.target.value)}
-              placeholder="e.g. Project management software"
-            />
-          </div>
-
-          {/* Target customer input */}
-          <div className="space-y-2">
-            <label
-              htmlFor="targetCustomer"
-              className="text-sm font-semibold text-foreground"
-            >
-              Target customer
-              <span className="text-muted-foreground font-normal ml-1">
-                (optional)
-              </span>
-            </label>
-            <Input
-              id="targetCustomer"
-              type="text"
-              value={targetCustomer}
-              onChange={(e) => setTargetCustomer(e.target.value)}
-              placeholder="e.g. Teams and organizations"
-            />
-          </div>
-
-          {/* Your product input */}
-          <div className="space-y-2">
-            <label
-              htmlFor="product"
-              className="text-sm font-semibold text-foreground"
-            >
-              Your product
-              <span className="text-muted-foreground font-normal ml-1">
-                (optional)
-              </span>
-            </label>
-            <Input
-              id="product"
-              type="text"
-              value={product}
-              onChange={(e) => setProduct(e.target.value)}
-              placeholder="e.g. Your product name"
-            />
-          </div>
+          {/* Optional details */}
+          <OptionalDetails
+            contextText={contextText}
+            targetCustomer={targetCustomer}
+            onContextTextChange={setContextText}
+            onTargetCustomerChange={setTargetCustomer}
+          />
 
           {/* Error message */}
           {error && (
@@ -183,20 +168,12 @@ export function TryStep1Describe({
             <Button
               type="button"
               onClick={handleContinue}
-              disabled={!companyName.trim()}
+              disabled={!primaryInput.trim()}
               className="flex-1"
               size="lg"
               variant="brand"
             >
               Continue
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleTryExample}
-              size="lg"
-            >
-              Try an example
             </Button>
           </div>
         </div>
@@ -204,4 +181,3 @@ export function TryStep1Describe({
     </div>
   )
 }
-

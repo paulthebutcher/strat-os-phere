@@ -8,7 +8,10 @@
 const STORAGE_KEY = 'plinth.tryDraft.v1'
 const INTENT_KEY = 'plinth.postAuthIntent.v1'
 
+export type TryMode = 'company' | 'market' | 'idea'
+
 export interface TryDraft {
+  mode?: TryMode // Optional for backward compatibility
   primaryCompanyName: string
   contextText?: string
   marketCategory?: string
@@ -45,6 +48,11 @@ export function loadTryDraft(): TryDraft | null {
     // Validate it has required fields
     if (!draft.primaryCompanyName || !draft.createdAt) {
       return null
+    }
+
+    // Ensure mode defaults to 'company' for backward compatibility
+    if (!draft.mode) {
+      draft.mode = 'company'
     }
 
     return draft
