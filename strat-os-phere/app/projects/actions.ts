@@ -4,6 +4,10 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 import { createProjectSafe } from '@/lib/data/projectsContract'
+import {
+  createDraftProjectInput,
+  finalizeProjectInput,
+} from '@/lib/data/projectInputs'
 import type {
   RiskPosture,
   AmbitionLevel,
@@ -15,8 +19,8 @@ import type { Json } from '@/lib/supabase/types'
 
 interface CreateProjectPayload {
   name: string
-  marketCategory: string
-  targetCustomer: string
+  marketCategory?: string
+  targetCustomer?: string
   product?: string
   goal?: string
   geography?: string
@@ -27,9 +31,39 @@ interface CreateProjectPayload {
   decisionLevel?: DecisionLevel
   explicitNonGoals?: string
   inputConfidence?: InputConfidence
+  // Onboarding fields from Step 1
+  primaryCompanyName?: string
+  contextText?: string
+  decisionFraming?: {
+    decision: string
+    audience?: string
+    audienceOtherText?: string
+    yourProduct?: string
+    horizon?: string
+  }
+  resolvedSources?: Array<{
+    label: string
+    url: string
+    type: string
+    confidence: string
+    enabled: boolean
+  }>
+  suggestedCompetitors?: Array<{
+    name: string
+    url?: string
+    domain?: string
+    confidence: string
+    rationale?: string
+  }>
+  selectedCompetitors?: Array<{
+    name: string
+    url: string
+  }>
+  evidenceWindowDays?: number
+  pricingModel?: string
   // Note: hypothesis, startingPoint, customerProfile, problemStatement, 
   // marketContext, solutionIdea columns do not exist in production.
-  // Store these in context_paste as structured text if needed.
+  // Store these in project_inputs.input_json instead.
 }
 
 interface CreateProjectResult {
@@ -38,6 +72,10 @@ interface CreateProjectResult {
   message?: string
 }
 
+/**
+ * Create project with only stable fields (name, user_id).
+ * All evolving fields are saved to project_inputs table.
+ */
 export async function createProjectFromForm(
   payload: CreateProjectPayload
 ): Promise<CreateProjectResult> {
@@ -50,25 +88,14 @@ export async function createProjectFromForm(
     redirect('/login')
   }
 
+  // Step 1: Create project with ONLY stable fields
   const result = await createProjectSafe(supabase, {
     user_id: user.id,
     name: payload.name,
-    market: payload.marketCategory,
-    target_customer: payload.targetCustomer,
-    your_product: payload.product ?? null,
-    business_goal: payload.goal ?? null,
-    geography: payload.geography ?? null,
-    primary_constraint: payload.primaryConstraint ?? null,
-    risk_posture: payload.riskPosture ?? null,
-    ambition_level: payload.ambitionLevel ?? null,
-    organizational_capabilities: payload.organizationalCapabilities ?? null,
-    decision_level: payload.decisionLevel ?? null,
-    explicit_non_goals: payload.explicitNonGoals ?? null,
-    input_confidence: payload.inputConfidence ?? null,
-    // Note: hypothesis, starting_point, customer_profile, problem_statement,
-    // market_context, solution_idea columns do not exist in production.
-    // If these values are provided, they should be stored in context_paste
-    // as structured text. For now, we skip them to prevent schema errors.
+    // Do NOT write evolving fields to projects table:
+    // - market, target_customer, your_product, business_goal, geography
+    // - primary_constraint, risk_posture, ambition_level, etc.
+    // All of these go into project_inputs.input_json instead
   })
 
   if (!result.ok) {
@@ -78,7 +105,60 @@ export async function createProjectFromForm(
     }
   }
 
-  return { success: true, projectId: result.data.id }
+  const projectId = result.data.id
+
+  // Step 2: Save all evolving fields to project_inputs
+  const inputJson: Record<string, any> = {
+    // Step 3 fields
+    marketCategory: payload.marketCategory,
+    targetCustomer: payload.targetCustomer,
+    product: payload.product,
+    goal: payload.goal,
+    geography: payload.geography,
+    primaryConstraint: payload.primaryConstraint,
+    pricingModel: payload.pricingModel,
+    // Step 1 fields
+    primaryCompanyName: payload.primaryCompanyName,
+    contextText: payload.contextText,
+    decisionFraming: payload.decisionFraming,
+    resolvedSources: payload.resolvedSources,
+    suggestedCompetitors: payload.suggestedCompetitors,
+    selectedCompetitors: payload.selectedCompetitors,
+    evidenceWindowDays: payload.evidenceWindowDays,
+    // Additional fields (if provided)
+    riskPosture: payload.riskPosture,
+    ambitionLevel: payload.ambitionLevel,
+    organizationalCapabilities: payload.organizationalCapabilities,
+    decisionLevel: payload.decisionLevel,
+    explicitNonGoals: payload.explicitNonGoals,
+    inputConfidence: payload.inputConfidence,
+  }
+
+  // Remove undefined values
+  const cleanedInputJson: Record<string, any> = {}
+  for (const [key, value] of Object.entries(inputJson)) {
+    if (value !== undefined) {
+      cleanedInputJson[key] = value
+    }
+  }
+
+  // Create draft project input
+  const inputResult = await createDraftProjectInput(
+    supabase,
+    projectId,
+    cleanedInputJson
+  )
+
+  if (!inputResult.ok) {
+    // Log error but don't fail project creation
+    console.error('Failed to create project input:', inputResult.error)
+    // Continue - project is created, input can be added later
+  } else {
+    // Finalize the input since this is the completion of onboarding
+    await finalizeProjectInput(supabase, inputResult.data.id)
+  }
+
+  return { success: true, projectId }
 }
 
 

@@ -38,6 +38,10 @@ import { Section } from '@/components/layout/Section'
 import { EmptyState } from '@/components/layout/EmptyState'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
+import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
+import { NextBestActionCard } from '@/components/ux/NextBestActionCard'
+import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -138,6 +142,16 @@ export default async function ResultsPage(props: ResultsPageProps) {
   // Check if run is in progress
   const isRunning = results.activeRun?.status === 'running' || results.activeRun?.status === 'queued'
 
+  // Derive view model for state and coverage
+  const viewModel = deriveAnalysisViewModel({
+    activeRunStatus: results.activeRun?.status ?? null,
+    hasArtifacts,
+    artifactCount: results.artifacts.length,
+    competitorCount: competitors.length,
+    // Source count can be added here if evidence bundle structure is known
+    // For now, coverage will default based on competitor count
+  })
+
   // Determine which view to show based on tab parameter
   // Default to readout view if no tab specified
   const showReadout = !tab || tab === 'readout'
@@ -160,9 +174,27 @@ export default async function ResultsPage(props: ResultsPageProps) {
             hasResults={hasArtifacts}
           />
 
-          {/* In-progress banner */}
+          {/* System State Banner - Always visible to show current state */}
+          {!isRunning && (
+            <Section>
+              <SystemStateBanner state={viewModel.systemState} />
+            </Section>
+          )}
+
+          {/* In-progress banner - Shows when running (replaces state banner) */}
           {isRunning && results.activeRun && (
             <InProgressBanner run={results.activeRun} projectId={projectId} />
+          )}
+
+          {/* Coverage Indicator - Show when we have results or partial results */}
+          {viewModel.systemState !== 'empty' && (
+            <Section>
+              <CoverageIndicator
+                level={viewModel.coverageLevel}
+                sourceCount={viewModel.sourceCount}
+                competitorCount={viewModel.competitorCount}
+              />
+            </Section>
           )}
 
           {/* Evidence Trust Panel (if enabled) */}
@@ -188,12 +220,15 @@ export default async function ResultsPage(props: ResultsPageProps) {
           )}
 
           {!hasArtifacts ? (
-            // Empty state: no successful run
-            <EmptyState
-              title="No results yet"
-              description="Run an analysis to generate competitive insights and strategic opportunities."
-              action={<RerunAnalysisButton projectId={projectId} />}
-            />
+            // Empty/failed state: show NextBestActionCard
+            <Section>
+              <NextBestActionCard
+                state={viewModel.systemState === 'failed' ? 'failed' : 'empty'}
+                primaryAction={
+                  <RerunAnalysisButton projectId={projectId} />
+                }
+              />
+            </Section>
           ) : showReadout ? (
             // Default: Show executive readout view
             (opportunities.best || !isRunning) && (

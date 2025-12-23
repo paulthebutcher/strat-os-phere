@@ -4,6 +4,10 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 import { createProjectSafe } from '@/lib/data/projectsContract'
+import {
+  createDraftProjectInput,
+  finalizeProjectInput,
+} from '@/lib/data/projectInputs'
 import { createCompetitorForProject } from '@/app/projects/[projectId]/competitors/actions'
 import { generateAnalysis } from '@/app/projects/[projectId]/results/actions'
 import type { TryDraft } from '@/lib/tryDraft'
@@ -30,26 +34,12 @@ export async function createProjectFromTryDraft(
     redirect('/login?next=/try/continue')
   }
 
-  // Create project using safe contract
+  // Create project with only stable fields
   const projectResult = await createProjectSafe(supabase, {
     user_id: user.id,
     name: `Competitive analysis: ${draft.primaryCompanyName}`,
-    market: draft.marketCategory || 'Competitive analysis',
-    target_customer: draft.targetCustomer || 'Target customers',
-    your_product: draft.product ?? null,
-    business_goal: draft.contextText ?? null,
-    // Set other fields to null/defaults
-    geography: null,
-    primary_constraint: null,
-    risk_posture: null,
-    ambition_level: null,
-    organizational_capabilities: null,
-    decision_level: null,
-    explicit_non_goals: null,
-    input_confidence: null,
-    // Note: hypothesis, starting_point, customer_profile, problem_statement,
-    // market_context, solution_idea columns do not exist in production.
-    // These are removed to prevent schema errors.
+    // Do NOT write evolving fields to projects table
+    // All evolving fields go to project_inputs instead
   })
 
   if (!projectResult.ok) {
@@ -63,6 +53,42 @@ export async function createProjectFromTryDraft(
   }
 
   const projectId = projectResult.data.id
+
+  // Save all evolving fields to project_inputs
+  const inputJson: Record<string, any> = {
+    marketCategory: draft.marketCategory,
+    targetCustomer: draft.targetCustomer,
+    product: draft.product,
+    contextText: draft.contextText,
+    primaryCompanyName: draft.primaryCompanyName,
+    selectedCompetitors: draft.selectedCompetitors,
+  }
+
+  // Remove undefined values
+  const cleanedInputJson: Record<string, any> = {}
+  for (const [key, value] of Object.entries(inputJson)) {
+    if (value !== undefined) {
+      cleanedInputJson[key] = value
+    }
+  }
+
+  // Create and finalize project input
+  if (Object.keys(cleanedInputJson).length > 0) {
+    const inputResult = await createDraftProjectInput(
+      supabase,
+      projectId,
+      cleanedInputJson
+    )
+
+    if (inputResult.ok) {
+      await finalizeProjectInput(supabase, inputResult.data.id)
+    } else {
+      logger.warn('Failed to create project input from try draft', {
+        projectId,
+        error: inputResult.error,
+      })
+    }
+  }
 
   // Add competitors if any
   if (draft.selectedCompetitors && draft.selectedCompetitors.length > 0) {

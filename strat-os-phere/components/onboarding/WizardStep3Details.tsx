@@ -79,14 +79,26 @@ export function WizardStep3Details({
       }
 
       // Create project with all details
+      // Note: Only stable fields (name, user_id) go to projects table.
+      // All evolving fields go to project_inputs table.
       const projectResult = await createProjectFromForm({
         name: projectName.trim(),
-        marketCategory: market.trim() || state.marketCategory || 'Competitive analysis',
-        targetCustomer: targetCustomer.trim() || 'Target customers',
+        // Step 3 fields (go to project_inputs)
+        marketCategory: market.trim() || state.marketCategory || undefined,
+        targetCustomer: targetCustomer.trim() || undefined,
         product: product.trim() || undefined,
-        goal: state.decisionFraming?.decision || 'Generate competitive insights',
+        goal: state.decisionFraming?.decision || undefined,
         geography: geography.trim() || undefined,
         primaryConstraint: finalConstraints || undefined,
+        pricingModel: pricingModel || undefined,
+        // Step 1 fields (go to project_inputs)
+        primaryCompanyName: state.primaryCompanyName,
+        contextText: state.contextText,
+        decisionFraming: state.decisionFraming,
+        resolvedSources: state.resolvedSources,
+        suggestedCompetitors: state.suggestedCompetitors,
+        selectedCompetitors: state.selectedCompetitors,
+        evidenceWindowDays: state.evidenceWindowDays,
       })
 
       if (!projectResult?.success || !projectResult.projectId) {

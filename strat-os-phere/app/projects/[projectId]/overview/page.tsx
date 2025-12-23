@@ -24,6 +24,10 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Section } from '@/components/layout/Section'
 import { safeQuery } from '@/lib/db/safeQuery'
 import { InlineErrorState } from '@/components/system/InlineErrorState'
+import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
+import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
+import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
+import { getLatestRunningRunForProject } from '@/lib/data/runs'
 
 interface OverviewPageProps {
   params: Promise<{
@@ -98,9 +102,10 @@ export default async function OverviewPage(props: OverviewPageProps) {
     notFound()
   }
 
-  const [competitors, artifacts] = await Promise.all([
+  const [competitors, artifacts, runningRun] = await Promise.all([
     listCompetitorsForProject(supabase, projectId),
     listArtifacts(supabase, { projectId }),
+    getLatestRunningRunForProject(supabase, projectId),
   ])
 
   const competitorCount = competitors.length
@@ -124,6 +129,14 @@ export default async function OverviewPage(props: OverviewPageProps) {
 
   // Compute readiness
   const readiness = getProjectReadiness(project, competitors)
+
+  // Derive view model for state and coverage
+  const viewModel = deriveAnalysisViewModel({
+    activeRunStatus: runningRun?.status ?? null,
+    hasArtifacts: hasAnyArtifacts,
+    artifactCount: artifacts.length,
+    competitorCount: competitorCount,
+  })
 
   // Determine primary CTA action based on readiness
   const primaryCTA = readiness.nextAction
@@ -174,6 +187,21 @@ export default async function OverviewPage(props: OverviewPageProps) {
         subtitle="Review project status, readiness, and next actions"
         primaryAction={primaryAction}
       />
+
+      {/* System State Banner */}
+      <Section>
+        <SystemStateBanner state={viewModel.systemState} />
+      </Section>
+
+      {/* Coverage Indicator - Show when we have results */}
+      {viewModel.systemState !== 'empty' && (
+        <Section>
+          <CoverageIndicator
+            level={viewModel.coverageLevel}
+            competitorCount={viewModel.competitorCount}
+          />
+        </Section>
+      )}
 
       {/* Main content grid */}
       <div className="grid gap-6 lg:grid-cols-[1fr_16rem]">
