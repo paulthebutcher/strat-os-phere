@@ -8,6 +8,7 @@ import { AnalysisContextForm } from './AnalysisContextForm'
 import { AnalysisFramingCard } from './AnalysisFramingCard'
 import { QualityMeter } from './QualityMeter'
 import { InlineTip } from './InlineTip'
+import { normalizeProjectInputs } from '@/lib/onboarding/normalizeInputs'
 import type {
   WizardState,
   ResolvedSource,
@@ -332,11 +333,11 @@ export function WizardStep1Describe({
           <div className="lg:sticky lg:top-20 space-y-4">
             {isGuidedMode && (
               <QualityMeter
-                inputs={{
+                inputs={normalizeProjectInputs({
                   name: companyName,
                   market: market,
-                  targetCustomer: decision,
-                }}
+                  customer: decision,
+                })}
               />
             )}
             <AnalysisFramingCard

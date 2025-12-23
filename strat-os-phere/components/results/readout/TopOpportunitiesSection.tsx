@@ -1,0 +1,163 @@
+'use client'
+
+import Link from 'next/link'
+import { Badge } from '@/components/ui/badge'
+import { SectionCard } from '@/components/results/SectionCard'
+import { pickInlineCitations } from '@/lib/results/citations'
+
+interface TopOpportunity {
+  title: string
+  score: number | null
+  oneLiner: string | null
+  whyNow: string | null
+  proposedMove: string | null
+  whatItEnables: string[]
+  whoItsFor: string | null
+  firstExperiment: string | null
+  raw: unknown
+}
+
+interface TopOpportunitiesSectionProps {
+  opportunities: TopOpportunity[]
+  projectId: string
+}
+
+/**
+ * Top Opportunities Section - Shows top 3 opportunities with citations
+ */
+export function TopOpportunitiesSection({
+  opportunities,
+  projectId,
+}: TopOpportunitiesSectionProps) {
+  if (opportunities.length === 0) {
+    return (
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold text-foreground">Top Opportunities</h2>
+        <SectionCard className="py-12">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Top opportunities will appear here after analysis is generated.
+            </p>
+          </div>
+        </SectionCard>
+      </section>
+    )
+  }
+
+  return (
+    <section className="space-y-4">
+      <div>
+        <h2 className="text-2xl font-semibold text-foreground">Top Opportunities</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The 3 bets most likely to differentiate — based on available evidence and competitor inputs.
+        </p>
+      </div>
+      <div className="space-y-4">
+        {opportunities.map((opp, index) => {
+          const citations = pickInlineCitations(opp.raw, 2)
+          const opportunityId = `opportunity-${index}`
+
+          return (
+            <div id={opportunityId}>
+              <SectionCard
+                className="hover:shadow-md transition-shadow"
+              >
+              <div className="space-y-4">
+                {/* Header with title and score */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-3 mb-2">
+                      <h3 className="text-xl font-semibold text-foreground leading-tight">
+                        {opp.title}
+                      </h3>
+                      {opp.score !== null && (
+                        <Badge variant="primary" className="shrink-0">
+                          {opp.score}/100
+                        </Badge>
+                      )}
+                    </div>
+                    {opp.oneLiner && (
+                      <p className="text-base text-foreground leading-relaxed">
+                        {opp.oneLiner}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Content bullets */}
+                <div className="space-y-3 pt-2 border-t border-border">
+                  {/* What it enables */}
+                  {opp.whatItEnables.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        What it enables
+                      </h4>
+                      <ul className="space-y-1.5">
+                        {opp.whatItEnables.slice(0, 4).map((item, itemIndex) => (
+                          <li key={itemIndex} className="text-sm text-foreground flex items-start gap-2">
+                            <span className="text-muted-foreground mt-1">•</span>
+                            <span className="flex-1">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Who it's for */}
+                  {opp.whoItsFor && (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                        Who it's for
+                      </h4>
+                      <p className="text-sm text-foreground">{opp.whoItsFor}</p>
+                    </div>
+                  )}
+
+                  {/* First experiment */}
+                  {opp.firstExperiment && (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                        First experiment
+                      </h4>
+                      <p className="text-sm text-foreground">{opp.firstExperiment}</p>
+                    </div>
+                  )}
+
+                  {/* Inline citations */}
+                  {citations.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+                      <span className="text-xs text-muted-foreground">Sources:</span>
+                      {citations.map((citation, citIndex) => (
+                        <a
+                          key={citIndex}
+                          href={citation.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          {citation.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* View details link */}
+                <div className="pt-2 border-t border-border">
+                  <Link
+                    href={`/projects/${projectId}/results?tab=opportunities#${opportunityId}`}
+                    className="text-sm text-primary hover:underline font-medium"
+                  >
+                    View details →
+                  </Link>
+                </div>
+              </div>
+            </SectionCard>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+

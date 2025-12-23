@@ -5,21 +5,24 @@ import { createPageMetadata } from '@/lib/seo/metadata'
 import { createClient } from '@/lib/supabase/server'
 import { getProjectResults } from '@/lib/results/getProjectResults'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeResults'
+import { normalizeResultsArtifacts as normalizeArtifactsInternal } from '@/lib/results/normalizeArtifacts'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { OpportunitiesContent } from '@/components/results/OpportunitiesContent'
-import { ResultsReadout } from '@/components/results/ResultsReadout'
+import { ResultsReadoutView } from '@/components/results/readout/ResultsReadoutView'
+import { AppendixContent } from '@/components/results/AppendixContent'
+import { ScorecardContent } from '@/components/results/ScorecardContent'
+import { EvidenceContent } from '@/components/results/EvidenceContent'
+import { StrategicBetsSection } from '@/components/results/memo/StrategicBetsSection'
 import { ShareButton } from '@/components/results/ShareButton'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
-import { TourLink } from '@/components/guidance/TourLink'
 import { RerunAnalysisButton } from '@/components/results/RerunAnalysisButton'
 import { RunHistoryDrawer } from '@/components/results/RunHistoryDrawer'
 import { InProgressBanner } from '@/components/results/InProgressBanner'
 import { ResultsPageClient } from '@/components/results/ResultsPageClient'
 import { SectionSkeleton } from '@/components/results/SectionSkeleton'
 import { listArtifacts } from '@/lib/data/artifacts'
-import { SectionHeader } from '@/components/shared/SectionHeader'
-import { Card, CardContent } from '@/components/ui/card'
 import { FirstWinChecklistWrapper } from '@/components/onboarding/FirstWinChecklistWrapper'
+import { selectReadoutData } from '@/lib/results/selectors'
 import type { SearchParams } from '@/lib/routing/searchParams'
 import { getParam } from '@/lib/routing/searchParams'
 
@@ -67,16 +70,11 @@ export default async function ResultsPage(props: ResultsPageProps) {
     notFound()
   }
 
-  // Handle legacy tab redirects
+  // Handle legacy tab redirects (only for routes that need to redirect away)
   if (tab) {
     const tabToRoute: Record<string, string> = {
       overview: `/projects/${projectId}/overview`,
-      opportunities: `/projects/${projectId}/results`,
-      strategic_bets: `/projects/${projectId}/results`,
-      jobs: `/projects/${projectId}/results`,
-      scorecard: `/projects/${projectId}/scorecard`,
       competitors: `/projects/${projectId}/competitors`,
-      evidence: `/projects/${projectId}/evidence`,
       settings: `/projects/${projectId}/settings`,
     }
     if (tabToRoute[tab]) {
@@ -100,12 +98,25 @@ export default async function ResultsPage(props: ResultsPageProps) {
   // Normalize artifacts (may be partial if run is still running)
   const normalized = normalizeResultsArtifacts(results.artifacts, projectId)
   const { opportunities, strategicBets, profiles, jtbd } = normalized
+  
+  // Get scoring matrix from normalized artifacts
+  const normalizedArtifacts = normalizeArtifactsInternal(results.artifacts)
+  const scoringMatrix = normalizedArtifacts.scoringMatrix?.content || null
+
+  // Select readout data for the new executive readout view
+  const readoutData = selectReadoutData(normalized)
 
   // Check if we have any artifacts to show
   const hasArtifacts = results.artifacts.length > 0
   
   // Check if run is in progress
   const isRunning = results.activeRun?.status === 'running' || results.activeRun?.status === 'queued'
+
+  // Determine which view to show based on tab parameter
+  // Default to readout view if no tab specified
+  const showReadout = !tab || tab === 'readout'
+  const showAppendix = tab === 'appendix'
+  const showTabContent = tab && tab !== 'readout' && tab !== 'appendix'
 
   return (
     <PageGuidanceWrapper pageId="results">
@@ -124,56 +135,6 @@ export default async function ResultsPage(props: ResultsPageProps) {
             hasResults={hasArtifacts}
           />
 
-          {/* Executive Brief Header */}
-          <div className="space-y-4">
-            <SectionHeader
-              title={results.project?.name || "Results"}
-              description={
-                normalized.meta.lastGeneratedAt
-                  ? `Generated ${new Date(normalized.meta.lastGeneratedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
-                  : "Competitive analysis results"
-              }
-              actions={
-                <div className="flex items-center gap-2">
-                  {hasArtifacts && (
-                    <>
-                      <RerunAnalysisButton projectId={projectId} />
-                      <RunHistoryDrawer projectId={projectId} artifacts={allArtifacts} />
-                    </>
-                  )}
-                  <ShareButton projectId={projectId} />
-                </div>
-              }
-            />
-            {hasArtifacts && competitors.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="plinth-card-elevated">
-                  <CardContent className="p-4">
-                    <div className="text-sm text-muted-foreground">Competitors analyzed</div>
-                    <div className="text-2xl font-semibold text-foreground mt-1">
-                      {competitors.length}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="plinth-card-elevated">
-                  <CardContent className="p-4">
-                    <div className="text-sm text-muted-foreground">Evidence sources</div>
-                    <div className="text-2xl font-semibold text-foreground mt-1">
-                      {results.artifacts.length}
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="plinth-card-elevated">
-                  <CardContent className="p-4">
-                    <div className="text-sm text-muted-foreground">Status</div>
-                    <div className="text-2xl font-semibold text-foreground mt-1">
-                      {isRunning ? "Running" : "Complete"}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </div>
 
           {/* In-progress banner */}
           {isRunning && results.activeRun && (
@@ -189,21 +150,20 @@ export default async function ResultsPage(props: ResultsPageProps) {
               </p>
               <RerunAnalysisButton projectId={projectId} />
             </div>
-          ) : (
+          ) : showReadout ? (
+            // Default: Show executive readout view
+            (opportunities.best || !isRunning) && (
+              <ResultsReadoutView
+                projectId={projectId}
+                projectName={results.project?.name || 'Results'}
+                readoutData={readoutData}
+                normalized={normalized}
+              />
+            )
+          ) : showTabContent ? (
+            // Show specific tab content (deep dives)
             <>
-              {/* Executive Readout, Assumptions Map, and Assumptions Ledger */}
-              {(opportunities.best || !isRunning) && (
-                <ResultsReadout
-                  projectId={projectId}
-                  opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
-                  opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
-                  generatedAt={normalized.meta.lastGeneratedAt || undefined}
-                  projectName={results.project?.name || undefined}
-                />
-              )}
-
-              {/* Opportunities Content - primary view */}
-              {opportunities.v3?.content || opportunities.v2?.content ? (
+              {tab === 'opportunities' && (opportunities.v3?.content || opportunities.v2?.content) && (
                 <OpportunitiesContent
                   projectId={projectId}
                   opportunitiesV3={opportunities.v3?.content}
@@ -212,14 +172,49 @@ export default async function ResultsPage(props: ResultsPageProps) {
                   strategicBets={strategicBets?.content}
                   jtbd={jtbd?.content}
                 />
-              ) : isRunning ? (
-                <SectionSkeleton
-                  title="Opportunities"
-                  description="Strategic opportunities ranked by score with actionable experiments and proof points."
+              )}
+              {tab === 'strategic_bets' && (
+                <StrategicBetsSection
+                  bets={strategicBets?.content || null}
+                  opportunities={opportunities.best?.content || null}
+                  projectId={projectId}
                 />
-              ) : null}
+              )}
+              {tab === 'jobs' && jtbd?.content && (
+                <AppendixContent
+                  projectId={projectId}
+                  normalized={{ jtbd }}
+                />
+              )}
+              {tab === 'profiles' && profiles && (
+                <AppendixContent
+                  projectId={projectId}
+                  normalized={{ profiles }}
+                />
+              )}
+              {tab === 'scorecard' && (
+                <ScorecardContent
+                  projectId={projectId}
+                  scoring={scoringMatrix}
+                />
+              )}
+              {tab === 'evidence' && (
+                <EvidenceContent
+                  opportunitiesV3={opportunities.v3?.content}
+                  opportunitiesV2={opportunities.v2?.content}
+                  profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
+                  strategicBets={strategicBets?.content}
+                  jtbd={jtbd?.content}
+                />
+              )}
             </>
-          )}
+          ) : showAppendix ? (
+            // Show all appendix content
+            <AppendixContent
+              projectId={projectId}
+              normalized={{ profiles, synthesis: null, jtbd }}
+            />
+          ) : null}
           </main>
         </div>
       </ResultsPageClient>
