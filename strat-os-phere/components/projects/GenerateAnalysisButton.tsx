@@ -7,6 +7,7 @@ import type { VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
 import { addActiveRun } from '@/lib/runs/runToastStore'
+import { toastSuccess, toastError } from '@/lib/toast/toast'
 
 interface GenerateAnalysisButtonProps {
   projectId: string
@@ -51,6 +52,9 @@ export function GenerateAnalysisButton({
     setIsGenerating(true)
     onStarted?.()
 
+    // Immediate feedback toast
+    toastSuccess('Starting analysis…', 'Your analysis is being prepared.')
+
     // Clear the progressive reveal flag so animation plays again for new results
     try {
       sessionStorage.removeItem('progressive-reveal-shown')
@@ -75,9 +79,10 @@ export function GenerateAnalysisButton({
         // Re-enable button - don't lock the page
         setIsGenerating(false)
       } else {
-        // Error: show error message
+        // Error: show error toast
         const errorMessage =
           result.message || 'Failed to start analysis. Please try again.'
+        toastError('Failed to start analysis', errorMessage)
 
         // Check if it's a validation error (like missing competitors)
         if (
@@ -94,12 +99,14 @@ export function GenerateAnalysisButton({
           }
         }
 
-        alert(errorMessage)
         setIsGenerating(false)
       }
     } catch (error) {
       console.error('Error starting analysis:', error)
-      alert('Failed to start analysis. Please try again.')
+      toastError(
+        'Failed to start analysis',
+        'An unexpected error occurred. Please try again.'
+      )
       setIsGenerating(false)
     }
   }

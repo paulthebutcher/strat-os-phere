@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { formatRelativeDate } from './formatRelativeDate'
 import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
 import { addActiveRun } from '@/lib/runs/runToastStore'
+import { toastSuccess, toastError } from '@/lib/toast/toast'
 import type { ProjectsListRow, EvidenceStrength } from '@/lib/projects/projectsListModel'
 import { ArrowUpDown, ArrowUp, ArrowDown, Loader2 } from 'lucide-react'
 
@@ -87,6 +88,10 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
     if (generatingProjectId === projectId) return
 
     setGeneratingProjectId(projectId)
+    
+    // Immediate feedback toast
+    toastSuccess('Starting analysis…', 'Your analysis is being prepared.')
+    
     try {
       const result = await startEvidenceRun({ analysisId: projectId })
 
@@ -98,11 +103,17 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
           createdAt: new Date().toISOString(),
         })
       } else {
-        alert(result.message || 'Failed to start analysis. Please try again.')
+        toastError(
+          'Failed to start analysis',
+          result.message || 'Please try again.'
+        )
       }
     } catch (error) {
       console.error('Error starting analysis:', error)
-      alert('Failed to start analysis. Please try again.')
+      toastError(
+        'Failed to start analysis',
+        'An unexpected error occurred. Please try again.'
+      )
     } finally {
       setGeneratingProjectId(null)
     }

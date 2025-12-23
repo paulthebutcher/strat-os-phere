@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
 import { addActiveRun, getActiveRuns, isRunActive } from '@/lib/runs/runToastStore'
+import { toastSuccess, toastError } from '@/lib/toast/toast'
 
 interface GenerateResultsV2ButtonProps {
   projectId: string
@@ -74,6 +75,7 @@ export function GenerateResultsV2Button({
       }
 
       // Start new run
+      toastSuccess('Starting analysis…', 'Your analysis is being prepared.')
       const result = await startEvidenceRun({ analysisId: projectId })
 
       if (result.ok) {
@@ -89,15 +91,18 @@ export function GenerateResultsV2Button({
         // User can continue navigating - toast persists
         setIsStarting(false)
       } else {
-        // Error: show error message
+        // Error: show error toast
         const errorMessage =
           result.message || 'Failed to start analysis. Please try again.'
-        alert(errorMessage)
+        toastError('Failed to start analysis', errorMessage)
         setIsStarting(false)
       }
     } catch (error) {
       console.error('Error starting analysis:', error)
-      alert('Failed to start analysis. Please try again.')
+      toastError(
+        'Failed to start analysis',
+        'An unexpected error occurred. Please try again.'
+      )
       setIsStarting(false)
     }
   }

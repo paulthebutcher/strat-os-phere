@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
 import { addActiveRun } from '@/lib/runs/runToastStore'
+import { toastSuccess, toastError } from '@/lib/toast/toast'
 
 interface RegenerateButtonProps {
   projectId: string
@@ -30,6 +31,9 @@ export function RegenerateButton({
     setIsStarting(true)
     onStart?.()
 
+    // Immediate feedback toast
+    toastSuccess('Starting analysis…', 'Your analysis is being prepared.')
+
     // Clear the progressive reveal flag so animation plays again for new results
     try {
       sessionStorage.removeItem('progressive-reveal-shown')
@@ -54,12 +58,18 @@ export function RegenerateButton({
         // Re-enable button - don't lock the page
         setIsStarting(false)
       } else {
-        alert(result.message || 'Failed to start analysis. Please try again.')
+        toastError(
+          'Failed to start analysis',
+          result.message || 'Please try again.'
+        )
         setIsStarting(false)
       }
     } catch (error) {
       console.error('Error starting analysis:', error)
-      alert('Failed to start analysis. Please try again.')
+      toastError(
+        'Failed to start analysis',
+        'An unexpected error occurred. Please try again.'
+      )
       setIsStarting(false)
     }
   }

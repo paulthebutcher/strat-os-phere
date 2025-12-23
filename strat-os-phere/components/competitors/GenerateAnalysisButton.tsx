@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
 import { addActiveRun } from '@/lib/runs/runToastStore'
+import { toastSuccess, toastError } from '@/lib/toast/toast'
 
 interface GenerateAnalysisButtonProps {
   projectId: string
@@ -26,6 +27,9 @@ export function GenerateAnalysisButton({
     if (disabled || isStarting) return
 
     setIsStarting(true)
+
+    // Immediate feedback toast
+    toastSuccess('Starting analysis…', 'Your analysis is being prepared.')
 
     // Clear the progressive reveal flag so animation plays again for new results
     try {
@@ -52,12 +56,18 @@ export function GenerateAnalysisButton({
         setIsStarting(false)
       } else {
         console.error('Failed to start analysis:', result.message)
-        alert(result.message || 'Failed to start analysis. Please try again.')
+        toastError(
+          'Failed to start analysis',
+          result.message || 'Please try again.'
+        )
         setIsStarting(false)
       }
     } catch (error) {
       console.error('Error starting analysis:', error)
-      alert('Failed to start analysis. Please try again.')
+      toastError(
+        'Failed to start analysis',
+        'An unexpected error occurred. Please try again.'
+      )
       setIsStarting(false)
     }
   }

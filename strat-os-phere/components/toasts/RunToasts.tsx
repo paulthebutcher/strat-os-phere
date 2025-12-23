@@ -14,6 +14,7 @@ import {
 import { pollRunStatus, getPollInterval } from '@/lib/runs/runPolling'
 import type { ActiveRun, RunStatus, RunStatusResponse } from '@/lib/runs/types'
 import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
+import { toastSuccess, toastError } from '@/lib/toast/toast'
 
 interface RunToastData extends ActiveRun {
   status: RunStatus
@@ -67,6 +68,9 @@ export function RunToasts() {
     for (const run of activeRuns) {
       try {
         const statusData = await pollRunStatus(run.runId)
+        const previousStatus = run.lastSeenStatus || 'queued'
+        const newStatus = statusData.status
+        
         updateActiveRunStatus(run.runId, statusData.status)
 
         updatedRuns.push({
@@ -75,6 +79,18 @@ export function RunToasts() {
           progress: statusData.progress,
           errorMessage: statusData.errorMessage,
         })
+
+        // Show toast on status transitions
+        if (previousStatus !== newStatus) {
+          if (newStatus === 'completed') {
+            toastSuccess('Analysis complete', 'Your analysis is ready to view.')
+          } else if (newStatus === 'failed') {
+            toastError(
+              'Analysis failed',
+              statusData.errorMessage || 'Please try again.'
+            )
+          }
+        }
 
         // Handle completed runs - auto-dismiss after delay
         if (statusData.status === 'completed') {

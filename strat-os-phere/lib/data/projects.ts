@@ -5,6 +5,7 @@ import { PROJECT_FULL_SELECT, PROJECT_LIST_SELECT, PROJECT_DASHBOARD_SELECT } fr
 import { isMissingColumnError } from '@/lib/db/safeDb'
 import { buildProjectUpdate } from '@/lib/db/projectUpdate'
 import { getLatestAnalysisInfoForProjects } from './latestRun'
+import { getLatestRunForProject } from './projectRuns'
 
 type Client = TypedSupabaseClient
 
@@ -213,25 +214,20 @@ export async function listProjectsWithCounts(
         }
       })
     ),
-    // Get latest run created_at for each project
+    // Get latest run created_at for each project from project_runs (new source of truth)
+    // Note: This replaces the old analysis_runs table query
     Promise.all(
       projectIds.map(async (projectId) => {
-        const { data, error } = await typedClient
-          .from('analysis_runs')
-          .select('created_at')
-          .eq('project_id', projectId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle()
-
-        if (error && error.code !== 'PGRST116') {
-          console.warn(`Failed to get latest run for project ${projectId}:`, error)
+        const runResult = await getLatestRunForProject(client, projectId)
+        if (runResult.ok && runResult.data) {
+          return {
+            projectId,
+            latestRunCreatedAt: runResult.data.created_at,
+          }
         }
-
-        const runData = data as Database['public']['Tables']['analysis_runs']['Row'] | null
         return {
           projectId,
-          latestRunCreatedAt: runData?.created_at ?? null,
+          latestRunCreatedAt: null,
         }
       })
     ),
@@ -273,6 +269,7 @@ export async function listProjectsWithCounts(
       competitorCount: competitorCountMap.get(projectId) ?? 0,
       competitorsWithEvidenceCount: competitorsWithEvidenceMap.get(projectId) ?? 0,
       evidenceSourceCount: evidenceCountMap.get(projectId) ?? 0,
+      // Latest run from project_runs (new source of truth, replaces analysis_runs)
       latestRunCreatedAt: latestRunMap.get(projectId) ?? null,
       // Derived from artifacts table (resilient, no schema drift)
       lastArtifactAt: latestInfo?.lastArtifactAt ?? null,

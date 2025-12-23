@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createBaseMetadata } from "@/lib/seo/metadata";
 import { ToastProvider } from "@/components/toast/toast-provider";
 import { RunToasts } from "@/components/toasts/RunToasts";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,6 +44,7 @@ export default async function RootLayout({
             {children}
           </div>
           <RunToasts />
+          <Toaster />
         </ToastProvider>
       </body>
     </html>
