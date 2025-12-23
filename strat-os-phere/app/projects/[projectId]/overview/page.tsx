@@ -17,15 +17,14 @@ import { Button } from '@/components/ui/button'
 import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
 import Link from 'next/link'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
+import type { SearchParams } from '@/lib/routing/searchParams'
+import { getParam } from '@/lib/routing/searchParams'
 
 interface OverviewPageProps {
   params: Promise<{
     projectId: string
   }>
-  searchParams?: Promise<{
-    generating?: string
-    view?: string
-  }>
+  searchParams?: SearchParams
 }
 
 export async function generateMetadata(props: OverviewPageProps): Promise<Metadata> {
@@ -45,17 +44,10 @@ export async function generateMetadata(props: OverviewPageProps): Promise<Metada
 }
 
 export default async function OverviewPage(props: OverviewPageProps) {
-  const [params, searchParams] = await Promise.all([
-    props.params,
-    props.searchParams ?? Promise.resolve({}),
-  ])
+  const params = await props.params
   const projectId = params.projectId
-  const searchParamsObj = searchParams as {
-    generating?: string
-    view?: string
-  }
-  const isGenerating = searchParamsObj.generating === 'true'
-  const viewResults = searchParamsObj.view === 'results'
+  const isGenerating = getParam(props.searchParams, 'generating') === 'true'
+  const viewResults = getParam(props.searchParams, 'view') === 'results'
 
   const supabase = await createClient()
   const {

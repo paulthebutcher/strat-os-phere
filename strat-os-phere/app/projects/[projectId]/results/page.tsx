@@ -20,15 +20,14 @@ import { listArtifacts } from '@/lib/data/artifacts'
 import { SectionHeader } from '@/components/shared/SectionHeader'
 import { Card, CardContent } from '@/components/ui/card'
 import { FirstWinChecklistWrapper } from '@/components/onboarding/FirstWinChecklistWrapper'
+import type { SearchParams } from '@/lib/routing/searchParams'
+import { getParam } from '@/lib/routing/searchParams'
 
 interface ResultsPageProps {
   params: Promise<{
     projectId: string
   }>
-  searchParams?: Promise<{
-    tab?: string
-    runId?: string
-  }>
+  searchParams?: SearchParams
 }
 
 export async function generateMetadata(props: ResultsPageProps): Promise<Metadata> {
@@ -54,14 +53,10 @@ export async function generateMetadata(props: ResultsPageProps): Promise<Metadat
  * Handles legacy ?tab=... URLs by redirecting to canonical routes.
  */
 export default async function ResultsPage(props: ResultsPageProps) {
-  const [params, searchParams] = await Promise.all([
-    props.params,
-    props.searchParams ?? Promise.resolve({}),
-  ])
+  const params = await props.params
   const projectId = params.projectId
-  const searchParamsObj = (await searchParams) as { tab?: string; runId?: string } | undefined
-  const tab = searchParamsObj?.tab
-  const runId = searchParamsObj?.runId
+  const tab = getParam(props.searchParams, 'tab')
+  const runId = getParam(props.searchParams, 'runId')
 
   const supabase = await createClient()
   const {

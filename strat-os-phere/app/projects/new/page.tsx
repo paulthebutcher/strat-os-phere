@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { AnalysisWizard } from '@/components/onboarding/AnalysisWizard'
 import { createClient } from '@/lib/supabase/server'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import type { SearchParams } from '@/lib/routing/searchParams'
+import { isParamTruthy } from '@/lib/routing/searchParams'
 
 /**
  * New Project Page
@@ -17,13 +19,11 @@ import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
  * - Example fill button with realistic sample data
  * - First win checklist that follows across key pages
  */
-interface NewProjectPageProps {
-  searchParams?: Promise<{
-    onboarding?: string
-  }>
+type PageProps = {
+  searchParams?: SearchParams
 }
 
-export default async function NewProjectPage(props: NewProjectPageProps) {
+export default async function NewProjectPage(props: PageProps) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -33,8 +33,7 @@ export default async function NewProjectPage(props: NewProjectPageProps) {
     redirect('/login')
   }
 
-  const searchParams = await (props.searchParams ?? Promise.resolve({}))
-  const isGuidedMode = searchParams.onboarding === '1'
+  const isGuidedMode = isParamTruthy(props.searchParams, 'onboarding')
 
   return (
     <PageGuidanceWrapper pageId="new_project">
