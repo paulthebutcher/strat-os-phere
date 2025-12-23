@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, ArrowLeft } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
@@ -99,36 +99,21 @@ export function WizardStep2Confirm({
 
   return (
     <div className="space-y-6">
-      {/* Context summary */}
-      <SurfaceCard className="p-6 shadow-md">
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-foreground">
-            Your analysis context
-          </h3>
-          <div className="space-y-2 text-sm">
-            <div>
-              <span className="text-muted-foreground">Company: </span>
-              <span className="font-medium text-foreground">
-                {state.primaryCompanyName}
-              </span>
-            </div>
-            {state.decisionFraming?.decision && (
-              <div>
-                <span className="text-muted-foreground">Decision: </span>
-                <span className="text-foreground">
-                  {state.decisionFraming.decision}
-                </span>
-              </div>
-            )}
-            {state.marketCategory && (
-              <div>
-                <span className="text-muted-foreground">Market: </span>
-                <span className="text-foreground">{state.marketCategory}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </SurfaceCard>
+      {/* Edit context link */}
+      <div className="flex items-center gap-2 text-sm">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Edit context</span>
+        </button>
+        <span className="text-muted-foreground">•</span>
+        <span className="text-muted-foreground text-xs">
+          Adjust your description if needed
+        </span>
+      </div>
 
       {/* Competitors section */}
       <SurfaceCard className="p-6 shadow-md">
