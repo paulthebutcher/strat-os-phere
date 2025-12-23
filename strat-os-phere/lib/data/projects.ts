@@ -87,15 +87,17 @@ export async function getProjectById(
   return data
 }
 
+/**
+ * @deprecated This function is deprecated. Use updateProjectSafe from projectsContract.ts instead.
+ * Note: latest_successful_run_id and latest_run_id do not exist in production schema.
+ */
 export async function updateProjectRunFields(
   client: Client,
   projectId: string,
-  fields: {
-    latest_successful_run_id?: string | null
-    // Note: latest_run_id is not included as it doesn't exist in production schema
-    // Use lib/data/latestRun.ts to derive latest run info from artifacts table
-  }
+  fields: Record<string, never> // Empty - no fields to update
 ): Promise<void> {
+  // No-op: latest_successful_run_id doesn't exist in production schema
+  // Latest run info is derived from artifacts table via lib/data/latestRun.ts
   const typedClient = getTypedClient(client)
   const updatePayload = fields as Database['public']['Tables']['projects']['Update']
   const query = typedClient.from('projects') as unknown as {
@@ -117,8 +119,7 @@ export type ProjectWithCounts = {
   id: string
   name: string
   market: string | null
-  latest_successful_run_id: string | null
-  // Note: latest_run_id is not included as it doesn't exist in production schema
+  // Note: latest_successful_run_id and latest_run_id do not exist in production schema
   // Use lib/data/latestRun.ts to derive latest run info from artifacts table
   created_at: string
   updated_at?: string | null
@@ -266,8 +267,7 @@ export async function listProjectsWithCounts(
       id: project.id,
       name: project.name,
       market: project.market,
-      latest_successful_run_id: project.latest_successful_run_id ?? null,
-      // Note: latest_run_id is not included as it doesn't exist in production schema
+      // Note: latest_successful_run_id and latest_run_id do not exist in production schema
       created_at: project.created_at,
       updated_at: updatedAt,
       competitorCount: competitorCountMap.get(projectId) ?? 0,

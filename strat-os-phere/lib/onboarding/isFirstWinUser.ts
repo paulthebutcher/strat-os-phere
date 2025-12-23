@@ -9,16 +9,13 @@ import type { Project } from '@/lib/supabase/types'
 
 /**
  * Check if a project has completed results/artifacts.
- * Uses latest_successful_run_id as the indicator.
+ * Note: latest_successful_run_id doesn't exist in production schema.
+ * For now, we return false - this can be enhanced later to check artifacts.
  */
 function hasCompletedResults(project: Project): boolean {
-  // Check if latest_successful_run_id exists and is not null
-  const hasRunId =
-    'latest_successful_run_id' in project &&
-    typeof (project as any).latest_successful_run_id === 'string' &&
-    (project as any).latest_successful_run_id !== null
-
-  return hasRunId
+  // TODO: Enhance this to check artifacts table for completed results
+  // For now, return false to be conservative
+  return false
 }
 
 /**

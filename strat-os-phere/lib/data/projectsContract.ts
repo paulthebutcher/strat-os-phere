@@ -192,10 +192,14 @@ export async function createProjectSafe(
 /**
  * Update a project safely - only allows whitelisted fields
  */
+/**
+ * Update a project safely - only allows whitelisted fields
+ * Note: latest_successful_run_id is not included as it doesn't exist in production schema
+ */
 export async function updateProjectSafe(
   client: Client,
   projectId: string,
-  patch: Partial<NewProject> & { latest_successful_run_id?: string | null }
+  patch: Partial<NewProject>
 ): Promise<ProjectResult<SafeProject>> {
   try {
     const typedClient = getTypedClient(client)

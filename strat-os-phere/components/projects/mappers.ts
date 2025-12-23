@@ -24,26 +24,18 @@ export function toProjectCardModel(project: Project): ProjectCardModel {
   // Extract market
   const market = project.market || null
 
-  // Determine status based on latest_successful_run_id
-  // Check if latest_successful_run_id exists (may not be in type but could be in data)
-  const hasSuccessfulRun = 'latest_successful_run_id' in project && 
-    typeof (project as any).latest_successful_run_id === 'string' &&
-    (project as any).latest_successful_run_id !== null
+  // Determine status based on artifacts (latest_successful_run_id doesn't exist in production schema)
+  // Check if project has artifacts as indicator of successful run
+  // For now, default to 'draft' - status can be enhanced later with artifact checks
+  const status: ProjectCardModel['status'] = 'draft'
 
-  const status: ProjectCardModel['status'] = hasSuccessfulRun ? 'ready' : 'draft'
-
-  // Primary action: route to results if successful run exists, otherwise to overview
+  // Primary action: route to overview (can be enhanced later with artifact checks)
   // Note: "Generating..." status would require checking analysis_runs table for running status
-  // For now, we conservatively show "Generate results" when no successful run exists
-  const primaryAction: ProjectCardModel['primaryAction'] = hasSuccessfulRun
-    ? {
-        label: 'View results',
-        href: `/projects/${project.id}/results`,
-      }
-    : {
-        label: 'Generate results',
-        href: `/projects/${project.id}/overview`,
-      }
+  // For now, we conservatively show "Generate results"
+  const primaryAction: ProjectCardModel['primaryAction'] = {
+    label: 'Generate results',
+    href: `/projects/${project.id}/overview`,
+  }
 
   // Secondary action: link to competitors page for editing inputs
   const secondaryAction: ProjectCardModel['secondaryAction'] = {
@@ -55,17 +47,12 @@ export function toProjectCardModel(project: Project): ProjectCardModel {
   const metaChips: ProjectCardModel['metaChips'] = []
   
   // Add status chip based on run status
-  if (hasSuccessfulRun) {
-    metaChips.push({
-      label: 'Ready',
-      tone: 'good',
-    })
-  } else {
-    metaChips.push({
-      label: 'Draft',
-      tone: 'neutral',
-    })
-  }
+  // Note: latest_successful_run_id doesn't exist in production schema
+  // Status chips can be enhanced later with artifact checks
+  metaChips.push({
+    label: 'Draft',
+    tone: 'neutral',
+  })
 
   return {
     id: project.id,

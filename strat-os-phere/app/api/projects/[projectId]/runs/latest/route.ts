@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
 import { getLatestRunForProject } from '@/lib/data/runs'
-import { getProjectById } from '@/lib/data/projects'
+import { getProjectSafe } from '@/lib/data/projectsContract'
 
 /**
  * GET /api/projects/[projectId]/runs/latest
@@ -32,9 +32,9 @@ export async function GET(
       )
     }
 
-    // Verify project access
-    const project = await getProjectById(supabase, projectId)
-    if (!project || project.user_id !== user.id) {
+    // Verify project access using safe contract
+    const projectResult = await getProjectSafe(supabase, projectId)
+    if (!projectResult.ok || !projectResult.data || projectResult.data.user_id !== user.id) {
       return NextResponse.json(
         {
           ok: false,
@@ -46,13 +46,15 @@ export async function GET(
         { status: 403 }
       )
     }
+    const project = projectResult.data
 
     const latestRun = await getLatestRunForProject(supabase, projectId)
 
     return NextResponse.json({
       ok: true,
       run: latestRun,
-      latestSuccessfulRunId: project.latest_successful_run_id,
+      // Note: latest_successful_run_id doesn't exist in production schema
+      // Latest run info is derived from artifacts table via lib/data/latestRun.ts
     })
   } catch (error) {
     return NextResponse.json(

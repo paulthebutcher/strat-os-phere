@@ -397,20 +397,9 @@ export async function generateAnalysis(
       },
     })
 
-    // Update project with latest successful run using safe contract
-    // Note: latest_run_id is not updated as it doesn't exist in production schema
-    // Latest run info is now derived from artifacts table via lib/data/latestRun.ts
-    const updateResult = await updateProjectSafe(supabase, projectId, {
-      latest_successful_run_id: runId,
-    })
-    if (!updateResult.ok) {
-      logger.error('Failed to update project after synthesis', {
-        projectId,
-        runId,
-        error: updateResult.error,
-      })
-      // Continue - the artifacts were created successfully
-    }
+    // Note: We no longer update latest_successful_run_id as it doesn't exist in production schema
+    // Latest run info is derived from artifacts table via lib/data/latestRun.ts
+    // The artifacts were created successfully, which is the source of truth
 
     return {
       ok: true,

@@ -76,19 +76,9 @@ export async function POST(request: Request) {
     generateResultsV2(projectId, user.id, { runId })
       .then(async (result) => {
         if (result.ok) {
-          // Update project with latest successful run using safe contract
-          const updateResult = await updateProjectSafe(supabase, projectId, {
-            latest_successful_run_id: runId,
-          })
-          if (updateResult.ok) {
-            logger.info('Background generation completed', { runId, projectId })
-          } else {
-            logger.error('Failed to update project after generation', {
-              runId,
-              projectId,
-              error: updateResult.error,
-            })
-          }
+          // Note: We no longer update latest_successful_run_id as it doesn't exist in production schema
+          // Latest run info is derived from artifacts table via lib/data/latestRun.ts
+          logger.info('Background generation completed', { runId, projectId })
         } else {
           logger.error('Background generation failed', {
             runId,

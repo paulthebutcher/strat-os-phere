@@ -22,6 +22,7 @@ const FORBIDDEN_COLUMNS = [
   'solution_idea',
   'context_paste',
   'latest_run_id', // Use lib/data/latestRun.ts to derive from artifacts table
+  'latest_successful_run_id', // Use lib/data/latestRun.ts to derive from artifacts table
 ]
 
 // File extensions to check

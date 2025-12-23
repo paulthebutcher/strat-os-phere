@@ -25,8 +25,7 @@ export const PROJECTS_ALLOWED_COLUMNS = [
   "input_confidence",
   "decision_level",
   "explicit_non_goals",
-  "latest_successful_run_id",
-  // Note: latest_run_id does not exist in production schema
+  // Note: latest_successful_run_id and latest_run_id do not exist in production schema
   // Use lib/data/latestRun.ts to derive latest run info from artifacts table
 ] as const;
 
@@ -48,11 +47,11 @@ export const PROJECT_SELECT_NEW_FLOW =
 /**
  * Project fields for dashboard/list views.
  * Minimal set for performance.
- * Note: latest_run_id is not included as it doesn't exist in production schema.
+ * Note: latest_successful_run_id and latest_run_id do not exist in production schema.
  * Use lib/data/latestRun.ts to derive latest run info from artifacts table.
  */
 export const PROJECT_SELECT_DASHBOARD =
-  "id,user_id,name,market,latest_successful_run_id,created_at";
+  "id,user_id,name,market,created_at";
 
 /**
  * Full project fields for detailed views.
@@ -74,8 +73,7 @@ export const PROJECT_SELECT_FULL = [
   "decision_level",
   "explicit_non_goals",
   "input_confidence",
-  "latest_successful_run_id",
-  // Note: latest_run_id is not included as it doesn't exist in production schema
+  // Note: latest_successful_run_id and latest_run_id do not exist in production schema
   // Use lib/data/latestRun.ts to derive latest run info from artifacts table
   "created_at",
 ].join(",");
