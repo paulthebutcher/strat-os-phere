@@ -97,4 +97,156 @@ export async function updateProjectRunFields(
   }
 }
 
+/**
+ * Extended project data with counts for table view
+ */
+export type ProjectWithCounts = {
+  id: string
+  name: string
+  market: string | null
+  latest_successful_run_id: string | null
+  latest_run_id: string | null
+  created_at: string
+  updated_at?: string | null
+  competitorCount: number
+  competitorsWithEvidenceCount: number
+  evidenceSourceCount: number
+  latestRunCreatedAt: string | null
+}
+
+/**
+ * List projects with counts for table view
+ * Fetches projects and enriches with competitor/evidence counts and latest run data
+ */
+export async function listProjectsWithCounts(
+  client: Client,
+  ownerId: string
+): Promise<ProjectWithCounts[]> {
+  const typedClient = getTypedClient(client)
+  
+  // Fetch all projects
+  const { data: projects, error: projectsError } = await typedClient
+    .from('projects')
+    .select('*')
+    .eq('user_id', ownerId)
+    .order('created_at', { ascending: false })
+
+  if (projectsError) {
+    throw new Error(projectsError.message)
+  }
+
+  if (!projects || projects.length === 0) {
+    return []
+  }
+
+  // Type assertion needed because Supabase types are complex
+  const projectList = projects as Database['public']['Tables']['projects']['Row'][]
+  const projectIds = projectList.map(p => p.id)
+
+  // Fetch counts in parallel for all projects
+  const [competitorCounts, evidenceCounts, runData] = await Promise.all([
+    // Count competitors per project
+    Promise.all(
+      projectIds.map(async (projectId) => {
+        const { count, error } = await typedClient
+          .from('competitors')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', projectId)
+        
+        if (error) {
+          console.warn(`Failed to count competitors for project ${projectId}:`, error)
+          return { projectId, count: 0 }
+        }
+        return { projectId, count: count ?? 0 }
+      })
+    ),
+    // Count evidence sources per project and competitors with evidence
+    Promise.all(
+      projectIds.map(async (projectId) => {
+        const [evidenceResult, competitorsResult] = await Promise.all([
+          // Count evidence sources
+          typedClient
+            .from('evidence_sources')
+            .select('*', { count: 'exact', head: true })
+            .eq('project_id', projectId),
+          // Get competitors with evidence (distinct competitor_ids that have evidence)
+          typedClient
+            .from('evidence_sources')
+            .select('competitor_id')
+            .eq('project_id', projectId)
+            .not('competitor_id', 'is', null)
+        ])
+
+        const evidenceCount = evidenceResult.count ?? 0
+        const competitorsData = (competitorsResult.data ?? []) as Array<{ competitor_id: string | null }>
+        const competitorsWithEvidence = new Set(
+          competitorsData
+            .map(e => e.competitor_id)
+            .filter((id): id is string => id !== null)
+        ).size
+
+        return {
+          projectId,
+          evidenceCount,
+          competitorsWithEvidence,
+        }
+      })
+    ),
+    // Get latest run created_at for each project
+    Promise.all(
+      projectIds.map(async (projectId) => {
+        const { data, error } = await typedClient
+          .from('analysis_runs')
+          .select('created_at')
+          .eq('project_id', projectId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        if (error && error.code !== 'PGRST116') {
+          console.warn(`Failed to get latest run for project ${projectId}:`, error)
+        }
+
+        const runData = data as Database['public']['Tables']['analysis_runs']['Row'] | null
+        return {
+          projectId,
+          latestRunCreatedAt: runData?.created_at ?? null,
+        }
+      })
+    ),
+  ])
+
+  // Build maps for quick lookup
+  const competitorCountMap = new Map(
+    competitorCounts.map(c => [c.projectId, c.count])
+  )
+  const evidenceCountMap = new Map(
+    evidenceCounts.map(e => [e.projectId, e.evidenceCount])
+  )
+  const competitorsWithEvidenceMap = new Map(
+    evidenceCounts.map(e => [e.projectId, e.competitorsWithEvidence])
+  )
+  const latestRunMap = new Map(
+    runData.map(r => [r.projectId, r.latestRunCreatedAt])
+  )
+
+  // Combine data
+  return projectList.map((project): ProjectWithCounts => {
+    const projectId = project.id
+    return {
+      id: project.id,
+      name: project.name,
+      market: project.market,
+      latest_successful_run_id: project.latest_successful_run_id,
+      latest_run_id: project.latest_run_id,
+      created_at: project.created_at,
+      updated_at: 'updated_at' in project ? (project as any).updated_at : null,
+      competitorCount: competitorCountMap.get(projectId) ?? 0,
+      competitorsWithEvidenceCount: competitorsWithEvidenceMap.get(projectId) ?? 0,
+      evidenceSourceCount: evidenceCountMap.get(projectId) ?? 0,
+      latestRunCreatedAt: latestRunMap.get(projectId) ?? null,
+    }
+  })
+}
+
 

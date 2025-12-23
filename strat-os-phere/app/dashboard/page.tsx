@@ -3,12 +3,13 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { Button } from '@/components/ui/button'
-import { listProjectsForOwner } from '@/lib/data/projects'
+import { listProjectsForOwner, listProjectsWithCounts } from '@/lib/data/projects'
 import { createClient } from '@/lib/supabase/server'
 import { createPageMetadata } from '@/lib/seo/metadata'
 import { toProjectCardModel } from '@/components/projects/mappers'
+import { toProjectsListRow } from '@/lib/projects/projectsListModel'
 import { ProjectsEmptyState } from '@/components/projects/ProjectsEmptyState'
-import { ProjectsListClient } from '@/components/projects/ProjectsListClient'
+import { ProjectsTableWrapper } from '@/components/projects/ProjectsTableWrapper'
 import { ContinuePanel } from '@/components/projects/ContinuePanel'
 import { Backdrop } from '@/components/graphics'
 import { DashboardPageClient } from '@/components/projects/DashboardPageClient'
@@ -40,9 +41,14 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const projects = await listProjectsForOwner(supabase, user.id)
+  // Fetch projects with counts for table view
+  const projectsWithCounts = await listProjectsWithCounts(supabase, user.id)
+  
+  // Map to table rows
+  const tableRows = projectsWithCounts.map(toProjectsListRow)
 
-  // Map projects to ProjectCardModel
+  // Also fetch basic projects for ContinuePanel and OnboardingCardWrapper (they use ProjectCardModel)
+  const projects = await listProjectsForOwner(supabase, user.id)
   const projectCards = projects.map(toProjectCardModel)
 
   // Find most recent project for "Continue" panel
@@ -58,7 +64,7 @@ export default async function DashboardPage() {
       })
     : null
 
-  const hasProjects = projectCards.length > 0
+  const hasProjects = tableRows.length > 0
 
   return (
     <DashboardPageClient>
@@ -102,7 +108,7 @@ export default async function DashboardPage() {
           {!hasProjects ? (
             <ProjectsEmptyState />
           ) : (
-            <ProjectsListClient projects={projectCards} />
+            <ProjectsTableWrapper rows={tableRows} />
           )}
         </main>
       </div>
