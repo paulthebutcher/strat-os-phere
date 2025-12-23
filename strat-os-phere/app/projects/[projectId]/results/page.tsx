@@ -200,10 +200,8 @@ export default async function ResultsPage(props: ResultsPageProps) {
                   readoutData={readoutData}
                   normalized={normalized}
                 />
-                {/* Evidence Ledger Section */}
-                {evidenceLedgerModel && (
-                  <EvidenceLedgerSection model={evidenceLedgerModel} />
-                )}
+                {/* Evidence Ledger Section - Always visible (handles empty state internally) */}
+                <EvidenceLedgerSection model={evidenceLedgerModel} />
               </>
             )
           ) : showTabContent ? (

@@ -3,6 +3,9 @@
  * 
  * Flags are controlled via environment variables and default to false
  * to ensure safe, opt-in behavior.
+ * 
+ * Note: Analysis generation progress UI and Evidence Ledger visibility
+ * are no longer gated by flags - they are always enabled.
  */
 
 export const FLAGS = {
@@ -21,5 +24,10 @@ export const FLAGS = {
 
 export function isFlagEnabled(flag: keyof typeof FLAGS): boolean {
   return Boolean(FLAGS[flag])
+}
+
+// Dev-only log to confirm drift-related flags are no longer used
+if (process.env.NODE_ENV === 'development') {
+  console.log('[flags] Drift-related flags removed: analysis generation progress UI and evidence ledger visibility are always enabled')
 }
 
