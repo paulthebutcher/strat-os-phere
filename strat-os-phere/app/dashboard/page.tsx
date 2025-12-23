@@ -58,19 +58,30 @@ export default async function DashboardPage() {
       })
     : null
 
+  const hasProjects = projectCards.length > 0
+
   return (
     <DashboardPageClient>
       <div className="min-h-[calc(100vh-57px)] bg-background" data-testid="projects-page">
         <div className="mx-auto max-w-7xl px-4 py-8 md:py-12">
-          <main className="flex w-full flex-col items-stretch gap-8 animate-fade-in">
+          <main className="flex w-full flex-col items-stretch space-y-8 animate-fade-in">
             {/* Header Bar */}
             <SectionHeader
               title="Projects"
               description="Create and manage competitive analyses. Start new or resume recent work."
               actions={
-                <Link href="/projects/new">
-                  <Button size="lg" variant="brand">New analysis</Button>
-                </Link>
+                <div className="flex items-center gap-3">
+                  {hasProjects && (
+                    <Link href="/samples">
+                      <Button variant="ghost" size="lg">
+                        Try an example
+                      </Button>
+                    </Link>
+                  )}
+                  <Link href="/projects/new">
+                    <Button size="lg" variant="brand">New analysis</Button>
+                  </Link>
+                </div>
               }
               className="pb-2"
             />
@@ -79,16 +90,16 @@ export default async function DashboardPage() {
               <TourLink />
             </div>
 
-          {/* Onboarding Card for New Users */}
-          <OnboardingCardWrapper projects={projects} />
+          {/* Onboarding Card for New Users (only if 0 projects) */}
+          {!hasProjects && <OnboardingCardWrapper projects={projects} />}
 
-          {/* Continue Panel */}
-          {mostRecentProject && projectCards.length >= 1 && (
+          {/* Continue Panel (only if user has projects) */}
+          {hasProjects && mostRecentProject && (
             <ContinuePanel project={mostRecentProject} />
           )}
 
           {/* Main Content */}
-          {projectCards.length === 0 ? (
+          {!hasProjects ? (
             <ProjectsEmptyState />
           ) : (
             <ProjectsListClient projects={projectCards} />

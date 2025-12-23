@@ -14,7 +14,7 @@ interface ReadinessChecklistProps {
  */
 export function ReadinessChecklist({ items, projectId }: ReadinessChecklistProps) {
   return (
-    <div className="panel p-6">
+    <div id="readiness-checklist" className="panel p-6">
       <h3 className="text-base font-semibold text-foreground mb-4">
         Readiness checklist
       </h3>

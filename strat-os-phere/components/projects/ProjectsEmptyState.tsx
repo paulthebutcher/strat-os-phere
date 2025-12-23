@@ -11,30 +11,18 @@ export function ProjectsEmptyState() {
         <CompetitiveLandscapeIllustration />
       </div>
       <h2 className="text-3xl font-semibold text-foreground mb-3 tracking-tight">
-        Create your first analysis
+        Start your first analysis
       </h2>
       <p className="text-base text-muted-foreground mb-10 leading-relaxed">
         Get started by creating a new competitive analysis project. We'll help you discover strategic opportunities.
       </p>
 
-      <ul className="text-left space-y-3 mb-10 text-sm text-muted-foreground w-full max-w-sm">
-        <li className="flex items-start gap-3">
-          <span className="text-primary font-semibold mt-0.5">✓</span>
-          <span>Add competitors and gather evidence</span>
-        </li>
-        <li className="flex items-start gap-3">
-          <span className="text-primary font-semibold mt-0.5">✓</span>
-          <span>Generate ranked opportunities</span>
-        </li>
-        <li className="flex items-start gap-3">
-          <span className="text-primary font-semibold mt-0.5">✓</span>
-          <span>Share results with your team</span>
-        </li>
-      </ul>
-
       <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
         <Button asChild size="lg" variant="brand" className="w-full sm:w-auto">
-          <Link href="/projects/new">New analysis</Link>
+          <Link href="/projects/new?onboarding=1">Start guided analysis</Link>
+        </Button>
+        <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+          <Link href="/samples">Try an example</Link>
         </Button>
       </div>
     </div>

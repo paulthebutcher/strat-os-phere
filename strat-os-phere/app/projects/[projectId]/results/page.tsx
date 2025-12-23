@@ -27,6 +27,9 @@ import type { SearchParams } from '@/lib/routing/searchParams'
 import { getParam } from '@/lib/routing/searchParams'
 import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
 import { FollowUpQuestionWrapper } from '@/components/followup/FollowUpQuestionWrapper'
+import { FLAGS } from '@/lib/flags'
+import { getProcessedClaims } from '@/lib/evidence/claims/getProcessedClaims'
+import { EvidenceTrustPanelWrapper } from '@/components/evidence/EvidenceTrustPanelWrapper'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -97,6 +100,15 @@ export default async function ResultsPage(props: ResultsPageProps) {
     listArtifacts(supabase, { projectId }),
     readLatestEvidenceBundle(supabase, projectId),
   ])
+  
+  // Load and process claims if trust layer is enabled
+  const competitorDomains = competitors
+    .map(c => c.url)
+    .filter((u): u is string => Boolean(u))
+  
+  const processedClaims = FLAGS.evidenceTrustLayerEnabled
+    ? await getProcessedClaims(supabase, projectId, competitorDomains)
+    : null
 
   // Normalize artifacts (may be partial if run is still running)
   const normalized = normalizeResultsArtifacts(results.artifacts, projectId)
@@ -142,6 +154,16 @@ export default async function ResultsPage(props: ResultsPageProps) {
           {/* In-progress banner */}
           {isRunning && results.activeRun && (
             <InProgressBanner run={results.activeRun} projectId={projectId} />
+          )}
+
+          {/* Evidence Trust Panel (if enabled) */}
+          {FLAGS.evidenceTrustLayerEnabled && processedClaims && (
+            <EvidenceTrustPanelWrapper
+              coverage={processedClaims.coverage}
+              claimsByType={processedClaims.claimsByType}
+              bundle={evidenceBundle}
+              lastUpdated={evidenceBundle?.createdAt || null}
+            />
           )}
 
           {/* Follow-up question (after analysis completes) */}

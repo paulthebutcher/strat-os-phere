@@ -6,7 +6,6 @@
  */
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { brand } from "@/lib/ui/brand"
 import { cn } from "@/lib/utils"
 import { Backdrop } from "@/components/graphics"
 import { MarketingSection } from "./MarketingSection"
@@ -31,12 +30,12 @@ export function CTABand() {
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
               <Link href="/try">
-                <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105">
+                <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   Try Plinth
                 </Button>
               </Link>
               <Link href="#sample-output">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   View sample output
                 </Button>
               </Link>

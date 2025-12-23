@@ -118,7 +118,7 @@ export function ArtifactPreviewHero() {
   )
 
   return (
-    <MarketingSection variant="gradient" className="relative overflow-hidden">
+    <MarketingSection variant="gradient" className="relative overflow-hidden border-t-0 pt-20 md:pt-24 lg:pt-32">
       <Backdrop variant="hero" density="subtle" />
       <MarketingContainer maxWidth="7xl" className="relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">

@@ -13,6 +13,10 @@ export const FLAGS = {
   evidencePacksEnabled: process.env.EVIDENCE_PACKS_ENABLED === '1',
   claimsEnabled: process.env.CLAIMS_ENABLED === 'true',
   followupEnabled: process.env.FOLLOWUP_ENABLED === 'true',
+  evidenceTrustLayerEnabled: 
+    process.env.NODE_ENV === 'development' || 
+    process.env.VERCEL_ENV === 'preview' ||
+    process.env.EVIDENCE_TRUST_LAYER_ENABLED === 'true',
 } as const
 
 export function isFlagEnabled(flag: keyof typeof FLAGS): boolean {

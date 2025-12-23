@@ -14,7 +14,7 @@ import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
 import { createClient } from '@/lib/supabase/server'
 import { createPageMetadata } from '@/lib/seo/metadata'
 import { Button } from '@/components/ui/button'
-import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
+import { GenerateAnalysisButton } from '@/components/projects/GenerateAnalysisButton'
 import Link from 'next/link'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import type { SearchParams } from '@/lib/routing/searchParams'
@@ -158,9 +158,17 @@ export default async function OverviewPage(props: OverviewPageProps) {
                 </div>
                 <div className="flex-shrink-0">
                   {primaryCTA.type === 'generate_analysis' && readiness.allComplete ? (
-                    <GenerateResultsV2Button
+                    <GenerateAnalysisButton
                       projectId={projectId}
                       label={primaryCTA.label}
+                      canGenerate={readiness.allComplete}
+                      missingReasons={
+                        readiness.allComplete
+                          ? []
+                          : readiness.items
+                              .filter((item) => item.status === 'incomplete')
+                              .map((item) => item.label)
+                      }
                     />
                   ) : (
                     <Button asChild variant={primaryCTA.type === 'edit_project' ? 'outline' : 'default'}>

@@ -1,0 +1,36 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stacked source documents with citation indicators -->
+  <!-- Document 1 (bottom) -->
+  <rect x="120" y="180" width="160" height="80" rx="4" fill="hsl(var(--surface))" stroke="hsl(var(--border-subtle))" stroke-width="2"/>
+  <line x1="140" y1="200" x2="260" y2="200" stroke="hsl(var(--border-subtle))" stroke-width="1"/>
+  <line x1="140" y1="220" x2="240" y2="220" stroke="hsl(var(--border-subtle))" stroke-width="1"/>
+  <line x1="140" y1="240" x2="250" y2="240" stroke="hsl(var(--border-subtle))" stroke-width="1"/>
+  <circle cx="270" cy="200" r="8" fill="hsl(var(--accent-primary))" opacity="0.8"/>
+  <text x="270" y="204" font-family="system-ui" font-size="8" font-weight="600" fill="white" text-anchor="middle">1</text>
+  
+  <!-- Document 2 (middle) -->
+  <rect x="130" y="130" width="160" height="80" rx="4" fill="hsl(var(--surface))" stroke="hsl(var(--border-subtle))" stroke-width="2"/>
+  <line x1="150" y1="150" x2="270" y2="150" stroke="hsl(var(--border-subtle))" stroke-width="1"/>
+  <line x1="150" y1="170" x2="250" y2="170" stroke="hsl(var(--border-subtle))" stroke-width="1"/>
+  <line x1="150" y1="190" x2="260" y2="190" stroke="hsl(var(--border-subtle))" stroke-width="1"/>
+  <circle cx="280" cy="150" r="8" fill="hsl(var(--accent-primary))" opacity="0.8"/>
+  <text x="280" y="154" font-family="system-ui" font-size="8" font-weight="600" fill="white" text-anchor="middle">2</text>
+  
+  <!-- Document 3 (top) -->
+  <rect x="140" y="80" width="160" height="80" rx="4" fill="hsl(var(--surface))" stroke="hsl(var(--border-subtle))" stroke-width="2"/>
+  <line x1="160" y1="100" x2="280" y2="100" stroke="hsl(var(--border-subtle))" stroke-width="1"/>
+  <line x1="160" y1="120" x2="260" y2="120" stroke="hsl(var(--border-subtle))" stroke-width="1"/>
+  <line x1="160" y1="140" x2="270" y2="140" stroke="hsl(var(--border-subtle))" stroke-width="1"/>
+  <circle cx="290" cy="100" r="8" fill="hsl(var(--accent-primary))" opacity="0.8"/>
+  <text x="290" y="104" font-family="system-ui" font-size="8" font-weight="600" fill="white" text-anchor="middle">3</text>
+  
+  <!-- Citation link lines -->
+  <line x1="290" y1="100" x2="310" y2="90" stroke="hsl(var(--accent-primary))" stroke-width="1.5" opacity="0.5"/>
+  <line x1="280" y1="150" x2="305" y2="140" stroke="hsl(var(--accent-primary))" stroke-width="1.5" opacity="0.5"/>
+  <line x1="270" y1="200" x2="300" y2="190" stroke="hsl(var(--accent-primary))" stroke-width="1.5" opacity="0.5"/>
+  
+  <!-- Aggregated citation indicator -->
+  <circle cx="320" cy="140" r="20" fill="hsl(var(--accent-primary))" opacity="0.1"/>
+  <text x="320" y="147" font-family="system-ui" font-size="14" font-weight="600" fill="hsl(var(--accent-primary))" text-anchor="middle">Cite</text>
+</svg>
+

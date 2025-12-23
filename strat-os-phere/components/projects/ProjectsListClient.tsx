@@ -61,12 +61,14 @@ export function ProjectsListClient({ projects: initialProjects }: ProjectsListCl
   return (
     <div className="space-y-6">
       {hasInitialProjects && (
-        <ProjectsToolbar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          sortKey={sortKey}
-          onSortChange={setSortKey}
-        />
+        <div className="space-y-4">
+          <ProjectsToolbar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            sortKey={sortKey}
+            onSortChange={setSortKey}
+          />
+        </div>
       )}
 
       {!hasResults && hasInitialProjects ? (

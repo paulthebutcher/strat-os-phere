@@ -15,10 +15,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const relativeDate = formatRelativeDate(project.lastTouchedAt)
 
   return (
-    <div className="plinth-card p-4" data-testid="project-card">
+    <div className="plinth-card p-5" data-testid="project-card">
       <div className="flex items-start justify-between gap-4 mb-3">
         <div className="min-w-0 flex-1">
-          <h3 className="text-base font-semibold text-foreground mb-1">
+          <h3 className="text-base font-semibold text-foreground mb-1.5">
             {project.title}
           </h3>
           {project.market && (
@@ -50,8 +50,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button asChild size="sm" className="flex-1">
+      <div className="flex items-center gap-2 pt-1">
+        <Button asChild size="sm" variant="default" className="flex-1">
           <Link href={project.primaryAction.href}>
             {project.primaryAction.label}
           </Link>

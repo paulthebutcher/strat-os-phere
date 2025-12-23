@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
+import { GenerateAnalysisButton } from '@/components/projects/GenerateAnalysisButton'
 import { RegenerateButton } from '@/components/results/RegenerateButton'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import type { ProjectReadiness } from '@/lib/ui/readiness'
@@ -36,9 +36,11 @@ export function ProjectActionsPanel({
 
           {/* Primary action */}
           {canGenerate && !hasArtifacts && (
-            <GenerateResultsV2Button
+            <GenerateAnalysisButton
               projectId={projectId}
               label="Generate Analysis"
+              canGenerate={canGenerate}
+              className="w-full"
             />
           )}
 

@@ -33,13 +33,15 @@ export function toProjectCardModel(project: Project): ProjectCardModel {
   const status: ProjectCardModel['status'] = hasSuccessfulRun ? 'ready' : 'draft'
 
   // Primary action: route to results if successful run exists, otherwise to overview
+  // Note: "Generating..." status would require checking analysis_runs table for running status
+  // For now, we conservatively show "Generate results" when no successful run exists
   const primaryAction: ProjectCardModel['primaryAction'] = hasSuccessfulRun
     ? {
         label: 'View results',
         href: `/projects/${project.id}/results`,
       }
     : {
-        label: 'Run analysis',
+        label: 'Generate results',
         href: `/projects/${project.id}/overview`,
       }
 

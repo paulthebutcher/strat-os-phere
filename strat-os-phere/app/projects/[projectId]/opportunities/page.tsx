@@ -12,6 +12,10 @@ import { ResultsReadout } from '@/components/results/ResultsReadout'
 import { ShareButton } from '@/components/results/ShareButton'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
 import { TourLink } from '@/components/guidance/TourLink'
+import { FLAGS } from '@/lib/flags'
+import { getProcessedClaims } from '@/lib/evidence/claims/getProcessedClaims'
+import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
+import { EvidenceTrustPanelWrapper } from '@/components/evidence/EvidenceTrustPanelWrapper'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -60,14 +64,24 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
     notFound()
   }
 
-  const [competitors, artifacts] = await Promise.all([
+  const [competitors, artifacts, evidenceBundle] = await Promise.all([
     listCompetitorsForProject(supabase, projectId),
     listArtifacts(supabase, { projectId }),
+    readLatestEvidenceBundle(supabase, projectId),
   ])
 
   // Normalize artifacts once using the canonical normalization function
   const normalized = normalizeResultsArtifacts(artifacts, projectId)
   const { opportunities, strategicBets, profiles, jtbd } = normalized
+  
+  // Load and process claims if trust layer is enabled
+  const competitorDomains = competitors
+    .map(c => c.url)
+    .filter((u): u is string => Boolean(u))
+  
+  const processedClaims = FLAGS.evidenceTrustLayerEnabled
+    ? await getProcessedClaims(supabase, projectId, competitorDomains)
+    : null
 
   return (
     <PageGuidanceWrapper pageId="results">
@@ -77,6 +91,16 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             <TourLink />
             <ShareButton projectId={projectId} />
           </div>
+          
+          {/* Evidence Trust Panel (if enabled) */}
+          {FLAGS.evidenceTrustLayerEnabled && processedClaims && (
+            <EvidenceTrustPanelWrapper
+              coverage={processedClaims.coverage}
+              claimsByType={processedClaims.claimsByType}
+              bundle={evidenceBundle}
+              lastUpdated={evidenceBundle?.createdAt || null}
+            />
+          )}
           
           {/* Executive Readout, Assumptions Map, and Assumptions Ledger */}
           <ResultsReadout
