@@ -23,7 +23,7 @@ export function TryContinueClient() {
 
       if (!draft || !draft.primaryCompanyName) {
         // No draft found, redirect to new project page
-        router.push('/projects/new')
+        router.push('/new')
         return
       }
 
@@ -108,7 +108,7 @@ export function TryContinueClient() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  router.push('/projects/new')
+                  router.push('/new')
                 }}
               >
                 Start over

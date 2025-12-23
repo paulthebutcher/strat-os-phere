@@ -163,10 +163,9 @@ export async function generateAnalysis(
       explicit_non_goals: project.explicit_non_goals,
       input_confidence: project.input_confidence,
       // New hypothesis-first fields
-      starting_point: project.starting_point,
+      // Note: starting_point and customer_profile removed - these columns don't exist in production
       hypothesis: project.hypothesis,
       problem_statement: project.problem_statement,
-      customer_profile: project.customer_profile,
       market_context: project.market_context,
       solution_idea: project.solution_idea,
       // Computed context

@@ -50,10 +50,9 @@ function buildHarvestContext(
   const contextParts: string[] = []
   if (market) contextParts.push(`Market: ${market}`)
   if (decision) contextParts.push(`Goal: ${decision}`)
-  if (project.target_customer || project.customer_profile) {
-    contextParts.push(
-      `Customer: ${project.target_customer || project.customer_profile}`
-    )
+  // Note: customer_profile column doesn't exist in production, use target_customer
+  if (project.target_customer) {
+    contextParts.push(`Customer: ${project.target_customer}`)
   }
   const context = contextParts.length > 0 ? contextParts.join('. ') : undefined
 

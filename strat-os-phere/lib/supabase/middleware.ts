@@ -8,8 +8,8 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Public routes that should always be allowed
-  const publicRoutes = ['/', '/login', '/auth/callback', '/try', '/new']
-  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/api/') || pathname.startsWith('/share/') || pathname.startsWith('/try/')
+  const publicRoutes = ['/', '/login', '/auth/callback', '/new']
+  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/api/') || pathname.startsWith('/share/')
 
   // Protected routes that require authentication
   const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/projects')

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, X, CheckCircle2, Circle, Info } from 'lucide-react'
+import { Plus, X, CheckCircle2, Circle, Search } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
@@ -9,14 +9,39 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import type { TryDraft } from '@/lib/tryDraft'
 import { normalizeUrl } from '@/lib/url/normalizeUrl'
-import type { CompanyCandidate, SourcePage } from '@/lib/competitors/resolveCompanyCandidates'
-import { isPrimaryResearchPage } from '@/lib/competitors/resolveCompanyCandidates'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+
+// Competitor candidate type from API
+type CompetitorCandidate = {
+  name: string
+  website: string // canonical root, e.g. https://opsgenie.com
+  domain: string // opsgenie.com
+  confidence: 'high' | 'medium' | 'low'
+}
+
+// Generate seed URLs for evidence scraping
+function generateSeedUrls(website: string, domain: string): string[] {
+  const seeds: string[] = [website]
+  
+  // Extract base URL from website (protocol + domain)
+  let baseUrl: string
+  try {
+    const urlObj = new URL(website)
+    baseUrl = `${urlObj.protocol}//${urlObj.hostname}`
+  } catch {
+    // Fallback to https if parsing fails
+    baseUrl = `https://${domain}`
+  }
+  
+  // Add common vendor-owned pages (deterministic, no scraping)
+  const commonPaths = ['/pricing', '/docs', '/documentation', '/security', '/changelog', '/release-notes']
+  for (const path of commonPaths) {
+    // Ensure path starts with /
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`
+    seeds.push(`${baseUrl}${normalizedPath}`)
+  }
+  
+  return seeds
+}
 
 interface TryStep2ConfirmProps {
   draft: TryDraft
@@ -39,129 +64,101 @@ export function TryStep2Confirm({
   const [showAddCompetitor, setShowAddCompetitor] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  // Company candidates state
-  const [candidates, setCandidates] = useState<CompanyCandidate[]>([])
+  // Search state
+  const [searchQuery, setSearchQuery] = useState(draft.primaryCompanyName || '')
+  const [candidates, setCandidates] = useState<CompetitorCandidate[]>([])
   const [loadingCandidates, setLoadingCandidates] = useState(false)
   const [selectedCandidateDomains, setSelectedCandidateDomains] = useState<Set<string>>(
     new Set(selectedCompetitors.map(c => {
       try {
         const url = new URL(c.url)
-        return url.hostname.replace(/^www\./, '')
+        return url.hostname.replace(/^www\./, '').toLowerCase()
       } catch {
         return ''
       }
     }).filter(Boolean))
   )
 
-  // Dev-only marker: confirm we're in the updated component
+  // Dev-only diagnostic logging
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Step2] Add competitors component mounted: company-only')
-    }
-  }, [])
-
-  // Fetch company candidates on mount
-  useEffect(() => {
-    const fetchCandidates = async () => {
-      if (!draft.primaryCompanyName) return
-
-      setLoadingCandidates(true)
-
-      try {
-        const response = await fetch('/api/try/competitors', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            companyName: draft.primaryCompanyName,
-            contextText: draft.contextText,
-          }),
+      console.log('[Step2] Component mounted - using new competitor search API')
+      if (candidates.length > 0) {
+        console.log('[Step2] Candidates loaded:', {
+          count: candidates.length,
+          exampleDomains: candidates.slice(0, 3).map(c => c.domain),
         })
-
-        const data = await response.json()
-
-        if (data.candidates && Array.isArray(data.candidates)) {
-          // Runtime safeguard: hard block - ensure no page objects are rendered
-          // All candidates should be CompanyCandidate objects with domain, name, primaryUrl
-          const validCandidates = data.candidates.filter((candidate: any) => {
-            // Hard guard: must have required CompanyCandidate fields
-            if (!candidate || typeof candidate !== 'object') {
-              if (process.env.NODE_ENV === 'development') {
-                console.warn('[Step2] Blocked invalid candidate (not an object):', candidate)
-              }
-              return false
-            }
-            
-            // Must have domain (company candidates have domains, pages don't)
-            if (!candidate.domain || typeof candidate.domain !== 'string') {
-              if (process.env.NODE_ENV === 'development') {
-                console.warn('[Step2] Blocked candidate missing domain:', candidate)
-              }
-              return false
-            }
-            
-            // Hard block: check if domain is in known research domains
-            const domainLower = candidate.domain.toLowerCase()
-            const blockedDomains = ['g2.com', 'capterra.com', 'gartner.com', 'trustradius.com', 
-              'softwareadvice.com', 'getapp.com', 'producthunt.com', 'alternativeto.net']
-            if (blockedDomains.some(blocked => domainLower.includes(blocked))) {
-              if (process.env.NODE_ENV === 'development') {
-                console.warn('[Step2] Blocked candidate with research domain:', candidate.domain, candidate.name)
-              }
-              return false
-            }
-            
-            // Check if name looks like a listicle title (additional safeguard)
-            const nameLower = (candidate.name || '').toLowerCase()
-            const suspiciousKeywords = ['alternatives', 'competitors', 'top', 'best', 'vs', 'compare', 'list of', 'review']
-            if (suspiciousKeywords.some(kw => nameLower.includes(kw))) {
-              if (process.env.NODE_ENV === 'development') {
-                console.warn('[Step2] Blocked suspicious candidate name:', candidate.name)
-              }
-              return false
-            }
-            
-            return true
-          })
-
-          setCandidates(validCandidates)
-
-          // Dev-only diagnostic logging
-          if (process.env.NODE_ENV === 'development') {
-            const diagnostics = data.diagnostics || {}
-            console.log('[Step2] Company candidates resolved:', {
-              rawSuggestionsCount: diagnostics.rawSuggestionsCount || 0,
-              resolvedCandidatesCount: diagnostics.resolvedCandidatesCount || data.candidates.length,
-              finalCandidatesCount: validCandidates.length,
-              blockedExamples: diagnostics.blockedExamples || [],
-            })
-            
-            // Log 3 example blocked titles if available
-            if (diagnostics.blockedExamples && diagnostics.blockedExamples.length > 0) {
-              console.log('[Step2] Example blocked titles:', diagnostics.blockedExamples.slice(0, 3))
-            }
-          }
-
-          if (validCandidates.length === 0 && data.error) {
-            // Non-blocking: just log, don't show error
-            console.log('[TryStep2] No candidates found:', data.error)
-          }
-        } else {
-          setCandidates([])
-        }
-      } catch (err) {
-        console.error('[TryStep2] Failed to fetch candidates:', err)
-        setCandidates([])
-        // Non-blocking: don't set error state, just log
-      } finally {
-        setLoadingCandidates(false)
       }
     }
+  }, [candidates.length])
 
-    fetchCandidates()
-  }, [draft.primaryCompanyName, draft.contextText])
+  // Search for competitors
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setError('Please enter a company name to search')
+      return
+    }
 
-  const handleToggleCandidate = (candidate: CompanyCandidate) => {
-    const isSelected = selectedCandidateDomains.has(candidate.domain)
+    setLoadingCandidates(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/competitors/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: searchQuery.trim(),
+          market: draft.marketCategory,
+          ideaOrContext: draft.contextText,
+          limit: 12,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.candidates && Array.isArray(data.candidates)) {
+        setCandidates(data.candidates)
+
+        // Dev-only diagnostics
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Step2] Competitor search results:', {
+            query: searchQuery,
+            candidateCount: data.candidates.length,
+            exampleDomains: data.candidates.slice(0, 5).map((c: CompetitorCandidate) => c.domain),
+            confidenceBreakdown: {
+              high: data.candidates.filter((c: CompetitorCandidate) => c.confidence === 'high').length,
+              medium: data.candidates.filter((c: CompetitorCandidate) => c.confidence === 'medium').length,
+              low: data.candidates.filter((c: CompetitorCandidate) => c.confidence === 'low').length,
+            },
+          })
+        }
+      } else {
+        setCandidates([])
+        if (data.error) {
+          console.log('[TryStep2] Search returned error:', data.error)
+        }
+      }
+    } catch (err) {
+      console.error('[TryStep2] Failed to search competitors:', err)
+      setCandidates([])
+      setError('Failed to search for competitors. You can add them manually.')
+    } finally {
+      setLoadingCandidates(false)
+    }
+  }
+
+  // Auto-search on mount if we have a company name
+  useEffect(() => {
+    if (draft.primaryCompanyName && searchQuery && !loadingCandidates) {
+      // Trigger search on mount with the prefilled company name
+      handleSearch()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run on mount
+
+  const handleToggleCandidate = (candidate: CompetitorCandidate) => {
+    const normalizedDomain = candidate.domain.toLowerCase()
+    const isSelected = selectedCandidateDomains.has(normalizedDomain)
     
     if (isSelected) {
       // Remove candidate
@@ -169,21 +166,21 @@ export function TryStep2Confirm({
         (c) => {
           try {
             const url = new URL(c.url)
-            return url.hostname.replace(/^www\./, '') !== candidate.domain
+            return url.hostname.replace(/^www\./, '').toLowerCase() !== normalizedDomain
           } catch {
             return true
           }
         }
       )
       const updatedDomains = new Set(selectedCandidateDomains)
-      updatedDomains.delete(candidate.domain)
+      updatedDomains.delete(normalizedDomain)
       
       setSelectedCompetitors(updatedCompetitors)
       setSelectedCandidateDomains(updatedDomains)
       
       // Update seed URLs
       const updatedSeedUrls = (draft.evidenceSeedUrls || []).filter(
-        (seed) => seed.competitorDomain !== candidate.domain
+        (seed) => seed.competitorDomain.toLowerCase() !== normalizedDomain
       )
       onUpdateDraft({
         selectedCompetitors: updatedCompetitors,
@@ -193,22 +190,23 @@ export function TryStep2Confirm({
       // Add candidate
       const competitor = {
         name: candidate.name,
-        url: candidate.primaryUrl,
+        url: candidate.website,
       }
       const updatedCompetitors = [...selectedCompetitors, competitor]
       const updatedDomains = new Set(selectedCandidateDomains)
-      updatedDomains.add(candidate.domain)
+      updatedDomains.add(normalizedDomain)
       
       setSelectedCompetitors(updatedCompetitors)
       setSelectedCandidateDomains(updatedDomains)
       
-      // Add seed URLs
+      // Generate and add seed URLs
+      const seedUrls = generateSeedUrls(candidate.website, candidate.domain)
       const existingSeedUrls = draft.evidenceSeedUrls || []
       const updatedSeedUrls = [
-        ...existingSeedUrls.filter((seed) => seed.competitorDomain !== candidate.domain),
+        ...existingSeedUrls.filter((seed) => seed.competitorDomain.toLowerCase() !== normalizedDomain),
         {
-          competitorDomain: candidate.domain,
-          urls: candidate.seedUrls,
+          competitorDomain: normalizedDomain,
+          urls: seedUrls,
         },
       ]
       
@@ -226,14 +224,14 @@ export function TryStep2Confirm({
     // Extract domain and remove from seed URLs
     try {
       const urlObj = new URL(url)
-      const domain = urlObj.hostname.replace(/^www\./, '')
+      const domain = urlObj.hostname.replace(/^www\./, '').toLowerCase()
       const updatedDomains = new Set(selectedCandidateDomains)
       updatedDomains.delete(domain)
       setSelectedCandidateDomains(updatedDomains)
       
       const existingSeedUrls = draft.evidenceSeedUrls || []
       const updatedSeedUrls = existingSeedUrls.filter(
-        (seed) => seed.competitorDomain !== domain
+        (seed) => seed.competitorDomain.toLowerCase() !== domain
       )
       onUpdateDraft({
         selectedCompetitors: updated,
@@ -267,16 +265,23 @@ export function TryStep2Confirm({
     const updated = [...selectedCompetitors, competitor]
     setSelectedCompetitors(updated)
     
-    // Extract domain for seed URLs
+    // Extract domain and generate seed URLs
     try {
       const urlObj = new URL(url)
-      const domain = urlObj.hostname.replace(/^www\./, '')
+      const domain = urlObj.hostname.replace(/^www\./, '').toLowerCase()
+      const normalizedDomain = domain.toLowerCase()
+      const updatedDomains = new Set(selectedCandidateDomains)
+      updatedDomains.add(normalizedDomain)
+      setSelectedCandidateDomains(updatedDomains)
+      
+      // Generate seed URLs for manually added competitor
+      const seedUrls = generateSeedUrls(url, domain)
       const existingSeedUrls = draft.evidenceSeedUrls || []
       const updatedSeedUrls = [
-        ...existingSeedUrls.filter((seed) => seed.competitorDomain !== domain),
+        ...existingSeedUrls.filter((seed) => seed.competitorDomain.toLowerCase() !== normalizedDomain),
         {
-          competitorDomain: domain,
-          urls: [url], // Just the primary URL for manually added competitors
+          competitorDomain: normalizedDomain,
+          urls: seedUrls,
         },
       ]
       onUpdateDraft({
@@ -390,19 +395,46 @@ export function TryStep2Confirm({
             </div>
           )}
 
-          {/* Suggested competitors */}
+          {/* Search for competitors */}
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch()
+                  }
+                }}
+                placeholder="Search for competitors..."
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                onClick={handleSearch}
+                disabled={loadingCandidates || !searchQuery.trim()}
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+            </div>
+          </div>
+
+          {/* Competitor candidates */}
           {loadingCandidates ? (
             <div className="py-4 text-sm text-muted-foreground">
-              Finding competitor suggestions...
+              Searching for competitors...
             </div>
           ) : candidates.length > 0 ? (
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground">
-                Suggested competitors:
+                Competitor companies:
               </p>
               <div className="border border-border rounded-lg divide-y divide-border">
                 {candidates.map((candidate) => {
-                  const isSelected = selectedCandidateDomains.has(candidate.domain)
+                  const normalizedDomain = candidate.domain.toLowerCase()
+                  const isSelected = selectedCandidateDomains.has(normalizedDomain)
                   const confidenceColors = {
                     high: 'bg-green-100 text-green-800 border-green-200',
                     medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -423,27 +455,6 @@ export function TryStep2Confirm({
                         )}
                       </div>
                       
-                      {/* Logo */}
-                      <div className="flex-shrink-0">
-                        <img
-                          src={candidate.logoUrl || `https://logo.clearbit.com/${candidate.domain}`}
-                          alt={`${candidate.name} logo`}
-                          className="w-8 h-8 rounded object-contain bg-background border border-border"
-                          onError={(e) => {
-                            // Fallback to initials if logo fails
-                            const target = e.target as HTMLImageElement
-                            target.style.display = 'none'
-                            const parent = target.parentElement
-                            if (parent && !parent.querySelector('.logo-fallback')) {
-                              const fallback = document.createElement('div')
-                              fallback.className = 'logo-fallback w-8 h-8 rounded bg-muted flex items-center justify-center text-xs font-semibold text-foreground border border-border'
-                              fallback.textContent = candidate.name.charAt(0).toUpperCase()
-                              parent.appendChild(fallback)
-                            }
-                          }}
-                        />
-                      </div>
-                      
                       {/* Company info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -461,46 +472,14 @@ export function TryStep2Confirm({
                         </div>
                       </div>
                       
-                      {/* Why suggested tooltip */}
-                      {candidate.derivedFrom.length > 0 && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex-shrink-0 text-muted-foreground hover:text-foreground"
-                              >
-                                <Info className="h-4 w-4" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="left" className="max-w-xs">
-                              <p className="text-xs">
-                                Suggested from:{' '}
-                                {candidate.derivedFrom
-                                  .slice(0, 2)
-                                  .map((source) => {
-                                    try {
-                                      const url = new URL(source.url)
-                                      return url.hostname.replace(/^www\./, '')
-                                    } catch {
-                                      return source.url
-                                    }
-                                  })
-                                  .join(', ')}
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
                     </div>
                   )
                 })}
               </div>
             </div>
-          ) : candidates.length === 0 && !loadingCandidates ? (
+          ) : searchQuery && candidates.length === 0 && !loadingCandidates ? (
             <div className="py-4 text-sm text-muted-foreground">
-              We couldn't confidently detect competitors. Add them manually below.
+              No competitors found. Try a different search or add them manually below.
             </div>
           ) : null}
 

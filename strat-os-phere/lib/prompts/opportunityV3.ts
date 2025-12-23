@@ -154,7 +154,8 @@ export function buildOpportunityV3Messages(
   const { project, snapshotsJson, jtbdJson, scoringJson, evidenceSourcesJson, evidenceBundleBlock, hasFirstPartySources, followUpAnswer } = input
 
   // Build project context with hypothesis-first approach
-  const lens = project.lens || project.starting_point || 'product'
+  // Note: starting_point and customer_profile columns don't exist in production
+  const lens = project.lens || 'product'
   const projectLines: string[] = [
     `Lens: ${lens.charAt(0).toUpperCase() + lens.slice(1)}`,
   ]
@@ -176,9 +177,8 @@ export function buildOpportunityV3Messages(
   }
 
   // Customer context
-  if (project.customer_profile) {
-    projectLines.push(`Customer: ${project.customer_profile}`)
-  } else {
+  // Note: customer_profile column doesn't exist in production, use target_customer
+  if (project.target_customer) {
     projectLines.push(`Target customer: ${project.target_customer}`)
   }
 

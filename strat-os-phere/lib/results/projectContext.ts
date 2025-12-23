@@ -15,9 +15,12 @@ export interface ProjectContextSummary {
 /**
  * Builds a normalized project context for analysis generation.
  * Handles both legacy projects (with your_product) and new hypothesis-first projects.
+ * 
+ * Note: starting_point and customer_profile are not used as they don't exist in production.
  */
 export function buildProjectContext(projectRow: ProjectRow): ProjectContextSummary {
-  const lens: ProjectLens = projectRow.starting_point || 'product'
+  // Default to 'product' lens (starting_point column doesn't exist in production)
+  const lens: ProjectLens = 'product'
   const fieldsUsed: string[] = []
   const sections: string[] = []
 
@@ -43,10 +46,8 @@ export function buildProjectContext(projectRow: ProjectRow): ProjectContextSumma
   }
 
   // Customer context
-  if (projectRow.customer_profile) {
-    sections.push(`Customer: ${projectRow.customer_profile}`)
-    fieldsUsed.push('customer_profile')
-  } else if (projectRow.target_customer) {
+  // Note: customer_profile column doesn't exist in production, use target_customer instead
+  if (projectRow.target_customer) {
     sections.push(`Target customer: ${projectRow.target_customer}`)
     fieldsUsed.push('target_customer')
   }

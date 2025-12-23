@@ -137,6 +137,17 @@ export function AnalysisWizard({
         subtitle={stepInfo.subtitle}
       />
 
+      {/* Logged out notice */}
+      {!isAuthenticated && (
+        <Section>
+          <div className="rounded-lg border border-border bg-surface-muted/50 px-4 py-3">
+            <p className="text-sm text-muted-foreground">
+              You'll be asked to sign in to save and generate results.
+            </p>
+          </div>
+        </Section>
+      )}
+
       {/* Stepper indicator */}
       <Section>
         <div className="flex items-center gap-3">

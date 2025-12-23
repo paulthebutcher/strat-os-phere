@@ -6,36 +6,10 @@
  * in the deployed database schema.
  */
 
-/**
- * Checks if an error is a "column does not exist" error from PostgREST.
- */
-export function isMissingColumnError(e: unknown): boolean {
-  if (!e || typeof e !== 'object') {
-    return false
-  }
+import { isMissingColumnError, formatDbError } from './safeDb'
 
-  const message = 'message' in e ? String((e as any).message) : ''
-  const code = 'code' in e ? String((e as any).code) : ''
-
-  // PostgREST error patterns
-  const messagePattern = /column.*does not exist/i
-  const codePattern = /PGRST\d+/ // PostgREST error codes
-
-  return (
-    (typeof message === 'string' && messagePattern.test(message)) ||
-    (typeof code === 'string' && codePattern.test(code) && messagePattern.test(message))
-  )
-}
-
-/**
- * Formats a database error into a user-friendly message.
- */
-export function formatDbError(e: unknown): string {
-  if (typeof e === 'object' && e && 'message' in e) {
-    return String((e as any).message)
-  }
-  return 'Unknown database error'
-}
+// Re-export for backward compatibility
+export { isMissingColumnError, formatDbError }
 
 /**
  * Result type for safe query operations.

@@ -5,7 +5,7 @@
  * Allows users to start an analysis without authentication and resume after login.
  */
 
-const STORAGE_KEY = 'plinth:wizard:draft.v1'
+const STORAGE_KEY = 'plinth:new:draft:v1'
 
 import type { WizardState } from './types'
 

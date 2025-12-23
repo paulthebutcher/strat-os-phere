@@ -30,7 +30,8 @@ function ProjectSummaryCard({ project, generatedAt }: { project: Project; genera
   if (project.risk_posture) contextParts.push(`Risk: ${project.risk_posture}`)
   if (project.ambition_level) contextParts.push(`Ambition: ${project.ambition_level}`)
 
-  const startingPoint = project.starting_point || 'product'
+  // Note: starting_point column doesn't exist in production, default to 'product'
+  const startingPoint = 'product'
   const startingPointLabels: Record<string, string> = {
     product: 'I have a product',
     problem: 'I have a problem',

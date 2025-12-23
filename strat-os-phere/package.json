@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "pnpm -s build:guarded",
-    "build:guarded": "node scripts/guard-next-build.mjs && next build",
+    "build:guarded": "node scripts/guard-next-build.mjs && pnpm -s check:schema && next build",
     "build:safe": "node scripts/guard-next-build.mjs; pnpm -s build",
     "build:clean": "node scripts/guard-next-build.mjs && next build",
     "build:ci": "CI=true node scripts/guard-next-build.mjs && next build",
