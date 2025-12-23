@@ -25,6 +25,7 @@ import { FirstWinChecklistWrapper } from '@/components/onboarding/FirstWinCheckl
 import { selectReadoutData } from '@/lib/results/selectors'
 import type { SearchParams } from '@/lib/routing/searchParams'
 import { getParam } from '@/lib/routing/searchParams'
+import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -89,10 +90,11 @@ export default async function ResultsPage(props: ResultsPageProps) {
     notFound()
   }
 
-  // Load competitors and all artifacts (for run history)
-  const [competitors, allArtifacts] = await Promise.all([
+  // Load competitors, all artifacts (for run history), and evidence bundle
+  const [competitors, allArtifacts, evidenceBundle] = await Promise.all([
     listCompetitorsForProject(supabase, projectId),
     listArtifacts(supabase, { projectId }),
+    readLatestEvidenceBundle(supabase, projectId),
   ])
 
   // Normalize artifacts (may be partial if run is still running)
@@ -205,6 +207,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
                   profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
                   strategicBets={strategicBets?.content}
                   jtbd={jtbd?.content}
+                  bundle={evidenceBundle}
                 />
               )}
             </>

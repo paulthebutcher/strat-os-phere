@@ -8,10 +8,15 @@ import { cn } from '@/lib/utils'
 import type { NormalizedCitation } from '@/lib/results/evidence'
 import { summarizeCitations, computeCoverage, computeConfidence, type CoverageStatus, type ConfidenceLevel } from '@/lib/scoring/evidenceGating'
 import type { CitationInput } from '@/lib/scoring/extractEvidenceFromArtifacts'
+import type { NormalizedEvidenceBundle } from '@/lib/evidence/types'
+import { deriveEvidenceTrustStats } from '@/lib/evidence/trustStats'
+import { EvidenceDrawer } from '@/components/evidence/EvidenceDrawer'
+import { EmptyEvidenceState } from '@/components/evidence/EmptyEvidenceState'
 
 interface EvidenceConfidencePanelProps {
   title?: string
   citations: NormalizedCitation[]
+  bundle?: NormalizedEvidenceBundle | null
   compact?: boolean
   className?: string
 }
@@ -66,61 +71,143 @@ function formatDate(date: Date): string {
 }
 
 /**
+ * Format days since date
+ */
+function formatDaysAgo(days: number | null): string {
+  if (days === null) return 'Unknown'
+  if (days === 0) return 'Today'
+  if (days === 1) return '1 day ago'
+  return `${days} days ago`
+}
+
+/**
+ * Format date for display
+ */
+function formatDateDisplay(dateStr: string | null): string {
+  if (!dateStr) return 'Unknown'
+  try {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  } catch {
+    return 'Invalid date'
+  }
+}
+
+/**
  * Evidence & Confidence Panel
  * 
  * Displays confidence level, recency, coverage, and a collapsible sources list.
  * Works with any artifact structure that contains citations.
+ * When bundle is provided, uses bundle stats (preferred over citations).
  */
 export function EvidenceConfidencePanel({
   title = 'Evidence & confidence',
   citations,
+  bundle,
   compact = false,
   className,
 }: EvidenceConfidencePanelProps) {
-  // Convert NormalizedCitation to CitationInput format
-  const citationInputs: CitationInput[] = citations.map(normalizeToInput)
-  
-  // Use new gating functions
-  const summary = summarizeCitations(citationInputs)
-  const coverage = computeCoverage(summary)
-  const confidence = computeConfidence(summary)
-  
-  // Map confidence to badge variant
-  const confidenceVariant = 
-    confidence === 'high' 
-      ? 'success' 
-      : confidence === 'moderate' 
-      ? 'warning' 
-      : 'danger'
-  
-  // Group citations by source type
-  const citationsByType: Record<string, NormalizedCitation[]> = {}
-  for (const citation of citations) {
-    if (!citationsByType[citation.sourceType]) {
-      citationsByType[citation.sourceType] = []
-    }
-    citationsByType[citation.sourceType].push(citation)
+  // If no bundle and no citations, show empty state
+  if (!bundle && citations.length === 0) {
+    return <EmptyEvidenceState className={className} />
   }
-  
-  // Sort source types by count (descending)
-  const sourceTypes = Object.keys(citationsByType).sort(
-    (a, b) => citationsByType[b].length - citationsByType[a].length
-  )
-  
-  // Generate recency label
-  let recencyLabel: string
-  if (summary.newestCitationDate) {
-    try {
-      const newest = new Date(summary.newestCitationDate)
-      const now = new Date()
-      const daysAgo = Math.floor((now.getTime() - newest.getTime()) / (1000 * 60 * 60 * 24))
-      recencyLabel = `Most evidence from last ${daysAgo} days`
-    } catch {
-      recencyLabel = 'Evidence dates unavailable'
+
+  // Prefer bundle stats if available
+  const useBundle = !!bundle
+  let stats: {
+    total: number
+    coverage: number
+    recencyLabel: string
+    recencyDate: string | null
+    byType: Array<{ type: string; count: number }>
+  }
+  let confidence: ConfidenceLevel
+  let coverage: CoverageStatus
+
+  if (useBundle && bundle) {
+    const bundleStats = deriveEvidenceTrustStats(bundle)
+    stats = {
+      total: bundleStats.total,
+      coverage: bundleStats.coverage,
+      recencyLabel: bundleStats.daysSinceNewest !== null
+        ? formatDaysAgo(bundleStats.daysSinceNewest)
+        : 'Unknown',
+      recencyDate: bundleStats.newestOverallAt,
+      byType: bundleStats.byType
+        .filter((x) => x.count > 0)
+        .map((x) => ({ type: x.type, count: x.count })),
+    }
+
+    // Derive confidence from bundle stats
+    // High: >= 5 types, >= 20 sources, recent (< 30 days)
+    // Moderate: >= 3 types, >= 10 sources, or recent
+    // Low: otherwise
+    if (
+      bundleStats.coverage >= 5 &&
+      bundleStats.total >= 20 &&
+      bundleStats.daysSinceNewest !== null &&
+      bundleStats.daysSinceNewest < 30
+    ) {
+      confidence = 'high'
+    } else if (
+      bundleStats.coverage >= 3 ||
+      bundleStats.total >= 10 ||
+      (bundleStats.daysSinceNewest !== null && bundleStats.daysSinceNewest < 60)
+    ) {
+      confidence = 'moderate'
+    } else {
+      confidence = 'low'
+    }
+
+    // Derive coverage status
+    if (bundleStats.coverage >= 5 && bundleStats.total >= 20) {
+      coverage = 'complete'
+    } else if (bundleStats.coverage >= 3 || bundleStats.total >= 10) {
+      coverage = 'partial'
+    } else {
+      coverage = 'insufficient'
     }
   } else {
-    recencyLabel = 'Evidence dates unavailable'
+    // Fallback to citation-based stats
+    const citationInputs: CitationInput[] = citations.map(normalizeToInput)
+    const summary = summarizeCitations(citationInputs)
+    coverage = computeCoverage(summary)
+    confidence = computeConfidence(summary)
+
+    stats = {
+      total: summary.totalCitations,
+      coverage: summary.sourceTypes.length,
+      recencyLabel: summary.newestCitationDate
+        ? (() => {
+            try {
+              const newest = new Date(summary.newestCitationDate)
+              const daysAgo = Math.floor(
+                (Date.now() - newest.getTime()) / (1000 * 60 * 60 * 24)
+              )
+              return formatDaysAgo(daysAgo)
+            } catch {
+              return 'Unknown'
+            }
+          })()
+        : 'Unknown',
+      recencyDate: summary.newestCitationDate ?? null,
+      byType: summary.sourceTypes.map((type) => ({
+        type,
+        count: citationInputs.filter((c) => c.sourceType === type).length,
+      })),
+    }
   }
+
+  // Map confidence to badge variant
+  const confidenceVariant =
+    confidence === 'high'
+      ? 'success'
+      : confidence === 'moderate'
+      ? 'warning'
+      : 'danger'
   
   return (
     <SectionCard className={cn('space-y-4', className)}>
@@ -137,72 +224,76 @@ export function EvidenceConfidencePanel({
           </Badge>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-border">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
             Recency
           </div>
-          <div className="text-sm text-foreground">{recencyLabel}</div>
-        </div>
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-            Total citations
-          </div>
           <div className="text-sm text-foreground">
-            {summary.totalCitations} citation{summary.totalCitations !== 1 ? 's' : ''}
-          </div>
-        </div>
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-            Source types
-          </div>
-          <div className="text-sm text-foreground">
-            {summary.sourceTypes.length} type{summary.sourceTypes.length !== 1 ? 's' : ''}
-            {summary.sourceTypes.length > 0 && (
+            {stats.recencyLabel}
+            {stats.recencyDate && (
               <span className="text-muted-foreground ml-1">
-                ({summary.sourceTypes.join(', ')})
+                ({formatDateDisplay(stats.recencyDate)})
               </span>
             )}
           </div>
         </div>
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+            Total sources
+          </div>
+          <div className="text-sm text-foreground">
+            {stats.total} source{stats.total !== 1 ? 's' : ''}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+            Source types covered
+          </div>
+          <div className="text-sm text-foreground">
+            {stats.coverage} type{stats.coverage !== 1 ? 's' : ''}
+          </div>
+        </div>
       </div>
-      
+
       {/* Coverage by type */}
-      {sourceTypes.length > 0 && (
+      {stats.byType.length > 0 && (
         <div className="pt-2 border-t border-border">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
             Coverage by source type
           </div>
           <div className="flex flex-wrap gap-2">
-            {sourceTypes.map((type) => (
+            {stats.byType.map(({ type, count }) => (
               <Badge key={type} variant="secondary" className="text-xs">
-                {type.replace(/_/g, ' ')}: {citationsByType[type].length}
+                {type.replace(/_/g, ' ')}: {count}
               </Badge>
             ))}
           </div>
         </div>
       )}
-      
-      {/* View sources - collapsible */}
-      {citations.length > 0 && (
+
+      {/* View evidence drawer (bundle) or collapsible sources (citations) */}
+      {useBundle && bundle && <EvidenceDrawer bundle={bundle} />}
+
+      {!useBundle && citations.length > 0 && (
         <Collapsible title="View sources" defaultOpen={false}>
           <div className="space-y-4">
-            {sourceTypes.map((type) => (
-              <SourceTypeGroup
-                key={type}
-                type={type}
-                citations={citationsByType[type]}
-              />
-            ))}
+            {Object.entries(
+              citations.reduce((acc, citation) => {
+                if (!acc[citation.sourceType]) {
+                  acc[citation.sourceType] = []
+                }
+                acc[citation.sourceType].push(citation)
+                return acc
+              }, {} as Record<string, NormalizedCitation[]>)
+            )
+              .sort((a, b) => b[1].length - a[1].length)
+              .map(([type, typeCitations]) => (
+                <SourceTypeGroup key={type} type={type} citations={typeCitations} />
+              ))}
           </div>
         </Collapsible>
-      )}
-      
-      {citations.length === 0 && (
-        <div className="text-sm text-muted-foreground text-center py-4">
-          No evidence yet. Citations will appear here once analysis is generated.
-        </div>
       )}
     </SectionCard>
   )

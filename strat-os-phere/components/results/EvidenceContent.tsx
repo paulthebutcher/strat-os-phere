@@ -10,6 +10,7 @@ import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import type { StrategicBetsArtifactContent } from '@/lib/schemas/strategicBet'
 import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
+import type { NormalizedEvidenceBundle } from '@/lib/evidence/types'
 
 interface EvidenceContentProps {
   opportunitiesV3: OpportunityV3ArtifactContent | null | undefined
@@ -17,6 +18,7 @@ interface EvidenceContentProps {
   profiles: { snapshots: CompetitorSnapshot[] } | null | undefined
   strategicBets: StrategicBetsArtifactContent | null | undefined
   jtbd: JtbdArtifactContent | null | undefined
+  bundle?: NormalizedEvidenceBundle | null
 }
 
 export function EvidenceContent({
@@ -25,6 +27,7 @@ export function EvidenceContent({
   profiles,
   strategicBets,
   jtbd,
+  bundle,
 }: EvidenceContentProps) {
   // Prefer v3, fallback to v2
   const opportunities = opportunitiesV3 ?? opportunitiesV2 ?? null
@@ -60,7 +63,7 @@ export function EvidenceContent({
       </div>
 
       {/* Evidence & Confidence Panel */}
-      <EvidenceConfidencePanel citations={citations} />
+      <EvidenceConfidencePanel citations={citations} bundle={bundle} />
       
       {/* Evidence Coverage Panel (feature-flagged) */}
       {qualityPackEnabled && opportunities && (

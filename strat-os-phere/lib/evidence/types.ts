@@ -113,3 +113,41 @@ export type HarvestEvidenceBundle = {
   }
 }
 
+/**
+ * PR5: Normalized evidence types for Trust Layer
+ * Simplified structure for UI consumption
+ */
+
+export type NormalizedEvidenceType =
+  | 'pricing'
+  | 'docs'
+  | 'reviews'
+  | 'jobs'
+  | 'changelog'
+  | 'blog'
+  | 'community'
+  | 'security'
+  | 'other'
+
+export type NormalizedEvidenceItem = {
+  id: string
+  type: NormalizedEvidenceType
+  title?: string
+  url: string
+  domain?: string
+  snippet?: string
+  publishedAt?: string | null // ISO
+  retrievedAt?: string | null // ISO
+  scoreHint?: number | null
+  source?: string | null
+}
+
+export type NormalizedEvidenceBundle = {
+  id: string
+  projectId: string
+  createdAt: string // ISO
+  company?: string | null
+  primaryUrl?: string | null
+  items: NormalizedEvidenceItem[]
+}
+

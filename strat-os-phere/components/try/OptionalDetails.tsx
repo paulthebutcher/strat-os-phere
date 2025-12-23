@@ -25,7 +25,7 @@ export function OptionalDetails({
             htmlFor="contextText"
             className="text-sm font-semibold text-foreground"
           >
-            What are you trying to decide?
+            Why are you looking at this?
           </label>
           <Textarea
             id="contextText"
@@ -34,6 +34,9 @@ export function OptionalDetails({
             placeholder="Describe the decision you're making or the context for this analysis..."
             rows={3}
           />
+          <p className="text-sm text-muted-foreground">
+            Example: 'Should we enter mid-market?', 'Why are we losing deals?', 'What should we build next?'
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -41,15 +44,18 @@ export function OptionalDetails({
             htmlFor="targetCustomer"
             className="text-sm font-semibold text-foreground"
           >
-            Who is this for?
+            Where does it compete?
           </label>
           <Input
             id="targetCustomer"
             type="text"
             value={targetCustomer}
             onChange={(e) => onTargetCustomerChange(e.target.value)}
-            placeholder="e.g. Teams and organizations"
+            placeholder="e.g. Incident management for engineering orgs"
           />
+          <p className="text-sm text-muted-foreground">
+            Be specific. Example: 'Incident management for engineering orgs' beats 'DevOps'.
+          </p>
         </div>
       </div>
     </Collapsible>

@@ -278,6 +278,13 @@ export function TryStep2Confirm({
         </div>
       </SurfaceCard>
 
+      {/* Privacy reassurance */}
+      <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          <span className="font-medium text-foreground">Privacy:</span> We won't market to you. Email is only used to send a secure magic link and protect your data.
+        </p>
+      </div>
+
       {/* Actions */}
       <div className="flex items-center justify-between gap-4 pt-2">
         <Button type="button" variant="outline" onClick={onBack}>

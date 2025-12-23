@@ -7,6 +7,7 @@ import { getProjectById } from '@/lib/data/projects'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
 import { createClient } from '@/lib/supabase/server'
 import { EvidenceContent } from '@/components/results/EvidenceContent'
+import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
 
 interface EvidencePageProps {
   params: Promise<{
@@ -49,7 +50,10 @@ export default async function EvidencePage(props: EvidencePageProps) {
     notFound()
   }
 
-  const artifacts = await listArtifacts(supabase, { projectId })
+  const [artifacts, evidenceBundle] = await Promise.all([
+    listArtifacts(supabase, { projectId }),
+    readLatestEvidenceBundle(supabase, projectId),
+  ])
   const normalized = normalizeResultsArtifacts(artifacts)
   const { opportunitiesV3, opportunitiesV2, profiles, strategicBets, jtbd } = normalized
 
@@ -62,6 +66,7 @@ export default async function EvidencePage(props: EvidencePageProps) {
           profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
           strategicBets={strategicBets?.content}
           jtbd={jtbd?.content}
+          bundle={evidenceBundle}
         />
       </main>
     </div>

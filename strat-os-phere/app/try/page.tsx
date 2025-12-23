@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Sparkles, CheckCircle2, Circle } from 'lucide-react'
+import { CheckCircle2, Circle } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { HeroPanel } from '@/components/shared/HeroPanel'
 import type { TryDraft } from '@/lib/tryDraft'
 import { loadTryDraft, saveTryDraft, savePostAuthIntent } from '@/lib/tryDraft'
 import { TryStep1Describe } from './TryStep1Describe'
 import { TryStep2Confirm } from './TryStep2Confirm'
+import { AnalysisFramingCard } from '@/components/onboarding/AnalysisFramingCard'
 
 export default function TryPage() {
   const router = useRouter()
@@ -87,31 +87,16 @@ export default function TryPage() {
 
   return (
     <div className="min-h-[calc(100vh-57px)] bg-background">
-      <main className="w-full max-w-7xl mx-auto px-4 md:px-6 py-8 animate-fade-in">
-        {/* Hero Panel - Only show on step 1 */}
+      <main className="w-full max-w-[1200px] mx-auto px-4 md:px-6 py-8 animate-fade-in">
+        {/* Compact contextual header - Only show on step 1 */}
         {currentStep === 1 && (
           <div className="mb-8">
-            <HeroPanel
-              title="Try Plinth"
-              subtitle="Start a competitive analysis in seconds. No sign-up required—we'll ask for your email when you're ready to see results."
-              icon={<Sparkles className="h-8 w-8 text-white/90" />}
-              gradient={true}
-            >
-              <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 text-sm">
-                <li className="flex items-start gap-2 text-white/90">
-                  <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
-                  <span>No sign-up required</span>
-                </li>
-                <li className="flex items-start gap-2 text-white/90">
-                  <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
-                  <span>Quick setup</span>
-                </li>
-                <li className="flex items-start gap-2 text-white/90">
-                  <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
-                  <span>See results in minutes</span>
-                </li>
-              </ul>
-            </HeroPanel>
+            <h1 className="text-2xl md:text-3xl font-semibold text-foreground mb-2 tracking-tight">
+              Start an analysis
+            </h1>
+            <p className="text-base text-muted-foreground max-w-2xl">
+              Tell us what you're evaluating. We'll turn public signals into ranked opportunities (you can start with lightweight context).
+            </p>
           </div>
         )}
 
@@ -177,35 +162,42 @@ export default function TryPage() {
             )}
           </div>
 
-          {/* Right column: Preview */}
-          <div className="lg:col-span-4">
-            <div className="lg:sticky lg:top-20">
-              <SurfaceCard className="p-5 shadow-md">
-                <h3 className="text-sm font-semibold text-foreground mb-3">
-                  What you'll get
-                </h3>
-                <ul className="space-y-2.5 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Ranked opportunities</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Evidence & confidence metrics</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Citations and source links</span>
-                  </li>
-                </ul>
-                <div className="mt-4 pt-4 border-t border-border">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    You can add details later.
-                  </p>
-                </div>
-              </SurfaceCard>
+          {/* Right column: Preview - Combined cards */}
+          {currentStep === 1 && (
+            <div className="lg:col-span-4">
+              <div className="lg:sticky lg:top-20 space-y-6">
+                <SurfaceCard className="p-6 shadow-md">
+                  <h3 className="text-base font-semibold text-foreground mb-4">
+                    What you'll get
+                  </h3>
+                  <ul className="space-y-2.5 text-sm text-muted-foreground mb-4">
+                    <li className="flex items-start gap-2.5">
+                      <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <span>Ranked opportunities</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <span>Evidence & confidence metrics</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <span>Citations and source links</span>
+                    </li>
+                  </ul>
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      You can add details later.
+                    </p>
+                  </div>
+                </SurfaceCard>
+                <AnalysisFramingCard
+                  companyName={draft.primaryCompanyName || ''}
+                  decision={draft.contextText || ''}
+                  market={draft.marketCategory || draft.targetCustomer || ''}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
     </div>

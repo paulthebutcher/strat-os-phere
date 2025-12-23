@@ -8,6 +8,12 @@ import type { TryDraft, TryMode } from '@/lib/tryDraft'
 import { ModeSelector } from '@/components/try/ModeSelector'
 import { ExampleChips } from '@/components/try/ExampleChips'
 import { OptionalDetails } from '@/components/try/OptionalDetails'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 
 interface TryStep1DescribeProps {
   initialState: TryDraft
@@ -18,15 +24,15 @@ function getModeConfig(mode: TryMode) {
   switch (mode) {
     case 'company':
       return {
-        label: 'Company or product',
+        label: 'Company or product name',
         placeholder: 'e.g. monday.com, Asana, PagerDuty',
-        helper: "We'll infer competitors and sources automatically.",
+        helper: "Use the brand name or product line. Example: 'PagerDuty', 'monday.com', 'Rippling'.",
       }
     case 'market':
       return {
         label: 'Market / category',
         placeholder: 'e.g. Incident management platforms',
-        helper: "We'll suggest representative competitors.",
+        helper: "Be specific. Example: 'Incident management for engineering orgs' beats 'DevOps'.",
       }
     case 'idea':
       return {
@@ -106,8 +112,8 @@ export function TryStep1Describe({
       <SurfaceCard className="p-6 md:p-8 shadow-md">
         <div className="space-y-6">
           <div>
-            <h2 className="text-2xl font-semibold text-foreground mb-2 tracking-tight">
-              What should Plinth analyze?
+            <h2 className="text-xl font-semibold text-foreground mb-1 tracking-tight">
+              What are we analyzing?
             </h2>
           </div>
 
@@ -155,6 +161,39 @@ export function TryStep1Describe({
             onContextTextChange={setContextText}
             onTargetCustomerChange={setTargetCustomer}
           />
+
+          {/* Good input examples accordion */}
+          <div className="pt-2">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="examples" className="border-none">
+                <AccordionTrigger className="py-2 hover:no-underline text-sm font-medium text-foreground">
+                  What good input looks like
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-0">
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <div className="p-3 rounded-lg border border-border bg-muted/30">
+                      <p className="font-medium text-foreground mb-1">Example 1: Company analysis</p>
+                      <p className="text-xs">Company: <span className="font-medium text-foreground">PagerDuty</span></p>
+                      <p className="text-xs">Decision: <span className="font-medium text-foreground">Should we enter mid-market?</span></p>
+                      <p className="text-xs">Market: <span className="font-medium text-foreground">Incident management for engineering orgs</span></p>
+                    </div>
+                    <div className="p-3 rounded-lg border border-border bg-muted/30">
+                      <p className="font-medium text-foreground mb-1">Example 2: Market research</p>
+                      <p className="text-xs">Market: <span className="font-medium text-foreground">Project management for remote teams</span></p>
+                      <p className="text-xs">Decision: <span className="font-medium text-foreground">Why are we losing deals?</span></p>
+                      <p className="text-xs">Constraints: <span className="font-medium text-foreground">Price sensitive buyers, must integrate with Jira</span></p>
+                    </div>
+                    <div className="p-3 rounded-lg border border-border bg-muted/30">
+                      <p className="font-medium text-foreground mb-1">Example 3: Product idea</p>
+                      <p className="text-xs">Idea: <span className="font-medium text-foreground">AI assistant for customer support QA</span></p>
+                      <p className="text-xs">Decision: <span className="font-medium text-foreground">What should we build next?</span></p>
+                      <p className="text-xs">Market: <span className="font-medium text-foreground">Customer support tools</span></p>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
 
           {/* Error message */}
           {error && (
