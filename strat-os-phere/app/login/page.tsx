@@ -4,6 +4,12 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { LoginForm } from './login-form'
 import { createPageMetadata } from '@/lib/seo/metadata'
+import type { SearchParams } from '@/lib/routing/searchParams'
+import { getParam } from '@/lib/routing/searchParams'
+
+interface LoginPageProps {
+  searchParams?: SearchParams
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
@@ -19,15 +25,22 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function LoginPage() {
+export default async function LoginPage(props: LoginPageProps) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (user) {
+    // If there's a next parameter, redirect there; otherwise dashboard
+    const next = getParam(props.searchParams, 'next')
+    if (next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('http')) {
+      redirect(next)
+    }
     redirect('/dashboard')
   }
+
+  const next = getParam(props.searchParams, 'next')
 
   return (
     <div className="flex min-h-[calc(100vh-57px)] items-center justify-center bg-background px-4">
@@ -38,7 +51,7 @@ export default async function LoginPage() {
             A quiet workspace for serious strategy work.
           </p>
         </header>
-        <LoginForm />
+        <LoginForm next={next || undefined} />
       </main>
     </div>
   )

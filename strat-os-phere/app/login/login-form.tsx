@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { signIn } from './actions'
 
-export function LoginForm() {
+interface LoginFormProps {
+  next?: string
+}
+
+export function LoginForm({ next }: LoginFormProps) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -18,7 +22,7 @@ export function LoginForm() {
     setMessage('')
     setIsError(false)
 
-    const result = await signIn(email)
+    const result = await signIn(email, next)
 
     if (!result?.success) {
       setIsError(true)

@@ -46,7 +46,7 @@ export function MarketingNav() {
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-primary to-[hsl(var(--marketing-gradient-end))] opacity-0 transition-opacity group-hover:opacity-100" />
           </Link>
           <HelpDrawer />
-          <Link href="/dashboard">
+          <Link href="/try">
             <Button size="sm" className="shadow-sm hover:shadow-md transition-shadow">
               Try Plinth
             </Button>
@@ -96,7 +96,7 @@ export function MarketingNav() {
             <div className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
               <HelpDrawer />
             </div>
-            <Link href="/dashboard" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/try" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
               <Button size="sm" className="w-full">
                 Try Plinth
               </Button>

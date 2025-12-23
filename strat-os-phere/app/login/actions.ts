@@ -13,9 +13,13 @@ interface AuthActionResult {
   message?: string
 }
 
-export async function signIn(email: string): Promise<AuthActionResult> {
+export async function signIn(email: string, next?: string): Promise<AuthActionResult> {
   const origin = await getOrigin()
-  const redirectUrl = `${origin}/auth/callback`
+  // Preserve next parameter in redirect URL
+  const nextParam = next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('http')
+    ? `?next=${encodeURIComponent(next)}`
+    : ''
+  const redirectUrl = `${origin}/auth/callback${nextParam}`
 
   // Check if we should use direct GoTrue call (preview only, behind env flag)
   const useGoTrueDirect = process.env.VERCEL_ENV === 'preview' && process.env.USE_GOTRUE_DIRECT === 'true'

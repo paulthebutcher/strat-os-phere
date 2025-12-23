@@ -26,9 +26,9 @@ export function CTABand() {
           Turn competitor signals into decision-ready outputs in minutes. Get Jobs-to-be-Done, scorecards, opportunities, and Strategic Bets—all backed by live evidence with citations.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href="/projects/new">
+          <Link href="/try">
             <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow hover:scale-105">
-              Run an analysis
+              Try Plinth
             </Button>
           </Link>
           <Link href="/samples">
