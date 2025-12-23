@@ -5,36 +5,36 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-opacity-50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        // Primary: solid, rich indigo - premium and modern
+        // Primary: solid, restrained - minimal shadow
         default:
-          "bg-primary text-primary-foreground hover:bg-accent-primary-hover shadow-sm hover:shadow active:scale-[0.98]",
-        // Brand: gradient variant for primary CTAs
+          "bg-primary text-primary-foreground hover:bg-accent-primary-hover",
+        // Brand: gradient variant for primary CTAs (marketing only)
         brand:
-          "plinth-gradient text-white hover:opacity-90 shadow-md hover:shadow-lg active:scale-[0.98]",
-        // Destructive: standard red
+          "plinth-gradient text-white hover:opacity-90",
+        // Destructive: minimal styling
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm hover:shadow active:scale-[0.98]",
-        // Secondary: subtle background
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        // Secondary: subtle background, minimal border
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border shadow-sm hover:shadow active:scale-[0.98]",
-        // Outline: clear border, no fill
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border",
+        // Outline: single border, no fill
         outline:
-          "border-2 border-border bg-transparent text-foreground hover:bg-muted hover:border-accent-primary active:scale-[0.98]",
+          "border border-border bg-transparent text-foreground hover:bg-muted hover:border-accent-primary",
         // Ghost: minimal chrome, transparent background
         ghost:
-          "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]",
+          "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
         // Link-style for inline actions
         link: "text-primary underline-offset-4 hover:underline bg-transparent p-0 h-auto font-medium",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3 text-xs",
-        lg: "h-11 rounded-lg px-8 text-base",
-        icon: "h-10 w-10",
+        default: "h-9 px-3.5 py-2",
+        sm: "h-8 rounded-sm px-3 text-xs",
+        lg: "h-10 rounded-md px-6 text-base",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {

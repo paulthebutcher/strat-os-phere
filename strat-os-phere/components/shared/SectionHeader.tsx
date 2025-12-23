@@ -20,12 +20,12 @@ export function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <div className={cn("flex items-start justify-between gap-4", className)}>
-      <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground">
+      <div className="space-y-0.5">
+        <h2 className="text-lg font-semibold tracking-tight text-foreground">
           {title}
         </h2>
         {description && (
-          <p className="text-sm text-muted-foreground max-w-2xl">
+          <p className="text-sm text-muted-foreground max-w-2xl leading-normal">
             {description}
           </p>
         )}
