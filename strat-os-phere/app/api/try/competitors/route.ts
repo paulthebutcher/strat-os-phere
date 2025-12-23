@@ -90,7 +90,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const candidates = resolveCompanyCandidatesSafe(sourcePages, { limit: 20 })
 
     // Diagnostic logging (dev/prod)
-    const blockedExamples = sourcePages.filter(isPrimaryResearchPage).slice(0, 5)
+    const blockedExamples = sourcePages.filter(isPrimaryResearchPage).slice(0, 3)
     logger.info('[try/competitors] Resolved candidates', {
       sourcePagesCount: sourcePages.length,
       candidatesCount: candidates.length,
@@ -115,6 +115,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({
       candidates,
       query: competitorQuery,
+      // Dev diagnostics: include raw suggestions count and blocked examples
+      diagnostics: {
+        rawSuggestionsCount: sourcePages.length,
+        resolvedCandidatesCount: candidates.length,
+        blockedExamples: blockedExamples.map(p => p.title),
+      },
     })
   } catch (error) {
     logger.error('[try/competitors] Unexpected error', {

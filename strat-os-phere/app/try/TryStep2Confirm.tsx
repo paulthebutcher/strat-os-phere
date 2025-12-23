@@ -56,7 +56,7 @@ export function TryStep2Confirm({
   // Dev-only marker: confirm we're in the updated component
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Step2] Add competitors component mounted: vNEXT_COMPANY_CANDIDATES')
+      console.log('[Step2] Add competitors component mounted: company-only')
     }
   }, [])
 
@@ -80,31 +80,68 @@ export function TryStep2Confirm({
         const data = await response.json()
 
         if (data.candidates && Array.isArray(data.candidates)) {
-          // Runtime safeguard: filter out any listicles that might have slipped through
-          const safeCandidates = data.candidates.filter((candidate: CompanyCandidate) => {
-            // Check if candidate name looks like a listicle title
-            const nameLower = candidate.name.toLowerCase()
-            const isSuspicious = ['alternatives', 'competitors', 'top', 'best', 'vs', 'compare', 'list of'].some(
-              kw => nameLower.includes(kw)
-            )
-            if (isSuspicious && process.env.NODE_ENV === 'development') {
-              console.warn('[Step2] Filtered suspicious candidate:', candidate.name)
+          // Runtime safeguard: hard block - ensure no page objects are rendered
+          // All candidates should be CompanyCandidate objects with domain, name, primaryUrl
+          const validCandidates = data.candidates.filter((candidate: any) => {
+            // Hard guard: must have required CompanyCandidate fields
+            if (!candidate || typeof candidate !== 'object') {
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[Step2] Blocked invalid candidate (not an object):', candidate)
+              }
+              return false
             }
-            return !isSuspicious
+            
+            // Must have domain (company candidates have domains, pages don't)
+            if (!candidate.domain || typeof candidate.domain !== 'string') {
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[Step2] Blocked candidate missing domain:', candidate)
+              }
+              return false
+            }
+            
+            // Hard block: check if domain is in known research domains
+            const domainLower = candidate.domain.toLowerCase()
+            const blockedDomains = ['g2.com', 'capterra.com', 'gartner.com', 'trustradius.com', 
+              'softwareadvice.com', 'getapp.com', 'producthunt.com', 'alternativeto.net']
+            if (blockedDomains.some(blocked => domainLower.includes(blocked))) {
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[Step2] Blocked candidate with research domain:', candidate.domain, candidate.name)
+              }
+              return false
+            }
+            
+            // Check if name looks like a listicle title (additional safeguard)
+            const nameLower = (candidate.name || '').toLowerCase()
+            const suspiciousKeywords = ['alternatives', 'competitors', 'top', 'best', 'vs', 'compare', 'list of', 'review']
+            if (suspiciousKeywords.some(kw => nameLower.includes(kw))) {
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[Step2] Blocked suspicious candidate name:', candidate.name)
+              }
+              return false
+            }
+            
+            return true
           })
 
-          setCandidates(safeCandidates)
+          setCandidates(validCandidates)
 
-          // Diagnostic logging
+          // Dev-only diagnostic logging
           if (process.env.NODE_ENV === 'development') {
-            console.log('[Step2] Received candidates:', {
-              total: data.candidates.length,
-              safe: safeCandidates.length,
-              filtered: data.candidates.length - safeCandidates.length,
+            const diagnostics = data.diagnostics || {}
+            console.log('[Step2] Company candidates resolved:', {
+              rawSuggestionsCount: diagnostics.rawSuggestionsCount || 0,
+              resolvedCandidatesCount: diagnostics.resolvedCandidatesCount || data.candidates.length,
+              finalCandidatesCount: validCandidates.length,
+              blockedExamples: diagnostics.blockedExamples || [],
             })
+            
+            // Log 3 example blocked titles if available
+            if (diagnostics.blockedExamples && diagnostics.blockedExamples.length > 0) {
+              console.log('[Step2] Example blocked titles:', diagnostics.blockedExamples.slice(0, 3))
+            }
           }
 
-          if (safeCandidates.length === 0 && data.error) {
+          if (validCandidates.length === 0 && data.error) {
             // Non-blocking: just log, don't show error
             console.log('[TryStep2] No candidates found:', data.error)
           }
@@ -264,7 +301,7 @@ export function TryStep2Confirm({
       {/* Dev-only badge */}
       {process.env.NODE_ENV === 'development' && (
         <div className="text-xs text-muted-foreground text-center">
-          Step2: company-candidates
+          Step2: company-only
         </div>
       )}
 
@@ -389,7 +426,7 @@ export function TryStep2Confirm({
                       {/* Logo */}
                       <div className="flex-shrink-0">
                         <img
-                          src={candidate.logoUrl}
+                          src={candidate.logoUrl || `https://logo.clearbit.com/${candidate.domain}`}
                           alt={`${candidate.name} logo`}
                           className="w-8 h-8 rounded object-contain bg-background border border-border"
                           onError={(e) => {
