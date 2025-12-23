@@ -32,6 +32,8 @@ import { getProcessedClaims } from '@/lib/evidence/claims/getProcessedClaims'
 import { EvidenceTrustPanelWrapper } from '@/components/evidence/EvidenceTrustPanelWrapper'
 import { normalizeEvidenceBundleToLedger } from '@/lib/evidence/ledger'
 import { EvidenceLedgerSection } from '@/components/evidence/EvidenceLedgerSection'
+import { PageShell } from '@/components/layout/PageShell'
+import { EmptyState } from '@/components/layout/EmptyState'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -145,8 +147,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
         initialRun={results.activeRun}
         initialArtifacts={results.artifacts}
       >
-        <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-          <main className="flex w-full max-w-6xl flex-col gap-8 py-8 md:py-10 animate-fade-in">
+        <PageShell size="wide">
           {/* First Win Checklist in Guided Mode */}
           <FirstWinChecklistWrapper
             projectId={projectId}
@@ -154,7 +155,6 @@ export default async function ResultsPage(props: ResultsPageProps) {
             competitorCount={competitors.length}
             hasResults={hasArtifacts}
           />
-
 
           {/* In-progress banner */}
           {isRunning && results.activeRun && (
@@ -183,13 +183,11 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
           {!hasArtifacts ? (
             // Empty state: no successful run
-            <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-              <h2 className="text-3xl font-semibold mb-3 tracking-tight">No results yet</h2>
-              <p className="text-base text-muted-foreground mb-8 max-w-md leading-relaxed">
-                Run an analysis to generate competitive insights and strategic opportunities.
-              </p>
-              <RerunAnalysisButton projectId={projectId} />
-            </div>
+            <EmptyState
+              title="No results yet"
+              description="Run an analysis to generate competitive insights and strategic opportunities."
+              action={<RerunAnalysisButton projectId={projectId} />}
+            />
           ) : showReadout ? (
             // Default: Show executive readout view
             (opportunities.best || !isRunning) && (
@@ -263,8 +261,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
               normalized={{ profiles, synthesis: null, jtbd }}
             />
           ) : null}
-          </main>
-        </div>
+        </PageShell>
       </ResultsPageClient>
     </PageGuidanceWrapper>
   )

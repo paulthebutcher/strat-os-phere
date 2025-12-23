@@ -19,6 +19,9 @@ import Link from 'next/link'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import type { SearchParams } from '@/lib/routing/searchParams'
 import { getParam } from '@/lib/routing/searchParams'
+import { PageShell } from '@/components/layout/PageShell'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Section } from '@/components/layout/Section'
 
 interface OverviewPageProps {
   params: Promise<{
@@ -100,23 +103,18 @@ export default async function OverviewPage(props: OverviewPageProps) {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-      <main className="flex w-full max-w-7xl flex-col gap-8 py-10">
-        {/* Header */}
-        <header className="space-y-2">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">
-            Project Overview
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Review project status, readiness, and next actions
-          </p>
-        </header>
+    <PageShell>
+      <PageHeader
+        title="Project Overview"
+        subtitle="Review project status, readiness, and next actions"
+      />
 
-        {/* Main content grid */}
-        <div className="grid gap-6 lg:grid-cols-[1fr_16rem]">
-          {/* Left column: Main content */}
-          <div className="space-y-6">
-            {/* Project Summary & Recent Outputs */}
+      {/* Main content grid */}
+      <div className="grid gap-6 lg:grid-cols-[1fr_16rem]">
+        {/* Left column: Main content */}
+        <div className="space-y-6">
+          {/* Project Summary & Recent Outputs */}
+          <Section>
             <ProjectOverview
               project={project}
               projectId={projectId}
@@ -125,17 +123,23 @@ export default async function OverviewPage(props: OverviewPageProps) {
               opportunitiesV3={opportunitiesV3?.content}
               opportunitiesV2={opportunitiesV2?.content}
             />
+          </Section>
 
-            {/* Readiness Checklist */}
+          {/* Readiness Checklist */}
+          <Section>
             <ReadinessChecklist
               items={readiness.items}
               projectId={projectId}
             />
+          </Section>
 
-            {/* Workflow Timeline */}
+          {/* Workflow Timeline */}
+          <Section>
             <WorkflowTimeline readinessItems={readiness.items} />
+          </Section>
 
-            {/* Primary Next Action CTA */}
+          {/* Primary Next Action CTA */}
+          <Section>
             <div className="panel p-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -192,19 +196,19 @@ export default async function OverviewPage(props: OverviewPageProps) {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Right column: Actions panel (desktop only) */}
-          <ProjectActionsPanel
-            projectId={projectId}
-            readiness={readiness}
-            competitorCount={competitorCount}
-            effectiveCompetitorCount={effectiveCompetitorCount}
-            hasArtifacts={hasAnyArtifacts}
-          />
+          </Section>
         </div>
-      </main>
-    </div>
+
+        {/* Right column: Actions panel (desktop only) */}
+        <ProjectActionsPanel
+          projectId={projectId}
+          readiness={readiness}
+          competitorCount={competitorCount}
+          effectiveCompetitorCount={effectiveCompetitorCount}
+          hasArtifacts={hasAnyArtifacts}
+        />
+      </div>
+    </PageShell>
   )
 }
 
