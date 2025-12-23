@@ -6,6 +6,7 @@ import type {
 } from '@/lib/supabase/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
+import { logger } from '@/lib/logger'
 
 type Client = TypedSupabaseClient
 
@@ -118,6 +119,103 @@ export async function deleteCompetitor(
   if (error) {
     throw new Error(error.message)
   }
+}
+
+/**
+ * Add multiple competitors in bulk (with deduplication)
+ */
+export async function addCompetitorsBulk(
+  client: Client,
+  projectId: string,
+  competitors: Array<{ name: string; url: string }>
+): Promise<Competitor[]> {
+  const typedClient = getTypedClient(client)
+  const results: Competitor[] = []
+
+  // Get existing competitors to avoid duplicates
+  const existing = await listCompetitorsForProject(client, projectId)
+  const existingUrls = new Set(
+    existing.map((c) => c.url?.toLowerCase().trim()).filter(Boolean)
+  )
+
+  // Filter out duplicates and prepare inserts
+  const toInsert = competitors
+    .filter((c) => {
+      const normalizedUrl = c.url.toLowerCase().trim()
+      return !existingUrls.has(normalizedUrl)
+    })
+    .map((c) => ({
+      project_id: projectId,
+      name: c.name.trim(),
+      url: c.url.trim(),
+    }))
+
+  if (toInsert.length === 0) {
+    return results
+  }
+
+  // Insert in batch (one at a time to avoid type issues)
+  for (const item of toInsert) {
+    try {
+      const competitor = await createCompetitor(client, item)
+      results.push(competitor)
+    } catch (error) {
+      // Log but continue with other inserts
+      logger.warn('[competitors] Failed to insert competitor in bulk', {
+        error: error instanceof Error ? error.message : String(error),
+        competitor: item.name,
+      })
+    }
+  }
+
+  return results
+}
+
+/**
+ * Remove competitor by URL (useful for deduplication)
+ */
+export async function removeCompetitorByUrl(
+  client: Client,
+  projectId: string,
+  url: string
+): Promise<void> {
+  const typedClient = getTypedClient(client)
+  const normalizedUrl = url.toLowerCase().trim()
+
+  const { error } = await typedClient
+    .from('competitors')
+    .delete()
+    .eq('project_id', projectId)
+    .eq('url', normalizedUrl)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+/**
+ * Alias for listCompetitorsForProject (matches PR naming)
+ */
+export async function listCompetitors(
+  client: Client,
+  projectId: string
+): Promise<Competitor[]> {
+  return listCompetitorsForProject(client, projectId)
+}
+
+/**
+ * Add a single competitor (with URL normalization)
+ */
+export async function addCompetitor(
+  client: Client,
+  projectId: string,
+  input: { name: string; url: string }
+): Promise<Competitor> {
+  return createCompetitor(client, {
+    project_id: projectId,
+    name: input.name.trim(),
+    url: input.url.trim(),
+  })
 }
 
 

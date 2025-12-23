@@ -12,7 +12,13 @@ import type {
   SelectedCompetitor,
 } from '@/lib/onboarding/types'
 import { normalizeUrl } from '@/lib/url/normalizeUrl'
-import type { CompetitorCandidate } from '@/app/api/competitors/suggest/route'
+// Competitor candidate type (compatible with API response)
+type CompetitorCandidate = {
+  name: string
+  website: string
+  domain: string
+  confidence: 'high' | 'medium' | 'low'
+}
 
 interface WizardStep2ConfirmProps {
   state: WizardState
@@ -66,17 +72,20 @@ export function WizardStep2Confirm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          companyName: searchQuery.trim(),
-          market: state.contextText ? undefined : undefined, // Can be enhanced later
-          ideaOrContext: state.contextText,
-          limit: 12,
+          query: searchQuery.trim(),
         }),
       })
 
       const data = await response.json()
 
-      if (data.candidates && Array.isArray(data.candidates)) {
-        setSearchResults(data.candidates)
+      if (data.ok && Array.isArray(data.results)) {
+        // Convert to old format for compatibility
+        setSearchResults(data.results.map((r: any) => ({
+          name: r.name,
+          website: r.website,
+          domain: r.domain,
+          confidence: 'medium' as const, // Default confidence
+        })))
       } else {
         setSearchResults([])
         if (data.error) {
@@ -104,16 +113,20 @@ export function WizardStep2Confirm({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              companyName: state.primaryCompanyName.trim(),
-              ideaOrContext: state.contextText,
-              limit: 12,
+              query: state.primaryCompanyName.trim(),
             }),
           })
 
           const data = await response.json()
 
-          if (data.candidates && Array.isArray(data.candidates)) {
-            setSearchResults(data.candidates)
+          if (data.ok && Array.isArray(data.results)) {
+            // Convert to old format for compatibility
+            setSearchResults(data.results.map((r: any) => ({
+              name: r.name,
+              website: r.website,
+              domain: r.domain,
+              confidence: 'medium' as const, // Default confidence
+            })))
           } else {
             setSearchResults([])
           }

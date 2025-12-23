@@ -198,4 +198,66 @@ export async function deleteCompetitorForProject(
   }
 }
 
+/**
+ * Add competitor from search result (name + url only, no evidence)
+ */
+export async function addCompetitorFromSearch(
+  projectId: string,
+  payload: { name: string; url: string }
+): Promise<ActionResult> {
+  const { supabase } = await requireProjectAccess(projectId)
+
+  const name = sanitizeString(payload.name)
+  const website = sanitizeString(payload.url)
+
+  if (!name) {
+    return { success: false, message: 'Competitor name is required.' }
+  }
+
+  if (!website) {
+    return { success: false, message: 'Website URL is required.' }
+  }
+
+  const existing = await listCompetitorsForProject(supabase, projectId)
+
+  if (existing.length >= MAX_COMPETITORS_PER_PROJECT) {
+    return {
+      success: false,
+      message: `You can add up to ${MAX_COMPETITORS_PER_PROJECT} competitors per analysis.`,
+    }
+  }
+
+  // Check for duplicate URL
+  const normalizedWebsite = website.toLowerCase().trim()
+  const hasDuplicate = existing.some(
+    (c) => c.url?.toLowerCase().trim() === normalizedWebsite
+  )
+
+  if (hasDuplicate) {
+    return { success: false, message: 'This competitor is already added.' }
+  }
+
+  try {
+    await createCompetitor(supabase, {
+      project_id: projectId,
+      name,
+      url: website,
+      evidence_text: null, // Evidence collected later
+    })
+
+    revalidatePath(`/projects/${projectId}/competitors`)
+
+    return { success: true }
+  } catch (error) {
+    logger.error('Failed to create competitor from search', error)
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Unable to add competitor. Please try again.'
+
+    return { success: false, message }
+  }
+}
+
 
