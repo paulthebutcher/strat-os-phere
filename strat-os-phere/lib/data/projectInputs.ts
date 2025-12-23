@@ -148,11 +148,13 @@ export async function createDraftProjectInput(
       }
     }
 
-    const nextVersion = maxVersionData ? (maxVersionData.version + 1) : 1
+    const nextVersion = maxVersionData && typeof maxVersionData === 'object' && maxVersionData !== null && 'version' in maxVersionData
+      ? ((maxVersionData as { version: number }).version + 1)
+      : 1
 
     // Insert the new draft
-    const { data, error } = await typedClient
-      .from('project_inputs')
+    const { data, error } = await (typedClient
+      .from('project_inputs') as any)
       .insert({
         project_id: projectId,
         version: nextVersion,
@@ -185,10 +187,12 @@ export async function createDraftProjectInput(
           }
         }
 
-        const retryNextVersion = retryMaxData ? (retryMaxData.version + 1) : 1
+        const retryNextVersion = retryMaxData && typeof retryMaxData === 'object' && retryMaxData !== null && 'version' in retryMaxData
+          ? ((retryMaxData as { version: number }).version + 1)
+          : 1
 
-        const { data: retryData, error: retryError } = await typedClient
-          .from('project_inputs')
+        const { data: retryData, error: retryError } = await (typedClient
+          .from('project_inputs') as any)
           .insert({
             project_id: projectId,
             version: retryNextVersion,
@@ -289,7 +293,10 @@ export async function updateProjectInput(
     }
 
     // Shallow merge: spread existing, then patch
-    const mergedJson = { ...(existingData.input_json as Record<string, any>), ...patchJson }
+    const existingDataTyped = existingData as { input_json: Record<string, any> } | null
+    const mergedJson = existingDataTyped
+      ? { ...(existingDataTyped.input_json as Record<string, any>), ...patchJson }
+      : patchJson
 
     // Build update payload
     const updatePayload: {
@@ -303,8 +310,8 @@ export async function updateProjectInput(
       updatePayload.status = status
     }
 
-    const { data, error } = await typedClient
-      .from('project_inputs')
+    const { data, error } = await (typedClient
+      .from('project_inputs') as any)
       .update(updatePayload)
       .eq('id', id)
       .select()
@@ -354,8 +361,8 @@ export async function finalizeProjectInput(
   try {
     const typedClient = getTypedClient(client)
     
-    const { data, error } = await typedClient
-      .from('project_inputs')
+    const { data, error } = await (typedClient
+      .from('project_inputs') as any)
       .update({ status: 'final' })
       .eq('id', id)
       .select()

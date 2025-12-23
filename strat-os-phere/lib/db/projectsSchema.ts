@@ -42,6 +42,27 @@ export type ProjectAllowedColumn = (typeof PROJECT_ALLOWED_COLUMNS)[number];
 export type ProjectsAllowedColumn = ProjectAllowedColumn;
 
 /**
+ * Stable columns that can be safely written to projects table.
+ * Only includes fields that are truly stable and not subject to schema drift.
+ * All other fields should be stored in project_inputs.input_json.
+ */
+export const PROJECT_STABLE_COLUMNS = [
+  "user_id",
+  "name",
+] as const;
+
+export type ProjectStableColumn = (typeof PROJECT_STABLE_COLUMNS)[number];
+
+/**
+ * Type for stable project inserts - only includes fields that are guaranteed
+ * to exist and won't drift. All evolving fields go to project_inputs.
+ */
+export type ProjectStableInsert = {
+  user_id: string;
+  name: string;
+};
+
+/**
  * Minimal project fields for basic operations.
  * Only includes columns guaranteed to exist.
  */

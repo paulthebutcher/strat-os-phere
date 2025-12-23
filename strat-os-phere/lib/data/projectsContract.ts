@@ -12,7 +12,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import { PROJECT_FULL_SELECT, PROJECT_DASHBOARD_SELECT } from './projectSelect'
 import { buildProjectUpdate } from '@/lib/db/projectUpdate'
-import { pickAllowedProjectFields } from '@/lib/db/projectsSafeWrite'
+import { pickAllowedProjectFields, pickStableProjectFields } from '@/lib/db/projectsSafeWrite'
+import type { ProjectStableInsert } from '@/lib/db/projectsSchema'
 import { logServerError } from '@/lib/server/errorLogger'
 
 type Client = TypedSupabaseClient
@@ -128,17 +129,18 @@ export async function listProjectsForOwnerSafe(
 }
 
 /**
- * Create a new project safely
+ * Create a new project safely with only stable fields.
+ * All evolving fields should be stored in project_inputs.input_json instead.
  */
 export async function createProjectSafe(
   client: Client,
-  input: NewProject
+  input: ProjectStableInsert
 ): Promise<ProjectResult<SafeProject>> {
   try {
     const typedClient = getTypedClient(client)
     
-    // Use buildProjectUpdate to filter out any unknown columns
-    const insertPayload = buildProjectUpdate(input) as unknown as Database['public']['Tables']['projects']['Insert']
+    // Use pickStableProjectFields to ensure only stable fields are included
+    const insertPayload = pickStableProjectFields(input) as unknown as Database['public']['Tables']['projects']['Insert']
     
     const query = typedClient.from('projects') as unknown as {
       insert: (values: Database['public']['Tables']['projects']['Insert']) => {
