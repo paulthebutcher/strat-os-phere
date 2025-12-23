@@ -27,13 +27,9 @@ interface CreateProjectPayload {
   decisionLevel?: DecisionLevel
   explicitNonGoals?: string
   inputConfidence?: InputConfidence
-  // New hypothesis-first fields
-  startingPoint?: 'product' | 'problem' | 'customer' | 'market'
-  hypothesis?: string
-  problemStatement?: string
-  customerProfile?: string
-  marketContext?: string
-  solutionIdea?: string
+  // Note: hypothesis, startingPoint, customerProfile, problemStatement, 
+  // marketContext, solutionIdea columns do not exist in production.
+  // Store these in context_paste as structured text if needed.
 }
 
 interface CreateProjectResult {
@@ -70,12 +66,10 @@ export async function createProjectFromForm(
       decision_level: payload.decisionLevel ?? null,
       explicit_non_goals: payload.explicitNonGoals ?? null,
       input_confidence: payload.inputConfidence ?? null,
-      // New hypothesis-first fields
-      // Note: starting_point and customer_profile removed - these columns don't exist in production
-      hypothesis: payload.hypothesis ?? null,
-      problem_statement: payload.problemStatement ?? null,
-      market_context: payload.marketContext ?? null,
-      solution_idea: payload.solutionIdea ?? null,
+      // Note: hypothesis, starting_point, customer_profile, problem_statement,
+      // market_context, solution_idea columns do not exist in production.
+      // If these values are provided, they should be stored in context_paste
+      // as structured text. For now, we skip them to prevent schema errors.
     })
 
     return { success: true, projectId: project.id }

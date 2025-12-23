@@ -57,11 +57,7 @@ function ProjectSummaryCard({ project, generatedAt }: { project: Project; genera
               </Badge>
             )}
           </div>
-          {project.hypothesis && (
-            <p className="text-sm font-medium text-foreground mb-2">
-              {project.hypothesis}
-            </p>
-          )}
+          {/* Note: hypothesis column does not exist in production, removed from display */}
           {contextParts.length > 0 && (
             <p className="text-sm text-muted-foreground">
               {contextParts.join(' · ')}

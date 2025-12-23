@@ -13,6 +13,8 @@ import { join, extname } from 'path'
 
 // Columns that are known to not exist in production
 const FORBIDDEN_COLUMNS = [
+  'hypothesis',
+  'decision_framing',
   'starting_point',
   'customer_profile',
 ]
@@ -124,11 +126,24 @@ function findViolations(): Violation[] {
                            new RegExp(`\\b${column}\\s*\\|\\|`, 'g').test(line) ||
                            new RegExp(`\\b${column}\\s*\\?`, 'g').test(line)
           
-          // Only flag if it's an assignment and not just reading
-          if (isAssignment && !isReading) {
+          // Skip form state assignments, experiment schemas, and prompt examples
+          const isFormState = /\b(useState|formState|setFormState|initialState)\s*[=:\(]/.test(line) ||
+                             line.includes('const [formState') ||
+                             line.includes('useState({') ||
+                             (file.includes('NewAnalysisForm.tsx') && line.includes('hypothesis:') && line.includes("''"))
+          const isExperimentSchema = file.includes('schemas/opportunityV3.ts') ||
+                                    file.includes('samples/adapter.ts') ||
+                                    /\bExperimentSchema/.test(line) ||
+                                    /experiments\s*:\s*\[/.test(line)
+          const isPromptExample = file.includes('prompts/opportunityV3.ts') && 
+                                 (line.includes("hypothesis: 'string'") || line.includes('hypothesis: "string"'))
+          
+          // Only flag if it's an assignment and not just reading, and not in excluded contexts
+          if (isAssignment && !isReading && !isFormState && !isExperimentSchema && !isPromptExample) {
             // Check if it's in a context that looks like an INSERT/UPDATE payload
-            const looksLikeInsertUpdate = /\b(createProject|insert|update)\s*\(/i.test(line) || 
-                                          /^\s*[a-z_]+\s*:\s*[^,}]+/i.test(line.trim())
+            const looksLikeInsertUpdate = /\b(createProject|insert|update|buildProjectUpdate)\s*\(/i.test(line) || 
+                                          (/^\s*[a-z_]+\s*:\s*[^,}]+/i.test(line.trim()) && 
+                                           !/^\s*(const|let|var|function|export|import)/.test(line.trim()))
             
             if (looksLikeInsertUpdate) {
               violations.push({

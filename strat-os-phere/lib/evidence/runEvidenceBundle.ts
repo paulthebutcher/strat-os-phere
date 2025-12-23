@@ -40,10 +40,9 @@ function buildHarvestContext(
   const market = project.market || project.market_context || undefined
 
   // Extract decision/business goal for context
+  // Note: hypothesis and problem_statement columns do not exist in production
   const decision =
     project.business_goal ||
-    project.hypothesis ||
-    project.problem_statement ||
     undefined
 
   // Build context string combining relevant fields

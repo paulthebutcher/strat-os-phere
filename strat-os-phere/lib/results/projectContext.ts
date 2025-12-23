@@ -24,11 +24,9 @@ export function buildProjectContext(projectRow: ProjectRow): ProjectContextSumma
   const fieldsUsed: string[] = []
   const sections: string[] = []
 
-  // Primary anchor: hypothesis (preferred) or fallback to your_product/business_goal
-  if (projectRow.hypothesis) {
-    sections.push(`Hypothesis: ${projectRow.hypothesis}`)
-    fieldsUsed.push('hypothesis')
-  } else if (projectRow.your_product) {
+  // Primary anchor: your_product/business_goal
+  // Note: hypothesis column does not exist in production
+  if (projectRow.your_product) {
     sections.push(`Product: ${projectRow.your_product}`)
     fieldsUsed.push('your_product')
   } else if (projectRow.business_goal) {
@@ -37,10 +35,8 @@ export function buildProjectContext(projectRow: ProjectRow): ProjectContextSumma
   }
 
   // Market context
-  if (projectRow.market_context) {
-    sections.push(`Market: ${projectRow.market_context}`)
-    fieldsUsed.push('market_context')
-  } else if (projectRow.market) {
+  // Note: market_context column does not exist in production
+  if (projectRow.market) {
     sections.push(`Market: ${projectRow.market}`)
     fieldsUsed.push('market')
   }
@@ -52,20 +48,8 @@ export function buildProjectContext(projectRow: ProjectRow): ProjectContextSumma
     fieldsUsed.push('target_customer')
   }
 
-  // Problem statement (for problem lens)
-  if (projectRow.problem_statement) {
-    sections.push(`Problem: ${projectRow.problem_statement}`)
-    fieldsUsed.push('problem_statement')
-  }
-
-  // Solution idea (for product lens, or when they have a solution)
-  if (projectRow.solution_idea) {
-    sections.push(`Solution: ${projectRow.solution_idea}`)
-    fieldsUsed.push('solution_idea')
-  } else if (projectRow.your_product && !projectRow.hypothesis) {
-    // Legacy: your_product already added above, but include it here for completeness
-    // (already added, so skip)
-  }
+  // Note: problem_statement and solution_idea columns do not exist in production
+  // These fields are not available for context building
 
   // Geography
   if (projectRow.geography) {

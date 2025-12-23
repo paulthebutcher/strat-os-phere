@@ -162,12 +162,9 @@ export async function generateAnalysis(
       decision_level: project.decision_level,
       explicit_non_goals: project.explicit_non_goals,
       input_confidence: project.input_confidence,
-      // New hypothesis-first fields
-      // Note: starting_point and customer_profile removed - these columns don't exist in production
-      hypothesis: project.hypothesis,
-      problem_statement: project.problem_statement,
-      market_context: project.market_context,
-      solution_idea: project.solution_idea,
+      // Note: hypothesis, starting_point, customer_profile, problem_statement,
+      // market_context, solution_idea columns do not exist in production.
+      // These fields are removed to prevent schema errors.
       // Computed context
       lens: contextSummary.lens,
       summaryText: contextSummary.summaryText,

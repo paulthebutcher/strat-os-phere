@@ -833,13 +833,9 @@ export function NewAnalysisForm({
         explicitNonGoals: formState.explicitNonGoals || undefined,
         inputConfidence:
           (formState.inputConfidence as InputConfidence) || undefined,
-        // New hypothesis-first fields
-        startingPoint: formState.startingPoint,
-        hypothesis: formState.hypothesis || undefined,
-        problemStatement: formState.problemStatement || undefined,
-        customerProfile: formState.customerProfile || undefined,
-        marketContext: formState.marketContext || undefined,
-        solutionIdea: formState.solutionIdea || undefined,
+        // Note: hypothesis, startingPoint, customerProfile, problemStatement,
+        // marketContext, solutionIdea columns do not exist in production.
+        // These fields are removed from submission to prevent schema errors.
       })
 
       if (!projectResult?.success || !projectResult.projectId) {
@@ -932,11 +928,10 @@ export function NewAnalysisForm({
     event.preventDefault()
     if (
       !formState.name ||
-      !formState.hypothesis ||
       !formState.marketCategory ||
       !formState.targetCustomer
     ) {
-      setError('Please fill in all required fields (name, hypothesis, market, and target customer).')
+      setError('Please fill in all required fields (name, market, and target customer).')
       return
     }
 
@@ -964,13 +959,9 @@ export function NewAnalysisForm({
         explicitNonGoals: formState.explicitNonGoals || undefined,
         inputConfidence:
           (formState.inputConfidence as InputConfidence) || undefined,
-        // New hypothesis-first fields
-        startingPoint: formState.startingPoint,
-        hypothesis: formState.hypothesis || undefined,
-        problemStatement: formState.problemStatement || undefined,
-        customerProfile: formState.customerProfile || undefined,
-        marketContext: formState.marketContext || undefined,
-        solutionIdea: formState.solutionIdea || undefined,
+        // Note: hypothesis, startingPoint, customerProfile, problemStatement,
+        // marketContext, solutionIdea columns do not exist in production.
+        // These fields are removed from submission to prevent schema errors.
       })
 
       if (!result?.success) {

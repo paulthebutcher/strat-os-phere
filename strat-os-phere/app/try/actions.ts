@@ -48,11 +48,9 @@ export async function createProjectFromTryDraft(
       decision_level: null,
       explicit_non_goals: null,
       input_confidence: null,
-      // Note: starting_point and customer_profile removed - these columns don't exist in production
-      hypothesis: null,
-      problem_statement: null,
-      market_context: null,
-      solution_idea: null,
+      // Note: hypothesis, starting_point, customer_profile, problem_statement,
+      // market_context, solution_idea columns do not exist in production.
+      // These are removed to prevent schema errors.
     })
 
     const projectId = project.id

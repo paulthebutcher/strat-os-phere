@@ -26,12 +26,8 @@ export interface ProjectRow {
   decision_level: DecisionLevel | null
   explicit_non_goals: string | null
   input_confidence: InputConfidence | null
-  starting_point: StartingPoint | null
-  hypothesis: string | null
-  problem_statement: string | null
-  customer_profile: string | null
-  market_context: string | null
-  solution_idea: string | null
+  // Note: starting_point, hypothesis, problem_statement, customer_profile,
+  // market_context, solution_idea columns do not exist in production schema
   latest_successful_run_id: string | null
   latest_run_id: string | null
   created_at: string
@@ -52,12 +48,8 @@ export interface ProjectInsert {
   decision_level?: DecisionLevel | null
   explicit_non_goals?: string | null
   input_confidence?: InputConfidence | null
-  starting_point?: StartingPoint | null
-  hypothesis?: string | null
-  problem_statement?: string | null
-  customer_profile?: string | null
-  market_context?: string | null
-  solution_idea?: string | null
+  // Note: starting_point, hypothesis, problem_statement, customer_profile,
+  // market_context, solution_idea columns do not exist in production schema
   latest_successful_run_id?: string | null
   latest_run_id?: string | null
 }

@@ -7,7 +7,12 @@
  * 
  * Can be used for both inserts and updates. For inserts, pass all required fields.
  * For updates, pass only the fields you want to update.
+ * 
+ * This function now uses pickAllowedProjectFields to automatically filter
+ * out any columns that don't exist in the schema.
  */
+
+import { pickAllowedProjectFields } from "./projectsSafeWrite";
 
 export function buildProjectUpdate(input: {
   user_id?: string;
@@ -24,38 +29,15 @@ export function buildProjectUpdate(input: {
   decision_level?: string | null;
   explicit_non_goals?: string | null;
   input_confidence?: string | null;
-  hypothesis?: string | null;
-  problem_statement?: string | null;
-  market_context?: string | null;
-  solution_idea?: string | null;
   latest_successful_run_id?: string | null;
   latest_run_id?: string | null;
-  // do NOT include decision_framing, starting_point, customer_profile
+  // do NOT include: hypothesis, decision_framing, starting_point, customer_profile,
+  // problem_statement, market_context, solution_idea, context_paste
   // as these columns do not exist in the production schema
+  // Future: consider adding context_paste column via migration to store evolving inputs
+  [key: string]: any; // Allow any other fields, they'll be filtered out
 }) {
-  const update: Record<string, unknown> = {};
-  
-  if (input.user_id !== undefined) update.user_id = input.user_id;
-  if (input.name !== undefined) update.name = input.name;
-  if (input.market !== undefined) update.market = input.market;
-  if (input.target_customer !== undefined) update.target_customer = input.target_customer;
-  if (input.your_product !== undefined) update.your_product = input.your_product;
-  if (input.business_goal !== undefined) update.business_goal = input.business_goal;
-  if (input.geography !== undefined) update.geography = input.geography;
-  if (input.primary_constraint !== undefined) update.primary_constraint = input.primary_constraint;
-  if (input.risk_posture !== undefined) update.risk_posture = input.risk_posture;
-  if (input.ambition_level !== undefined) update.ambition_level = input.ambition_level;
-  if (input.organizational_capabilities !== undefined) update.organizational_capabilities = input.organizational_capabilities;
-  if (input.decision_level !== undefined) update.decision_level = input.decision_level;
-  if (input.explicit_non_goals !== undefined) update.explicit_non_goals = input.explicit_non_goals;
-  if (input.input_confidence !== undefined) update.input_confidence = input.input_confidence;
-  if (input.hypothesis !== undefined) update.hypothesis = input.hypothesis;
-  if (input.problem_statement !== undefined) update.problem_statement = input.problem_statement;
-  if (input.market_context !== undefined) update.market_context = input.market_context;
-  if (input.solution_idea !== undefined) update.solution_idea = input.solution_idea;
-  if (input.latest_successful_run_id !== undefined) update.latest_successful_run_id = input.latest_successful_run_id;
-  if (input.latest_run_id !== undefined) update.latest_run_id = input.latest_run_id;
-  
-  return update;
+  // Use pickAllowedProjectFields to automatically filter out unknown columns
+  return pickAllowedProjectFields(input);
 }
 

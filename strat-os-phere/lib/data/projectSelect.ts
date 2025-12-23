@@ -4,121 +4,57 @@
  * These selectors only include columns that are confirmed to exist
  * in the production database schema. Do not add columns here unless
  * you've verified they exist in production.
+ * 
+ * All selectors now use the single source of truth from projectsSchema.ts
  */
+
+import {
+  PROJECT_SELECT_MIN,
+  PROJECT_SELECT_NEW_FLOW,
+  PROJECT_SELECT_DASHBOARD,
+  PROJECT_SELECT_FULL,
+} from "../db/projectsSchema";
 
 /**
  * Minimal project fields for overview/summary views.
  * Only includes columns guaranteed to exist in production.
  */
-export const PROJECT_OVERVIEW_SELECT = `
-  id,
-  user_id,
-  name,
-  market,
-  target_customer,
-  your_product,
-  business_goal,
-  geography,
-  primary_constraint,
-  risk_posture,
-  ambition_level,
-  organizational_capabilities,
-  decision_level,
-  explicit_non_goals,
-  input_confidence,
-  hypothesis,
-  problem_statement,
-  market_context,
-  solution_idea,
-  latest_successful_run_id,
-  latest_run_id,
-  created_at
-`.trim().replace(/\s+/g, ' ')
+export const PROJECT_OVERVIEW_SELECT = PROJECT_SELECT_FULL;
 
 /**
  * Full project fields for detailed views.
- * Only includes columns guaranteed to exist in production.
+ * Only includes columns confirmed to exist in production.
  * 
- * Note: starting_point and customer_profile are intentionally excluded
+ * Note: hypothesis, starting_point, customer_profile, decision_framing,
+ * problem_statement, market_context, solution_idea are intentionally excluded
  * as they do not exist in the production schema.
  */
-export const PROJECT_FULL_SELECT = PROJECT_OVERVIEW_SELECT
+export const PROJECT_FULL_SELECT = PROJECT_SELECT_FULL;
 
 /**
  * Project fields for list/table views.
  * Minimal set for performance.
  */
-export const PROJECT_LIST_SELECT = `
-  id,
-  user_id,
-  name,
-  market,
-  latest_successful_run_id,
-  latest_run_id,
-  created_at
-`.trim().replace(/\s+/g, ' ')
+export const PROJECT_LIST_SELECT = PROJECT_SELECT_MIN;
 
 /**
  * Minimal project fields for /new flow stepper.
  * Only includes fields needed during project creation flow.
  */
-export const PROJECT_NEW_FLOW_SELECT = `
-  id,
-  user_id,
-  name,
-  market,
-  target_customer,
-  your_product,
-  business_goal,
-  latest_successful_run_id,
-  latest_run_id,
-  created_at
-`.trim().replace(/\s+/g, ' ')
+export const PROJECT_NEW_FLOW_SELECT = PROJECT_SELECT_NEW_FLOW;
 
 /**
  * Minimal project fields for results/opportunities pages.
  * Only includes fields needed for displaying results.
  */
-export const PROJECT_RESULTS_SELECT = `
-  id,
-  user_id,
-  name,
-  market,
-  target_customer,
-  your_product,
-  business_goal,
-  geography,
-  primary_constraint,
-  risk_posture,
-  ambition_level,
-  organizational_capabilities,
-  decision_level,
-  explicit_non_goals,
-  input_confidence,
-  hypothesis,
-  problem_statement,
-  market_context,
-  solution_idea,
-  latest_successful_run_id,
-  latest_run_id,
-  created_at
-`.trim().replace(/\s+/g, ' ')
+export const PROJECT_RESULTS_SELECT = PROJECT_SELECT_FULL;
 
 /**
  * Minimal project fields for /dashboard page.
- * Only includes columns confirmed to exist in production:
- * id, user_id, name, market, created_at
+ * Only includes columns confirmed to exist in production.
  * 
  * Also includes latest_successful_run_id and latest_run_id which are
  * needed for dashboard table functionality and were added via migration.
  */
-export const PROJECT_DASHBOARD_SELECT = `
-  id,
-  user_id,
-  name,
-  market,
-  latest_successful_run_id,
-  latest_run_id,
-  created_at
-`.trim().replace(/\s+/g, ' ')
+export const PROJECT_DASHBOARD_SELECT = PROJECT_SELECT_DASHBOARD;
 

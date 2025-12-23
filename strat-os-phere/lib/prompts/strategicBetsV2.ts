@@ -57,21 +57,17 @@ export function buildStrategicBetsV2Prompt(
     `Lens: ${lens.charAt(0).toUpperCase() + lens.slice(1)}`,
   ]
 
-  // Primary anchor: hypothesis (preferred) or fallback to your_product/business_goal
-  if (project.hypothesis) {
-    projectLines.push(`Hypothesis: ${project.hypothesis}`)
-  } else if (project.your_product) {
+  // Primary anchor: your_product/business_goal
+  // Note: hypothesis column does not exist in production
+  if (project.your_product) {
     projectLines.push(`Your product: ${project.your_product}`)
   } else if (project.business_goal) {
     projectLines.push(`Business goal: ${project.business_goal}`)
   }
 
   // Market context
-  if (project.market_context) {
-    projectLines.push(`Market: ${project.market_context}`)
-  } else {
-    projectLines.push(`Market: ${project.market}`)
-  }
+  // Note: market_context column does not exist in production
+  projectLines.push(`Market: ${project.market}`)
 
   // Customer context
   // Note: customer_profile column doesn't exist in production, use target_customer
