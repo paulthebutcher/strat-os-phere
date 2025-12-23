@@ -4,6 +4,7 @@ import type { Database } from '@/lib/supabase/database.types'
 import { PROJECT_FULL_SELECT, PROJECT_LIST_SELECT, PROJECT_DASHBOARD_SELECT } from './projectSelect'
 import { isMissingColumnError } from '@/lib/db/safeDb'
 import { buildProjectUpdate } from '@/lib/db/projectUpdate'
+import { getLatestAnalysisInfoForProjects } from './latestRun'
 
 type Client = TypedSupabaseClient
 
@@ -91,7 +92,8 @@ export async function updateProjectRunFields(
   projectId: string,
   fields: {
     latest_successful_run_id?: string | null
-    latest_run_id?: string | null
+    // Note: latest_run_id is not included as it doesn't exist in production schema
+    // Use lib/data/latestRun.ts to derive latest run info from artifacts table
   }
 ): Promise<void> {
   const typedClient = getTypedClient(client)
@@ -116,13 +118,16 @@ export type ProjectWithCounts = {
   name: string
   market: string | null
   latest_successful_run_id: string | null
-  latest_run_id: string | null
+  // Note: latest_run_id is not included as it doesn't exist in production schema
+  // Use lib/data/latestRun.ts to derive latest run info from artifacts table
   created_at: string
   updated_at?: string | null
   competitorCount: number
   competitorsWithEvidenceCount: number
   evidenceSourceCount: number
-  latestRunCreatedAt: string | null
+  latestRunCreatedAt: string | null // Derived from artifacts table
+  lastArtifactAt?: string | null // Derived from artifacts table
+  lastArtifactType?: string | null // Derived from artifacts table
 }
 
 /**
@@ -158,8 +163,8 @@ export async function listProjectsWithCounts(
   const projectList = projects as Database['public']['Tables']['projects']['Row'][]
   const projectIds = projectList.map(p => p.id)
 
-  // Fetch counts in parallel for all projects
-  const [competitorCounts, evidenceCounts, runData] = await Promise.all([
+  // Fetch counts and latest run info in parallel for all projects
+  const [competitorCounts, evidenceCounts, runData, latestAnalysisInfo] = await Promise.all([
     // Count competitors per project
     Promise.all(
       projectIds.map(async (projectId) => {
@@ -229,6 +234,8 @@ export async function listProjectsWithCounts(
         }
       })
     ),
+    // Get latest analysis info from artifacts table (derived, resilient)
+    getLatestAnalysisInfoForProjects(client, projectIds),
   ])
 
   // Build maps for quick lookup
@@ -253,18 +260,23 @@ export async function listProjectsWithCounts(
       ? (project as any).updated_at
       : null
     
+    const latestInfo = latestAnalysisInfo[projectId]
+    
     return {
       id: project.id,
       name: project.name,
       market: project.market,
       latest_successful_run_id: project.latest_successful_run_id ?? null,
-      latest_run_id: project.latest_run_id ?? null,
+      // Note: latest_run_id is not included as it doesn't exist in production schema
       created_at: project.created_at,
       updated_at: updatedAt,
       competitorCount: competitorCountMap.get(projectId) ?? 0,
       competitorsWithEvidenceCount: competitorsWithEvidenceMap.get(projectId) ?? 0,
       evidenceSourceCount: evidenceCountMap.get(projectId) ?? 0,
       latestRunCreatedAt: latestRunMap.get(projectId) ?? null,
+      // Derived from artifacts table (resilient, no schema drift)
+      lastArtifactAt: latestInfo?.lastArtifactAt ?? null,
+      lastArtifactType: latestInfo?.lastArtifactType ?? null,
     }
   })
 }

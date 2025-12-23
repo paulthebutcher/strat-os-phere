@@ -53,8 +53,8 @@ export const PROJECT_RESULTS_SELECT = PROJECT_SELECT_FULL;
  * Minimal project fields for /dashboard page.
  * Only includes columns confirmed to exist in production.
  * 
- * Also includes latest_successful_run_id and latest_run_id which are
- * needed for dashboard table functionality and were added via migration.
+ * Note: latest_run_id is not included as it doesn't exist in production schema.
+ * Use lib/data/latestRun.ts to derive latest run info from artifacts table.
  */
 export const PROJECT_DASHBOARD_SELECT = PROJECT_SELECT_DASHBOARD;
 

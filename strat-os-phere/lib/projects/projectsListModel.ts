@@ -85,7 +85,8 @@ export function toProjectsListRow(project: ProjectWithCounts): ProjectsListRow {
   const evidenceStrength = mapEvidenceStrength(evidenceScore);
   
   const hasSuccessfulRun = !!project.latest_successful_run_id;
-  const hasRun = !!project.latest_run_id;
+  // Use derived lastArtifactAt instead of latest_run_id (which doesn't exist in production)
+  const hasRun = !!project.lastArtifactAt;
   const hasEvidence = project.evidenceSourceCount > 0 || project.competitorsWithEvidenceCount > 0;
   
   const primaryCta = determinePrimaryCta(hasSuccessfulRun, hasRun, hasEvidence);
@@ -110,7 +111,8 @@ export function toProjectsListRow(project: ProjectWithCounts): ProjectsListRow {
     status,
     evidenceStrength,
     evidenceScore,
-    lastRunAt: project.latestRunCreatedAt || undefined,
+    // Prefer derived lastArtifactAt, fallback to latestRunCreatedAt from analysis_runs
+    lastRunAt: project.lastArtifactAt || project.latestRunCreatedAt || undefined,
     lastTouchedAt: lastTouchedAt || undefined,
     primaryCta,
     primaryHref: primaryCta === "View Opportunities" 

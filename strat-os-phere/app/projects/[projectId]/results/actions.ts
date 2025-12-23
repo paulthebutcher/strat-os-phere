@@ -384,9 +384,10 @@ export async function generateAnalysis(
     })
 
     // Update project with latest successful run (both artifacts created successfully)
+    // Note: latest_run_id is not updated as it doesn't exist in production schema
+    // Latest run info is now derived from artifacts table via lib/data/latestRun.ts
     await updateProjectRunFields(supabase, projectId, {
       latest_successful_run_id: runId,
-      latest_run_id: runId,
     })
 
     return {

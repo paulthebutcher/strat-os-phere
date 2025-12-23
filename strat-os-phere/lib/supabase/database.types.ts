@@ -28,8 +28,9 @@ export interface ProjectRow {
   input_confidence: InputConfidence | null
   // Note: starting_point, hypothesis, problem_statement, customer_profile,
   // market_context, solution_idea columns do not exist in production schema
+  // Note: latest_run_id column does not exist in production schema
+  // Use lib/data/latestRun.ts to derive latest run info from artifacts table
   latest_successful_run_id: string | null
-  latest_run_id: string | null
   created_at: string
 }
 
@@ -50,8 +51,9 @@ export interface ProjectInsert {
   input_confidence?: InputConfidence | null
   // Note: starting_point, hypothesis, problem_statement, customer_profile,
   // market_context, solution_idea columns do not exist in production schema
+  // Note: latest_run_id column does not exist in production schema
+  // Use lib/data/latestRun.ts to derive latest run info from artifacts table
   latest_successful_run_id?: string | null
-  latest_run_id?: string | null
 }
 
 export type ProjectUpdate = Partial<ProjectInsert>

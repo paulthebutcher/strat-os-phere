@@ -65,10 +65,8 @@ export async function POST(request: Request) {
     const runId = generateRunId()
     await initializeRun(supabase, projectId, runId)
 
-    // Update project with latest run
-    await updateProjectRunFields(supabase, projectId, {
-      latest_run_id: runId,
-    })
+    // Note: We no longer update latest_run_id as it doesn't exist in production schema
+    // Latest run info is now derived from artifacts table via lib/data/latestRun.ts
 
     // Start generation in background (fire and forget)
     // Note: In production, this should use a proper job queue (e.g., Vercel Queue, BullMQ)
@@ -79,9 +77,10 @@ export async function POST(request: Request) {
       .then(async (result) => {
         if (result.ok) {
           // Update project with latest successful run
+          // Note: latest_run_id is not updated as it doesn't exist in production schema
+          // Latest run info is now derived from artifacts table via lib/data/latestRun.ts
           await updateProjectRunFields(supabase, projectId, {
             latest_successful_run_id: runId,
-            latest_run_id: runId,
           })
           logger.info('Background generation completed', { runId, projectId })
         } else {

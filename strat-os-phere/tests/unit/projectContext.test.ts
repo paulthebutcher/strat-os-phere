@@ -21,7 +21,6 @@ describe('buildProjectContext', () => {
       explicit_non_goals: 'Enterprise sales',
       input_confidence: 'very_confident',
       latest_successful_run_id: null,
-      latest_run_id: null,
       created_at: new Date().toISOString(),
     } as ProjectRow
 
@@ -54,7 +53,6 @@ describe('buildProjectContext', () => {
       explicit_non_goals: null,
       input_confidence: null,
       latest_successful_run_id: null,
-      latest_run_id: null,
       created_at: new Date().toISOString(),
     } as ProjectRow
 
@@ -85,7 +83,6 @@ describe('buildProjectContext', () => {
       explicit_non_goals: null,
       input_confidence: null,
       latest_successful_run_id: null,
-      latest_run_id: null,
       created_at: new Date().toISOString(),
     } as ProjectRow
 
@@ -116,7 +113,6 @@ describe('buildProjectContext', () => {
       explicit_non_goals: null,
       input_confidence: null,
       latest_successful_run_id: null,
-      latest_run_id: null,
       created_at: new Date().toISOString(),
     } as ProjectRow
 
@@ -147,7 +143,6 @@ describe('buildProjectContext', () => {
       explicit_non_goals: null,
       input_confidence: null,
       latest_successful_run_id: null,
-      latest_run_id: null,
       created_at: new Date().toISOString(),
     } as ProjectRow
 
