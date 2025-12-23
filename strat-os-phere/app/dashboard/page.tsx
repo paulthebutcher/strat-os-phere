@@ -53,18 +53,57 @@ export default async function DashboardPage() {
 
   try {
     // Fetch projects with counts for table view
-    projectsWithCounts = await listProjectsWithCounts(supabase, user.id)
-    tableRows = projectsWithCounts.map(toProjectsListRow)
+    try {
+      projectsWithCounts = await listProjectsWithCounts(supabase, user.id)
+      tableRows = projectsWithCounts.map(toProjectsListRow)
+    } catch (e) {
+      const error = e as any
+      const originalError = error?.originalError ?? error
+      const msg = originalError?.message ?? String(originalError)
+      const code = originalError?.code ?? originalError?.details ?? null
+      const isMissingColumn =
+        typeof msg === "string" &&
+        (msg.toLowerCase().includes("does not exist") || msg.toLowerCase().includes("column"))
+      console.error("[dashboard] failed in listProjectsWithCounts", { 
+        stage: "listProjectsWithCounts", 
+        msg, 
+        code, 
+        originalError 
+      })
+      throw { originalError, stage: "listProjectsWithCounts", msg, code, isMissingColumn }
+    }
 
     // Also fetch basic projects for ContinuePanel and OnboardingCardWrapper (they use ProjectCardModel)
-    projects = await listProjectsForOwner(supabase, user.id)
-    projectCards = projects.map(toProjectCardModel)
+    try {
+      projects = await listProjectsForOwner(supabase, user.id)
+      projectCards = projects.map(toProjectCardModel)
+    } catch (e) {
+      const error = e as any
+      const originalError = error?.originalError ?? error
+      const msg = originalError?.message ?? String(originalError)
+      const code = originalError?.code ?? originalError?.details ?? null
+      const isMissingColumn =
+        typeof msg === "string" &&
+        (msg.toLowerCase().includes("does not exist") || msg.toLowerCase().includes("column"))
+      console.error("[dashboard] failed in listProjectsForOwner/toProjectCardModel", { 
+        stage: "listProjectsForOwner/toProjectCardModel", 
+        msg, 
+        code, 
+        originalError 
+      })
+      throw { originalError, stage: "listProjectsForOwner/toProjectCardModel", msg, code, isMissingColumn }
+    }
   } catch (error: any) {
-    console.error('[dashboard] failed to load projects', error)
-    
-    // Check if this is a missing column error
-    const isMissingColumn = error?.isMissingColumn ?? false
+    // Extract error details with robust introspection
     const originalError = error?.originalError ?? error
+    const msg = originalError?.message ?? String(originalError)
+    const code = originalError?.code ?? originalError?.details ?? null
+    const stage = error?.stage ?? "unknown"
+    const isMissingColumn =
+      typeof msg === "string" &&
+      (msg.toLowerCase().includes("does not exist") || msg.toLowerCase().includes("column"))
+    
+    console.error("[dashboard] failed to load projects", { stage, msg, code, originalError })
 
     // Render error state instead of crashing
     return (
