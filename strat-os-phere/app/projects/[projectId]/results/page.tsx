@@ -17,6 +17,9 @@ import { InProgressBanner } from '@/components/results/InProgressBanner'
 import { ResultsPageClient } from '@/components/results/ResultsPageClient'
 import { SectionSkeleton } from '@/components/results/SectionSkeleton'
 import { listArtifacts } from '@/lib/data/artifacts'
+import { SectionHeader } from '@/components/shared/SectionHeader'
+import { Card, CardContent } from '@/components/ui/card'
+import { FirstWinChecklistWrapper } from '@/components/onboarding/FirstWinChecklistWrapper'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -117,18 +120,64 @@ export default async function ResultsPage(props: ResultsPageProps) {
         initialArtifacts={results.artifacts}
       >
         <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-          <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-          <div className="flex items-center justify-between">
-            <TourLink />
-            <div className="flex items-center gap-2">
-              {hasArtifacts && (
-                <>
-                  <RerunAnalysisButton projectId={projectId} />
-                  <RunHistoryDrawer projectId={projectId} artifacts={allArtifacts} />
-                </>
-              )}
-              <ShareButton projectId={projectId} />
-            </div>
+          <main className="flex w-full max-w-6xl flex-col gap-8 py-8 md:py-10 animate-fade-in">
+          {/* First Win Checklist in Guided Mode */}
+          <FirstWinChecklistWrapper
+            projectId={projectId}
+            project={results.project}
+            competitorCount={competitors.length}
+            hasResults={hasArtifacts}
+          />
+
+          {/* Executive Brief Header */}
+          <div className="space-y-4">
+            <SectionHeader
+              title={results.project?.name || "Results"}
+              description={
+                normalized.meta.lastGeneratedAt
+                  ? `Generated ${new Date(normalized.meta.lastGeneratedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                  : "Competitive analysis results"
+              }
+              actions={
+                <div className="flex items-center gap-2">
+                  {hasArtifacts && (
+                    <>
+                      <RerunAnalysisButton projectId={projectId} />
+                      <RunHistoryDrawer projectId={projectId} artifacts={allArtifacts} />
+                    </>
+                  )}
+                  <ShareButton projectId={projectId} />
+                </div>
+              }
+            />
+            {hasArtifacts && competitors.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="plinth-card-elevated">
+                  <CardContent className="p-4">
+                    <div className="text-sm text-muted-foreground">Competitors analyzed</div>
+                    <div className="text-2xl font-semibold text-foreground mt-1">
+                      {competitors.length}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="plinth-card-elevated">
+                  <CardContent className="p-4">
+                    <div className="text-sm text-muted-foreground">Evidence sources</div>
+                    <div className="text-2xl font-semibold text-foreground mt-1">
+                      {results.artifacts.length}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="plinth-card-elevated">
+                  <CardContent className="p-4">
+                    <div className="text-sm text-muted-foreground">Status</div>
+                    <div className="text-2xl font-semibold text-foreground mt-1">
+                      {isRunning ? "Running" : "Complete"}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
 
           {/* In-progress banner */}
@@ -138,9 +187,9 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
           {!hasArtifacts ? (
             // Empty state: no successful run
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <h2 className="text-2xl font-semibold mb-2">No results yet</h2>
-              <p className="text-muted-foreground mb-6 max-w-md">
+            <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
+              <h2 className="text-3xl font-semibold mb-3 tracking-tight">No results yet</h2>
+              <p className="text-base text-muted-foreground mb-8 max-w-md leading-relaxed">
                 Run an analysis to generate competitive insights and strategic opportunities.
               </p>
               <RerunAnalysisButton projectId={projectId} />

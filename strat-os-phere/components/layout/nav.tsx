@@ -18,8 +18,8 @@ export async function Nav() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+    <nav className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-8">
           <Logo
             href="/dashboard"

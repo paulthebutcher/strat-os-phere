@@ -17,6 +17,7 @@ import { DataRecencyNote } from '@/components/shared/DataRecencyNote'
 import Link from 'next/link'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
 import { TourLink } from '@/components/guidance/TourLink'
+import { FirstWinChecklistWrapper } from '@/components/onboarding/FirstWinChecklistWrapper'
 
 interface CompetitorsPageProps {
   params: Promise<{
@@ -123,6 +124,13 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
               />
             </div>
         </header>
+
+        <FirstWinChecklistWrapper
+          projectId={projectId}
+          project={project}
+          competitorCount={competitorCount}
+          hasResults={hasAnyArtifacts}
+        />
 
         <CompetitorsPageClient
           projectId={projectId}

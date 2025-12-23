@@ -69,18 +69,18 @@ export function EmptyState({
 
   return (
     <section
-      className={`flex flex-col items-center justify-center py-16 px-6 ${className || ''}`}
+      className={`flex flex-col items-center justify-center py-20 px-6 animate-fade-in ${className || ''}`}
     >
-      <div className="w-full max-w-md space-y-4 text-center">
-        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+      <div className="w-full max-w-md space-y-5 text-center">
+        <h2 className="text-2xl font-semibold text-foreground tracking-tight">{title}</h2>
+        <p className="text-base text-muted-foreground leading-relaxed">{description}</p>
         {(primaryAction || secondaryAction) && (
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             {primaryAction && renderButton(primaryAction, 'default')}
             {secondaryAction && renderButton(secondaryAction, 'outline')}
           </div>
         )}
-        {footer && <div className="pt-2">{footer}</div>}
+        {footer && <div className="pt-4">{footer}</div>}
       </div>
     </section>
   )

@@ -201,6 +201,7 @@ See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for detailed deployment guide.
 
 ## Documentation
 
+- [Development Workflow](./docs/DEV_WORKFLOW.md) - Fast iteration workflow and build policy
 - [Architecture](./docs/ARCHITECTURE.md) - System design and module map
 - [Authentication](./docs/AUTH.md) - Auth flow and implementation details
 - [Data Model](./docs/DATA_MODEL.md) - Database schema and relationships

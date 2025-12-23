@@ -7,6 +7,9 @@ import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { QualityMeter } from './QualityMeter'
+import { InlineTip } from './InlineTip'
+import { isMarketComplete, isTargetCustomerComplete } from '@/lib/onboarding/heuristics'
 import type {
   WizardState,
   ResolvedSource,
@@ -16,6 +19,7 @@ import type {
 interface WizardStep1DescribeProps {
   initialState: WizardState
   onComplete: (state: Partial<WizardState>) => void
+  isGuidedMode?: boolean
 }
 
 type DiscoveryStatus =
@@ -29,6 +33,7 @@ type DiscoveryStatus =
 export function WizardStep1Describe({
   initialState,
   onComplete,
+  isGuidedMode = false,
 }: WizardStep1DescribeProps) {
   const [companyName, setCompanyName] = useState(
     initialState.primaryCompanyName
@@ -44,8 +49,14 @@ export function WizardStep1Describe({
   } | null>(null)
 
   const handleTryExample = () => {
-    setCompanyName('monday')
-    setContextText('')
+    if (isGuidedMode) {
+      // Example for guided mode: Incident management SaaS
+      setCompanyName('PagerDuty')
+      setContextText('Incident management and on-call scheduling platform for DevOps teams. Helps teams respond to incidents faster with automated alerting, on-call scheduling, and incident response workflows.')
+    } else {
+      setCompanyName('monday')
+      setContextText('')
+    }
   }
 
   const handleDiscover = async () => {
@@ -140,18 +151,44 @@ export function WizardStep1Describe({
 
   const isLoading = status !== 'idle' && status !== 'success' && status !== 'error'
 
+  // For guided mode, show example block
+  const showExampleBlock = isGuidedMode
+
   return (
-    <SurfaceCard className="p-6">
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground mb-2">
-            Start with a company (we'll do the research)
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            We'll use Tavily to find official sources, pricing pages, docs, and
-            recommend competitors automatically.
-          </p>
-        </div>
+    <div className="space-y-6">
+      {isGuidedMode && (
+        <SurfaceCard className="p-5 border-indigo-200 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20">
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-foreground">
+              Here's what great input looks like
+            </h3>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p>
+                <strong className="text-foreground">Company:</strong> PagerDuty
+              </p>
+              <p>
+                <strong className="text-foreground">Context:</strong> Incident management SaaS for DevOps teams. Helps teams respond to incidents faster with automated alerting and on-call scheduling.
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground italic">
+              If you're not sure, start with your best guess — we'll tighten it up.
+            </p>
+          </div>
+        </SurfaceCard>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8">
+          <SurfaceCard className="p-6 md:p-8 shadow-md">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-semibold text-foreground mb-3 tracking-tight">
+                  Describe what to analyze
+                </h2>
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  Enter a company or product name. We'll automatically discover official sources, pricing pages, documentation, and recommend competitors.
+                </p>
+              </div>
 
         {/* Company name input */}
         <div className="space-y-2">
@@ -174,6 +211,13 @@ export function WizardStep1Describe({
             disabled={isLoading}
             required
           />
+          {isGuidedMode && (
+            <InlineTip
+              isComplete={companyName.length >= 12}
+              message="Use a descriptive company or product name (12+ characters)"
+              completedMessage="Great! You have a descriptive name"
+            />
+          )}
         </div>
 
         {/* Context text input */}
@@ -202,6 +246,13 @@ export function WizardStep1Describe({
             Help us understand your context to find better sources and
             competitors.
           </p>
+          {isGuidedMode && (
+            <InlineTip
+              isComplete={contextText.length >= 20 && contextText.trim().split(/\s+/).length >= 2}
+              message="Add context about the market, customer, or what decision you're making (2+ sentences)"
+              completedMessage="Excellent context provided"
+            />
+          )}
         </div>
 
         {/* Status messages */}
@@ -263,6 +314,8 @@ export function WizardStep1Describe({
             onClick={handleDiscover}
             disabled={isLoading || !companyName.trim()}
             className="flex-1"
+            size="lg"
+            variant="brand"
           >
             {isLoading ? (
               <>
@@ -276,17 +329,48 @@ export function WizardStep1Describe({
               </>
             )}
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleTryExample}
-            disabled={isLoading}
-          >
-            Try an example
-          </Button>
+          {isGuidedMode ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleTryExample}
+              disabled={isLoading}
+              size="lg"
+            >
+              Use example: Incident management SaaS
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleTryExample}
+              disabled={isLoading}
+              size="lg"
+            >
+              Try an example
+            </Button>
+          )}
         </div>
       </div>
     </SurfaceCard>
+        </div>
+
+        {/* Right column: Quality meter in guided mode */}
+        {isGuidedMode && (
+          <div className="lg:col-span-4">
+            <div className="lg:sticky lg:top-20">
+              <QualityMeter
+                inputs={{
+                  name: companyName,
+                  market: contextText,
+                  targetCustomer: contextText,
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 

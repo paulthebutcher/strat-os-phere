@@ -74,15 +74,15 @@ export function AppShell({
         href={href}
         data-testid={`project-nav-item-${item.id}`}
         className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
           'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           active
-            ? 'bg-muted text-foreground'
-            : 'text-muted-foreground hover:text-foreground'
+            ? 'bg-primary/10 text-primary font-semibold border-l-2 border-primary'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
         )}
         aria-current={active ? 'page' : undefined}
       >
-        <Icon className="h-4 w-4 shrink-0" />
+        <Icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} />
         <span>{item.label}</span>
       </Link>
     )
@@ -93,16 +93,16 @@ export function AppShell({
   return (
     <div className="flex min-h-[calc(100vh-57px)]">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 md:pt-[57px] md:border-r md:border-border plinth-surface">
+      <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:pt-[57px] md:border-r md:border-border bg-card">
         <div className="flex flex-col h-full overflow-y-auto">
           {/* Project Header */}
-          <div className="p-4 border-b border-border space-y-3">
+          <div className="p-5 border-b border-border space-y-3 bg-surface-muted/50">
             <div>
               <h2 className="text-sm font-semibold text-foreground leading-tight">
                 {projectName}
               </h2>
               {contextText && (
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">
                   {contextText}
                 </p>
               )}
@@ -125,14 +125,14 @@ export function AppShell({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-3 space-y-1" aria-label="Project navigation" data-testid="project-nav">
+          <nav className="flex-1 p-3 space-y-0.5" aria-label="Project navigation" data-testid="project-nav">
             {visibleNavItems.map(renderNavLink)}
           </nav>
         </div>
       </aside>
 
       {/* Mobile Menu Button */}
-      <div className="md:hidden fixed top-[57px] left-0 right-0 z-40 border-b border-border plinth-surface px-4 py-2">
+      <div className="md:hidden fixed top-[57px] left-0 right-0 z-40 border-b border-border bg-card px-4 py-2.5">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="text-sm font-semibold text-foreground truncate">
@@ -171,7 +171,7 @@ export function AppShell({
             aria-hidden="true"
           />
           {/* Drawer */}
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 plinth-surface border-r border-border pt-[57px] pb-4 overflow-y-auto md:hidden">
+          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border pt-[57px] pb-4 overflow-y-auto md:hidden shadow-xl">
             <div className="flex flex-col h-full">
               {/* Mobile Header Actions */}
               <div className="p-4 border-b border-border space-y-2">
@@ -200,7 +200,7 @@ export function AppShell({
       )}
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-60">
+      <main className="flex-1 md:ml-64">
         <div className="pt-0 md:pt-0">
           {children}
         </div>
