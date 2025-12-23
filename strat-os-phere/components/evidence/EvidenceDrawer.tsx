@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/accordion'
 import { Card } from '@/components/ui/card'
 import type { NormalizedEvidenceBundle, NormalizedEvidenceType } from '@/lib/evidence/types'
+import { summarizeEvidenceBundle } from '@/lib/evidence/evidenceReport'
 
 const LABEL: Record<NormalizedEvidenceType, string> = {
   pricing: 'Pricing',
@@ -36,6 +37,8 @@ interface EvidenceDrawerProps {
 }
 
 export function EvidenceDrawer({ bundle }: EvidenceDrawerProps) {
+  const report = React.useMemo(() => summarizeEvidenceBundle(bundle), [bundle])
+  
   const grouped = React.useMemo(() => {
     const m = new Map<NormalizedEvidenceType, typeof bundle.items>()
     for (const item of bundle.items) {
@@ -56,6 +59,27 @@ export function EvidenceDrawer({ bundle }: EvidenceDrawerProps) {
     return LABEL[a].localeCompare(LABEL[b])
   })
 
+  // Compute recency message
+  const recencyMessage = React.useMemo(() => {
+    if (!report.recency.mostRecentRetrievedAt) return null
+    try {
+      const mostRecent = new Date(report.recency.mostRecentRetrievedAt)
+      const daysAgo = Math.floor((Date.now() - mostRecent.getTime()) / (1000 * 60 * 60 * 24))
+      if (daysAgo === 0) return 'Today'
+      if (daysAgo === 1) return '1 day ago'
+      return `${daysAgo} days ago`
+    } catch {
+      return null
+    }
+  }, [report.recency.mostRecentRetrievedAt])
+
+  // Compute first-party ratio
+  const firstPartyRatio = React.useMemo(() => {
+    const total = report.firstPartyCount + report.thirdPartyCount
+    if (total === 0) return null
+    return Math.round((report.firstPartyCount / total) * 100)
+  }, [report.firstPartyCount, report.thirdPartyCount])
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -70,6 +94,44 @@ export function EvidenceDrawer({ bundle }: EvidenceDrawerProps) {
             {bundle.company && ` • ${bundle.company}`}
           </div>
         </DialogHeader>
+
+        {/* Coverage, Recency, First-party stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 border-b border-border">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+              Coverage
+            </div>
+            <div className="text-sm text-foreground">
+              {Object.values(report.countsByType).filter(c => c > 0).length} / {Object.keys(report.countsByType).length} types
+            </div>
+          </div>
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+              Recency
+            </div>
+            <div className="text-sm text-foreground">
+              {recencyMessage ? (
+                <Badge variant="secondary" className="text-xs">
+                  Most evidence from {recencyMessage}
+                </Badge>
+              ) : (
+                <span className="text-muted-foreground">Unknown</span>
+              )}
+            </div>
+          </div>
+          {firstPartyRatio !== null && (
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                First-party ratio
+              </div>
+              <div className="text-sm text-foreground">
+                <Badge variant="secondary" className="text-xs">
+                  {firstPartyRatio}% first-party
+                </Badge>
+              </div>
+            </div>
+          )}
+        </div>
 
         {types.length === 0 ? (
           <div className="py-8 text-sm text-muted-foreground text-center">
