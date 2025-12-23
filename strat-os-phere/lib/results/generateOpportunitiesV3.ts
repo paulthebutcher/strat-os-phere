@@ -42,6 +42,13 @@ import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
 import type { ScoringMatrixArtifactContent } from '@/lib/schemas/scoring'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
 import type { EvidenceSource } from '@/lib/supabase/types'
+import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
+import {
+  formatEvidenceBundleForPrompt,
+  normalizeCitations,
+  filterCitationsByAllowedUrls,
+  type Citation,
+} from '@/lib/evidence/citations'
 
 export type GenerateOpportunitiesV3SuccessResult = {
   ok: true
@@ -105,10 +112,16 @@ function computeRecencyConfidence(
   let highValueSourceCount = 0
 
   for (const citation of citations) {
-    if (citation.extracted_at) {
-      const extractedDate = new Date(citation.extracted_at).getTime()
-      if (extractedDate >= ninetyDaysAgo) {
-        recentCount++
+    // Check extracted_at, retrievedAt, or published_at for recency
+    const dateStr = citation.extracted_at || (citation as any).retrievedAt || citation.published_at || (citation as any).publishedAt
+    if (dateStr) {
+      try {
+        const extractedDate = new Date(dateStr).getTime()
+        if (!isNaN(extractedDate) && extractedDate >= ninetyDaysAgo) {
+          recentCount++
+        }
+      } catch {
+        // Invalid date, skip
       }
     }
 
@@ -349,6 +362,53 @@ export async function generateOpportunitiesV3(
     }))
     const evidenceSourcesJson = JSON.stringify(evidenceSourcesForPrompt)
 
+    // Load evidence bundle if available
+    let evidenceBundleBlock: string | undefined
+    let hasFirstPartySources = false
+    let allowedUrls = new Set<string>()
+
+    try {
+      const evidenceBundle = await readLatestEvidenceBundle(supabase, projectId)
+      if (evidenceBundle) {
+        // Extract primary domain from evidence bundle's primaryUrl for first-party detection
+        let primaryDomain: string | undefined
+        if (evidenceBundle.primaryUrl) {
+          try {
+            primaryDomain = new URL(evidenceBundle.primaryUrl).hostname
+          } catch {
+            // Invalid URL, skip
+          }
+        }
+
+        const formatted = formatEvidenceBundleForPrompt(evidenceBundle, {
+          maxItemsPerType: 8,
+          maxExcerptChars: 800,
+          primaryDomain,
+        })
+
+        evidenceBundleBlock = formatted.promptBlock
+        hasFirstPartySources = formatted.stats.firstPartyCount > 0
+        allowedUrls = formatted.allowedUrls
+
+        logger.info('Evidence bundle loaded for Opportunities V3', {
+          runId,
+          projectId,
+          totalItems: formatted.stats.totalItems,
+          firstPartyCount: formatted.stats.firstPartyCount,
+          allowedUrlsCount: allowedUrls.size,
+        })
+      } else {
+        logger.info('No evidence bundle found for Opportunities V3', { runId, projectId })
+      }
+    } catch (error) {
+      // Don't fail generation if bundle loading fails
+      logger.warn('Failed to load evidence bundle for Opportunities V3', {
+        runId,
+        projectId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+
     // Phase 4: Drafting opportunities
     onProgress?.(
       makeProgressEvent(runId, 'opportunities_generate', 'Drafting opportunities', {
@@ -363,6 +423,8 @@ export async function generateOpportunitiesV3(
       jtbdJson,
       scoringJson,
       evidenceSourcesJson,
+      evidenceBundleBlock,
+      hasFirstPartySources,
     })
 
     let opportunityResponse = await callLLM({
@@ -440,14 +502,58 @@ export async function generateOpportunitiesV3(
       })
     )
 
-    // Ensure IDs are stable and compute deterministic scores
+    // Normalize and validate citations, then ensure IDs are stable and compute deterministic scores
     const opportunitiesWithIds = opportunityParsed.data.opportunities.map((opp, index) => {
       // Generate stable ID
       const jtbdId = opp.dependencies.linked_jtbd_ids?.[0]
       const stableId = opp.id || generateOpportunityId(opp.title, projectId, jtbdId)
 
-      // Compute recencyConfidence from citations
-      const recencyConfidence = computeRecencyConfidence(opp.citations)
+      // Normalize citations (handle backward compatibility)
+      let normalizedCitations = normalizeCitations(opp.citations)
+
+      // Filter citations to only allowed URLs if bundle was loaded
+      if (allowedUrls.size > 0) {
+        const beforeCount = normalizedCitations.length
+        normalizedCitations = filterCitationsByAllowedUrls(normalizedCitations, allowedUrls)
+        const removedCount = beforeCount - normalizedCitations.length
+        if (removedCount > 0) {
+          logger.warn('Filtered out citations with non-bundle URLs', {
+            runId,
+            projectId,
+            opportunityTitle: opp.title,
+            removedCount,
+            remainingCount: normalizedCitations.length,
+          })
+        }
+      }
+
+      // Enforce minimum citations (log warning if below threshold, but don't fail)
+      if (normalizedCitations.length < 2) {
+        logger.warn('Opportunity has fewer than 2 citations', {
+          runId,
+          projectId,
+          opportunityTitle: opp.title,
+          citationCount: normalizedCitations.length,
+        })
+        // Keep citations as-is, but mark confidence lower if possible
+        // (we'll still include the opportunity, just with fewer citations)
+      }
+
+      // Update citations in proof points as well
+      const normalizedProofPoints = opp.proof_points.map((pp) => {
+        const normalizedProofCitations = normalizeCitations(pp.citations)
+        const filteredProofCitations = allowedUrls.size > 0
+          ? filterCitationsByAllowedUrls(normalizedProofCitations, allowedUrls)
+          : normalizedProofCitations
+
+        return {
+          ...pp,
+          citations: filteredProofCitations.length > 0 ? filteredProofCitations : pp.citations, // Fallback to original if all filtered out
+        }
+      })
+
+      // Compute recencyConfidence from normalized citations
+      const recencyConfidence = computeRecencyConfidence(normalizedCitations)
 
       // Update breakdown with computed recencyConfidence
       const updatedBreakdown = {
@@ -464,6 +570,8 @@ export async function generateOpportunitiesV3(
       return {
         ...opp,
         id: stableId,
+        citations: normalizedCitations,
+        proof_points: normalizedProofPoints,
         scoring: {
           ...opp.scoring,
           breakdown: updatedBreakdown,

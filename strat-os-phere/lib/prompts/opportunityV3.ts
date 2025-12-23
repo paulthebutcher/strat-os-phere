@@ -11,6 +11,8 @@ export interface OpportunityV3PromptInput {
   jtbdJson?: string
   scoringJson?: string
   evidenceSourcesJson?: string
+  evidenceBundleBlock?: string // Formatted evidence bundle for prompt
+  hasFirstPartySources?: boolean // Whether first-party sources exist in bundle
 }
 
 export const OPPORTUNITY_V3_SCHEMA_SHAPE = {
@@ -49,26 +51,30 @@ export const OPPORTUNITY_V3_SCHEMA_SHAPE = {
           claim: 'string',
           citations: [
             {
-              url: 'string (URL)',
+              url: 'string (URL) - MUST be from Evidence Bundle',
               title: 'string (optional)',
               source_type: 'marketing_site | changelog | pricing | reviews | jobs | docs | status',
               extracted_at: 'string (ISO date, optional)',
               source_date_range: 'string (optional, e.g., "last 90 days")',
               confidence: 'low | medium | high (optional)',
               domain: 'string (optional)',
+              published_at: 'string (ISO date, optional) - from evidence bundle',
+              source_kind: 'first_party | third_party | unknown (optional) - from evidence bundle',
             },
           ],
         },
       ],
       citations: [
         {
-          url: 'string (URL)',
+          url: 'string (URL) - MUST be from Evidence Bundle',
           title: 'string (optional)',
           source_type: 'marketing_site | changelog | pricing | reviews | jobs | docs | status',
           extracted_at: 'string (ISO date, optional)',
-          source_date_range: 'string (optional)',
+          source_date_range: 'string (optional, e.g., "last 90 days")',
           confidence: 'low | medium | high (optional)',
           domain: 'string (optional)',
+          published_at: 'string (ISO date, optional) - from evidence bundle',
+          source_kind: 'first_party | third_party | unknown (optional) - from evidence bundle',
         },
       ],
       scoring: {
@@ -144,7 +150,7 @@ const BANNED_VAGUE_VERBS = [
 export function buildOpportunityV3Messages(
   input: OpportunityV3PromptInput
 ): Message[] {
-  const { project, snapshotsJson, jtbdJson, scoringJson, evidenceSourcesJson } = input
+  const { project, snapshotsJson, jtbdJson, scoringJson, evidenceSourcesJson, evidenceBundleBlock, hasFirstPartySources } = input
 
   // Build project context with hypothesis-first approach
   const lens = project.lens || project.starting_point || 'product'
@@ -234,6 +240,22 @@ export function buildOpportunityV3Messages(
           'EVIDENCE_JSON_END',
         ]
       : []),
+    ...(evidenceBundleBlock
+      ? [
+          '',
+          'EVIDENCE BUNDLE (INPUT)',
+          'The following evidence has been harvested and organized by type. All citations MUST reference URLs from this bundle:',
+          evidenceBundleBlock,
+          '',
+        ]
+      : []),
+    ...(!evidenceBundleBlock
+      ? [
+          '',
+          'NOTE: Evidence bundle not available. Be explicit about uncertainty when making claims without supporting evidence.',
+          '',
+        ]
+      : []),
     '',
     'OUTPUT SCHEMA',
     'You must output a JSON object that matches the following OpportunityV3 schema shape:',
@@ -263,10 +285,20 @@ export function buildOpportunityV3Messages(
     'Examples: "Build automated compliance report generator", "Add one-click export to CSV", "Create visual diff viewer"',
     '',
     'Proof points: 3-6 bullets, each with at least one citation',
-    'Each proof point must cite at least one evidence source from the evidence sources input.',
+    'Each proof point must cite at least one evidence source from the evidence bundle provided above.',
     '',
-    'Citations: At least 4 unique citations across mixed source types',
-    'Prioritize recent sources (within 90 days) and mix source types (reviews, pricing, changelog, etc.).',
+    'CITATIONS CONTRACT',
+    'Each opportunity MUST include a citations array with:',
+    '- At least 2 citations (required)',
+    ...(hasFirstPartySources
+      ? ['- At least 1 first-party citation if first-party sources exist in the evidence bundle (marked as "Source: first_party")']
+      : []),
+    '- All citations MUST be drawn from the URLs provided in the Evidence Bundle section above',
+    '- If a claim has no supporting evidence in the bundle, you must either:',
+    '  (a) omit the claim, OR',
+    '  (b) mark it explicitly as an assumption and include citations that motivate it (e.g., reviews indicating pain)',
+    '- Prefer the most recent sources where possible (check publishedAt/retrievedAt dates)',
+    '- Mix source types when available (reviews, pricing, changelog, docs, etc.)',
     '',
     'Scoring:',
     '- Breakdown: Each dimension 0-10 (integers or one decimal)',

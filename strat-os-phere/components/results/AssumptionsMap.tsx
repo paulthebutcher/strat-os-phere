@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { Assumption } from '@/lib/results/assumptions'
@@ -11,23 +11,10 @@ import { cn } from '@/lib/utils'
 interface AssumptionsMapProps {
   projectId: string
   assumptions: Assumption[]
-  selectedAssumptionId: string | null
-  onSelectAssumption: (id: string | null) => void
-}
-
-/**
- * Get color for category (using existing design tokens)
- */
-function getCategoryColor(category: Assumption['category']): string {
-  const colors: Record<Assumption['category'], string> = {
-    Market: 'bg-primary/20 border-primary/40 text-primary',
-    Buyer: 'bg-info/20 border-info/40 text-info',
-    Product: 'bg-success/20 border-success/40 text-success',
-    Competition: 'bg-warning/20 border-warning/40 text-warning',
-    Evidence: 'bg-muted border-border text-muted-foreground',
-    Execution: 'bg-secondary border-border text-secondary-foreground',
-  }
-  return colors[category] || 'bg-muted border-border text-muted-foreground'
+  selectedIds: string[]
+  hoverId?: string | null
+  onSelectAssumption: (id: string | string[]) => void
+  onHoverAssumption?: (id: string | null) => void
 }
 
 /**
@@ -38,25 +25,97 @@ function getConfidenceIndex(confidence: Assumption['confidence']): number {
 }
 
 /**
- * Calculate position within grid cell to avoid collisions
+ * Get stance color (for point color)
  */
-function getPositionOffset(index: number, totalInCell: number): { x: number; y: number } {
+function getStanceColor(stance: AssumptionUserStance): string {
+  switch (stance) {
+    case 'agree':
+      return 'bg-success border-success'
+    case 'disagree':
+      return 'bg-destructive border-destructive'
+    case 'unsure':
+      return 'bg-warning border-warning'
+    default:
+      return 'bg-muted border-border'
+  }
+}
+
+/**
+ * Get category ring style (for point border/ring)
+ */
+function getCategoryRingStyle(category: Assumption['category']): string {
+  // Use border thickness to encode category
+  const ringStyles: Record<Assumption['category'], string> = {
+    Market: 'border-2',
+    Buyer: 'border-[1.5px]',
+    Product: 'border-[2.5px]',
+    Competition: 'border-[1px]',
+    Evidence: 'border-[3px]',
+    Execution: 'border-[1.5px]',
+  }
+  return ringStyles[category] || 'border-2'
+}
+
+/**
+ * Deterministic jitter based on assumption ID
+ */
+function getJitterPosition(id: string, index: number, totalInCell: number): { x: number; y: number } {
   if (totalInCell === 1) return { x: 0, y: 0 }
   
-  // Simple modulo pattern for offset
-  const row = Math.floor(index / 3)
-  const col = index % 3
-  const offsetX = (col - 1) * 8 // -8, 0, 8
-  const offsetY = row * 8
+  // Use hash of ID for deterministic positioning
+  let hash = 0
+  for (let i = 0; i < id.length; i++) {
+    const char = id.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
   
-  return { x: offsetX, y: offsetY }
+  // Use hash to create consistent offset
+  const angle = (Math.abs(hash) % 360) * (Math.PI / 180)
+  const radius = 8 + (index % 3) * 4 // Vary radius slightly
+  const x = Math.cos(angle) * radius
+  const y = Math.sin(angle) * radius
+  
+  return { x, y }
+}
+
+/**
+ * Compute quadrant counts
+ */
+function computeQuadrantCounts(assumptions: Assumption[]): {
+  risks: number // High impact, Low confidence
+  coreBets: number // High impact, High confidence
+  ignore: number // Low impact, Low confidence
+  smallWins: number // Low impact, High confidence
+} {
+  let risks = 0
+  let coreBets = 0
+  let ignore = 0
+  let smallWins = 0
+
+  assumptions.forEach(a => {
+    const confIdx = getConfidenceIndex(a.confidence)
+    const isHighImpact = a.impact >= 4
+    const isHighConfidence = confIdx >= 2
+    const isLowImpact = a.impact <= 2
+    const isLowConfidence = confIdx <= 0
+
+    if (isHighImpact && isLowConfidence) risks++
+    else if (isHighImpact && isHighConfidence) coreBets++
+    else if (isLowImpact && isLowConfidence) ignore++
+    else if (isLowImpact && isHighConfidence) smallWins++
+  })
+
+  return { risks, coreBets, ignore, smallWins }
 }
 
 export function AssumptionsMap({
   projectId,
   assumptions,
-  selectedAssumptionId,
+  selectedIds,
+  hoverId,
   onSelectAssumption,
+  onHoverAssumption,
 }: AssumptionsMapProps) {
   // Load stances from localStorage
   const [stances, setStances] = useState<Record<string, { stance: AssumptionUserStance; note?: string }>>({})
@@ -65,13 +124,11 @@ export function AssumptionsMap({
     if (typeof window !== 'undefined') {
       setStances(loadAssumptionStances(projectId))
       
-      // Listen for storage changes (when AssumptionsLedger updates)
       const handleStorageChange = () => {
         setStances(loadAssumptionStances(projectId))
       }
       
       window.addEventListener('storage', handleStorageChange)
-      // Also listen for custom event from AssumptionsLedger
       window.addEventListener('assumption-stance-updated', handleStorageChange)
       
       return () => {
@@ -80,19 +137,34 @@ export function AssumptionsMap({
       }
     }
   }, [projectId])
+
   // Group assumptions by confidence and impact
-  const grid: Record<string, Assumption[]> = {}
-  
-  assumptions.forEach(assumption => {
-    const confIdx = getConfidenceIndex(assumption.confidence)
-    const impact = assumption.impact
-    const key = `${confIdx}-${impact}`
-    
-    if (!grid[key]) {
-      grid[key] = []
-    }
-    grid[key].push(assumption)
-  })
+  const grid = useMemo(() => {
+    const g: Record<string, Assumption[]> = {}
+    assumptions.forEach(assumption => {
+      const confIdx = getConfidenceIndex(assumption.confidence)
+      const impact = assumption.impact
+      const key = `${confIdx}-${impact}`
+      if (!g[key]) {
+        g[key] = []
+      }
+      g[key].push(assumption)
+    })
+    return g
+  }, [assumptions])
+
+  // Compute cell counts for heat shading
+  const cellCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    Object.keys(grid).forEach(key => {
+      counts[key] = grid[key].length
+    })
+    const maxCount = Math.max(...Object.values(counts), 1)
+    return { counts, maxCount }
+  }, [grid])
+
+  // Compute quadrant counts
+  const quadrantCounts = useMemo(() => computeQuadrantCounts(assumptions), [assumptions])
 
   // Count disagreed assumptions
   const disagreedCount = Object.values(stances).filter(s => s.stance === 'disagree').length
@@ -113,7 +185,7 @@ export function AssumptionsMap({
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">Assumptions Map</h2>
         <p className="text-xs text-muted-foreground">
-          Visualize assumptions by confidence and impact. Click a dot to view details.
+          Visualize assumptions by confidence and impact. Click a dot or cluster to filter the ledger.
         </p>
         {disagreedCount > 0 && (
           <p className="text-xs text-muted-foreground mt-1">
@@ -125,13 +197,29 @@ export function AssumptionsMap({
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 text-xs">
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Categories:</span>
-          <Badge className={getCategoryColor('Market')}>Market</Badge>
-          <Badge className={getCategoryColor('Buyer')}>Buyer</Badge>
-          <Badge className={getCategoryColor('Product')}>Product</Badge>
-          <Badge className={getCategoryColor('Competition')}>Competition</Badge>
-          <Badge className={getCategoryColor('Evidence')}>Evidence</Badge>
-          <Badge className={getCategoryColor('Execution')}>Execution</Badge>
+          <span className="text-muted-foreground">Stance:</span>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-success border border-success" />
+            <span className="text-muted-foreground">Agree</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-destructive border border-destructive" />
+            <span className="text-muted-foreground">Disagree</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-warning border border-warning" />
+            <span className="text-muted-foreground">Unsure</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-muted border border-border" />
+            <span className="text-muted-foreground">Unreviewed</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground">Category (ring thickness):</span>
+          <Badge variant="muted" className="text-xs border-2">Market</Badge>
+          <Badge variant="muted" className="text-xs border-[1.5px]">Buyer</Badge>
+          <Badge variant="muted" className="text-xs border-[2.5px]">Product</Badge>
         </div>
       </div>
 
@@ -161,16 +249,27 @@ export function AssumptionsMap({
               return [5, 4, 3, 2, 1].map(impact => {
                 const key = `${confIdx}-${impact}`
                 const cellAssumptions = grid[key] || []
+                const cellCount = cellCounts.counts[key] || 0
+                const heatIntensity = cellCounts.maxCount > 0 
+                  ? Math.min(cellCount / cellCounts.maxCount, 1) 
+                  : 0
+                
+                // Heat shading based on count
+                const heatClass = heatIntensity > 0.6 ? 'bg-primary/20' 
+                  : heatIntensity > 0.3 ? 'bg-primary/10' 
+                  : heatIntensity > 0 ? 'bg-primary/5' 
+                  : ''
                 
                 return (
                   <div
                     key={`${confIdx}-${impact}`}
-                    className="relative border border-border/50 rounded"
+                    className={cn("relative border border-border/50 rounded", heatClass)}
                   >
                     {cellAssumptions.map((assumption, idx) => {
-                      const offset = getPositionOffset(idx, cellAssumptions.length)
+                      const jitter = getJitterPosition(assumption.id, idx, cellAssumptions.length)
                       const stance = stances[assumption.id]?.stance || 'unreviewed'
-                      const isSelected = selectedAssumptionId === assumption.id
+                      const isSelected = selectedIds.includes(assumption.id)
+                      const isHovered = hoverId === assumption.id
                       
                       return (
                         <TooltipProvider key={assumption.id}>
@@ -178,18 +277,30 @@ export function AssumptionsMap({
                             <TooltipTrigger asChild>
                               <button
                                 type="button"
-                                onClick={() => onSelectAssumption(isSelected ? null : assumption.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  // If clicking in a dense cell, select all in that cell
+                                  if (cellAssumptions.length > 3) {
+                                    onSelectAssumption(cellAssumptions.map(a => a.id))
+                                  } else {
+                                    onSelectAssumption(assumption.id)
+                                  }
+                                }}
+                                onMouseEnter={() => onHoverAssumption?.(assumption.id)}
+                                onMouseLeave={() => onHoverAssumption?.(null)}
                                 className={cn(
-                                  'absolute w-3 h-3 rounded-full border-2 transition-all hover:scale-150 hover:z-10',
-                                  getCategoryColor(assumption.category),
+                                  'absolute w-3 h-3 rounded-full transition-all hover:scale-150 hover:z-10',
+                                  getStanceColor(stance),
+                                  getCategoryRingStyle(assumption.category),
                                   isSelected && 'ring-2 ring-primary ring-offset-1 scale-125 z-10',
+                                  isHovered && 'ring-2 ring-primary/50 ring-offset-1 scale-110 z-10',
                                   stance === 'disagree' && 'opacity-60',
                                   stance === 'unsure' && 'opacity-80'
                                 )}
                                 style={{
-                                  left: `calc(50% + ${offset.x}px)`,
-                                  top: `calc(50% + ${offset.y}px)`,
-                                  transform: `translate(-50%, -50%) ${isSelected ? 'scale(1.25)' : ''}`,
+                                  left: `calc(50% + ${jitter.x}px)`,
+                                  top: `calc(50% + ${jitter.y}px)`,
+                                  transform: `translate(-50%, -50%)`,
                                 }}
                                 aria-label={assumption.statement}
                               />
@@ -198,12 +309,25 @@ export function AssumptionsMap({
                               <div className="space-y-1">
                                 <div className="font-medium text-xs">{assumption.statement}</div>
                                 <div className="flex items-center gap-2 text-xs">
-                                  <Badge className={cn('text-xs', getCategoryColor(assumption.category))}>
+                                  <Badge variant="muted" className="text-xs">
                                     {assumption.category}
                                   </Badge>
                                   <span className="text-muted-foreground">
-                                    {stance !== 'unreviewed' && `[${stance}]`}
+                                    Impact: {assumption.impact}/5
                                   </span>
+                                  <span className="text-muted-foreground">
+                                    {assumption.confidence} Confidence
+                                  </span>
+                                  {stance !== 'unreviewed' && (
+                                    <span className="text-muted-foreground">
+                                      [{stance}]
+                                    </span>
+                                  )}
+                                  {assumption.sourcesCount > 0 && (
+                                    <span className="text-muted-foreground">
+                                      {assumption.sourcesCount} source{assumption.sourcesCount !== 1 ? 's' : ''}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </TooltipContent>
@@ -218,6 +342,41 @@ export function AssumptionsMap({
           </div>
         </div>
 
+        {/* Quadrant callouts */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* High Impact / Low Confidence (Risks) - Top Left */}
+          <div className="absolute top-2 left-12 text-xs">
+            <div className="bg-warning/20 border border-warning/40 rounded px-2 py-1">
+              <div className="font-medium text-warning">Risks</div>
+              <div className="text-muted-foreground">{quadrantCounts.risks}</div>
+            </div>
+          </div>
+          
+          {/* High Impact / High Confidence (Core Bets) - Top Right */}
+          <div className="absolute top-2 right-4 text-xs">
+            <div className="bg-success/20 border border-success/40 rounded px-2 py-1">
+              <div className="font-medium text-success">Core Bets</div>
+              <div className="text-muted-foreground">{quadrantCounts.coreBets}</div>
+            </div>
+          </div>
+          
+          {/* Low Impact / Low Confidence (Ignore) - Bottom Left */}
+          <div className="absolute bottom-8 left-12 text-xs">
+            <div className="bg-muted/40 border border-border rounded px-2 py-1">
+              <div className="font-medium text-muted-foreground">Ignore</div>
+              <div className="text-muted-foreground">{quadrantCounts.ignore}</div>
+            </div>
+          </div>
+          
+          {/* Low Impact / High Confidence (Small Wins) - Bottom Right */}
+          <div className="absolute bottom-8 right-4 text-xs">
+            <div className="bg-info/20 border border-info/40 rounded px-2 py-1">
+              <div className="font-medium text-info">Small Wins</div>
+              <div className="text-muted-foreground">{quadrantCounts.smallWins}</div>
+            </div>
+          </div>
+        </div>
+
         {/* Axis labels */}
         <div className="ml-12 mt-2 text-xs text-muted-foreground">
           <div className="flex justify-between mb-1">
@@ -226,58 +385,6 @@ export function AssumptionsMap({
           </div>
         </div>
       </div>
-
-      {/* Selected assumption details */}
-      {selectedAssumptionId && (
-        <div className="border-t pt-4 mt-4">
-          {(() => {
-            const assumption = assumptions.find(a => a.id === selectedAssumptionId)
-            if (!assumption) return null
-            
-            const stance = stances[assumption.id]?.stance || 'unreviewed'
-            
-            return (
-              <div className="space-y-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground">{assumption.statement}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className={cn('text-xs', getCategoryColor(assumption.category))}>
-                        {assumption.category}
-                      </Badge>
-                      <Badge variant="muted" className="text-xs">
-                        {assumption.confidence} Confidence
-                      </Badge>
-                      <Badge variant="muted" className="text-xs">
-                        Impact: {assumption.impact}/5
-                      </Badge>
-                      {stance !== 'unreviewed' && (
-                        <Badge variant={stance === 'disagree' ? 'danger' : stance === 'unsure' ? 'warning' : 'success'} className="text-xs">
-                          {stance}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onSelectAssumption(null)}
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    Clear
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground">{assumption.whyItMatters}</p>
-                {assumption.relatedOpportunityIds.length > 0 && (
-                  <div className="text-xs text-muted-foreground">
-                    Related: {assumption.relatedOpportunityIds.join(', ')}
-                  </div>
-                )}
-              </div>
-            )
-          })()}
-        </div>
-      )}
     </div>
   )
 }
-

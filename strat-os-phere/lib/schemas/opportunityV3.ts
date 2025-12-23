@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 /**
  * Citation schema - references to evidence sources
+ * Supports new fields from evidence bundle (published_at, source_kind) with backward compatibility
  */
 export const CitationSchema = z.object({
   url: z.string().url(),
@@ -15,10 +16,17 @@ export const CitationSchema = z.object({
     'docs',
     'status',
   ]),
-  extracted_at: z.string().optional().nullable(), // ISO date string
+  extracted_at: z.string().optional().nullable(), // ISO date string (backward compat, alias for retrievedAt)
   source_date_range: z.string().optional().nullable(), // e.g., "last 90 days"
-  confidence: z.enum(['low', 'medium', 'high']).optional().nullable(),
+  confidence: z.union([z.enum(['low', 'medium', 'high']), z.number()]).optional().nullable(), // Allow number for backward compat
   domain: z.string().optional().nullable(),
+  // New fields from evidence bundle
+  published_at: z.string().optional().nullable(), // ISO date string from evidence bundle
+  source_kind: z.enum(['first_party', 'third_party', 'unknown']).optional().nullable(), // From evidence bundle
+  // Aliases for backward compatibility
+  retrievedAt: z.string().optional().nullable(), // Alias for extracted_at
+  publishedAt: z.string().optional().nullable(), // Alias for published_at
+  evidenceType: z.string().optional().nullable(), // Optional type hint
 })
 
 export type Citation = z.infer<typeof CitationSchema>
@@ -175,7 +183,7 @@ export const OpportunityV3ItemSchema = z.object({
   proposed_move: z.string().min(1), // What to build/do
   why_now: z.string().min(1), // Why this matters now (market shift, competitor actions, pricing friction)
   proof_points: z.array(ProofPointSchema).min(3).max(6), // Array of 3-6 bullets, each with citations
-  citations: z.array(CitationSchema).min(4), // At least 4 unique citations across mixed source types when available
+  citations: z.array(CitationSchema).default([]), // Citations array (enforce min(2) at runtime, not in Zod for backward compat)
   scoring: ScoringSchema,
   tradeoffs: TradeoffsSchema,
   experiments: z.array(ExperimentSchema).min(3).max(5), // 3-5 first experiments

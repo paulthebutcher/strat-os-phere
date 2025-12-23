@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { ExecutiveReadout } from './ExecutiveReadout'
-import { AssumptionsMap } from './AssumptionsMap'
-import { AssumptionsLedger } from './AssumptionsLedger'
+import { AssumptionsExplorer } from './AssumptionsExplorer'
 import { deriveAssumptionsFromOpportunities } from '@/lib/results/assumptions'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
@@ -17,12 +16,11 @@ interface ResultsReadoutProps {
 }
 
 /**
- * ResultsReadout - Wrapper component for Executive Summary, Assumptions Map, and Assumptions Ledger
+ * ResultsReadout - Wrapper component for Executive Summary and Assumptions Explorer
  * 
  * This component:
  * - Derives assumptions from opportunities on the client (pure function)
- * - Manages selected assumption state for map ↔ ledger interaction
- * - Renders all three sections in order
+ * - Renders Executive Summary and unified Assumptions Explorer
  */
 export function ResultsReadout({
   projectId,
@@ -36,9 +34,6 @@ export function ResultsReadout({
     return deriveAssumptionsFromOpportunities(opportunitiesV3, opportunitiesV2)
   }, [opportunitiesV3, opportunitiesV2])
 
-  // Selected assumption for map ↔ ledger interaction
-  const [selectedAssumptionId, setSelectedAssumptionId] = useState<string | null>(null)
-
   return (
     <div className="space-y-6">
       {/* Executive Readout */}
@@ -49,42 +44,12 @@ export function ResultsReadout({
         projectName={projectName}
       />
 
-      {/* Assumptions Map */}
+      {/* Assumptions Explorer (Map + Ledger) */}
       {assumptions.length > 0 && (
-        <AssumptionsMap
+        <AssumptionsExplorer
           projectId={projectId}
           assumptions={assumptions}
-          selectedAssumptionId={selectedAssumptionId}
-          onSelectAssumption={(id) => {
-            setSelectedAssumptionId(id)
-            // Scroll to ledger if an assumption is selected
-            if (id) {
-              setTimeout(() => {
-                const element = document.getElementById(`assumption-row-${id}`)
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                  // Highlight briefly
-                  element.classList.add('ring-2', 'ring-primary', 'ring-offset-2')
-                  setTimeout(() => {
-                    element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2')
-                  }, 2000)
-                }
-              }, 100)
-            }
-          }}
         />
-      )}
-
-      {/* Assumptions Ledger */}
-      {assumptions.length > 0 && (
-        <div id="assumptions-ledger">
-          <AssumptionsLedger
-            projectId={projectId}
-            assumptions={assumptions}
-            selectedAssumptionId={selectedAssumptionId}
-            onSelectAssumption={setSelectedAssumptionId}
-          />
-        </div>
       )}
     </div>
   )

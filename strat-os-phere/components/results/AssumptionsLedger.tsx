@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
@@ -25,8 +26,65 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 interface AssumptionsLedgerProps {
   projectId: string
   assumptions: Assumption[]
-  selectedAssumptionId?: string | null
-  onSelectAssumption?: (id: string | null) => void
+  selectedIds: string[]
+  hoverId?: string | null
+  onSelectAssumption: (id: string) => void
+  onHoverAssumption?: (id: string | null) => void
+  onFilterChange?: (filters: { category?: AssumptionCategory | 'all'; search?: string; showOnlyDisagreeUnsure?: boolean }) => void
+  filters?: { category?: AssumptionCategory | 'all'; search?: string; showOnlyDisagreeUnsure?: boolean }
+  onClearSelection?: () => void
+}
+
+/**
+ * Get confidence index (0-2 for Low, Medium, High)
+ */
+function getConfidenceIndex(confidence: Assumption['confidence']): number {
+  return confidence === 'High' ? 2 : confidence === 'Medium' ? 1 : 0
+}
+
+/**
+ * Compute next action based on impact and confidence
+ */
+function computeNextAction(assumption: Assumption): string {
+  const confIdx = getConfidenceIndex(assumption.confidence)
+  const isHighImpact = assumption.impact >= 4
+  const isHighConfidence = confIdx >= 2
+  const isLowConfidence = confIdx <= 0
+
+  if (isHighImpact && isLowConfidence) {
+    return 'Validate'
+  }
+  if (isHighImpact && isHighConfidence) {
+    return 'Commit'
+  }
+  if (assumption.impact <= 2 && isLowConfidence) {
+    return 'Defer'
+  }
+  return 'Monitor'
+}
+
+/**
+ * Render mini map glyph showing position
+ */
+function MapGlyph({ assumption }: { assumption: Assumption }) {
+  const confIdx = getConfidenceIndex(assumption.confidence)
+  // Map confidence (0-2) to x position (0-100%)
+  const xPercent = (confIdx / 2) * 100
+  // Map impact (1-5) to y position (0-100%, inverted)
+  const yPercent = 100 - ((assumption.impact - 1) / 4) * 100
+
+  return (
+    <div className="relative w-12 h-12 border border-border rounded bg-muted/30">
+      <div
+        className="absolute w-2 h-2 rounded-full bg-primary border border-primary"
+        style={{
+          left: `${xPercent}%`,
+          top: `${yPercent}%`,
+          transform: 'translate(-50%, -50%)',
+        }}
+      />
+    </div>
+  )
 }
 
 /**
@@ -96,14 +154,28 @@ function formatAssumptionsToMarkdown(assumptions: Assumption[], stances: Record<
 export function AssumptionsLedger({ 
   projectId, 
   assumptions,
-  selectedAssumptionId,
+  selectedIds,
+  hoverId,
   onSelectAssumption,
+  onHoverAssumption,
+  onFilterChange,
+  filters: externalFilters,
+  onClearSelection,
 }: AssumptionsLedgerProps) {
   const [selectedCategory, setSelectedCategory] = useState<AssumptionCategory | 'all'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [showOnlyDisagreeUnsure, setShowOnlyDisagreeUnsure] = useState(false)
   const [selectedAssumption, setSelectedAssumption] = useState<Assumption | null>(null)
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set())
+  const tableRef = useRef<HTMLDivElement>(null)
+
+  // Use external filters if provided, otherwise use internal state
+  const filters = externalFilters || {
+    category: selectedCategory,
+    search: searchQuery,
+    showOnlyDisagreeUnsure,
+  }
 
   // Load stances from localStorage
   const [stances, setStances] = useState<Record<string, { stance: AssumptionUserStance; note?: string }>>(() => {
@@ -122,21 +194,10 @@ export function AssumptionsLedger({
       [assumptionId]: { stance, note: currentNote || undefined },
     }))
     
-    // Dispatch custom event to notify other components
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('assumption-stance-updated'))
     }
   }
-
-  // Listen for external selection changes
-  useEffect(() => {
-    if (selectedAssumptionId && onSelectAssumption) {
-      const assumption = assumptions.find(a => a.id === selectedAssumptionId)
-      if (assumption) {
-        setSelectedAssumption(assumption)
-      }
-    }
-  }, [selectedAssumptionId, assumptions, onSelectAssumption])
 
   // Update note
   const updateNote = (assumptionId: string, note: string) => {
@@ -148,23 +209,33 @@ export function AssumptionsLedger({
       [assumptionId]: { stance: currentStance, note: note || undefined },
     }))
     
-    // Dispatch custom event to notify other components
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('assumption-stance-updated'))
     }
   }
 
-  // Filter and sort assumptions
+  // Handle filter changes
+  const handleCategoryChange = (category: AssumptionCategory | 'all') => {
+    setSelectedCategory(category)
+    onFilterChange?.({ ...filters, category })
+  }
+
+  const handleSearchChange = (search: string) => {
+    setSearchQuery(search)
+    onFilterChange?.({ ...filters, search })
+  }
+
+  const handleDisagreeUnsureChange = (show: boolean) => {
+    setShowOnlyDisagreeUnsure(show)
+    onFilterChange?.({ ...filters, showOnlyDisagreeUnsure: show })
+  }
+
+  // Filter and sort assumptions (already filtered by parent, but we apply stance filter here)
   const filteredAssumptions = useMemo(() => {
     let filtered = assumptions
 
-    // Category filter
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(a => a.category === selectedCategory)
-    }
-
-    // Disagree/Unsure filter
-    if (showOnlyDisagreeUnsure) {
+    // Disagree/Unsure filter (requires localStorage access)
+    if (filters.showOnlyDisagreeUnsure) {
       filtered = filtered.filter(a => {
         const stance = stances[a.id]?.stance
         return stance === 'disagree' || stance === 'unsure'
@@ -179,13 +250,30 @@ export function AssumptionsLedger({
       const confidenceOrder = { High: 3, Medium: 2, Low: 1 }
       return confidenceOrder[b.confidence] - confidenceOrder[a.confidence]
     })
-  }, [assumptions, selectedCategory, showOnlyDisagreeUnsure, stances])
+  }, [assumptions, filters.showOnlyDisagreeUnsure, stances])
 
   // Get unique categories
   const categories = useMemo(() => {
     const cats = new Set(assumptions.map(a => a.category))
     return Array.from(cats).sort()
   }, [assumptions])
+
+  // Scroll to selected assumption
+  useEffect(() => {
+    if (selectedIds.length > 0 && tableRef.current) {
+      const firstSelectedId = selectedIds[0]
+      const element = document.getElementById(`assumption-row-${firstSelectedId}`)
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          element.classList.add('ring-2', 'ring-primary', 'ring-offset-2')
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2')
+          }, 2000)
+        }, 100)
+      }
+    }
+  }, [selectedIds])
 
   const markdownContent = formatAssumptionsToMarkdown(assumptions, stances)
 
@@ -215,12 +303,25 @@ export function AssumptionsLedger({
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+            <label className="text-xs text-muted-foreground whitespace-nowrap">Search:</label>
+            <Input
+              type="text"
+              placeholder="Search statements..."
+              value={filters.search || ''}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="text-xs h-8"
+            />
+          </div>
+          
+          {/* Category filter */}
           <div className="flex items-center gap-2">
             <label className="text-xs text-muted-foreground">Category:</label>
             <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value as AssumptionCategory | 'all')}
-              className="text-xs border rounded px-2 py-1 bg-background"
+              value={filters.category || 'all'}
+              onChange={(e) => handleCategoryChange(e.target.value as AssumptionCategory | 'all')}
+              className="text-xs border rounded px-2 py-1 bg-background h-8"
             >
               <option value="all">All</option>
               {categories.map(cat => (
@@ -228,15 +329,29 @@ export function AssumptionsLedger({
               ))}
             </select>
           </div>
+          
+          {/* Disagree/Unsure filter */}
           <label className="flex items-center gap-2 text-xs">
             <input
               type="checkbox"
-              checked={showOnlyDisagreeUnsure}
-              onChange={(e) => setShowOnlyDisagreeUnsure(e.target.checked)}
+              checked={filters.showOnlyDisagreeUnsure || false}
+              onChange={(e) => handleDisagreeUnsureChange(e.target.checked)}
               className="rounded"
             />
             <span className="text-muted-foreground">Show only: Disagree / Unsure</span>
           </label>
+
+          {/* Clear selection button */}
+          {selectedIds.length > 0 && onClearSelection && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onClearSelection}
+              className="text-xs h-8"
+            >
+              Clear selection ({selectedIds.length})
+            </Button>
+          )}
         </div>
 
         {/* Summary */}
@@ -253,14 +368,16 @@ export function AssumptionsLedger({
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" ref={tableRef}>
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[60px]">Map</TableHead>
                 <TableHead className="w-[100px]">Category</TableHead>
                 <TableHead>Statement</TableHead>
                 <TableHead className="w-[100px]">Confidence</TableHead>
                 <TableHead className="w-[80px]">Impact</TableHead>
+                <TableHead className="w-[100px]">Next Action</TableHead>
                 <TableHead className="w-[80px]">Sources</TableHead>
                 <TableHead className="w-[200px]">Stance</TableHead>
               </TableRow>
@@ -270,6 +387,9 @@ export function AssumptionsLedger({
                 const stance = stances[assumption.id]?.stance || 'unreviewed'
                 const note = notes[assumption.id] || stances[assumption.id]?.note || ''
                 const isNoteExpanded = expandedNotes.has(assumption.id)
+                const isSelected = selectedIds.includes(assumption.id)
+                const isHovered = hoverId === assumption.id
+                const nextAction = computeNextAction(assumption)
 
                 return (
                   <TableRow
@@ -277,15 +397,16 @@ export function AssumptionsLedger({
                     id={`assumption-row-${assumption.id}`}
                     className={cn(
                       "cursor-pointer",
-                      selectedAssumptionId === assumption.id && "bg-primary/5"
+                      isSelected && "bg-primary/5",
+                      isHovered && "bg-primary/10"
                     )}
-                    onClick={() => {
-                      setSelectedAssumption(assumption)
-                      if (onSelectAssumption) {
-                        onSelectAssumption(assumption.id)
-                      }
-                    }}
+                    onClick={() => onSelectAssumption(assumption.id)}
+                    onMouseEnter={() => onHoverAssumption?.(assumption.id)}
+                    onMouseLeave={() => onHoverAssumption?.(null)}
                   >
+                    <TableCell>
+                      <MapGlyph assumption={assumption} />
+                    </TableCell>
                     <TableCell>
                       <Badge variant="muted" className="text-xs">
                         {assumption.category}
@@ -319,6 +440,18 @@ export function AssumptionsLedger({
                           ))}
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          nextAction === 'Validate' ? 'warning' :
+                          nextAction === 'Commit' ? 'success' :
+                          nextAction === 'Defer' ? 'muted' : 'default'
+                        }
+                        className="text-xs"
+                      >
+                        {nextAction}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <span className="text-xs text-muted-foreground">
@@ -396,7 +529,22 @@ export function AssumptionsLedger({
 
         {filteredAssumptions.length === 0 && (
           <div className="text-center py-8 text-sm text-muted-foreground">
-            No assumptions match the current filters.
+            <p>No assumptions match the current filters.</p>
+            {onClearSelection && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  handleCategoryChange('all')
+                  handleSearchChange('')
+                  handleDisagreeUnsureChange(false)
+                  onClearSelection()
+                }}
+                className="mt-2"
+              >
+                Clear all filters
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -500,4 +648,3 @@ export function AssumptionsLedger({
     </>
   )
 }
-
