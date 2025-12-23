@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, X, ExternalLink } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import type {
   WizardState,
-  ResolvedSource,
   SuggestedCompetitor,
   SelectedCompetitor,
 } from '@/lib/onboarding/types'
@@ -21,61 +20,21 @@ interface WizardStep2ConfirmProps {
   onComplete: (state: Partial<WizardState>) => void
 }
 
-const EVIDENCE_WINDOW_OPTIONS = [30, 60, 90, 180] as const
-
 export function WizardStep2Confirm({
   state,
   onBack,
   onComplete,
 }: WizardStep2ConfirmProps) {
-  const [sources, setSources] = useState<ResolvedSource[]>(state.resolvedSources)
   const [selectedCompetitors, setSelectedCompetitors] = useState<SelectedCompetitor[]>(
     state.selectedCompetitors
   )
-  const [evidenceWindowDays, setEvidenceWindowDays] = useState(
-    state.evidenceWindowDays
-  )
-  const [newSourceUrl, setNewSourceUrl] = useState('')
-  const [showAddSource, setShowAddSource] = useState(false)
   const [newCompetitorName, setNewCompetitorName] = useState('')
   const [newCompetitorUrl, setNewCompetitorUrl] = useState('')
   const [showAddCompetitor, setShowAddCompetitor] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const enabledSources = sources.filter((s) => s.enabled)
   const REQUIRED_COMPETITORS = 3
   const hasRequiredCompetitors = selectedCompetitors.length >= REQUIRED_COMPETITORS
-
-  const handleSourceToggle = (index: number) => {
-    const newSources = [...sources]
-    newSources[index].enabled = !newSources[index].enabled
-    setSources(newSources)
-  }
-
-  const handleAddSource = () => {
-    if (!newSourceUrl.trim()) {
-      return
-    }
-
-    const normalized = normalizeUrl(newSourceUrl.trim())
-    if (!normalized.ok) {
-      setError(`Invalid URL: ${normalized.reason}`)
-      return
-    }
-
-    const newSource: ResolvedSource = {
-      label: 'Custom source',
-      url: normalized.url,
-      type: 'other',
-      confidence: 'medium',
-      enabled: true,
-    }
-
-    setSources([...sources, newSource])
-    setNewSourceUrl('')
-    setShowAddSource(false)
-    setError(null)
-  }
 
   const handleCompetitorToggle = (competitor: SuggestedCompetitor) => {
     if (!competitor.url) return
@@ -132,32 +91,10 @@ export function WizardStep2Confirm({
     }
 
     // Update state and continue to Step 3
+    // Preserve sources and evidenceWindowDays from state, only update selectedCompetitors
     onComplete({
       selectedCompetitors,
-      resolvedSources: sources,
-      evidenceWindowDays,
     })
-  }
-
-  // Group sources by type
-  const groupedSources = sources.reduce(
-    (acc, source) => {
-      if (!acc[source.type]) {
-        acc[source.type] = []
-      }
-      acc[source.type].push(source)
-      return acc
-    },
-    {} as Record<string, ResolvedSource[]>
-  )
-
-  const sourceTypeLabels: Record<string, string> = {
-    website: 'Official',
-    pricing: 'Pricing',
-    docs: 'Docs',
-    changelog: 'Changelog/Blog',
-    careers: 'Careers',
-    other: 'Other',
   }
 
   return (
@@ -193,148 +130,18 @@ export function WizardStep2Confirm({
         </div>
       </SurfaceCard>
 
-      {/* Sources section */}
-      <SurfaceCard className="p-6">
+      {/* Competitors section */}
+      <SurfaceCard className="p-6 shadow-md">
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-semibold text-foreground mb-1">
-              Sources we'll scan
+              Add competitors
             </h3>
             <p className="text-sm text-muted-foreground">
-              Review and enable the sources you want to include. At least one
-              source must be enabled.
-            </p>
-          </div>
-
-          {Object.entries(groupedSources).map(([type, typeSources]) => (
-            <div key={type} className="space-y-2">
-              <h4 className="text-sm font-semibold text-foreground">
-                {sourceTypeLabels[type] || type}
-              </h4>
-              <div className="space-y-2">
-                {typeSources.map((source, index) => {
-                  const globalIndex = sources.indexOf(source)
-                  return (
-                    <label
-                      key={globalIndex}
-                      className="flex items-start gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={source.enabled}
-                        onChange={() => handleSourceToggle(globalIndex)}
-                        className="mt-1 h-4 w-4 rounded border-border text-indigo-600 focus:ring-2 focus:ring-indigo-500"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium text-foreground truncate">
-                            {source.label}
-                          </span>
-                          <Badge
-                            variant={
-                              source.confidence === 'high'
-                                ? 'success'
-                                : source.confidence === 'medium'
-                                ? 'info'
-                                : 'muted'
-                            }
-                            className="text-xs"
-                          >
-                            {source.confidence === 'high'
-                              ? 'High confidence'
-                              : source.confidence === 'medium'
-                              ? 'Medium'
-                              : 'Low'}
-                          </Badge>
-                        </div>
-                        <a
-                          href={source.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 truncate"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {source.url}
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </div>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
-
-          {/* Add source */}
-          {showAddSource ? (
-            <div className="flex gap-2 p-3 rounded-lg border border-border">
-              <Input
-                type="text"
-                value={newSourceUrl}
-                onChange={(e) => setNewSourceUrl(e.target.value)}
-                placeholder="https://example.com/page"
-                className="flex-1"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleAddSource()
-                  } else if (e.key === 'Escape') {
-                    setShowAddSource(false)
-                    setNewSourceUrl('')
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleAddSource}
-                disabled={!newSourceUrl.trim()}
-              >
-                Add
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowAddSource(false)
-                  setNewSourceUrl('')
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAddSource(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add a URL
-            </Button>
-          )}
-
-          {enabledSources.length === 0 && (
-            <p className="text-xs text-destructive">
-              At least one source must be enabled
-            </p>
-          )}
-        </div>
-      </SurfaceCard>
-
-      {/* Competitors section (secondary) */}
-      <SurfaceCard className="p-6 border-t-2 border-t-muted">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-base font-semibold text-foreground mb-1">
-              Add competitors (required)
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Add {REQUIRED_COMPETITORS} real alternatives so we can gather evidence and produce defensible opportunities.
+              Add {REQUIRED_COMPETITORS}–5 competitors you're often compared against. We'll collect evidence later.
             </p>
             <div className="mt-2 text-xs font-medium text-foreground">
-              Competitors: {selectedCompetitors.length} / {REQUIRED_COMPETITORS}
+              {selectedCompetitors.length} competitor{selectedCompetitors.length !== 1 ? 's' : ''} added (minimum {REQUIRED_COMPETITORS})
             </div>
           </div>
 
@@ -400,12 +207,13 @@ export function WizardStep2Confirm({
                 onChange={(e) => setNewCompetitorName(e.target.value)}
                 placeholder="Competitor name"
                 className="w-full"
+                required
               />
               <Input
                 type="text"
                 value={newCompetitorUrl}
                 onChange={(e) => setNewCompetitorUrl(e.target.value)}
-                placeholder="URL (optional)"
+                placeholder="Website (optional but recommended)"
                 className="w-full"
               />
               <div className="flex gap-2">
@@ -486,31 +294,6 @@ export function WizardStep2Confirm({
               </div>
             </div>
           )}
-        </div>
-      </SurfaceCard>
-
-      {/* Evidence window */}
-      <SurfaceCard className="p-6">
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-foreground">
-            Evidence window
-          </label>
-          <div className="flex gap-2 flex-wrap">
-            {EVIDENCE_WINDOW_OPTIONS.map((days) => (
-              <Button
-                key={days}
-                type="button"
-                variant={evidenceWindowDays === days ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setEvidenceWindowDays(days)}
-              >
-                {days} days
-              </Button>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            How far back to look for evidence (default: 90 days)
-          </p>
         </div>
       </SurfaceCard>
 
