@@ -17,12 +17,13 @@ export async function createProject(
   const insertPayload = input as Database['public']['Tables']['projects']['Insert']
   const query = typedClient.from('projects') as unknown as {
     insert: (values: Database['public']['Tables']['projects']['Insert']) => {
-      select: () => {
+      select: (columns?: string) => {
         single: () => Promise<{ data: Project | null; error: { message: string; code?: string } | null }>
       }
     }
   }
-  const { data, error } = await query.insert(insertPayload).select().single()
+  // Explicitly list columns to avoid customer_profile schema cache error
+  const { data, error } = await query.insert(insertPayload).select('id,user_id,name,market,target_customer,your_product,business_goal,geography,primary_constraint,risk_posture,ambition_level,organizational_capabilities,decision_level,explicit_non_goals,input_confidence,starting_point,hypothesis,problem_statement,market_context,solution_idea,decision_framing,latest_successful_run_id,latest_run_id,created_at').single()
 
   if (error !== null) {
     throw new Error(error.message)
@@ -40,9 +41,10 @@ export async function listProjectsForOwner(
   ownerId: string
 ): Promise<Project[]> {
   const typedClient = getTypedClient(client)
+  // Explicitly list columns to avoid customer_profile schema cache error
   const { data, error } = await typedClient
     .from('projects')
-    .select('*')
+    .select('id,user_id,name,market,target_customer,your_product,business_goal,geography,primary_constraint,risk_posture,ambition_level,organizational_capabilities,decision_level,explicit_non_goals,input_confidence,starting_point,hypothesis,problem_statement,market_context,solution_idea,decision_framing,latest_successful_run_id,latest_run_id,created_at')
     .eq('user_id', ownerId)
     .order('created_at', { ascending: false })
 
@@ -58,9 +60,10 @@ export async function getProjectById(
   projectId: string
 ): Promise<Project | null> {
   const typedClient = getTypedClient(client)
+  // Explicitly list columns to avoid customer_profile schema cache error
   const { data, error } = await typedClient
     .from('projects')
-    .select('*')
+    .select('id,user_id,name,market,target_customer,your_product,business_goal,geography,primary_constraint,risk_posture,ambition_level,organizational_capabilities,decision_level,explicit_non_goals,input_confidence,starting_point,hypothesis,problem_statement,market_context,solution_idea,decision_framing,latest_successful_run_id,latest_run_id,created_at')
     .eq('id', projectId)
     .single()
 
@@ -125,9 +128,10 @@ export async function listProjectsWithCounts(
   const typedClient = getTypedClient(client)
   
   // Fetch all projects
+  // Explicitly list columns to avoid customer_profile schema cache error
   const { data: projects, error: projectsError } = await typedClient
     .from('projects')
-    .select('*')
+    .select('id,user_id,name,market,target_customer,your_product,business_goal,geography,primary_constraint,risk_posture,ambition_level,organizational_capabilities,decision_level,explicit_non_goals,input_confidence,starting_point,hypothesis,problem_statement,market_context,solution_idea,decision_framing,latest_successful_run_id,latest_run_id,created_at')
     .eq('user_id', ownerId)
     .order('created_at', { ascending: false })
 

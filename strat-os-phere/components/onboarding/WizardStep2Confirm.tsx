@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, X, ArrowLeft } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, X, ArrowLeft, Search, CheckCircle2, Circle, Loader2 } from 'lucide-react'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
@@ -9,10 +9,10 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import type {
   WizardState,
-  SuggestedCompetitor,
   SelectedCompetitor,
 } from '@/lib/onboarding/types'
 import { normalizeUrl } from '@/lib/url/normalizeUrl'
+import type { CompetitorCandidate } from '@/app/api/competitors/suggest/route'
 
 interface WizardStep2ConfirmProps {
   state: WizardState
@@ -33,25 +33,151 @@ export function WizardStep2Confirm({
   const [showAddCompetitor, setShowAddCompetitor] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState(state.primaryCompanyName || '')
+  const [searchResults, setSearchResults] = useState<CompetitorCandidate[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [selectedCandidateDomains, setSelectedCandidateDomains] = useState<Set<string>>(
+    new Set(selectedCompetitors.map(c => {
+      try {
+        const url = new URL(c.url)
+        return url.hostname.replace(/^www\./, '')
+      } catch {
+        return ''
+      }
+    }).filter(Boolean))
+  )
+
   const REQUIRED_COMPETITORS = 3
   const hasRequiredCompetitors = selectedCompetitors.length >= REQUIRED_COMPETITORS
 
-  const handleCompetitorToggle = (competitor: SuggestedCompetitor) => {
-    if (!competitor.url) return
+  // Search for competitors
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setError('Please enter a company name to search')
+      return
+    }
 
-    const isSelected = selectedCompetitors.some(
-      (c) => c.url === competitor.url
-    )
+    setIsSearching(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/competitors/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: searchQuery.trim(),
+          market: state.contextText ? undefined : undefined, // Can be enhanced later
+          ideaOrContext: state.contextText,
+          limit: 12,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.candidates && Array.isArray(data.candidates)) {
+        setSearchResults(data.candidates)
+      } else {
+        setSearchResults([])
+        if (data.error) {
+          setError(data.error)
+        }
+      }
+    } catch (err) {
+      console.error('[WizardStep2] Search failed:', err)
+      setError('Failed to search for competitors. You can add them manually.')
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  // Auto-search on mount if we have a company name and no results yet
+  useEffect(() => {
+    if (state.primaryCompanyName && searchResults.length === 0 && !isSearching) {
+      const performSearch = async () => {
+        setIsSearching(true)
+        setError(null)
+
+        try {
+          const response = await fetch('/api/competitors/suggest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              companyName: state.primaryCompanyName.trim(),
+              ideaOrContext: state.contextText,
+              limit: 12,
+            }),
+          })
+
+          const data = await response.json()
+
+          if (data.candidates && Array.isArray(data.candidates)) {
+            setSearchResults(data.candidates)
+          } else {
+            setSearchResults([])
+          }
+        } catch (err) {
+          console.error('[WizardStep2] Auto-search failed:', err)
+          setSearchResults([])
+        } finally {
+          setIsSearching(false)
+        }
+      }
+
+      performSearch()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run on mount
+
+  const handleToggleCandidate = (candidate: CompetitorCandidate) => {
+    const isSelected = selectedCandidateDomains.has(candidate.domain)
 
     if (isSelected) {
-      setSelectedCompetitors(
-        selectedCompetitors.filter((c) => c.url !== competitor.url)
+      // Remove candidate
+      const updatedCompetitors = selectedCompetitors.filter(
+        (c) => {
+          try {
+            const url = new URL(c.url)
+            return url.hostname.replace(/^www\./, '') !== candidate.domain
+          } catch {
+            return true
+          }
+        }
       )
+      const updatedDomains = new Set(selectedCandidateDomains)
+      updatedDomains.delete(candidate.domain)
+
+      setSelectedCompetitors(updatedCompetitors)
+      setSelectedCandidateDomains(updatedDomains)
     } else {
-      setSelectedCompetitors([
-        ...selectedCompetitors,
-        { name: competitor.name, url: competitor.url },
-      ])
+      // Add candidate
+      const competitor: SelectedCompetitor = {
+        name: candidate.name,
+        url: candidate.website,
+      }
+      const updatedCompetitors = [...selectedCompetitors, competitor]
+      const updatedDomains = new Set(selectedCandidateDomains)
+      updatedDomains.add(candidate.domain)
+
+      setSelectedCompetitors(updatedCompetitors)
+      setSelectedCandidateDomains(updatedDomains)
+    }
+  }
+
+  const handleRemoveCompetitor = (url: string) => {
+    const updated = selectedCompetitors.filter((c) => c.url !== url)
+    setSelectedCompetitors(updated)
+
+    // Extract domain and remove from selected domains
+    try {
+      const urlObj = new URL(url)
+      const domain = urlObj.hostname.replace(/^www\./, '')
+      const updatedDomains = new Set(selectedCandidateDomains)
+      updatedDomains.delete(domain)
+      setSelectedCandidateDomains(updatedDomains)
+    } catch {
+      // Ignore URL parsing errors
     }
   }
 
@@ -74,10 +200,21 @@ export function WizardStep2Confirm({
       url = `https://${newCompetitorName.toLowerCase().replace(/\s+/g, '')}.com`
     }
 
-    setSelectedCompetitors([
-      ...selectedCompetitors,
-      { name: newCompetitorName.trim(), url },
-    ])
+    const competitor: SelectedCompetitor = { name: newCompetitorName.trim(), url }
+    const updated = [...selectedCompetitors, competitor]
+    setSelectedCompetitors(updated)
+
+    // Extract domain for tracking
+    try {
+      const urlObj = new URL(url)
+      const domain = urlObj.hostname.replace(/^www\./, '')
+      const updatedDomains = new Set(selectedCandidateDomains)
+      updatedDomains.add(domain)
+      setSelectedCandidateDomains(updatedDomains)
+    } catch {
+      // Ignore URL parsing errors
+    }
+
     setNewCompetitorName('')
     setNewCompetitorUrl('')
     setShowAddCompetitor(false)
@@ -91,10 +228,15 @@ export function WizardStep2Confirm({
     }
 
     // Update state and continue to Step 3
-    // Preserve sources and evidenceWindowDays from state, only update selectedCompetitors
     onComplete({
       selectedCompetitors,
     })
+  }
+
+  const confidenceColors = {
+    high: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400',
+    medium: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400',
+    low: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-400',
   }
 
   return (
@@ -130,60 +272,132 @@ export function WizardStep2Confirm({
             </div>
           </div>
 
-          {/* Suggested competitors */}
-          {state.suggestedCompetitors.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {state.suggestedCompetitors.map((competitor, index) => {
-                const isSelected = selectedCompetitors.some(
-                  (c) => c.url === competitor.url
-                )
-                return (
-                  <label
+          {/* Search competitors */}
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleSearch()
+                  }
+                }}
+                placeholder="Search for competitors (e.g., PagerDuty)"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                onClick={handleSearch}
+                disabled={isSearching || !searchQuery.trim()}
+                variant="outline"
+              >
+                {isSearching ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
+                <span className="ml-2">Search</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Search results */}
+          {isSearching && (
+            <div className="py-4 text-sm text-muted-foreground text-center">
+              Searching for competitors...
+            </div>
+          )}
+
+          {!isSearching && searchResults.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">
+                Search results:
+              </p>
+              <div className="border border-border rounded-lg divide-y divide-border">
+                {searchResults.map((candidate) => {
+                  const isSelected = selectedCandidateDomains.has(candidate.domain)
+                  return (
+                    <div
+                      key={candidate.domain}
+                      className="flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => handleToggleCandidate(candidate)}
+                    >
+                      <div className="flex-shrink-0">
+                        {isSelected ? (
+                          <CheckCircle2 className="h-5 w-5 text-primary" />
+                        ) : (
+                          <Circle className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+
+                      {/* Company info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-medium text-foreground">
+                            {candidate.name}
+                          </div>
+                          <Badge
+                            className={`text-xs ${confidenceColors[candidate.confidence]}`}
+                          >
+                            {candidate.confidence}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {candidate.domain}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {!isSearching && searchResults.length === 0 && searchQuery && (
+            <div className="py-4 text-sm text-muted-foreground text-center">
+              No competitors found. Try a different search or add them manually.
+            </div>
+          )}
+
+          {/* Selected competitors list */}
+          {selectedCompetitors.length > 0 && (
+            <div className="pt-2 border-t border-border">
+              <p className="text-xs font-medium text-foreground mb-2">
+                Selected competitors:
+              </p>
+              <div className="space-y-2">
+                {selectedCompetitors.map((competitor, index) => (
+                  <div
                     key={index}
-                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'border-indigo-400 bg-indigo-50/30 dark:bg-indigo-950/20'
-                        : 'border-border hover:bg-muted/30'
-                    }`}
+                    className="flex items-center justify-between p-2 rounded-lg border border-border bg-muted/30"
                   >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => handleCompetitorToggle(competitor)}
-                      disabled={!competitor.url}
-                      className="mt-1 h-4 w-4 rounded border-border text-indigo-600 focus:ring-2 focus:ring-indigo-500"
-                    />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-foreground">
                         {competitor.name}
                       </div>
-                      {competitor.domain && (
-                        <div className="text-xs text-muted-foreground">
-                          {competitor.domain}
-                        </div>
-                      )}
-                      {competitor.confidence && (
-                        <Badge
-                          variant={
-                            competitor.confidence === 'high'
-                              ? 'success'
-                              : competitor.confidence === 'medium'
-                              ? 'info'
-                              : 'muted'
-                          }
-                          className="mt-1 text-xs"
-                        >
-                          {competitor.confidence}
-                        </Badge>
-                      )}
+                      <div className="text-xs text-muted-foreground truncate">
+                        {competitor.url}
+                      </div>
                     </div>
-                  </label>
-                )
-              })}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveCompetitor(competitor.url)}
+                      className="ml-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Add competitor */}
+          {/* Add competitor manually */}
           {showAddCompetitor ? (
             <div className="space-y-2 p-3 rounded-lg border border-border">
               <Input
@@ -218,6 +432,7 @@ export function WizardStep2Confirm({
                     setShowAddCompetitor(false)
                     setNewCompetitorName('')
                     setNewCompetitorUrl('')
+                    setError(null)
                   }}
                 >
                   Cancel
@@ -232,7 +447,7 @@ export function WizardStep2Confirm({
               onClick={() => setShowAddCompetitor(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add competitor
+              Add competitor manually
             </Button>
           )}
 
@@ -240,44 +455,6 @@ export function WizardStep2Confirm({
             <p className="text-xs text-destructive">
               {REQUIRED_COMPETITORS} competitors are required (currently {selectedCompetitors.length})
             </p>
-          )}
-
-          {/* Selected competitors list */}
-          {selectedCompetitors.length > 0 && (
-            <div className="pt-2 border-t border-border">
-              <p className="text-xs font-medium text-foreground mb-2">
-                Selected competitors:
-              </p>
-              <div className="space-y-2">
-                {selectedCompetitors.map((competitor, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-2 rounded-lg border border-border bg-muted/30"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-foreground">
-                        {competitor.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {competitor.url}
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const updated = selectedCompetitors.filter((_, i) => i !== index)
-                        setSelectedCompetitors(updated)
-                      }}
-                      className="ml-2"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
           )}
         </div>
       </SurfaceCard>
@@ -318,4 +495,3 @@ export function WizardStep2Confirm({
     </div>
   )
 }
-
