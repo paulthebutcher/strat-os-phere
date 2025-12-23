@@ -1,6 +1,12 @@
 /**
  * Helper to harvest evidence bundle for a project and its competitors
  * Builds HarvestContext from project/competitor data and calls the harvester
+ * 
+ * NOTE: Do not reference drift columns that are not in Supabase schema/types:
+ * market_context, hypothesis, decision_framing, starting_point, customer_profile, 
+ * problem_statement, solution_idea, context_paste
+ * 
+ * Only use fields that exist on ProjectRow in database.types.ts
  */
 
 import type { Project, Competitor } from '@/lib/supabase/types'
@@ -37,7 +43,7 @@ function buildHarvestContext(
     project.your_product || project.name || 'Company'
 
   // Extract market/category
-  const market = project.market || project.market_context || undefined
+  const market = project.market ?? undefined
 
   // Extract decision/business goal for context
   // Note: hypothesis and problem_statement columns do not exist in production

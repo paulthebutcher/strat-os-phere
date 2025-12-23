@@ -4,7 +4,7 @@ import type { ProjectRow } from '@/lib/supabase/database.types'
 
 describe('buildProjectContext', () => {
   it('should build context for product lens with full fields', () => {
-    const project: ProjectRow = {
+    const project = {
       id: 'test-1',
       user_id: 'user-1',
       name: 'Test Project',
@@ -20,28 +20,24 @@ describe('buildProjectContext', () => {
       decision_level: 'VP',
       explicit_non_goals: 'Enterprise sales',
       input_confidence: 'very_confident',
-      starting_point: 'product',
-      hypothesis: 'Will we win against Asana by focusing on real-time collaboration?',
-      problem_statement: null,
-      customer_profile: null,
-      market_context: null,
-      solution_idea: null,
+      latest_successful_run_id: null,
+      latest_run_id: null,
       created_at: new Date().toISOString(),
-    }
+    } as ProjectRow
 
     const result = buildProjectContext(project)
 
     expect(result.lens).toBe('product')
-    expect(result.summaryText).toContain('Hypothesis: Will we win against Asana')
+    expect(result.summaryText).toContain('Product: Project management tool')
     expect(result.summaryText).toContain('Market: B2B SaaS')
     expect(result.summaryText).toContain('Target customer: Product managers')
-    expect(result.fieldsUsed).toContain('hypothesis')
+    expect(result.fieldsUsed).toContain('your_product')
     expect(result.fieldsUsed).toContain('market')
     expect(result.fieldsUsed).toContain('target_customer')
   })
 
-  it('should build context for problem lens with only hypothesis and problem_statement', () => {
-    const project: ProjectRow = {
+  it('should build context for problem lens with only market and target_customer', () => {
+    const project = {
       id: 'test-2',
       user_id: 'user-1',
       name: 'Test Project',
@@ -57,28 +53,22 @@ describe('buildProjectContext', () => {
       decision_level: null,
       explicit_non_goals: null,
       input_confidence: null,
-      starting_point: 'problem',
-      hypothesis: 'Is scheduling the #1 pain for boutique gym owners?',
-      problem_statement: 'Boutique gym owners struggle with manual scheduling',
-      customer_profile: null,
-      market_context: null,
-      solution_idea: null,
+      latest_successful_run_id: null,
+      latest_run_id: null,
       created_at: new Date().toISOString(),
-    }
+    } as ProjectRow
 
     const result = buildProjectContext(project)
 
-    expect(result.lens).toBe('problem')
-    expect(result.summaryText).toContain('Hypothesis: Is scheduling the #1 pain')
-    expect(result.summaryText).toContain('Problem: Boutique gym owners struggle')
+    expect(result.lens).toBe('product')
     expect(result.summaryText).toContain('Market: Fitness')
-    expect(result.fieldsUsed).toContain('hypothesis')
-    expect(result.fieldsUsed).toContain('problem_statement')
+    expect(result.summaryText).toContain('Target customer: Gym owners')
     expect(result.fieldsUsed).toContain('market')
+    expect(result.fieldsUsed).toContain('target_customer')
   })
 
-  it('should default to product lens for legacy projects with starting_point null', () => {
-    const project: ProjectRow = {
+  it('should default to product lens for legacy projects', () => {
+    const project = {
       id: 'test-3',
       user_id: 'user-1',
       name: 'Legacy Project',
@@ -94,14 +84,10 @@ describe('buildProjectContext', () => {
       decision_level: null,
       explicit_non_goals: null,
       input_confidence: null,
-      starting_point: null,
-      hypothesis: null,
-      problem_statement: null,
-      customer_profile: null,
-      market_context: null,
-      solution_idea: null,
+      latest_successful_run_id: null,
+      latest_run_id: null,
       created_at: new Date().toISOString(),
-    }
+    } as ProjectRow
 
     const result = buildProjectContext(project)
 
@@ -112,8 +98,8 @@ describe('buildProjectContext', () => {
     expect(result.fieldsUsed).toContain('market')
   })
 
-  it('should handle customer lens with customer_profile', () => {
-    const project: ProjectRow = {
+  it('should handle customer context with target_customer', () => {
+    const project = {
       id: 'test-4',
       user_id: 'user-1',
       name: 'Customer Project',
@@ -129,26 +115,22 @@ describe('buildProjectContext', () => {
       decision_level: null,
       explicit_non_goals: null,
       input_confidence: null,
-      starting_point: 'customer',
-      hypothesis: 'What do HR ops teams struggle with most in onboarding?',
-      problem_statement: null,
-      customer_profile: 'HR operations teams at mid-size companies',
-      market_context: null,
-      solution_idea: null,
+      latest_successful_run_id: null,
+      latest_run_id: null,
       created_at: new Date().toISOString(),
-    }
+    } as ProjectRow
 
     const result = buildProjectContext(project)
 
-    expect(result.lens).toBe('customer')
-    expect(result.summaryText).toContain('Hypothesis: What do HR ops teams')
-    expect(result.summaryText).toContain('Customer: HR operations teams')
-    expect(result.fieldsUsed).toContain('hypothesis')
-    expect(result.fieldsUsed).toContain('customer_profile')
+    expect(result.lens).toBe('product')
+    expect(result.summaryText).toContain('Market: HR Tech')
+    expect(result.summaryText).toContain('Target customer: HR teams')
+    expect(result.fieldsUsed).toContain('market')
+    expect(result.fieldsUsed).toContain('target_customer')
   })
 
-  it('should handle market lens with market_context', () => {
-    const project: ProjectRow = {
+  it('should handle market context with market field', () => {
+    const project = {
       id: 'test-5',
       user_id: 'user-1',
       name: 'Market Project',
@@ -164,22 +146,18 @@ describe('buildProjectContext', () => {
       decision_level: null,
       explicit_non_goals: null,
       input_confidence: null,
-      starting_point: 'market',
-      hypothesis: 'Where is incident management overbuilt or underdelivering?',
-      problem_statement: null,
-      customer_profile: null,
-      market_context: 'Incident management tools for engineering teams',
-      solution_idea: null,
+      latest_successful_run_id: null,
+      latest_run_id: null,
       created_at: new Date().toISOString(),
-    }
+    } as ProjectRow
 
     const result = buildProjectContext(project)
 
-    expect(result.lens).toBe('market')
-    expect(result.summaryText).toContain('Hypothesis: Where is incident management')
-    expect(result.summaryText).toContain('Market: Incident management tools')
-    expect(result.fieldsUsed).toContain('hypothesis')
-    expect(result.fieldsUsed).toContain('market_context')
+    expect(result.lens).toBe('product')
+    expect(result.summaryText).toContain('Market: Incident Management')
+    expect(result.summaryText).toContain('Target customer: DevOps teams')
+    expect(result.fieldsUsed).toContain('market')
+    expect(result.fieldsUsed).toContain('target_customer')
   })
 })
 

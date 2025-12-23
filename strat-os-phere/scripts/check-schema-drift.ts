@@ -17,6 +17,10 @@ const FORBIDDEN_COLUMNS = [
   'decision_framing',
   'starting_point',
   'customer_profile',
+  'market_context',
+  'problem_statement',
+  'solution_idea',
+  'context_paste',
 ]
 
 // File extensions to check
