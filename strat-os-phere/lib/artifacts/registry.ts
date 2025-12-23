@@ -5,17 +5,16 @@
 
 /**
  * Artifact registry entry
+ * Note: ArtifactType is defined later in this file, TypeScript handles the forward reference
  */
-export interface ArtifactRegistryEntry {
+export type ArtifactRegistryEntry = Readonly<{
   /** The artifact type identifier (must match the key) */
-  type: string
+  type: ArtifactType
   /** Human-readable label for UI */
   label: string
   /** Schema name used for repair/validation (matches RepairableSchemaName) */
   schemaName?: string
-  /** Optional version for schema evolution */
-  version?: number
-}
+}>
 
 /**
  * Canonical artifact registry
@@ -71,7 +70,7 @@ export const ARTIFACT_REGISTRY = {
     type: 'evidence_bundle_v1',
     label: 'Evidence Bundle',
   },
-} as const satisfies Record<string, ArtifactRegistryEntry>
+} as const satisfies Record<ArtifactType, ArtifactRegistryEntry>
 
 /**
  * Runtime array of all artifact types (for iteration and type guards)
@@ -157,8 +156,7 @@ export type ArtifactSchemaName = (typeof ARTIFACT_SCHEMA_NAMES)[number]
  */
 const _validateSchemaNames = (): void => {
   const registrySchemaNames = Object.values(ARTIFACT_REGISTRY)
-    .map((entry) => entry.schemaName)
-    .filter((name): name is NonNullable<typeof name> => name !== undefined)
+    .flatMap((entry) => (entry.schemaName ? [entry.schemaName] : []))
   
   for (const name of registrySchemaNames) {
     if (!ARTIFACT_SCHEMA_NAMES.includes(name as ArtifactSchemaName)) {
