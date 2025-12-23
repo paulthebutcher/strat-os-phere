@@ -377,9 +377,12 @@ function OpportunitiesV3Presenter({
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {topScore !== null && (
-                <Badge variant="primary" className="text-sm">
-                  {topScore}/100
-                </Badge>
+                <div className="flex shrink-0 items-center gap-2 rounded-lg bg-[rgba(var(--plinth-accent)/0.1)] px-3 py-1.5">
+                  <span className="text-lg font-bold text-[rgb(var(--plinth-accent))]">
+                    {topScore.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-[rgb(var(--plinth-muted))]">score</span>
+                </div>
               )}
             </div>
           </div>
@@ -444,9 +447,12 @@ function OpportunitiesV3Presenter({
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {score !== null && (
-                      <Badge variant="primary">
-                        {score}/100
-                      </Badge>
+                      <div className="flex shrink-0 items-center gap-2 rounded-lg bg-[rgba(var(--plinth-accent)/0.1)] px-3 py-1.5">
+                        <span className="text-lg font-bold text-[rgb(var(--plinth-accent))]">
+                          {score.toFixed(1)}
+                        </span>
+                        <span className="text-xs text-[rgb(var(--plinth-muted))]">score</span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -645,9 +651,12 @@ function OpportunitiesV2Presenter({
                 <h3 className="text-base font-semibold text-foreground leading-snug">{opp.title}</h3>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <Badge variant="primary">
-                  {opp.score}/100
-                </Badge>
+                <div className="flex shrink-0 items-center gap-2 rounded-lg bg-[rgba(var(--plinth-accent)/0.1)] px-3 py-1.5">
+                  <span className="text-lg font-bold text-[rgb(var(--plinth-accent))]">
+                    {opp.score.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-[rgb(var(--plinth-muted))]">score</span>
+                </div>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -757,9 +766,12 @@ function OpportunitiesFromPresenter({
                   <h3 className="text-base font-semibold text-foreground leading-snug">{opp.title}</h3>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Badge variant="primary">
-                    {opp.score}/100
-                  </Badge>
+                  <div className="flex shrink-0 items-center gap-2 rounded-lg bg-[rgba(var(--plinth-accent)/0.1)] px-3 py-1.5">
+                    <span className="text-lg font-bold text-[rgb(var(--plinth-accent))]">
+                      {opp.score.toFixed(1)}
+                    </span>
+                    <span className="text-xs text-[rgb(var(--plinth-muted))]">score</span>
+                  </div>
                 </div>
               </div>
               {opp.oneLiner && (

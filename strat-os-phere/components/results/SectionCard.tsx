@@ -13,6 +13,7 @@ interface SectionCardProps {
 /**
  * Presentational card component for content sections
  * Provides consistent styling, spacing, and visual hierarchy
+ * Uses CardShell styling for premium opportunity cards
  */
 export function SectionCard({
   children,
@@ -22,8 +23,11 @@ export function SectionCard({
   return (
     <article
       className={cn(
-        'rounded-lg border border-border bg-card p-6',
-        elevated && 'shadow-sm',
+        'rounded-[var(--plinth-radius-md)] border bg-white',
+        'border-[color:rgba(var(--plinth-border))]',
+        'shadow-[var(--plinth-shadow-1)]',
+        'p-6',
+        elevated && 'shadow-[var(--plinth-shadow-2)]',
         className
       )}
     >

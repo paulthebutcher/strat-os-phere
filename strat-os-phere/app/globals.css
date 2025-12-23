@@ -146,6 +146,24 @@
   --spacing-lg: 1.5rem; /* 24px */
   --spacing-xl: 2rem; /* 32px */
   --spacing-2xl: 3rem; /* 48px */
+  
+  /* Plinth brand UI tokens - Premium opportunity card system */
+  --plinth-surface: 255 255 255;
+  --plinth-surface-muted: 248 250 252; /* slate-50 */
+  --plinth-border: 15 23 42 / 0.08; /* slate-900 @ 8% */
+  --plinth-text: 15 23 42; /* slate-900 */
+  --plinth-muted: 71 85 105; /* slate-600 */
+
+  --plinth-radius-lg: 20px;
+  --plinth-radius-md: 14px;
+
+  --plinth-shadow-1: 0 1px 2px rgba(2, 6, 23, 0.06), 0 8px 24px rgba(2, 6, 23, 0.08);
+  --plinth-shadow-2: 0 2px 8px rgba(2, 6, 23, 0.08), 0 20px 48px rgba(2, 6, 23, 0.12);
+
+  --plinth-glow: radial-gradient(800px 400px at 20% 20%, rgba(99,102,241,0.18), transparent 55%),
+                 radial-gradient(800px 400px at 80% 40%, rgba(147,51,234,0.14), transparent 55%);
+
+  --plinth-accent: 79 70 229; /* indigo-600 */
 }
 
 .dark {

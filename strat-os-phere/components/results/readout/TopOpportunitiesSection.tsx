@@ -67,13 +67,16 @@ export function TopOpportunitiesSection({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-3 mb-2">
-                      <h3 className="text-xl font-semibold text-foreground leading-tight">
+                      <h3 className="text-xl font-semibold text-[rgb(var(--plinth-text))] leading-tight">
                         {opp.title}
                       </h3>
-                      {opp.score !== null && (
-                        <Badge variant="primary" className="shrink-0">
-                          {opp.score}/100
-                        </Badge>
+                      {opp.score !== null && typeof opp.score === 'number' && (
+                        <div className="flex shrink-0 items-center gap-2 rounded-lg bg-[rgba(var(--plinth-accent)/0.1)] px-3 py-1.5">
+                          <span className="text-lg font-bold text-[rgb(var(--plinth-accent))]">
+                            {opp.score.toFixed(1)}
+                          </span>
+                          <span className="text-xs text-[rgb(var(--plinth-muted))]">score</span>
+                        </div>
                       )}
                     </div>
                     {opp.oneLiner && (
