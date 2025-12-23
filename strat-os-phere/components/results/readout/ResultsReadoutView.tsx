@@ -14,6 +14,7 @@ interface ResultsReadoutViewProps {
   projectName: string
   readoutData: ReadoutData
   normalized: NormalizedResults
+  hideHeader?: boolean
 }
 
 /**
@@ -27,21 +28,24 @@ export function ResultsReadoutView({
   projectName,
   readoutData,
   normalized,
+  hideHeader = false,
 }: ResultsReadoutViewProps) {
   return (
     <div className="space-y-8">
-      <ReadoutHeader
-        projectName={projectName}
-        lastGeneratedAt={readoutData.lastGeneratedAt}
-        projectId={projectId}
-        onViewAppendix={() => {
-          // Scroll to appendix section
-          const appendix = document.getElementById('appendix-section')
-          if (appendix) {
-            appendix.scrollIntoView({ behavior: 'smooth' })
-          }
-        }}
-      />
+      {!hideHeader && (
+        <ReadoutHeader
+          projectName={projectName}
+          lastGeneratedAt={readoutData.lastGeneratedAt}
+          projectId={projectId}
+          onViewAppendix={() => {
+            // Scroll to appendix section
+            const appendix = document.getElementById('appendix-section')
+            if (appendix) {
+              appendix.scrollIntoView({ behavior: 'smooth' })
+            }
+          }}
+        />
+      )}
 
       <ExecutiveSummarySection bullets={readoutData.execSummaryBullets} />
 

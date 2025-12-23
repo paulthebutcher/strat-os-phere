@@ -16,6 +16,9 @@ import { FLAGS } from '@/lib/flags'
 import { getProcessedClaims } from '@/lib/evidence/claims/getProcessedClaims'
 import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
 import { EvidenceTrustPanelWrapper } from '@/components/evidence/EvidenceTrustPanelWrapper'
+import { PageShell } from '@/components/layout/PageShell'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Section } from '@/components/layout/Section'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -85,24 +88,32 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
 
   return (
     <PageGuidanceWrapper pageId="results">
-      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-        <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-          <div className="flex items-center justify-between">
-            <TourLink />
-            <ShareButton projectId={projectId} />
-          </div>
-          
-          {/* Evidence Trust Panel (if enabled) */}
-          {FLAGS.evidenceTrustLayerEnabled && processedClaims && (
+      <PageShell size="wide">
+        <PageHeader
+          title="Opportunities"
+          subtitle="Strategic opportunities ranked by score with actionable experiments and proof points."
+          secondaryActions={
+            <>
+              <TourLink />
+              <ShareButton projectId={projectId} />
+            </>
+          }
+        />
+
+        {/* Evidence Trust Panel (if enabled) */}
+        {FLAGS.evidenceTrustLayerEnabled && processedClaims && (
+          <Section>
             <EvidenceTrustPanelWrapper
               coverage={processedClaims.coverage}
               claimsByType={processedClaims.claimsByType}
               bundle={evidenceBundle}
               lastUpdated={evidenceBundle?.createdAt || null}
             />
-          )}
-          
-          {/* Executive Readout, Assumptions Map, and Assumptions Ledger */}
+          </Section>
+        )}
+        
+        {/* Executive Readout, Assumptions Map, and Assumptions Ledger */}
+        <Section>
           <ResultsReadout
             projectId={projectId}
             opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
@@ -110,8 +121,10 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             generatedAt={normalized.meta.lastGeneratedAt || undefined}
             projectName={project?.name || undefined}
           />
+        </Section>
 
-          {/* Opportunities Content - primary view */}
+        {/* Opportunities Content - primary view */}
+        <Section>
           <OpportunitiesContent
             projectId={projectId}
             opportunitiesV3={opportunities.v3?.content}
@@ -120,8 +133,8 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             strategicBets={strategicBets?.content}
             jtbd={jtbd?.content}
           />
-        </main>
-      </div>
+        </Section>
+      </PageShell>
     </PageGuidanceWrapper>
   )
 }

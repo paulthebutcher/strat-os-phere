@@ -33,7 +33,11 @@ import { EvidenceTrustPanelWrapper } from '@/components/evidence/EvidenceTrustPa
 import { normalizeEvidenceBundleToLedger } from '@/lib/evidence/ledger'
 import { EvidenceLedgerSection } from '@/components/evidence/EvidenceLedgerSection'
 import { PageShell } from '@/components/layout/PageShell'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Section } from '@/components/layout/Section'
 import { EmptyState } from '@/components/layout/EmptyState'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -163,12 +167,14 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
           {/* Evidence Trust Panel (if enabled) */}
           {FLAGS.evidenceTrustLayerEnabled && processedClaims && (
-            <EvidenceTrustPanelWrapper
-              coverage={processedClaims.coverage}
-              claimsByType={processedClaims.claimsByType}
-              bundle={evidenceBundle}
-              lastUpdated={evidenceBundle?.createdAt || null}
-            />
+            <Section>
+              <EvidenceTrustPanelWrapper
+                coverage={processedClaims.coverage}
+                claimsByType={processedClaims.claimsByType}
+                bundle={evidenceBundle}
+                lastUpdated={evidenceBundle?.createdAt || null}
+              />
+            </Section>
           )}
 
           {/* Follow-up question (after analysis completes) */}
@@ -192,14 +198,31 @@ export default async function ResultsPage(props: ResultsPageProps) {
             // Default: Show executive readout view
             (opportunities.best || !isRunning) && (
               <>
-                <ResultsReadoutView
-                  projectId={projectId}
-                  projectName={results.project?.name || 'Results'}
-                  readoutData={readoutData}
-                  normalized={normalized}
+                <PageHeader
+                  title="Results readout"
+                  subtitle="A decision-ready synthesis of your competitive landscape"
+                  primaryAction={<RerunAnalysisButton projectId={projectId} />}
+                  secondaryActions={
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/projects/${projectId}/results?tab=appendix`}>
+                        View Appendix
+                      </Link>
+                    </Button>
+                  }
                 />
+                <Section>
+                  <ResultsReadoutView
+                    projectId={projectId}
+                    projectName={results.project?.name || 'Results'}
+                    readoutData={readoutData}
+                    normalized={normalized}
+                    hideHeader={true}
+                  />
+                </Section>
                 {/* Evidence Ledger Section - Always visible (handles empty state internally) */}
-                <EvidenceLedgerSection model={evidenceLedgerModel} />
+                <Section>
+                  <EvidenceLedgerSection model={evidenceLedgerModel} />
+                </Section>
               </>
             )
           ) : showTabContent ? (

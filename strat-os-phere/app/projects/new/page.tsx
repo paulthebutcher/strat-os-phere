@@ -37,11 +37,7 @@ export default async function NewProjectPage(props: PageProps) {
 
   return (
     <PageGuidanceWrapper pageId="new_project">
-      <div className="min-h-[calc(100vh-57px)]">
-        <main className="w-full py-8">
-          <AnalysisWizard isGuidedMode={isGuidedMode} />
-        </main>
-      </div>
+      <AnalysisWizard isGuidedMode={isGuidedMode} />
     </PageGuidanceWrapper>
   )
 }

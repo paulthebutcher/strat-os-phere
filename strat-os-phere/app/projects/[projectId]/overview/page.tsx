@@ -102,11 +102,46 @@ export default async function OverviewPage(props: OverviewPageProps) {
     return <AnalysisRunExperience projectId={projectId} />
   }
 
+  // Build primary action for header
+  const primaryAction = primaryCTA.type === 'generate_analysis' && readiness.allComplete ? (
+    <GenerateAnalysisButton
+      projectId={projectId}
+      label={primaryCTA.label}
+      canGenerate={readiness.allComplete}
+      missingReasons={
+        readiness.allComplete
+          ? []
+          : readiness.items
+              .filter((item) => item.status === 'incomplete')
+              .map((item) => item.label)
+      }
+    />
+  ) : (
+    <Button asChild variant={primaryCTA.type === 'edit_project' ? 'outline' : 'default'}>
+      <Link
+        href={
+          primaryCTA.href === '/competitors'
+            ? `/projects/${projectId}/competitors`
+            : primaryCTA.href === '/projects'
+            ? `/dashboard`
+            : primaryCTA.href === '/overview'
+            ? `/projects/${projectId}/overview`
+            : primaryCTA.href.startsWith('/')
+            ? `/projects/${projectId}${primaryCTA.href}`
+            : primaryCTA.href
+        }
+      >
+        {primaryCTA.label}
+      </Link>
+    </Button>
+  )
+
   return (
     <PageShell>
       <PageHeader
         title="Project Overview"
         subtitle="Review project status, readiness, and next actions"
+        primaryAction={primaryAction}
       />
 
       {/* Main content grid */}
@@ -136,66 +171,6 @@ export default async function OverviewPage(props: OverviewPageProps) {
           {/* Workflow Timeline */}
           <Section>
             <WorkflowTimeline readinessItems={readiness.items} />
-          </Section>
-
-          {/* Primary Next Action CTA */}
-          <Section>
-            <div className="panel p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-foreground mb-1">
-                    {primaryCTA.type === 'add_competitors' && 'Ready to add competitors'}
-                    {primaryCTA.type === 'generate_evidence' && 'Ready to add evidence'}
-                    {primaryCTA.type === 'generate_analysis' && 'Ready to generate analysis'}
-                    {primaryCTA.type === 'edit_project' && 'Complete project setup'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {primaryCTA.type === 'add_competitors' && 
-                      `Add at least ${MIN_COMPETITORS_FOR_ANALYSIS} competitors to begin analysis.`}
-                    {primaryCTA.type === 'generate_evidence' &&
-                      'Add evidence to competitors to improve analysis quality.'}
-                    {primaryCTA.type === 'generate_analysis' &&
-                      'All requirements met. Generate your competitive analysis.'}
-                    {primaryCTA.type === 'edit_project' &&
-                      'Complete project basics to get started.'}
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  {primaryCTA.type === 'generate_analysis' && readiness.allComplete ? (
-                    <GenerateAnalysisButton
-                      projectId={projectId}
-                      label={primaryCTA.label}
-                      canGenerate={readiness.allComplete}
-                      missingReasons={
-                        readiness.allComplete
-                          ? []
-                          : readiness.items
-                              .filter((item) => item.status === 'incomplete')
-                              .map((item) => item.label)
-                      }
-                    />
-                  ) : (
-                    <Button asChild variant={primaryCTA.type === 'edit_project' ? 'outline' : 'default'}>
-                      <Link
-                        href={
-                          primaryCTA.href === '/competitors'
-                            ? `/projects/${projectId}/competitors`
-                            : primaryCTA.href === '/projects'
-                            ? `/dashboard`
-                            : primaryCTA.href === '/overview'
-                            ? `/projects/${projectId}/overview`
-                            : primaryCTA.href.startsWith('/')
-                            ? `/projects/${projectId}${primaryCTA.href}`
-                            : primaryCTA.href
-                        }
-                      >
-                        {primaryCTA.label}
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
           </Section>
         </div>
 

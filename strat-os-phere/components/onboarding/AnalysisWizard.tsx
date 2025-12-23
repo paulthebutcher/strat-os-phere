@@ -9,6 +9,9 @@ import { WizardStep1Describe } from './WizardStep1Describe'
 import { WizardStep2Confirm } from './WizardStep2Confirm'
 import { WizardStep3Details } from './WizardStep3Details'
 import { FirstWinChecklist } from './FirstWinChecklist'
+import { PageShell } from '@/components/layout/PageShell'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Section } from '@/components/layout/Section'
 
 interface AnalysisWizardProps {
   onComplete?: (state: WizardState) => void
@@ -51,25 +54,44 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
     }
   }
 
-  return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 animate-fade-in">
-      {/* Compact header - Only show on step 1 */}
-      {currentStep === 1 && (
-        <div className="mb-6">
-          <div className="space-y-2">
-            <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
-              Create a new analysis
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Tell us what to analyze and we'll discover sources, recommend competitors, and generate strategic opportunities.
-            </p>
-          </div>
-        </div>
-      )}
+  // Get step title and subtitle
+  const getStepInfo = () => {
+    switch (currentStep) {
+      case 1:
+        return {
+          title: 'Create a new analysis',
+          subtitle: 'Tell us what to analyze and we\'ll discover sources, recommend competitors, and generate strategic opportunities.',
+        }
+      case 2:
+        return {
+          title: 'Add competitors',
+          subtitle: 'Select competitors to analyze. We\'ll help you discover relevant options.',
+        }
+      case 3:
+        return {
+          title: 'Project details',
+          subtitle: 'Finalize your project settings and context.',
+        }
+      default:
+        return {
+          title: 'Create a new analysis',
+          subtitle: '',
+        }
+    }
+  }
 
-      {/* Stepper Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-4">
+  const stepInfo = getStepInfo()
+
+  return (
+    <PageShell>
+      <PageHeader
+        title={stepInfo.title}
+        subtitle={stepInfo.subtitle}
+      />
+
+      {/* Stepper indicator */}
+      <Section>
+        <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             {currentStep >= 1 ? (
               <CheckCircle2 className="h-5 w-5 text-primary" />
@@ -121,28 +143,32 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
             </span>
           </div>
         </div>
-      </div>
+      </Section>
 
       {currentStep === 1 ? (
         // Step 1 handles its own layout with side rail
-        <WizardStep1Describe
-          initialState={wizardState}
-          onComplete={handleStep1Complete}
-          isGuidedMode={isGuidedMode}
-        />
+        <Section>
+          <WizardStep1Describe
+            initialState={wizardState}
+            onComplete={handleStep1Complete}
+            isGuidedMode={isGuidedMode}
+          />
+        </Section>
       ) : currentStep === 2 ? (
         // Step 2 uses the original layout
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8">
-            <WizardStep2Confirm
-              state={wizardState}
-              onBack={handleStep2Back}
-              onComplete={handleStep2Complete}
-            />
+            <Section>
+              <WizardStep2Confirm
+                state={wizardState}
+                onBack={handleStep2Back}
+                onComplete={handleStep2Complete}
+              />
+            </Section>
           </div>
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-20 space-y-4">
-              <SurfaceCard className="p-6 shadow-md">
+              <SurfaceCard className="p-6 border border-border">
                 <h3 className="text-base font-semibold text-foreground mb-4">
                   What you'll get
                 </h3>
@@ -174,15 +200,17 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
         // Step 3: Details
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8">
-            <WizardStep3Details
-              state={wizardState}
-              onBack={handleStep3Back}
-              onComplete={handleStep3Complete}
-            />
+            <Section>
+              <WizardStep3Details
+                state={wizardState}
+                onBack={handleStep3Back}
+                onComplete={handleStep3Complete}
+              />
+            </Section>
           </div>
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-20 space-y-4">
-              <SurfaceCard className="p-6 shadow-md">
+              <SurfaceCard className="p-6 border border-border">
                 <h3 className="text-base font-semibold text-foreground mb-4">
                   What you'll get
                 </h3>
@@ -211,7 +239,7 @@ export function AnalysisWizard({ onComplete, isGuidedMode = false }: AnalysisWiz
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }
 
