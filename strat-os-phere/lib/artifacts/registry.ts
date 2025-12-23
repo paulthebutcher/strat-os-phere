@@ -4,8 +4,53 @@
  */
 
 /**
+ * Runtime array of all artifact types (for iteration and type guards)
+ * Derived from registry to ensure consistency
+ * This must be defined before the type to allow proper type inference
+ */
+export const ARTIFACT_TYPES = [
+  'profiles',
+  'synthesis',
+  'jtbd',
+  'opportunities_v2',
+  'opportunities_v3',
+  'opportunities_v2_overlay',
+  'scoring_matrix',
+  'strategic_bets',
+  'strategic_bets_v2_overlay',
+  'evidence_bundle_v1',
+] as const
+
+/**
+ * Derive ArtifactType union from the const array
+ * This ensures TypeScript can exhaustively check switch statements
+ */
+export type ArtifactType = (typeof ARTIFACT_TYPES)[number]
+
+/**
+ * Derive repairable schema names from registry
+ * Only includes artifact types that have a schemaName defined
+ * This is a const array for type derivation
+ */
+export const ARTIFACT_SCHEMA_NAMES = [
+  'CompetitorSnapshot',
+  'MarketSynthesis',
+  'JtbdArtifactContent',
+  'OpportunitiesArtifactContent',
+  'OpportunityV3ArtifactContent',
+  'OpportunitiesV2Overlay',
+  'ScoringMatrixArtifactContent',
+  'StrategicBetsArtifactContent',
+  'StrategicBetsV2Overlay',
+] as const
+
+/**
+ * Repairable schema name union derived from registry
+ */
+export type ArtifactSchemaName = (typeof ARTIFACT_SCHEMA_NAMES)[number]
+
+/**
  * Artifact registry entry
- * Note: ArtifactType is defined later in this file, TypeScript handles the forward reference
  */
 export type ArtifactRegistryEntry = Readonly<{
   /** The artifact type identifier (must match the key) */
@@ -13,7 +58,7 @@ export type ArtifactRegistryEntry = Readonly<{
   /** Human-readable label for UI */
   label: string
   /** Schema name used for repair/validation (matches RepairableSchemaName) */
-  schemaName?: string
+  schemaName?: ArtifactSchemaName
 }>
 
 /**
@@ -73,30 +118,6 @@ export const ARTIFACT_REGISTRY = {
 } as const satisfies Record<ArtifactType, ArtifactRegistryEntry>
 
 /**
- * Runtime array of all artifact types (for iteration and type guards)
- * Derived from registry to ensure consistency
- * This must be defined before the type to allow proper type inference
- */
-export const ARTIFACT_TYPES = [
-  'profiles',
-  'synthesis',
-  'jtbd',
-  'opportunities_v2',
-  'opportunities_v3',
-  'opportunities_v2_overlay',
-  'scoring_matrix',
-  'strategic_bets',
-  'strategic_bets_v2_overlay',
-  'evidence_bundle_v1',
-] as const
-
-/**
- * Derive ArtifactType union from the const array
- * This ensures TypeScript can exhaustively check switch statements
- */
-export type ArtifactType = (typeof ARTIFACT_TYPES)[number]
-
-/**
  * Runtime validation: ensure ARTIFACT_TYPES matches registry keys
  */
 const _validateRegistryKeys = (): void => {
@@ -130,36 +151,15 @@ export function getArtifactEntry(type: ArtifactType): ArtifactRegistryEntry {
 }
 
 /**
- * Derive repairable schema names from registry
- * Only includes artifact types that have a schemaName defined
- * This is a const array for type derivation
- */
-export const ARTIFACT_SCHEMA_NAMES = [
-  'CompetitorSnapshot',
-  'MarketSynthesis',
-  'JtbdArtifactContent',
-  'OpportunitiesArtifactContent',
-  'OpportunityV3ArtifactContent',
-  'OpportunitiesV2Overlay',
-  'ScoringMatrixArtifactContent',
-  'StrategicBetsArtifactContent',
-  'StrategicBetsV2Overlay',
-] as const
-
-/**
- * Repairable schema name union derived from registry
- */
-export type ArtifactSchemaName = (typeof ARTIFACT_SCHEMA_NAMES)[number]
-
-/**
  * Runtime validation: ensure all registry entries with schemaName are in ARTIFACT_SCHEMA_NAMES
  */
 const _validateSchemaNames = (): void => {
-  const registrySchemaNames = Object.values(ARTIFACT_REGISTRY)
-    .flatMap((entry) => (entry.schemaName ? [entry.schemaName] : []))
+  const schemaNames = Object.values(ARTIFACT_REGISTRY)
+    .map((entry) => 'schemaName' in entry ? entry.schemaName : undefined)
+    .filter((v): v is ArtifactSchemaName => Boolean(v))
   
-  for (const name of registrySchemaNames) {
-    if (!ARTIFACT_SCHEMA_NAMES.includes(name as ArtifactSchemaName)) {
+  for (const name of schemaNames) {
+    if (!ARTIFACT_SCHEMA_NAMES.includes(name)) {
       throw new Error(`Schema name ${name} from registry is not in ARTIFACT_SCHEMA_NAMES`)
     }
   }
@@ -171,7 +171,8 @@ _validateSchemaNames()
  * Get schema name for an artifact type
  */
 export function getArtifactSchemaName(type: ArtifactType): ArtifactSchemaName | undefined {
-  return ARTIFACT_REGISTRY[type as keyof typeof ARTIFACT_REGISTRY].schemaName as ArtifactSchemaName | undefined
+  const entry = ARTIFACT_REGISTRY[type as keyof typeof ARTIFACT_REGISTRY]
+  return 'schemaName' in entry ? (entry.schemaName as ArtifactSchemaName | undefined) : undefined
 }
 
 /**
@@ -181,7 +182,7 @@ export function getArtifactTypeFromSchemaName(
   schemaName: string
 ): ArtifactType | undefined {
   const entry = Object.entries(ARTIFACT_REGISTRY).find(
-    ([, value]) => value.schemaName === schemaName
+    ([, value]) => 'schemaName' in value && value.schemaName === schemaName
   )
   if (!entry) return undefined
   const key = entry[0]
