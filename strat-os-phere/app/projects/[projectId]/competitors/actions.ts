@@ -14,7 +14,7 @@ import {
   listCompetitorsForProject,
   updateCompetitor,
 } from '@/lib/data/competitors'
-import { getProjectById } from '@/lib/data/projects'
+import { loadProject } from '@/lib/projects/loadProject'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 
@@ -48,13 +48,14 @@ async function requireProjectAccess(projectId: string) {
     redirect('/login')
   }
 
-  const project = await getProjectById(supabase, projectId)
+  const projectResult = await loadProject(supabase, projectId, user.id)
 
-  if (!project || project.user_id !== user.id) {
+  if (!projectResult.ok) {
+    // Redirect to dashboard on any error (not found, unauthorized, or query failed)
     redirect('/dashboard')
   }
 
-  return { supabase, user, project }
+  return { supabase, user, project: projectResult.project }
 }
 
 export async function createCompetitorForProject(

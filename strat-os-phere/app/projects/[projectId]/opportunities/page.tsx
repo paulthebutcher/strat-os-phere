@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { createPageMetadata } from '@/lib/seo/metadata'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
-import { getProjectById } from '@/lib/data/projects'
+import { loadProject } from '@/lib/projects/loadProject'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeResults'
 import { createClient } from '@/lib/supabase/server'
 import { OpportunitiesContent } from '@/components/results/OpportunitiesContent'
@@ -21,7 +21,6 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Section } from '@/components/layout/Section'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
-import { isMissingColumnError } from '@/lib/db/safeDb'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -59,63 +58,21 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
   try {
     const supabase = await createClient()
     
-    // Get user with error handling
-    let user
-    try {
-      const {
-        data: { user: authUser },
-        error: userError,
-      } = await supabase.auth.getUser()
+    // Use unified project loader with structured error handling
+    // (loadProject handles user authentication internally)
+    const projectResult = await loadProject(supabase, projectId, undefined, route)
 
-      if (userError) {
-        logProjectError({
-          route,
-          projectId,
-          queryName: 'auth.getUser',
-          error: userError,
-        })
+    if (!projectResult.ok) {
+      // Handle different error kinds
+      if (projectResult.kind === 'not_found' || projectResult.kind === 'unauthorized') {
         notFound()
       }
-
-      user = authUser
-    } catch (error) {
-      logProjectError({
-        route,
-        projectId,
-        queryName: 'auth.getUser',
-        error,
-      })
-      notFound()
-    }
-
-    if (!user) {
-      notFound()
-    }
-
-    // Get project with error handling
-    let project
-    try {
-      project = await getProjectById(supabase, projectId)
-    } catch (error) {
-      logProjectError({
-        route,
-        projectId,
-        queryName: 'getProjectById',
-        error,
-      })
       
-      // If it's a schema drift error, show error state instead of crashing
-      if (isMissingColumnError(error)) {
-        return <ProjectErrorState projectId={projectId} />
-      }
-      
-      // Re-throw other errors to trigger error boundary
-      throw error
+      // For query failures (including schema drift), show error state
+      return <ProjectErrorState projectId={projectId} isMissingColumn={projectResult.isMissingColumn} />
     }
 
-    if (!project || project.user_id !== user.id) {
-      notFound()
-    }
+    const { project } = projectResult
 
     // Load related data with error handling - default to empty arrays on failure
     let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []

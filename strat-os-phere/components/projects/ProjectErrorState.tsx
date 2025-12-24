@@ -11,6 +11,7 @@ interface ProjectErrorStateProps {
   title?: string
   subtitle?: string
   onReload?: () => void
+  isMissingColumn?: boolean
 }
 
 /**
@@ -21,9 +22,16 @@ interface ProjectErrorStateProps {
 export function ProjectErrorState({
   projectId,
   title = "We couldn't load this project",
-  subtitle = "Something went wrong while loading the project data. This might be a temporary issue.",
+  subtitle,
   onReload,
+  isMissingColumn,
 }: ProjectErrorStateProps) {
+  // Default subtitle with migration hint for schema drift
+  const defaultSubtitle = isMissingColumn
+    ? "The app may be ahead of the database schema. Run migrations or update selects."
+    : "Something went wrong while loading the project data. This might be a temporary issue."
+  
+  const effectiveSubtitle = subtitle || defaultSubtitle
   const handleReload = () => {
     if (onReload) {
       onReload()
@@ -42,7 +50,7 @@ export function ProjectErrorState({
             </div>
             <div className="space-y-2">
               <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-              <p className="text-sm text-muted-foreground">{subtitle}</p>
+              <p className="text-sm text-muted-foreground">{effectiveSubtitle}</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button onClick={handleReload} variant="default">

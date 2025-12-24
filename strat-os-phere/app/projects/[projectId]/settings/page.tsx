@@ -2,12 +2,11 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { createPageMetadata } from '@/lib/seo/metadata'
-import { getProjectById } from '@/lib/data/projects'
+import { loadProject } from '@/lib/projects/loadProject'
 import { createClient } from '@/lib/supabase/server'
 import { SectionCard } from '@/components/results/SectionCard'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
-import { isMissingColumnError } from '@/lib/db/safeDb'
 
 interface SettingsPageProps {
   params: Promise<{
@@ -39,63 +38,21 @@ export default async function SettingsPage(props: SettingsPageProps) {
   try {
     const supabase = await createClient()
     
-    // Get user with error handling
-    let user
-    try {
-      const {
-        data: { user: authUser },
-        error: userError,
-      } = await supabase.auth.getUser()
+    // Use unified project loader with structured error handling
+    // (loadProject handles user authentication internally)
+    const projectResult = await loadProject(supabase, projectId, undefined, route)
 
-      if (userError) {
-        logProjectError({
-          route,
-          projectId,
-          queryName: 'auth.getUser',
-          error: userError,
-        })
+    if (!projectResult.ok) {
+      // Handle different error kinds
+      if (projectResult.kind === 'not_found' || projectResult.kind === 'unauthorized') {
         notFound()
       }
-
-      user = authUser
-    } catch (error) {
-      logProjectError({
-        route,
-        projectId,
-        queryName: 'auth.getUser',
-        error,
-      })
-      notFound()
-    }
-
-    if (!user) {
-      notFound()
-    }
-
-    // Get project with error handling
-    let project
-    try {
-      project = await getProjectById(supabase, projectId)
-    } catch (error) {
-      logProjectError({
-        route,
-        projectId,
-        queryName: 'getProjectById',
-        error,
-      })
       
-      // If it's a schema drift error, show error state instead of crashing
-      if (isMissingColumnError(error)) {
-        return <ProjectErrorState projectId={projectId} />
-      }
-      
-      // Re-throw other errors to trigger error boundary
-      throw error
+      // For query failures (including schema drift), show error state
+      return <ProjectErrorState projectId={projectId} isMissingColumn={projectResult.isMissingColumn} />
     }
 
-    if (!project || project.user_id !== user.id) {
-      notFound()
-    }
+    const { project } = projectResult
 
   return (
     <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
