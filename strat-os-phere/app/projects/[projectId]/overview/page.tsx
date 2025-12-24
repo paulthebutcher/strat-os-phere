@@ -28,6 +28,8 @@ import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 import { getLatestRunningRunForProject } from '@/lib/data/runs'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
+import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
+import { logAppError } from '@/lib/errors/log'
 import { EvidenceCoveragePanelWrapper } from '@/components/evidence/EvidenceCoveragePanelWrapper'
 import { getEvidenceCoverage } from '@/lib/evidence'
 import { evaluateReadiness } from '@/lib/evidence/readiness'
@@ -70,13 +72,51 @@ export default async function OverviewPage(props: OverviewPageProps) {
     const projectResult = await loadProject(supabase, projectId, undefined, route)
 
     if (!projectResult.ok) {
-      // Handle different error kinds
+      // Convert to AppError
+      let appError: ReturnType<typeof toAppError>
+      
+      if (projectResult.kind === 'not_found') {
+        appError = new NotFoundError(
+          projectResult.message || 'Project not found',
+          {
+            action: { label: 'Back to Projects', href: '/dashboard' },
+            details: { projectId, route },
+          }
+        )
+      } else if (projectResult.kind === 'unauthorized') {
+        appError = new UnauthorizedError(
+          projectResult.message || 'You do not have access to this project',
+          {
+            action: { label: 'Sign in', href: '/login' },
+            details: { projectId, route },
+          }
+        )
+      } else {
+        // query_failed - map to SchemaMismatchError if appropriate
+        if (projectResult.isMissingColumn) {
+          appError = new SchemaMismatchError(
+            projectResult.message || 'Schema mismatch detected',
+            {
+              details: { projectId, route, isMissingColumn: true },
+            }
+          )
+        } else {
+          appError = toAppError(
+            new Error(projectResult.message || 'Failed to load project'),
+            { projectId, route, kind: projectResult.kind }
+          )
+        }
+      }
+      
+      logAppError('project.overview', appError, { projectId, route, kind: projectResult.kind })
+      
+      // For not_found and unauthorized, use Next.js notFound()
       if (projectResult.kind === 'not_found' || projectResult.kind === 'unauthorized') {
         notFound()
       }
       
-      // For query failures (including schema drift), show error state
-      return <ProjectErrorState projectId={projectId} isMissingColumn={projectResult.isMissingColumn} />
+      // For query failures, show error state
+      return <ProjectErrorState error={appError} projectId={projectId} />
     }
 
     const { project } = projectResult
@@ -309,8 +349,10 @@ export default async function OverviewPage(props: OverviewPageProps) {
       error,
     })
     
-    // Show error state instead of crashing
-    return <ProjectErrorState projectId={projectId} />
+    // Convert to AppError and show error state
+    const appError = toAppError(error, { projectId, route })
+    logAppError('project.overview', appError, { projectId, route })
+    return <ProjectErrorState error={appError} projectId={projectId} />
   }
 }
 

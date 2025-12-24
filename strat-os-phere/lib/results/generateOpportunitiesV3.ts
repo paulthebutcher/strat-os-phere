@@ -51,6 +51,7 @@ import {
 } from '@/lib/evidence/citations'
 import { readFollowUpAnswer } from '@/lib/followup/readAnswer'
 import { FLAGS } from '@/lib/flags'
+import { invariant } from '@/lib/guardrails/invariants'
 
 export type GenerateOpportunitiesV3SuccessResult = {
   ok: true
@@ -532,19 +533,55 @@ export async function generateOpportunitiesV3(
       // Normalize citations (handle backward compatibility)
       let normalizedCitations = normalizeCitations(opp.citations)
 
-      // Filter citations to only allowed URLs if bundle was loaded
+      // INV-2: Filter citations to only allowed URLs if bundle was loaded
+      // All citations must reference stored evidence URLs
       if (allowedUrls.size > 0) {
         const beforeCount = normalizedCitations.length
-        normalizedCitations = filterCitationsByAllowedUrls(normalizedCitations, allowedUrls)
-        const removedCount = beforeCount - normalizedCitations.length
+        const filteredCitations = filterCitationsByAllowedUrls(normalizedCitations, allowedUrls)
+        const removedCount = beforeCount - filteredCitations.length
+        
+        // Enforce INV-2: Citations must reference stored evidence
         if (removedCount > 0) {
-          logger.warn('Filtered out citations with non-bundle URLs', {
-            runId,
-            projectId,
-            opportunityTitle: opp.title,
-            removedCount,
-            remainingCount: normalizedCitations.length,
-          })
+          const invalidUrls = normalizedCitations
+            .filter(c => !allowedUrls.has(c.url))
+            .map(c => c.url)
+          
+          invariant(
+            false, // Violation occurred
+            {
+              invariantId: 'INV-2',
+              projectId,
+              context: 'citation_validation',
+              route: '/lib/results/generateOpportunitiesV3',
+              details: {
+                message: `Citations reference URLs not in stored evidence bundle`,
+                opportunityTitle: opp.title,
+                removedCount,
+                invalidUrls: invalidUrls.slice(0, 5), // Limit to first 5 for logging
+                allowedUrlsCount: allowedUrls.size,
+              },
+            }
+          )
+          
+          // Drop invalid citations (already filtered by filterCitationsByAllowedUrls)
+          normalizedCitations = filteredCitations
+        } else {
+          // All citations are valid - verify with invariant
+          const allValid = normalizedCitations.every(c => allowedUrls.has(c.url))
+          invariant(
+            allValid,
+            {
+              invariantId: 'INV-2',
+              projectId,
+              context: 'citation_validation',
+              route: '/lib/results/generateOpportunitiesV3',
+              details: {
+                message: 'Citation validation check failed',
+                opportunityTitle: opp.title,
+                citationCount: normalizedCitations.length,
+              },
+            }
+          )
         }
       }
 
@@ -560,12 +597,40 @@ export async function generateOpportunitiesV3(
         // (we'll still include the opportunity, just with fewer citations)
       }
 
-      // Update citations in proof points as well
+      // INV-2: Update citations in proof points as well (must reference stored evidence)
       const normalizedProofPoints = opp.proof_points.map((pp) => {
         const normalizedProofCitations = normalizeCitations(pp.citations)
-        const filteredProofCitations = allowedUrls.size > 0
-          ? filterCitationsByAllowedUrls(normalizedProofCitations, allowedUrls)
-          : normalizedProofCitations
+        let filteredProofCitations = normalizedProofCitations
+        
+        if (allowedUrls.size > 0) {
+          const beforeCount = normalizedProofCitations.length
+          filteredProofCitations = filterCitationsByAllowedUrls(normalizedProofCitations, allowedUrls)
+          const removedCount = beforeCount - filteredProofCitations.length
+          
+          // Enforce INV-2 for proof point citations
+          if (removedCount > 0) {
+            const invalidUrls = normalizedProofCitations
+              .filter(c => !allowedUrls.has(c.url))
+              .map(c => c.url)
+            
+            invariant(
+              false,
+              {
+                invariantId: 'INV-2',
+                projectId,
+                context: 'proof_point_citation_validation',
+                route: '/lib/results/generateOpportunitiesV3',
+                details: {
+                  message: `Proof point citations reference URLs not in stored evidence bundle`,
+                  opportunityTitle: opp.title,
+                  proofPointClaim: pp.claim.substring(0, 100), // First 100 chars of claim
+                  removedCount,
+                  invalidUrls: invalidUrls.slice(0, 3),
+                },
+              }
+            )
+          }
+        }
 
         return {
           ...pp,

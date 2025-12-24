@@ -22,6 +22,7 @@ import {
 import { logger } from '@/lib/logger'
 import { getEvidenceCoverage } from '@/lib/evidence'
 import { evaluateReadiness } from '@/lib/evidence/readiness'
+import { invariant } from '@/lib/guardrails/invariants'
 
 /**
  * Pipeline version constant - update when pipeline logic changes
@@ -258,7 +259,7 @@ export async function runProjectAnalysis(
     steps.push(evidenceStep)
 
     try {
-      // PR4: Guardrail - Check that evidence_sources exist before proceeding
+      // INV-1: Guardrail - Check that evidence_sources exist before proceeding
       const { data: evidenceSources, error: evidenceError } = await supabase
         .from('evidence_sources')
         .select('id')
@@ -269,7 +270,22 @@ export async function runProjectAnalysis(
         throw new Error(`Failed to check evidence sources: ${evidenceError.message}`)
       }
 
-      if (!evidenceSources || evidenceSources.length === 0) {
+      // Enforce INV-1: Evidence must be harvested before LLM analysis
+      const hasEvidence = invariant(
+        evidenceSources && evidenceSources.length > 0,
+        {
+          invariantId: 'INV-1',
+          projectId,
+          context: 'evidence_check',
+          route: '/api/projects/[projectId]/generate',
+          details: {
+            message: 'No evidence sources found in evidence_sources table',
+            evidenceSourcesCount: evidenceSources?.length ?? 0,
+          },
+        }
+      )
+
+      if (!hasEvidence) {
         // No evidence sources found - abort with structured response
         evidenceStep.status = 'failed'
         evidenceStep.finished_at = new Date().toISOString()
@@ -296,12 +312,28 @@ export async function runProjectAnalysis(
         }
       }
 
-      // PR4: Additional guardrail - Check evidence readiness thresholds
+      // INV-3: Guardrail - Check evidence readiness thresholds (deterministic check)
       try {
         const coverage = await getEvidenceCoverage(supabase, projectId)
         const readiness = evaluateReadiness(coverage)
         
-        if (!readiness.isReady) {
+        // Enforce INV-3: Readiness gating must be deterministic
+        const isReady = invariant(
+          readiness.isReady,
+          {
+            invariantId: 'INV-3',
+            projectId,
+            context: 'readiness_check',
+            route: '/api/projects/[projectId]/generate',
+            details: {
+              message: 'Evidence coverage does not meet minimum thresholds',
+              reasons: readiness.reasons,
+              missing: readiness.missing,
+            },
+          }
+        )
+        
+        if (!isReady) {
           evidenceStep.status = 'failed'
           evidenceStep.finished_at = new Date().toISOString()
           evidenceStep.error = `Evidence coverage insufficient: ${readiness.reasons.join('; ')}`

@@ -19,6 +19,9 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Section } from '@/components/layout/Section'
 import { EmptyState } from '@/components/layout/EmptyState'
 import { PageErrorState } from '@/components/system/PageErrorState'
+import { toAppError, SchemaMismatchError } from '@/lib/errors/errors'
+import { logAppError } from '@/lib/errors/log'
+import { invariant } from '@/lib/guardrails/invariants'
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
@@ -51,24 +54,34 @@ export default async function DashboardPage() {
   let projects: SafeProject[] = []
   let tableRows: ReturnType<typeof toProjectsListRow>[] = []
   let projectCards: ReturnType<typeof toProjectCardModel>[] = []
-  let hasError = false
-  let errorInfo: { isMissingColumn?: boolean; message?: string } = {}
+  let appError: ReturnType<typeof toAppError> | null = null
 
   // Fetch projects with counts for table view (may fail, but we'll degrade gracefully)
   try {
     projectsWithCounts = await listProjectsWithCounts(supabase, user.id)
     tableRows = projectsWithCounts.map(toProjectsListRow)
   } catch (e) {
-    const error = e as any
-    const originalError = error?.originalError ?? error
-    const msg = originalError?.message ?? String(originalError)
-    const isMissingColumn =
-      typeof msg === "string" &&
-      (msg.toLowerCase().includes("does not exist") || msg.toLowerCase().includes("column"))
+    const error = toAppError(e, { projectId: null, userId: user.id })
+    logAppError('dashboard.loadProjects', error, { step: 'listProjectsWithCounts' })
     
-    console.error("[dashboard] failed in listProjectsWithCounts", { msg, isMissingColumn })
-    hasError = true
-    errorInfo = { isMissingColumn, message: msg }
+    // INV-5: Check for schema mismatch (missing column error)
+    if (error.code === 'SCHEMA_MISMATCH') {
+      invariant(
+        false,
+        {
+          invariantId: 'INV-5',
+          route: '/dashboard',
+          context: 'project_query',
+          details: {
+            message: 'Project query references non-existent column',
+            query: 'listProjectsWithCounts',
+            errorMessage: error.message,
+          },
+        }
+      )
+    }
+    
+    appError = error
     // Continue - we'll try to load basic projects
   }
 
@@ -78,17 +91,39 @@ export default async function DashboardPage() {
     projects = projectsResult.data
     projectCards = projects.map(toProjectCardModel)
   } else {
-    console.error("[dashboard] failed in listProjectsForOwnerSafe", projectsResult.error)
-    hasError = true
-    errorInfo = {
-      isMissingColumn: projectsResult.error.isMissingColumn,
-      message: projectsResult.error.message,
+    // INV-5: Check for schema mismatch (missing column error)
+    const isMissingColumn = projectsResult.error.isMissingColumn ?? false
+    if (isMissingColumn) {
+      invariant(
+        false,
+        {
+          invariantId: 'INV-5',
+          route: '/dashboard',
+          context: 'project_query',
+          details: {
+            message: 'Project query references non-existent column',
+            query: 'listProjectsForOwnerSafe',
+            errorMessage: projectsResult.error.message,
+            errorCode: projectsResult.error.code,
+          },
+        }
+      )
+    }
+    
+    // Convert to AppError (toAppError will detect schema mismatch from error message if needed)
+    const error = toAppError(
+      new Error(projectsResult.error.message),
+      { projectId: null, userId: user.id, isMissingColumn: projectsResult.error.isMissingColumn }
+    )
+    logAppError('dashboard.loadProjects', error, { step: 'listProjectsForOwnerSafe' })
+    if (!appError) {
+      appError = error
     }
     // Continue with empty arrays - page will show empty state
   }
 
   // If we have errors but no projects, show recoverable error state
-  if (hasError && projects.length === 0 && tableRows.length === 0) {
+  if (appError && projects.length === 0 && tableRows.length === 0) {
     return (
       <DashboardPageClient>
         <PageShell data-testid="projects-page">
@@ -102,10 +137,7 @@ export default async function DashboardPage() {
             }
           />
           <Section>
-            <PageErrorState 
-              isMissingColumn={errorInfo.isMissingColumn}
-              subtitle="We hit a data mismatch — your project data is safe. Try again or create a new analysis."
-            />
+            <PageErrorState error={appError} />
           </Section>
         </PageShell>
       </DashboardPageClient>

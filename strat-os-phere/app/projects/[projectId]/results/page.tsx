@@ -45,6 +45,8 @@ import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { isMissingColumnError } from '@/lib/db/safeDb'
+import { toAppError, SchemaMismatchError } from '@/lib/errors/errors'
+import { logAppError } from '@/lib/errors/log'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -144,7 +146,12 @@ export default async function ResultsPage(props: ResultsPageProps) {
       
       // If it's a schema drift error, show error state instead of crashing
       if (isMissingColumnError(error)) {
-        return <ProjectErrorState projectId={projectId} />
+        const appError = new SchemaMismatchError(
+          error instanceof Error ? error.message : String(error),
+          { details: { projectId, route } }
+        )
+        logAppError('project.results', appError, { projectId, route })
+        return <ProjectErrorState error={appError} projectId={projectId} />
       }
       
       // Re-throw other errors to trigger error boundary
@@ -438,7 +445,9 @@ export default async function ResultsPage(props: ResultsPageProps) {
       error,
     })
     
-    // Show error state instead of crashing
-    return <ProjectErrorState projectId={projectId} />
+    // Convert to AppError and show error state
+    const appError = toAppError(error, { projectId, route })
+    logAppError('project.results', appError, { projectId, route })
+    return <ProjectErrorState error={appError} projectId={projectId} />
   }
 }
