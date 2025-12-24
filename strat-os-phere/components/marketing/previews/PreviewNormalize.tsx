@@ -3,55 +3,26 @@
  * 
  * Static HTML screenshot showing the "Normalize" step.
  * Displays a clean evidence ledger with tabs by type and confidence signals.
+ * Uses sample data only - no API calls, no app state.
  */
 import { FileText, DollarSign, Calendar, MessageSquare, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { sampleNormalizedLedger } from './sampleData'
+
+const iconMap = {
+  pricing: DollarSign,
+  docs: FileText,
+  changelog: Calendar,
+  reviews: MessageSquare,
+}
 
 export default function PreviewNormalize() {
-  const evidenceTypes = [
-    { id: 'pricing', label: 'Pricing', icon: DollarSign, count: 12, active: true },
-    { id: 'docs', label: 'Docs', icon: FileText, count: 8, active: false },
-    { id: 'changelog', label: 'Changelog', icon: Calendar, count: 5, active: false },
-    { id: 'reviews', label: 'Reviews', icon: MessageSquare, count: 15, active: false },
-  ]
-
-  const evidenceRows = [
-    {
-      domain: 'notion.so',
-      pageTitle: 'Pricing - Notion',
-      extractedAt: '2 days ago',
-      badges: ['Pricing', 'Fresh'],
-      confidence: 'high',
-    },
-    {
-      domain: 'linear.app',
-      pageTitle: 'Pricing Plans - Linear',
-      extractedAt: '1 day ago',
-      badges: ['Pricing', 'Fresh'],
-      confidence: 'high',
-    },
-    {
-      domain: 'figma.com',
-      pageTitle: 'Figma Pricing',
-      extractedAt: '5 days ago',
-      badges: ['Pricing'],
-      confidence: 'medium',
-    },
-    {
-      domain: 'airtable.com',
-      pageTitle: 'Airtable Pricing',
-      extractedAt: '3 days ago',
-      badges: ['Pricing', 'Fresh'],
-      confidence: 'high',
-    },
-    {
-      domain: 'coda.io',
-      pageTitle: 'Coda Pricing',
-      extractedAt: '1 week ago',
-      badges: ['Pricing'],
-      confidence: 'medium',
-    },
-  ]
+  const { evidenceTypes: typesData, evidenceRows, confidenceSignals } = sampleNormalizedLedger
+  
+  const evidenceTypes = typesData.map((type) => ({
+    ...type,
+    icon: iconMap[type.id as keyof typeof iconMap] || FileText,
+  }))
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -163,19 +134,19 @@ export default function PreviewNormalize() {
                 Cross-source agreement
               </div>
               <div className="text-sm font-semibold text-green-700 mb-2">
-                High
+                {confidenceSignals.crossSourceAgreement.level}
               </div>
               <div className="w-full h-1.5 bg-surface-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-green-600 rounded-full"
-                  style={{ width: '92%' }}
+                  style={{ width: `${confidenceSignals.crossSourceAgreement.percentage}%` }}
                 />
               </div>
             </div>
             <div className="p-4 rounded-lg border border-border-subtle bg-surface">
               <div className="text-xs text-text-muted mb-1">Recency</div>
               <div className="text-sm font-semibold text-text-primary mb-2">
-                30 days
+                {confidenceSignals.recency.label}
               </div>
               <div className="text-xs text-text-secondary">
                 Average age of evidence
@@ -184,7 +155,7 @@ export default function PreviewNormalize() {
             <div className="p-4 rounded-lg border border-border-subtle bg-surface">
               <div className="text-xs text-text-muted mb-1">Coverage gaps</div>
               <div className="text-sm font-semibold text-text-primary mb-2">
-                Reviews (2/5 competitors)
+                {confidenceSignals.coverageGaps.type} ({confidenceSignals.coverageGaps.missing})
               </div>
               <div className="text-xs text-text-secondary">
                 Some competitors missing review data

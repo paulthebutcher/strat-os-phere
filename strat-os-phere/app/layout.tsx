@@ -28,10 +28,20 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Only check auth for app routes, not marketing pages
+  // Marketing pages should never call Supabase
+  let user = null;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser;
+  } catch (error) {
+    // Silently fail for marketing pages - they don't need auth
+    // This prevents crashes when logged out
+    user = null;
+  }
 
   return (
     <html lang="en">

@@ -3,52 +3,14 @@
  * 
  * Static HTML screenshot showing the "Generate ranked bets" step.
  * Displays prioritized strategic opportunities with citations and confidence scores.
+ * Uses sample data only - no API calls, no app state.
  */
 import { TrendingUp, Target, FileText, Shield, ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { sampleRankedOpportunities } from './sampleData'
 
 export default function PreviewRankBets() {
-  const opportunities = [
-    {
-      rank: 1,
-      title: 'Free tier expansion opportunity',
-      description:
-        '3 of 5 competitors offer free tiers with generous limits. Notion and Linear have seen 40%+ user growth after launching free tiers.',
-      confidence: 92,
-      defensibility: 'High',
-      citations: 8,
-      metrics: [
-        { label: 'Market coverage', value: '60%' },
-        { label: 'User impact', value: 'High' },
-      ],
-    },
-    {
-      rank: 2,
-      title: 'API-first positioning gap',
-      description:
-        'Linear and Airtable emphasize API access in their positioning. Figma and Notion have limited API marketing, creating a positioning opportunity.',
-      confidence: 85,
-      defensibility: 'Medium',
-      citations: 6,
-      metrics: [
-        { label: 'Market coverage', value: '40%' },
-        { label: 'User impact', value: 'Medium' },
-      ],
-    },
-    {
-      rank: 3,
-      title: 'Team collaboration features',
-      description:
-        'All competitors have strong team features, but reviews indicate gaps in real-time collaboration UX. Opportunity for differentiation.',
-      confidence: 78,
-      defensibility: 'Medium',
-      citations: 12,
-      metrics: [
-        { label: 'Market coverage', value: '80%' },
-        { label: 'User impact', value: 'High' },
-      ],
-    },
-  ]
+  const opportunities = sampleRankedOpportunities
 
   const getConfidenceColor = (score: number) => {
     if (score >= 85) return 'text-green-700 bg-green-100'
@@ -168,8 +130,8 @@ export default function PreviewRankBets() {
                 <div className="flex items-center gap-2 text-xs text-text-muted">
                   <FileText className="w-3 h-3" />
                   <span>
-                    Sources: notion.so/pricing, linear.app/docs, figma.com/blog,
-                    airtable.com/pricing, coda.io/changelog...
+                    Sources: {opp.sources.slice(0, 5).join(', ')}
+                    {opp.sources.length > 5 ? '...' : ''}
                   </span>
                 </div>
               </div>

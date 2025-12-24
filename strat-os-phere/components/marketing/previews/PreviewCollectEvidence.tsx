@@ -4,53 +4,44 @@
  * Static HTML screenshot showing the "Collect public evidence" step.
  * Displays a realistic evidence collection interface with competitors,
  * evidence queue, and progress indicators.
+ * Uses sample data only - no API calls, no app state.
  */
 import { CheckCircle2, Clock, Loader2, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { sampleEvidenceQueue } from './sampleData'
 
 export default function PreviewCollectEvidence() {
-  const competitors = [
-    { name: 'Notion', status: 'done' },
-    { name: 'Linear', status: 'done' },
-    { name: 'Figma', status: 'fetching' },
-    { name: 'Airtable', status: 'queued' },
-    { name: 'Coda', status: 'queued' },
-  ]
+  const { competitors, items: evidenceQueue, coverage, currentTask } = sampleEvidenceQueue
+  const progress = coverage.progress
 
-  const evidenceQueue = [
-    { type: 'Pricing', domain: 'notion.so', status: 'done' },
-    { type: 'Docs', domain: 'notion.so', status: 'done' },
-    { type: 'Reviews', domain: 'notion.so', status: 'done' },
-    { type: 'Pricing', domain: 'linear.app', status: 'done' },
-    { type: 'Docs', domain: 'linear.app', status: 'done' },
-    { type: 'Pricing', domain: 'figma.com', status: 'fetching' },
-    { type: 'Docs', domain: 'figma.com', status: 'queued' },
-    { type: 'Pricing', domain: 'airtable.com', status: 'queued' },
-  ]
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'done':
-        return <CheckCircle2 className="w-4 h-4 text-green-600" />
-      case 'fetching':
-        return <Loader2 className="w-4 h-4 text-accent-primary animate-spin" />
-      case 'queued':
-        return <Clock className="w-4 h-4 text-text-muted" />
-      default:
-        return null
-    }
-  }
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'done':
         return 'Done'
       case 'fetching':
         return 'Fetching...'
       case 'queued':
         return 'Queued'
+      case 'skipped':
+        return 'Skipped'
       default:
         return status
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'done':
+        return <CheckCircle2 className="w-4 h-4 text-green-600" />
+      case 'fetching':
+        return <Loader2 className="w-4 h-4 text-accent-primary animate-spin" />
+      case 'queued':
+        return <Clock className="w-4 h-4 text-text-muted" />
+      case 'skipped':
+        return <Clock className="w-4 h-4 text-text-muted opacity-50" />
+      default:
+        return null
     }
   }
 
@@ -72,9 +63,9 @@ export default function PreviewCollectEvidence() {
               Coverage
             </div>
             <div className="text-sm font-semibold text-text-primary">
-              12 sources • 4 types
+              {coverage.sources} sources • {coverage.types} types
             </div>
-            <div className="text-xs text-text-muted">Freshness: High</div>
+            <div className="text-xs text-text-muted">Freshness: {coverage.freshness}</div>
           </div>
         </div>
       </div>
@@ -130,65 +121,72 @@ export default function PreviewCollectEvidence() {
               <h3 className="text-sm font-semibold text-text-primary">
                 Evidence Queue
               </h3>
-              <div className="text-xs text-text-muted">68% complete</div>
+              <div className="text-xs text-text-muted">{progress}% complete</div>
             </div>
             <div className="w-full h-2 bg-surface-muted rounded-full overflow-hidden">
               <div
                 className="h-full bg-accent-primary rounded-full transition-all duration-500"
-                style={{ width: '68%' }}
+                style={{ width: `${progress}%` }}
               />
             </div>
             <div className="text-xs text-text-muted mt-1">
-              Collecting pricing pages from figma.com...
+              {currentTask}
             </div>
           </div>
 
           <div className="space-y-2">
-            {evidenceQueue.map((item, idx) => (
-              <div
-                key={idx}
-                className={cn(
-                  'flex items-center gap-4 px-4 py-3 rounded-lg border',
-                  item.status === 'done'
-                    ? 'border-border-subtle bg-surface'
-                    : item.status === 'fetching'
-                      ? 'border-accent-primary/30 bg-accent-primary/5'
-                      : 'border-border-subtle bg-surface-muted/30'
-                )}
-              >
-                <div className="flex-shrink-0">
-                  {getStatusIcon(item.status)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-text-primary">
-                      {item.type}
-                    </span>
-                    <span className="text-xs text-text-muted">→</span>
-                    <span className="text-sm text-text-secondary truncate">
-                      {item.domain}
+            {evidenceQueue.map((item, idx) => {
+              const statusLower = item.status.toLowerCase()
+              return (
+                <div
+                  key={idx}
+                  className={cn(
+                    'flex items-center gap-4 px-4 py-3 rounded-lg border',
+                    statusLower === 'done'
+                      ? 'border-border-subtle bg-surface'
+                      : statusLower === 'fetching'
+                        ? 'border-accent-primary/30 bg-accent-primary/5'
+                        : statusLower === 'skipped'
+                          ? 'border-border-subtle bg-surface-muted/20 opacity-60'
+                          : 'border-border-subtle bg-surface-muted/30'
+                  )}
+                >
+                  <div className="flex-shrink-0">
+                    {getStatusIcon(item.status)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-text-primary">
+                        {item.type}
+                      </span>
+                      <span className="text-xs text-text-muted">→</span>
+                      <span className="text-sm text-text-secondary truncate">
+                        {item.domain}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <span
+                      className={cn(
+                        'text-xs font-medium',
+                        statusLower === 'done'
+                          ? 'text-green-600'
+                          : statusLower === 'fetching'
+                            ? 'text-accent-primary'
+                            : statusLower === 'skipped'
+                              ? 'text-text-muted opacity-60'
+                              : 'text-text-muted'
+                      )}
+                    >
+                      {getStatusLabel(item.status)}
                     </span>
                   </div>
+                  {statusLower === 'done' && (
+                    <ExternalLink className="w-4 h-4 text-text-muted flex-shrink-0" />
+                  )}
                 </div>
-                <div className="flex-shrink-0">
-                  <span
-                    className={cn(
-                      'text-xs font-medium',
-                      item.status === 'done'
-                        ? 'text-green-600'
-                        : item.status === 'fetching'
-                          ? 'text-accent-primary'
-                          : 'text-text-muted'
-                    )}
-                  >
-                    {getStatusLabel(item.status)}
-                  </span>
-                </div>
-                {item.status === 'done' && (
-                  <ExternalLink className="w-4 h-4 text-text-muted flex-shrink-0" />
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
