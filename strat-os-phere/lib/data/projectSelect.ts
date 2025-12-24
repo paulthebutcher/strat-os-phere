@@ -26,7 +26,7 @@ export const PROJECT_OVERVIEW_SELECT = PROJECT_SELECT_FULL;
  * Only includes columns confirmed to exist in production.
  * 
  * Note: hypothesis, starting_point, customer_profile, decision_framing,
- * problem_statement, market_context, solution_idea are intentionally excluded
+ * job_gap, market_context, solution_idea are intentionally excluded
  * as they do not exist in the production schema.
  */
 export const PROJECT_FULL_SELECT = PROJECT_SELECT_FULL;

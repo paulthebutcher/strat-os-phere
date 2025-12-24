@@ -31,7 +31,7 @@ This artifact is the **acceptance target** for scoring, claims, and synthesis. P
 {
   id: string                    // Stable identifier (slug-like, derived from title + project context)
   title: string                 // Clear strategic bet (6-10 words, non-buzzword)
-  problem_statement: string     // JTBD-framed problem description
+  job_gap: string     // JTBD-framed problem description
   proposed_action: string       // What to do (specific, executable)
   why_now: string              // Market signal summary (what changed recently)
   evidence_summary: string     // Human-readable evidence narrative
@@ -62,7 +62,7 @@ This artifact is the **acceptance target** for scoring, claims, and synthesis. P
 - **Good**: "Add real-time collaboration to code editors"
 - **Bad**: "Leverage best-in-class collaborative experiences to delight users"
 
-#### `problem_statement`
+#### `job_gap`
 - **Type**: `string`
 - **Format**: Jobs-to-Be-Done (JTBD) framed
 - **Purpose**: Describes the customer job that isn't being done well
@@ -140,7 +140,7 @@ This artifact is the **acceptance target** for scoring, claims, and synthesis. P
 - **Defensible**: Explains why competitors can't easily copy
 - **Timely**: `why_now` points to recent market changes
 - **High confidence**: Both `coverage_score` and `evidence_strength` > 70
-- **Clear problem**: `problem_statement` is JTBD-framed and specific
+- **Clear problem**: `job_gap` is JTBD-framed and specific
 - **Realistic risks**: `risks_and_assumptions` are concrete and addressable
 
 ### Weak Opportunity

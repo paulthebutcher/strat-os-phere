@@ -24,7 +24,7 @@ interface Citation {
 interface Opportunity {
   id: string
   title: string
-  problem_statement: string
+  job_gap: string
   proposed_action: string
   why_now: string
   evidence_summary: string
@@ -43,7 +43,7 @@ interface Opportunity {
 const sampleOpportunity: Opportunity = {
   id: "real-time-collaboration-editors",
   title: "Add real-time collaborative editing to code editors",
-  problem_statement: "When developers need to pair program or review code together, they struggle to see changes in real-time and must rely on screen sharing or async comments, which slows down decision-making and creates context-switching overhead.",
+  job_gap: "When developers need to pair program or review code together, they struggle to see changes in real-time and must rely on screen sharing or async comments, which slows down decision-making and creates context-switching overhead.",
   proposed_action: "Build a real-time collaborative editing feature that shows live cursors, edits, and comments synchronized across all participants, with conflict resolution for simultaneous edits.",
   why_now: "Three major competitors (GitHub Codespaces, Gitpod, and Replit) launched collaborative editing features in the last 90 days. User reviews show 40% of teams with 5+ developers are actively seeking this capability, and job postings indicate competitors are hiring specifically for real-time collaboration infrastructure.",
   evidence_summary: "Analysis of competitor changelogs, pricing pages, and user reviews shows a clear trend toward real-time collaboration. 12 of 15 competitors now offer this feature, and review sentiment indicates strong demand among teams of 5+ developers. Recent competitor job postings specifically mention 'operational transform' and 'CRDT' technologies, suggesting this is a strategic investment area. Pricing pages show collaboration features as premium differentiators.",
@@ -196,7 +196,7 @@ export function SampleOpportunityPreview({ className }: SampleOpportunityPreview
           Problem Statement
         </h3>
         <p className="text-base text-[rgb(var(--plinth-text))] leading-relaxed">
-          {opportunity.problem_statement}
+          {opportunity.job_gap}
         </p>
       </div>
 

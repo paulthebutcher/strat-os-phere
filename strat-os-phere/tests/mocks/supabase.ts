@@ -46,7 +46,7 @@ export class MockSupabaseStore {
       decision_level: data.decision_level ?? null,
       explicit_non_goals: data.explicit_non_goals ?? null,
       input_confidence: data.input_confidence ?? null,
-      // Note: drift columns (starting_point, hypothesis, problem_statement, customer_profile,
+      // Note: drift columns (starting_point, hypothesis, job_gap, customer_profile,
       // market_context, solution_idea, latest_run_id, latest_successful_run_id) are not included as they don't exist on ProjectRow
       // Use lib/data/latestRun.ts to derive latest run info from artifacts table
       created_at: new Date().toISOString(),

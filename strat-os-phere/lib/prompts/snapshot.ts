@@ -24,7 +24,7 @@ export interface ProjectContext {
   decision_level?: DecisionLevel | null
   explicit_non_goals?: string | null
   input_confidence?: InputConfidence | null
-  // Note: starting_point, hypothesis, problem_statement, customer_profile, market_context, solution_idea
+  // Note: starting_point, hypothesis, job_gap, customer_profile, market_context, solution_idea
   // columns do not exist in production schema and are not used
   // Computed context summary (from buildProjectContext)
   lens?: 'product' | 'problem' | 'customer' | 'market'
@@ -96,7 +96,7 @@ export function buildSnapshotMessages(input: SnapshotPromptInput): Message[] {
     projectLines.push(`Target customer: ${project.target_customer}`)
   }
 
-  // Note: problem_statement and solution_idea columns do not exist in production
+  // Note: job_gap and solution_idea columns do not exist in production
   // These fields are not available for prompt building
 
   if (project.geography) {

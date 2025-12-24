@@ -30,7 +30,7 @@ export function buildProjectUpdate(input: {
   explicit_non_goals?: string | null;
   input_confidence?: string | null;
   // do NOT include: latest_successful_run_id, latest_run_id, hypothesis, decision_framing, starting_point, customer_profile,
-  // problem_statement, market_context, solution_idea, context_paste
+  // job_gap, market_context, solution_idea, context_paste
   // as these columns do not exist in the production schema
   // Use lib/data/latestRun.ts to derive latest run info from artifacts table
   // Future: consider adding context_paste column via migration to store evolving inputs

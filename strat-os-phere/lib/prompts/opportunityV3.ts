@@ -178,7 +178,7 @@ export function buildOpportunityV3Messages(
     projectLines.push(`Target customer: ${project.target_customer}`)
   }
 
-  // Note: problem_statement and solution_idea columns do not exist in production
+  // Note: job_gap and solution_idea columns do not exist in production
   // These fields are not available for prompt building
 
   if (project.geography) {

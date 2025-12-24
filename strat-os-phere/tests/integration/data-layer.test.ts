@@ -127,7 +127,7 @@ describe('Data Layer Integration Tests', () => {
         // These drift fields are filtered out by buildProjectUpdate:
         starting_point: 'problem' as const,
         hypothesis: 'Is scheduling the #1 pain for boutique gym owners?',
-        problem_statement: 'Boutique gym owners struggle with manual scheduling',
+        job_gap: 'Boutique gym owners struggle with manual scheduling',
         customer_profile: 'Test customer profile',
         market_context: 'Test market context',
         solution_idea: 'Test solution idea',

@@ -48,7 +48,7 @@ export function buildProjectContext(projectRow: ProjectRow): ProjectContextSumma
     fieldsUsed.push('target_customer')
   }
 
-  // Note: problem_statement and solution_idea columns do not exist in production
+  // Note: job_gap and solution_idea columns do not exist in production
   // These fields are not available for context building
 
   // Geography

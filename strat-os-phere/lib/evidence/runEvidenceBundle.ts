@@ -4,7 +4,7 @@
  * 
  * NOTE: Do not reference drift columns that are not in Supabase schema/types:
  * market_context, hypothesis, decision_framing, starting_point, customer_profile, 
- * problem_statement, solution_idea, context_paste
+ * job_gap, solution_idea, context_paste
  * 
  * Only use fields that exist on ProjectRow in database.types.ts
  */
@@ -46,7 +46,7 @@ function buildHarvestContext(
   const market = project.market ?? undefined
 
   // Extract decision/business goal for context
-  // Note: hypothesis and problem_statement columns do not exist in production
+  // Note: hypothesis and job_gap columns do not exist in production
   const decision =
     project.business_goal ||
     undefined

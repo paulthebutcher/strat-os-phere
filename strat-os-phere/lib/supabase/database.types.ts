@@ -26,7 +26,7 @@ export interface ProjectRow {
   decision_level: DecisionLevel | null
   explicit_non_goals: string | null
   input_confidence: InputConfidence | null
-  // Note: starting_point, hypothesis, problem_statement, customer_profile,
+  // Note: starting_point, hypothesis, job_gap, customer_profile,
   // market_context, solution_idea columns do not exist in production schema
   // Note: latest_run_id and latest_successful_run_id columns do not exist in production schema
   // Use lib/data/latestRun.ts to derive latest run info from artifacts table
@@ -48,7 +48,7 @@ export interface ProjectInsert {
   decision_level?: DecisionLevel | null
   explicit_non_goals?: string | null
   input_confidence?: InputConfidence | null
-  // Note: starting_point, hypothesis, problem_statement, customer_profile,
+  // Note: starting_point, hypothesis, job_gap, customer_profile,
   // market_context, solution_idea columns do not exist in production schema
   // Note: latest_run_id and latest_successful_run_id columns do not exist in production schema
   // Use lib/data/latestRun.ts to derive latest run info from artifacts table

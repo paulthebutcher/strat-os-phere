@@ -103,7 +103,7 @@ Add nullable fields to support pre-product users and hypothesis-driven analysis:
 ALTER TABLE projects 
   ADD COLUMN IF NOT EXISTS starting_point TEXT CHECK (starting_point IN ('product', 'problem', 'customer', 'market')),
   ADD COLUMN IF NOT EXISTS hypothesis TEXT,
-  ADD COLUMN IF NOT EXISTS problem_statement TEXT,
+  ADD COLUMN IF NOT EXISTS job_gap TEXT,
   ADD COLUMN IF NOT EXISTS customer_profile TEXT,
   ADD COLUMN IF NOT EXISTS market_context TEXT,
   ADD COLUMN IF NOT EXISTS solution_idea TEXT;
