@@ -32,7 +32,7 @@ export type {
   NormalizedEvidenceItem,
   NormalizedEvidenceBundle,
   EvidenceType,
-  EvidenceSource,
+  EvidenceBundleItem,
   EvidenceBundle,
 } from './types'
 

@@ -189,6 +189,3 @@ export async function upsertEvidenceSource(
   }
 }
 
-// Import type for return value
-import type { EvidenceSource } from '@/lib/supabase/types'
-

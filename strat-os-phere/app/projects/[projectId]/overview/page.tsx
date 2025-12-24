@@ -2,11 +2,9 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { ProjectOverview } from '@/components/projects/ProjectOverview'
-import { ReadinessChecklist } from '@/components/projects/ReadinessChecklist'
+import { EvidenceReadinessChecklist } from '@/components/projects/ReadinessChecklist'
 import { WorkflowTimeline } from '@/components/projects/WorkflowTimeline'
-import { ProjectActionsPanel } from '@/components/projects/ProjectActionsPanel'
 import { AnalysisRunExperience } from '@/components/results/AnalysisRunExperience'
-import { getProjectReadiness } from '@/lib/ui/readiness'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { loadProject } from '@/lib/projects/loadProject'
@@ -16,7 +14,6 @@ import { createPageMetadata } from '@/lib/seo/metadata'
 import { Button } from '@/components/ui/button'
 import { GenerateAnalysisButton } from '@/components/projects/GenerateAnalysisButton'
 import Link from 'next/link'
-import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import type { SearchParams } from '@/lib/routing/searchParams'
 import { getParam } from '@/lib/routing/searchParams'
 import { PageShell } from '@/components/layout/PageShell'
@@ -31,8 +28,8 @@ import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
 import { EvidenceCoveragePanelWrapper } from '@/components/evidence/EvidenceCoveragePanelWrapper'
-import { getEvidenceCoverage } from '@/lib/evidence'
-import { evaluateReadiness } from '@/lib/evidence/readiness'
+import { computeEvidenceCoverageLite } from '@/lib/evidence/coverageLite'
+import { getNextBestAction } from '@/lib/projects/nextBestAction'
 
 interface OverviewPageProps {
   params: Promise<{
@@ -193,21 +190,27 @@ export default async function OverviewPage(props: OverviewPageProps) {
   )
   const effectiveCompetitorCount = normalized.competitorCount ?? competitorCount
 
-  // Compute readiness
-  const readiness = getProjectReadiness(project, safeCompetitors)
+  // Check for opportunities artifacts (v3 or v2)
+  const hasOpportunitiesArtifact = Boolean(opportunitiesV3 || opportunitiesV2)
   
-  // Fetch evidence coverage for gating
-  let evidenceCoverage: Awaited<ReturnType<typeof getEvidenceCoverage>> | null = null
-  let evidenceReadiness: Awaited<ReturnType<typeof evaluateReadiness>> | null = null
+  // Compute evidence coverage using coverageLite (schema-free, fail-safe)
+  let coverageLite = {
+    totalSources: 0,
+    evidenceTypesPresent: [],
+    evidenceTypeCounts: {},
+    competitorIdsWithEvidence: [],
+    competitorEvidenceCounts: {},
+    isEvidenceSufficient: false,
+    reasonsMissing: ['Evidence data unavailable. Try reloading or collect evidence again.'],
+  }
   try {
-    evidenceCoverage = await getEvidenceCoverage(supabase, projectId)
-    evidenceReadiness = evaluateReadiness(evidenceCoverage)
+    coverageLite = await computeEvidenceCoverageLite(supabase, projectId)
   } catch (error) {
-    // Log but don't fail - coverage is optional for display
+    // Log but don't fail - coverageLite already has safe defaults
     logProjectError({
       route,
       projectId,
-      queryName: 'getEvidenceCoverage',
+      queryName: 'computeEvidenceCoverageLite',
       error: error instanceof Error ? error : new Error(String(error)),
     })
   }
@@ -220,56 +223,35 @@ export default async function OverviewPage(props: OverviewPageProps) {
     competitorCount: competitorCount,
   })
 
-  // Determine primary CTA action based on readiness
-  // Gate on evidence readiness if available
-  const primaryCTA = readiness.nextAction
-  const isEvidenceReady = evidenceReadiness?.isReady ?? true // Default to true if coverage unavailable
-  const canGenerateAnalysis = readiness.allComplete && isEvidenceReady
+  // Determine next best action using new helper
+  const nextAction = getNextBestAction({
+    projectId,
+    competitorCount,
+    coverage: coverageLite,
+    hasOpportunitiesArtifact,
+  })
 
   // Show AnalysisRunExperience if generating and not explicitly viewing results
   if (isGenerating && !viewResults) {
     return <AnalysisRunExperience projectId={projectId} />
   }
 
-  // Build primary action for header
-  // Combine readiness reasons with evidence readiness reasons
-  const allMissingReasons = [
-    ...(readiness.allComplete
-      ? []
-      : readiness.items
-          .filter((item) => item.status === 'incomplete')
-          .map((item) => item.label)),
-    ...(evidenceReadiness && !evidenceReadiness.isReady
-      ? evidenceReadiness.reasons
-      : []),
-  ]
-
-  const primaryAction = primaryCTA.type === 'generate_analysis' && readiness.allComplete ? (
-    <GenerateAnalysisButton
-      projectId={projectId}
-      label={primaryCTA.label}
-      canGenerate={canGenerateAnalysis}
-      missingReasons={allMissingReasons}
-    />
-  ) : (
-    <Button asChild variant={primaryCTA.type === 'edit_project' ? 'outline' : 'default'}>
-      <Link
-        href={
-          primaryCTA.href === '/competitors'
-            ? `/projects/${projectId}/competitors`
-            : primaryCTA.href === '/projects'
-            ? `/dashboard`
-            : primaryCTA.href === '/overview'
-            ? `/projects/${projectId}/overview`
-            : primaryCTA.href.startsWith('/')
-            ? `/projects/${projectId}${primaryCTA.href}`
-            : primaryCTA.href
-        }
-      >
-        {primaryCTA.label}
-      </Link>
-    </Button>
-  )
+  // Build primary action for header based on nextBestAction
+  const primaryAction =
+    nextAction.onClickIntent === 'generate' ? (
+      <GenerateAnalysisButton
+        projectId={projectId}
+        label={nextAction.label}
+        canGenerate={coverageLite.isEvidenceSufficient}
+        missingReasons={coverageLite.isEvidenceSufficient ? [] : coverageLite.reasonsMissing}
+      />
+    ) : (
+      <Button asChild variant="default">
+        <Link href={nextAction.href || `/projects/${projectId}`}>
+          {nextAction.label}
+        </Link>
+      </Button>
+    )
 
   return (
     <PageShell>
@@ -315,28 +297,47 @@ export default async function OverviewPage(props: OverviewPageProps) {
             <EvidenceCoveragePanelWrapper projectId={projectId} />
           </Section>
 
-          {/* Readiness Checklist */}
+          {/* Evidence-Focused Readiness Checklist */}
           <Section>
-            <ReadinessChecklist
-              items={readiness.items}
+            <EvidenceReadinessChecklist
+              competitorCount={competitorCount}
+              coverage={coverageLite}
+              hasOpportunitiesArtifact={hasOpportunitiesArtifact}
               projectId={projectId}
             />
           </Section>
 
-          {/* Workflow Timeline */}
-          <Section>
-            <WorkflowTimeline readinessItems={readiness.items} />
-          </Section>
+          {/* Workflow Timeline - temporarily removed, can be restored if needed */}
         </div>
 
-        {/* Right column: Actions panel (desktop only) */}
-        <ProjectActionsPanel
-          projectId={projectId}
-          readiness={readiness}
-          competitorCount={competitorCount}
-          effectiveCompetitorCount={effectiveCompetitorCount}
-          hasArtifacts={hasAnyArtifacts}
-        />
+        {/* Right column: Project Actions panel */}
+        <div className="space-y-6">
+          <Section>
+            <div className="bg-card border border-border rounded-md p-6">
+              <h3 className="text-base font-semibold text-foreground mb-4">
+                Project Actions
+              </h3>
+              <div className="space-y-4">
+                {/* Primary action button */}
+                {nextAction.onClickIntent === 'generate' ? (
+                  <GenerateAnalysisButton
+                    projectId={projectId}
+                    label={nextAction.label}
+                    canGenerate={coverageLite.isEvidenceSufficient}
+                    missingReasons={coverageLite.isEvidenceSufficient ? [] : coverageLite.reasonsMissing}
+                    className="w-full"
+                  />
+                ) : (
+                  <Button asChild variant="default" className="w-full">
+                    <Link href={nextAction.href || `/projects/${projectId}`}>
+                      {nextAction.label}
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Section>
+        </div>
       </div>
     </PageShell>
     )

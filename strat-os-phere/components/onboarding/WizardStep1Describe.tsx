@@ -16,6 +16,7 @@ import type {
   ResolvedSource,
   SuggestedCompetitor,
 } from '@/lib/onboarding/types'
+import { microcopy } from '@/lib/copy/microcopy'
 
 interface WizardStep1DescribeProps {
   initialState: WizardState
@@ -299,12 +300,12 @@ export function WizardStep1Describe({
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Generating research plan...
+                  {microcopy.actions.generateResearchPlan}...
                 </>
               ) : (
                 <>
                   <Search className="h-4 w-4 mr-2" />
-                  Generate research plan
+                  {microcopy.actions.generateResearchPlan}
                 </>
               )}
             </Button>
@@ -315,15 +316,15 @@ export function WizardStep1Describe({
               disabled={isLoading}
               size="lg"
             >
-              Try an example
+              {microcopy.actions.tryExample}
             </Button>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground text-center">
-              We'll find official pages, pricing, docs, and likely competitors.
+              {microcopy.onboarding.helperText.evidenceGuidance}
             </p>
             <p className="text-xs text-muted-foreground text-center">
-              Step 2: Add competitors → Step 3: Details → Generate analysis
+              Step 2: {microcopy.actions.addCompetitors} → Step 3: Details → {microcopy.actions.generateAnalysis}
             </p>
           </div>
         </div>
@@ -338,26 +339,19 @@ export function WizardStep1Describe({
         />
         <SurfaceCard className="p-6 shadow-md">
           <h3 className="text-base font-semibold text-foreground mb-4">
-            What you'll get
+            {microcopy.onboarding.helperText.whatYoullGet.title}
           </h3>
           <ul className="space-y-3 text-sm text-muted-foreground">
-            <li className="flex items-start gap-2.5">
-              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-              <span>Ranked opportunities with scores</span>
-            </li>
-            <li className="flex items-start gap-2.5">
-              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-              <span>Evidence & confidence metrics</span>
-            </li>
-            <li className="flex items-start gap-2.5">
-              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-              <span>Citations and source links</span>
-            </li>
+            {microcopy.onboarding.helperText.whatYoullGet.items.map((item) => (
+              <li key={item} className="flex items-start gap-2.5">
+                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <span>{item}</span>
+              </li>
+            ))}
           </ul>
           <div className="mt-6 pt-6 border-t border-border">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Only public pages are used. Don't paste confidential
-              information.
+              {microcopy.onboarding.helperText.publicSourcesOnly}
             </p>
           </div>
         </SurfaceCard>

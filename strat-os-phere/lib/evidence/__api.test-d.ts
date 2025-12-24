@@ -19,7 +19,7 @@ import type {
   NormalizedEvidenceItem,
   NormalizedEvidenceBundle,
   EvidenceType,
-  EvidenceSource,
+  EvidenceBundleItem,
   EvidenceBundle,
 } from '@/lib/evidence'
 
@@ -47,6 +47,6 @@ type _ValidateExports =
   | NormalizedEvidenceItem
   | NormalizedEvidenceBundle
   | EvidenceType
-  | EvidenceSource
+  | EvidenceBundleItem
   | EvidenceBundle
 

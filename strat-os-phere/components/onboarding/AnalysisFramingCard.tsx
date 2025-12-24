@@ -1,6 +1,7 @@
 'use client'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
+import { microcopy } from '@/lib/copy/microcopy'
 
 interface AnalysisFramingCardProps {
   companyName: string
@@ -22,10 +23,10 @@ export function AnalysisFramingCard({
 
   // Quality labels based on count
   const qualityLabels = {
-    0: 'Getting started',
-    1: 'Good start',
-    2: 'Strong',
-    3: 'Excellent',
+    0: microcopy.quality.gettingStarted,
+    1: microcopy.quality.goodStart,
+    2: microcopy.quality.strong,
+    3: microcopy.quality.excellent,
   }
   const qualityLabel = qualityLabels[filledCount as keyof typeof qualityLabels] || 'Getting started'
 
@@ -43,17 +44,17 @@ export function AnalysisFramingCard({
   return (
     <SurfaceCard className="p-6 shadow-md" data-framing-card>
       <h3 className="text-base font-semibold text-foreground mb-4">
-        Analysis framing
+        {microcopy.framing.analysisFraming}
       </h3>
       
       {isBlank ? (
         <p className="text-sm text-muted-foreground italic">
-          Add a company + decision to see a preview
+          {microcopy.framing.addCompanyDecision}
         </p>
       ) : (
         <div className="space-y-3 text-sm">
           <div className="flex items-start gap-2">
-            <span className="text-muted-foreground shrink-0">We'll analyze:</span>
+            <span className="text-muted-foreground shrink-0">{microcopy.framing.weWillAnalyze}:</span>
             <span className="font-medium text-foreground">
               {hasCompany ? (
                 <span className="inline-flex items-center gap-1.5">
@@ -66,7 +67,7 @@ export function AnalysisFramingCard({
           </div>
           
           <div className="flex items-start gap-2">
-            <span className="text-muted-foreground shrink-0">In:</span>
+            <span className="text-muted-foreground shrink-0">{microcopy.framing.inMarket}:</span>
             <span className="font-medium text-foreground">
               {hasMarket ? (
                 market
@@ -77,7 +78,7 @@ export function AnalysisFramingCard({
           </div>
           
           <div className="flex items-start gap-2">
-            <span className="text-muted-foreground shrink-0">Decision:</span>
+            <span className="text-muted-foreground shrink-0">{microcopy.framing.decision}:</span>
             <span className="font-medium text-foreground">
               {hasDecision ? (
                 <span className="line-clamp-2">
@@ -116,7 +117,7 @@ export function AnalysisFramingCard({
           ))}
         </div>
         <div className="mt-1.5 text-xs text-muted-foreground">
-          {filledCount} / 3 signals provided
+          {filledCount} / 3 {microcopy.quality.signalsProvided}
         </div>
       </div>
     </SurfaceCard>

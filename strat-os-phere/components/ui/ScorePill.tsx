@@ -5,6 +5,7 @@ import type { ComputedScore } from '@/lib/scoring/types'
 import { cn } from '@/lib/utils'
 import { gateScore, type DirectionalSignal } from '@/lib/scoring/evidenceGating'
 import type { CitationInput } from '@/lib/scoring/extractEvidenceFromArtifacts'
+import { microcopy } from '@/lib/copy/microcopy'
 
 interface ScorePillProps {
   score: ComputedScore
@@ -91,7 +92,7 @@ export function ScorePill({ score, citations = [], className, showTooltip = fals
         </Badge>
         {showTooltip && (
           <span className="text-xs text-muted-foreground">
-            Not enough evidence yet
+            {microcopy.emptyStates.notEnoughEvidenceYet}
           </span>
         )}
       </div>

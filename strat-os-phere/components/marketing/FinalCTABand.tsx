@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
+import { microcopy } from "@/lib/copy/microcopy"
 
 export function FinalCTABand() {
   return (
@@ -20,20 +21,20 @@ export function FinalCTABand() {
         )}>
           <div className="space-y-6">
             <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-              Turn market signals into ranked opportunities.
+              Decide where to invest next
             </h2>
             <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
-              Start with a company and your decision context. We'll gather evidence and deliver ranked, defensible strategic bets with citations.
+              Evidence before insight. Confidence you can explain. A repeatable method for strategic investment decisions.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
               <Link href="/new">
                 <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow">
-                  Start a new analysis
+                  {microcopy.actions.startAnalysis}
                 </Button>
               </Link>
               <Link href="#example-output">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
-                  See example output
+                  {microcopy.actions.seeExampleOutput}
                 </Button>
               </Link>
             </div>

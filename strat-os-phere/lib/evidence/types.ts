@@ -16,7 +16,7 @@ export type EvidenceType =
   | 'community'
   | 'news'
 
-export type EvidenceSource = {
+export type EvidenceBundleItem = {
   type: EvidenceType
   title: string
   url: string
@@ -39,7 +39,7 @@ export type EvidenceBundle = {
     product?: string
     targetCustomer?: string
   }
-  sourcesByType: Record<EvidenceType, EvidenceSource[]>
+  sourcesByType: Record<EvidenceType, EvidenceBundleItem[]>
   stats: {
     totalSources: number
     byType: Record<EvidenceType, number>

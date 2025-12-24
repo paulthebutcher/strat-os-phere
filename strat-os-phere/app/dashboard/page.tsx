@@ -22,6 +22,7 @@ import { PageErrorState } from '@/components/system/PageErrorState'
 import { toAppError, SchemaMismatchError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
 import { invariant } from '@/lib/guardrails/invariants'
+import { microcopy } from '@/lib/copy/microcopy'
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
@@ -132,7 +133,7 @@ export default async function DashboardPage() {
             subtitle="Create and manage competitive analyses. Start new or resume recent work."
             primaryAction={
               <Link href="/new">
-                <Button size="lg" variant="brand">New analysis</Button>
+                <Button size="lg" variant="brand">{microcopy.actions.newAnalysis}</Button>
               </Link>
             }
           />
@@ -162,24 +163,24 @@ export default async function DashboardPage() {
   return (
     <DashboardPageClient>
       <PageShell data-testid="projects-page">
-        <PageHeader
-          title="Projects"
-          subtitle="Create and manage competitive analyses. Start new or resume recent work."
-          primaryAction={
-            <Link href="/new">
-              <Button size="lg" variant="brand">New analysis</Button>
-            </Link>
-          }
-          secondaryActions={
-            hasProjects ? (
-              <Link href="/samples">
-                <Button variant="ghost" size="lg">
-                  Try an example
-                </Button>
+          <PageHeader
+            title="Projects"
+            subtitle="Create and manage competitive analyses. Start new or resume recent work."
+            primaryAction={
+              <Link href="/new">
+                <Button size="lg" variant="brand">{microcopy.actions.newAnalysis}</Button>
               </Link>
-            ) : undefined
-          }
-        />
+            }
+            secondaryActions={
+              hasProjects ? (
+                <Link href="/samples">
+                  <Button variant="ghost" size="lg">
+                    {microcopy.actions.tryExample}
+                  </Button>
+                </Link>
+              ) : undefined
+            }
+          />
         
         <Section>
           <TourLink />
@@ -202,15 +203,15 @@ export default async function DashboardPage() {
         {/* Main Content */}
         {!hasProjects ? (
           <EmptyState
-            title="Start your first analysis"
-            description="Get started by creating a new competitive analysis project. We'll help you discover strategic opportunities."
+            title={microcopy.emptyStates.noProjects.title}
+            description={microcopy.emptyStates.noProjects.description}
             action={
               <>
                 <Button asChild size="lg" variant="brand" className="w-full sm:w-auto">
-                  <Link href="/new?onboarding=1">Start guided analysis</Link>
+                  <Link href="/new?onboarding=1">{microcopy.emptyStates.noProjects.cta}</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                  <Link href="/samples">Try an example</Link>
+                  <Link href="/samples">{microcopy.emptyStates.noProjects.ctaSecondary}</Link>
                 </Button>
               </>
             }

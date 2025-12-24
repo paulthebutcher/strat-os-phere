@@ -71,7 +71,7 @@ export function WhatYouGetSection() {
             What you get
           </h2>
           <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-            Structured outputs designed for decision-making, not just information gathering.
+            Decision-ready artifacts with evidence, confidence, and citations—not dashboards or research dumps.
           </p>
         </div>
         

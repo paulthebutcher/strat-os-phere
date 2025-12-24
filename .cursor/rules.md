@@ -2,6 +2,10 @@ These rules are authoritative. If unclear, ask before generating code.
 
 # Cursor Rules — Plinth
 
+## 0. Do Not Reintroduce
+- Cursor must consult `/docs/DO_NOT_REINTRODUCE.md` before introducing new patterns.
+- This document lists forbidden patterns that have already caused bugs, drift, or rework.
+
 ## 1. Schema Authority
 - Cursor must NEVER assume a database column exists unless it is defined in /docs/DATA_MODEL.md.
 - If a column is missing, propose a migration instead of using it.

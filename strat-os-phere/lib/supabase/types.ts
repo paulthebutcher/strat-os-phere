@@ -71,6 +71,8 @@ export type NewCompetitor = CompetitorInsert
 export type Artifact = ArtifactRow
 export type NewArtifact = ArtifactInsert
 
+// CANONICAL EvidenceSource TYPE - Single source of truth for EvidenceSource.
+// Do not redefine elsewhere. All evidence pipeline code must import from '@/lib/supabase/types'.
 export type EvidenceSource = EvidenceSourceRow
 export type NewEvidenceSource = EvidenceSourceInsert
 

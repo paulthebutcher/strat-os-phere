@@ -12,6 +12,7 @@ import { FirstWinChecklist } from './FirstWinChecklist'
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Section } from '@/components/layout/Section'
+import { microcopy } from '@/lib/copy/microcopy'
 
 interface AnalysisWizardProps {
   onComplete?: (state: WizardState) => void
@@ -107,22 +108,22 @@ export function AnalysisWizard({
     switch (currentStep) {
       case 1:
         return {
-          title: 'Create a new analysis',
-          subtitle: 'Tell us what to analyze and we\'ll discover sources, recommend competitors, and generate strategic opportunities.',
+          title: microcopy.onboarding.stepTitles.step1,
+          subtitle: microcopy.onboarding.stepDescriptions.step1,
         }
       case 2:
         return {
-          title: 'Add competitors',
-          subtitle: 'Select competitors to analyze. We\'ll help you discover relevant options.',
+          title: microcopy.onboarding.stepTitles.step2,
+          subtitle: microcopy.onboarding.stepDescriptions.step2,
         }
       case 3:
         return {
-          title: 'Project details',
-          subtitle: 'Finalize your project settings and context.',
+          title: microcopy.onboarding.stepTitles.step3,
+          subtitle: microcopy.onboarding.stepDescriptions.step3,
         }
       default:
         return {
-          title: 'Create a new analysis',
+          title: microcopy.onboarding.stepTitles.step1,
           subtitle: '',
         }
     }
@@ -229,26 +230,19 @@ export function AnalysisWizard({
             <div className="lg:sticky lg:top-20 space-y-4">
               <SurfaceCard className="p-6 border border-border">
                 <h3 className="text-base font-semibold text-foreground mb-4">
-                  What you'll get
+                  {microcopy.onboarding.helperText.whatYoullGet.title}
                 </h3>
                 <ul className="space-y-3 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Ranked opportunities with scores</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Evidence & confidence metrics</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Citations and source links</span>
-                  </li>
+                  {microcopy.onboarding.helperText.whatYoullGet.items.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
                 </ul>
                 <div className="mt-6 pt-6 border-t border-border">
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Only public pages are used. Don't paste confidential
-                    information.
+                    {microcopy.onboarding.helperText.publicSourcesOnly}
                   </p>
                 </div>
               </SurfaceCard>
@@ -272,26 +266,19 @@ export function AnalysisWizard({
             <div className="lg:sticky lg:top-20 space-y-4">
               <SurfaceCard className="p-6 border border-border">
                 <h3 className="text-base font-semibold text-foreground mb-4">
-                  What you'll get
+                  {microcopy.onboarding.helperText.whatYoullGet.title}
                 </h3>
                 <ul className="space-y-3 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Ranked opportunities with scores</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Evidence & confidence metrics</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span>Citations and source links</span>
-                  </li>
+                  {microcopy.onboarding.helperText.whatYoullGet.items.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
                 </ul>
                 <div className="mt-6 pt-6 border-t border-border">
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Only public pages are used. Don't paste confidential
-                    information.
+                    {microcopy.onboarding.helperText.publicSourcesOnly}
                   </p>
                 </div>
               </SurfaceCard>

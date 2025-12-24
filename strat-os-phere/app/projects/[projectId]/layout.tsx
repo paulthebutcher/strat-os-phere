@@ -5,6 +5,8 @@ import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { loadProject } from '@/lib/projects/loadProject'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
+import { ProjectStatusBarWrapper } from '@/components/projects/ProjectStatusBarWrapper'
+import { Section } from '@/components/layout/Section'
 
 interface ProjectLayoutProps {
   children: React.ReactNode
@@ -79,6 +81,14 @@ export default async function ProjectLayout(props: ProjectLayoutProps) {
       projectName={project.name}
       subtitle={project.market}
     >
+      {/* Project Status Bar - appears on all project pages */}
+      <Section className="border-b pb-4">
+        <ProjectStatusBarWrapper
+          supabase={supabase}
+          projectId={project.id}
+          route={route}
+        />
+      </Section>
       {props.children}
     </ProjectLayoutShell>
   )

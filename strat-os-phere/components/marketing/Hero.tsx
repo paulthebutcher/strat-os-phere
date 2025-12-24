@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 import { MarketingContainer } from "./MarketingContainer"
 import { GlassPanel } from "./GlassPanel"
 import { HeroPreview } from "./previews/HeroPreview"
+import { microcopy } from "@/lib/copy/microcopy"
 
 export function Hero() {
   return (
@@ -34,20 +35,17 @@ export function Hero() {
             <h1 className={cn(
               "text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight"
             )}>
-              <span className="bg-gradient-to-r from-text-primary via-text-primary to-accent-primary bg-clip-text text-transparent [@supports(not(-webkit-background-clip:text))]:text-text-primary">
-                Find your unfair
-              </span>{" "}
-              <span className="text-text-primary">advantage</span>
+              {microcopy.marketing.heroHeadline}
             </h1>
             <p className={cn(
               "text-lg md:text-xl leading-relaxed text-text-secondary max-w-2xl mx-auto"
             )}>
-              Plinth turns public market evidence into ranked strategic bets — with citations, confidence, and VP-ready framing.
+              {microcopy.marketing.heroSubhead}
             </p>
             <p className={cn(
               "text-sm md:text-base text-text-muted italic max-w-xl mx-auto"
             )}>
-              Decision credibility over AI novelty.
+              {microcopy.marketing.heroTagline}
             </p>
           </div>
           
@@ -55,27 +53,23 @@ export function Hero() {
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
             <Link href="/new">
               <Button size="lg" className="w-full sm:w-auto text-base px-6 py-6 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
-                Start a new analysis
+                {microcopy.marketing.primaryCTA}
               </Button>
             </Link>
-            <Link href="#example-output">
+            <Link href="#output-preview">
               <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5 transition-all duration-200">
-                See example output
+                {microcopy.marketing.secondaryCTA}
               </Button>
             </Link>
           </div>
           
           {/* Proof chips */}
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-            <Badge variant="secondary" className="text-xs px-3 py-1">
-              Citations included
-            </Badge>
-            <Badge variant="secondary" className="text-xs px-3 py-1">
-              Deterministic scoring
-            </Badge>
-            <Badge variant="secondary" className="text-xs px-3 py-1">
-              Exec-ready output
-            </Badge>
+            {microcopy.marketing.trustBadges.map((badge) => (
+              <Badge key={badge} variant="secondary" className="text-xs px-3 py-1">
+                {badge}
+              </Badge>
+            ))}
           </div>
         </div>
       </div>
