@@ -659,6 +659,16 @@
     background: rgb(var(--bg-surface-tint-2));
   }
   
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+  
   /* Compact mode - tighter spacing for dense layouts */
   .compact-mode {
     --spacing-xs: 0.1875rem; /* 3px */
