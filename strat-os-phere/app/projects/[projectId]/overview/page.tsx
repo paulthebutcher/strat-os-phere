@@ -28,6 +28,9 @@ import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 import { getLatestRunningRunForProject } from '@/lib/data/runs'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
+import { EvidenceCoveragePanelWrapper } from '@/components/evidence/EvidenceCoveragePanelWrapper'
+import { getEvidenceCoverage } from '@/lib/evidence/coverage'
+import { evaluateReadiness } from '@/lib/evidence/readiness'
 
 interface OverviewPageProps {
   params: Promise<{
@@ -152,6 +155,22 @@ export default async function OverviewPage(props: OverviewPageProps) {
 
   // Compute readiness
   const readiness = getProjectReadiness(project, safeCompetitors)
+  
+  // Fetch evidence coverage for gating
+  let evidenceCoverage: Awaited<ReturnType<typeof getEvidenceCoverage>> | null = null
+  let evidenceReadiness: Awaited<ReturnType<typeof evaluateReadiness>> | null = null
+  try {
+    evidenceCoverage = await getEvidenceCoverage(supabase, projectId)
+    evidenceReadiness = evaluateReadiness(evidenceCoverage)
+  } catch (error) {
+    // Log but don't fail - coverage is optional for display
+    logProjectError({
+      route,
+      projectId,
+      queryName: 'getEvidenceCoverage',
+      error: error instanceof Error ? error : new Error(String(error)),
+    })
+  }
 
   // Derive view model for state and coverage
   const viewModel = deriveAnalysisViewModel({
@@ -162,7 +181,10 @@ export default async function OverviewPage(props: OverviewPageProps) {
   })
 
   // Determine primary CTA action based on readiness
+  // Gate on evidence readiness if available
   const primaryCTA = readiness.nextAction
+  const isEvidenceReady = evidenceReadiness?.isReady ?? true // Default to true if coverage unavailable
+  const canGenerateAnalysis = readiness.allComplete && isEvidenceReady
 
   // Show AnalysisRunExperience if generating and not explicitly viewing results
   if (isGenerating && !viewResults) {
@@ -170,18 +192,24 @@ export default async function OverviewPage(props: OverviewPageProps) {
   }
 
   // Build primary action for header
+  // Combine readiness reasons with evidence readiness reasons
+  const allMissingReasons = [
+    ...(readiness.allComplete
+      ? []
+      : readiness.items
+          .filter((item) => item.status === 'incomplete')
+          .map((item) => item.label)),
+    ...(evidenceReadiness && !evidenceReadiness.isReady
+      ? evidenceReadiness.reasons
+      : []),
+  ]
+
   const primaryAction = primaryCTA.type === 'generate_analysis' && readiness.allComplete ? (
     <GenerateAnalysisButton
       projectId={projectId}
       label={primaryCTA.label}
-      canGenerate={readiness.allComplete}
-      missingReasons={
-        readiness.allComplete
-          ? []
-          : readiness.items
-              .filter((item) => item.status === 'incomplete')
-              .map((item) => item.label)
-      }
+      canGenerate={canGenerateAnalysis}
+      missingReasons={allMissingReasons}
     />
   ) : (
     <Button asChild variant={primaryCTA.type === 'edit_project' ? 'outline' : 'default'}>
@@ -240,6 +268,11 @@ export default async function OverviewPage(props: OverviewPageProps) {
               opportunitiesV3={opportunitiesV3?.content}
               opportunitiesV2={opportunitiesV2?.content}
             />
+          </Section>
+
+          {/* Evidence Coverage Panel */}
+          <Section>
+            <EvidenceCoveragePanelWrapper projectId={projectId} />
           </Section>
 
           {/* Readiness Checklist */}

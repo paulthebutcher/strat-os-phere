@@ -33,7 +33,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="#product"
+                  href="/product"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Overview
@@ -41,7 +41,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#product"
+                  href="/product/evidence-ledger"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Evidence ledger
@@ -49,7 +49,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#example-output"
+                  href="/product/opportunity-ranking"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Opportunity ranking
@@ -66,7 +66,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="#how-it-works"
+                  href="/how-it-works/collect"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Collect
@@ -74,7 +74,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#how-it-works"
+                  href="/how-it-works/normalize"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Normalize
@@ -82,7 +82,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#how-it-works"
+                  href="/how-it-works/rank"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Rank
@@ -99,7 +99,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="#trust"
+                  href="/trust/citations"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Citations
@@ -107,7 +107,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#trust"
+                  href="/trust/deterministic-scoring"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Deterministic scoring
@@ -115,7 +115,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#trust"
+                  href="/trust/confidence"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Confidence
@@ -123,7 +123,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#security"
+                  href="/trust/security-privacy"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Security & privacy
@@ -148,7 +148,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#contact"
+                  href="/contact"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Contact
@@ -156,7 +156,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#terms"
+                  href="/terms"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Terms
@@ -164,7 +164,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#privacy"
+                  href="/privacy"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
                   Privacy

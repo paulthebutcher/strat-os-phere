@@ -1,0 +1,89 @@
+/**
+ * MarketingPageShell
+ * 
+ * Reusable layout shell for standalone marketing pages.
+ * Provides consistent structure: title, eyebrow, lead, content sections, and CTA.
+ */
+import { ReactNode } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { MarketingShell } from "./MarketingShell"
+import { MarketingSection } from "./MarketingSection"
+import { MarketingContainer } from "./MarketingContainer"
+import { Footer } from "./Footer"
+import { cn } from "@/lib/utils"
+
+interface MarketingPageShellProps {
+  title: string
+  eyebrow?: string
+  lead: string
+  children: ReactNode
+  className?: string
+}
+
+export function MarketingPageShell({
+  title,
+  eyebrow,
+  lead,
+  children,
+  className,
+}: MarketingPageShellProps) {
+  return (
+    <MarketingShell>
+      <main className={cn("min-h-screen", className)}>
+        {/* Header */}
+        <MarketingSection variant="gradient" className="pb-12 md:pb-16">
+          <MarketingContainer maxWidth="4xl">
+            <div className="text-center space-y-4">
+              {eyebrow && (
+                <p className={cn("text-sm font-medium", "text-text-secondary uppercase tracking-wide")}>
+                  {eyebrow}
+                </p>
+              )}
+              <h1 className="text-3xl md:text-5xl font-semibold tracking-tight text-text-primary">
+                {title}
+              </h1>
+              <p className="text-lg md:text-xl leading-relaxed text-text-secondary max-w-2xl mx-auto">
+                {lead}
+              </p>
+            </div>
+          </MarketingContainer>
+        </MarketingSection>
+
+        {/* Content */}
+        {children}
+
+        {/* CTA */}
+        <MarketingSection variant="muted">
+          <MarketingContainer maxWidth="4xl">
+            <div className="text-center space-y-6">
+              <div className="space-y-4">
+                <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-text-primary">
+                  Ready to get started?
+                </h2>
+                <p className="text-base text-text-secondary max-w-xl mx-auto">
+                  Start a new analysis or explore how it works.
+                </p>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
+                <Link href="/new">
+                  <Button size="lg" className="w-full sm:w-auto">
+                    Try Plinth
+                  </Button>
+                </Link>
+                <Link href="/how-it-works">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                    See how it works
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </MarketingContainer>
+        </MarketingSection>
+
+        <Footer />
+      </main>
+    </MarketingShell>
+  )
+}
+

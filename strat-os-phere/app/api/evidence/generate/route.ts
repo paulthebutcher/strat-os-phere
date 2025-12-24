@@ -8,9 +8,9 @@ import { callLLM } from '@/lib/llm/callLLM'
 import { safeParseLLMJson } from '@/lib/schemas/safeParseLLMJson'
 import { EvidenceDraftSchema, type EvidenceDraft } from '@/lib/schemas/evidenceDraft'
 import {
-  createEvidenceSource,
   getEvidenceSourcesForDomain,
 } from '@/lib/data/evidenceSources'
+import { upsertEvidenceSource } from '@/lib/evidence/evidenceWriter'
 import { createClient } from '@/lib/supabase/server'
 import { MAX_PAGES_PER_COMPETITOR, EVIDENCE_CACHE_TTL_HOURS } from '@/lib/constants'
 import { logger } from '@/lib/logger'
@@ -174,40 +174,30 @@ export async function POST(request: Request) {
         shortlistTimeMs,
       })
 
-      // Convert shortlisted pages to evidence sources format
+      // Convert shortlisted pages to evidence sources format using canonical writer
       const extractionResults = await Promise.all(
         shortlisted.map(async (page) => {
-          try {
-            const source = await createEvidenceSource(supabase, {
-              project_id: projectId,
-              competitor_id: null,
-              domain,
+          const result = await upsertEvidenceSource(supabase, {
+            projectId,
+            competitorId: null,
+            url: page.url,
+            sourceType: page.extracted.sourceType,
+            pageTitle: page.title || page.extracted.title || null,
+            extractedText: page.extracted.text,
+            extractedAt: new Date().toISOString(),
+            sourceConfidence: page.extracted.confidence || null,
+          })
+
+          if (result.ok) {
+            return result.source
+          } else {
+            logger.error(`Failed to store evidence source for ${page.url}`, {
+              error: result.error,
+              projectId,
               url: page.url,
-              extracted_text: page.extracted.text,
-              page_title: page.title || page.extracted.title || null,
-              source_type: page.extracted.sourceType,
-              source_confidence: page.extracted.confidence,
-              source_date_range: page.extracted.dateRange || null,
-              extracted_at: new Date().toISOString(),
             })
-            return source
-          } catch (error) {
-            logger.error(`Failed to store evidence source for ${page.url}`, error)
-            // Return a temporary source structure
-            return {
-              id: `temp-${Date.now()}-${Math.random()}`,
-              project_id: projectId,
-              competitor_id: null,
-              domain,
-              url: page.url,
-              extracted_text: page.extracted.text,
-              page_title: page.title || page.extracted.title || null,
-              source_type: page.extracted.sourceType,
-              source_confidence: page.extracted.confidence,
-              source_date_range: page.extracted.dateRange || null,
-              extracted_at: new Date().toISOString(),
-              created_at: new Date().toISOString(),
-            } as Awaited<ReturnType<typeof getEvidenceSourcesForDomain>>[0]
+            // Return null to filter out failed inserts
+            return null
           }
         })
       )
@@ -250,38 +240,28 @@ export async function POST(request: Request) {
               return null
             }
 
-            // Store in database
-            try {
-              const source = await createEvidenceSource(supabase, {
-                project_id: projectId,
-                competitor_id: null, // Will be linked when competitor is created
-                domain,
+            // Store in database using canonical writer
+            const result = await upsertEvidenceSource(supabase, {
+              projectId,
+              competitorId: null, // Will be linked when competitor is created
+              url: extracted.url,
+              sourceType: extracted.sourceType,
+              pageTitle: extracted.title || null,
+              extractedText: extracted.text,
+              extractedAt: new Date().toISOString(),
+              sourceConfidence: extracted.confidence || null,
+            })
+
+            if (result.ok) {
+              return result.source
+            } else {
+              logger.error(`Failed to store evidence source for ${target.url}`, {
+                error: result.error,
+                projectId,
                 url: extracted.url,
-                extracted_text: extracted.text,
-                page_title: extracted.title || null,
-                source_type: extracted.sourceType,
-                source_confidence: extracted.confidence,
-                source_date_range: extracted.dateRange || null,
-                extracted_at: new Date().toISOString(),
               })
-              return source
-            } catch (error) {
-              logger.error(`Failed to store evidence source for ${target.url}`, error)
-              // Continue even if storage fails - we can still use the extracted content
-              return {
-                id: `temp-${Date.now()}-${index}`,
-                project_id: projectId,
-                competitor_id: null,
-                domain,
-                url: extracted.url,
-                extracted_text: extracted.text,
-                page_title: extracted.title || null,
-                source_type: extracted.sourceType,
-                source_confidence: extracted.confidence,
-                source_date_range: extracted.dateRange || null,
-                extracted_at: new Date().toISOString(),
-                created_at: new Date().toISOString(),
-              } as typeof sources[0]
+              // Return null to filter out failed inserts
+              return null
             }
           })
         )
@@ -298,22 +278,23 @@ export async function POST(request: Request) {
             if (review.url) {
               const extracted = await extractWithSourceType(review.url)
               if (extracted && extracted.sourceType === 'reviews') {
-                try {
-                  const source = await createEvidenceSource(supabase, {
-                    project_id: projectId,
-                    competitor_id: null,
-                    domain,
-                    url: extracted.url,
-                    extracted_text: extracted.text,
-                    page_title: extracted.title || review.title || null,
-                    source_type: 'reviews',
-                    source_confidence: 'medium',
-                    source_date_range: null,
-                    extracted_at: new Date().toISOString(),
+                const result = await upsertEvidenceSource(supabase, {
+                  projectId,
+                  competitorId: null,
+                  url: extracted.url,
+                  sourceType: 'reviews',
+                  pageTitle: extracted.title || review.title || null,
+                  extractedText: extracted.text,
+                  extractedAt: new Date().toISOString(),
+                  sourceConfidence: 'medium',
+                })
+
+                if (result.ok) {
+                  extractionResults.push(result.source)
+                } else {
+                  logger.warn(`Failed to store review source: ${review.url}`, {
+                    error: result.error,
                   })
-                  extractionResults.push(source)
-                } catch (error) {
-                  logger.warn(`Failed to store review source: ${review.url}`, error)
                 }
               }
             }
@@ -325,7 +306,7 @@ export async function POST(request: Request) {
 
         sources = extractionResults.filter(
           (s): s is typeof sources[0] => s !== null
-        )
+        ) as typeof sources
       } else {
         logger.info('[evidence/generate] Using cached sources', {
           domain,

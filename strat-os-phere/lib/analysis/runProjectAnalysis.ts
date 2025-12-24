@@ -256,6 +256,82 @@ export async function runProjectAnalysis(
     steps.push(evidenceStep)
 
     try {
+      // PR4: Guardrail - Check that evidence_sources exist before proceeding
+      const { data: evidenceSources, error: evidenceError } = await supabase
+        .from('evidence_sources')
+        .select('id')
+        .eq('project_id', projectId)
+        .limit(1)
+
+      if (evidenceError) {
+        throw new Error(`Failed to check evidence sources: ${evidenceError.message}`)
+      }
+
+      if (!evidenceSources || evidenceSources.length === 0) {
+        // No evidence sources found - abort with structured response
+        evidenceStep.status = 'failed'
+        evidenceStep.finished_at = new Date().toISOString()
+        evidenceStep.error = 'No evidence sources found in evidence_sources table'
+        
+        const failedRun = await setRunFailed(supabase, run.id, {
+          error_code: 'INSUFFICIENT_EVIDENCE',
+          error_message: 'No evidence sources found. Evidence must be harvested and stored before analysis can be generated.',
+          error_detail: 'This analysis requires evidence to be collected first. Please collect evidence for your competitors before generating analysis.',
+          metricsPatch: {
+            steps: steps,
+          },
+        })
+
+        if (failedRun.ok) {
+          return {
+            ok: false,
+            error: {
+              code: 'INSUFFICIENT_EVIDENCE',
+              message: 'No evidence sources found. Evidence must be harvested and stored before analysis can be generated.',
+              runId: failedRun.data.id,
+            },
+          }
+        }
+      }
+
+      // PR4: Additional guardrail - Check evidence readiness thresholds
+      try {
+        const coverage = await getEvidenceCoverage(supabase, projectId)
+        const readiness = evaluateReadiness(coverage)
+        
+        if (!readiness.isReady) {
+          evidenceStep.status = 'failed'
+          evidenceStep.finished_at = new Date().toISOString()
+          evidenceStep.error = `Evidence coverage insufficient: ${readiness.reasons.join('; ')}`
+          
+          const failedRun = await setRunFailed(supabase, run.id, {
+            error_code: 'INSUFFICIENT_EVIDENCE_COVERAGE',
+            error_message: 'Evidence coverage does not meet minimum thresholds for analysis generation.',
+            error_detail: readiness.reasons.join('; '),
+            metricsPatch: {
+              steps: steps,
+            },
+          })
+
+          if (failedRun.ok) {
+            return {
+              ok: false,
+              error: {
+                code: 'INSUFFICIENT_EVIDENCE_COVERAGE',
+                message: `Evidence coverage insufficient: ${readiness.reasons.join('; ')}`,
+                runId: failedRun.data.id,
+              },
+            }
+          }
+        }
+      } catch (coverageError) {
+        // Log but don't fail - coverage check is a guardrail, not a hard requirement
+        logger.warn('Failed to check evidence coverage readiness', {
+          error: coverageError instanceof Error ? coverageError.message : String(coverageError),
+          projectId,
+        })
+      }
+
       // Mock evidence collection
       await new Promise(resolve => setTimeout(resolve, 100))
       evidenceStep.status = 'done'
