@@ -3,7 +3,7 @@
  * Determines if a project has sufficient evidence to generate analysis
  */
 
-import type { EvidenceCoverageModel } from './coverage'
+import type { EvidenceCoverageModel } from '@/lib/evidence'
 
 /**
  * Readiness thresholds configuration

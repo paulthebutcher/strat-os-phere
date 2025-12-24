@@ -6,8 +6,7 @@
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import { loadClaimsForProject } from './load'
 import { processClaims } from './process'
-import { computeEvidenceCoverage } from '../coverage'
-import type { EvidenceCoverage, ClaimsByType } from './types'
+import { computeEvidenceCoverage, type EvidenceCoverage, type ClaimsByType } from '@/lib/evidence'
 
 export interface ProcessedClaimsResult {
   claimsByType: ClaimsByType

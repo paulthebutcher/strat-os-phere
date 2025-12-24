@@ -1,5 +1,16 @@
 # Evidence Fetching Optimization
 
+**Status: Source of truth (evidence system)**
+
+**Purpose**: Describes the optimization implemented to reduce typical analysis runtime through parallel fetching, caching, and two-pass shortlisting.
+
+**Related docs**:
+- [EVIDENCE_CLAIMS.md](./EVIDENCE_CLAIMS.md) - Claim-centric evidence system
+- [../../strat-os-phere/docs/EVIDENCE_GENERATION.md](../../strat-os-phere/docs/EVIDENCE_GENERATION.md) - Evidence generation flow
+- [../00-overview/01-system-overview.md](../00-overview/01-system-overview.md) - System flow context
+
+---
+
 ## Overview
 
 This document describes the optimization implemented to reduce typical analysis runtime from >10 minutes to ~2-5 minutes through parallel fetching, caching, and two-pass shortlisting.

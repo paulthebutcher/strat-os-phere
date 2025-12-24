@@ -25,7 +25,7 @@ export function MarketingSection({
   const baseClasses = "w-full"
   
   const variantClasses = {
-    default: "bg-white",
+    default: "bg-transparent", // Inherit tan background from marketing-landing
     muted: "bg-slate-50/60",
     gradient: "bg-gradient-to-b from-accent-primary/5 via-transparent to-transparent",
     bordered: "bg-white border-y border-black/5",

@@ -1,4 +1,8 @@
-### StratOSphere UI Design Rules
+# StratOSphere UI Design Rules
+
+**Status: Source of truth**
+
+---
 
 - **Aesthetic baseline**: Quietly opinionated, “paperclip punk” — muted, low-saturation, industrial/analog, closer to Linear/Arc than to playful or glossy SaaS.
 - **Color system**:

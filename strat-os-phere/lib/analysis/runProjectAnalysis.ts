@@ -20,6 +20,8 @@ import {
   type ProjectRun,
 } from '@/lib/data/projectRuns'
 import { logger } from '@/lib/logger'
+import { getEvidenceCoverage } from '@/lib/evidence'
+import { evaluateReadiness } from '@/lib/evidence/readiness'
 
 /**
  * Pipeline version constant - update when pipeline logic changes

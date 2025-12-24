@@ -5,7 +5,7 @@ import { ChevronDown, ChevronRight, ExternalLink, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import type { EvidenceCoverageModel } from '@/lib/evidence/coverage'
+import type { EvidenceCoverageModel } from '@/lib/evidence'
 import type { ReadinessEvaluation } from '@/lib/evidence/readiness'
 import Link from 'next/link'
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { computeEvidenceCoverage } from '@/lib/evidence/coverage'
-import type { EvidenceClaim, ClaimsByType } from '@/lib/evidence/claims/types'
+import { computeEvidenceCoverage } from '@/lib/evidence'
+import type { EvidenceClaim, ClaimsByType } from '@/lib/evidence'
 
 function createClaim(
   id: string,

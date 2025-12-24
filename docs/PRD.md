@@ -5,9 +5,11 @@
 **When to read this**: Read this first to understand product intent and user flows before diving into implementation details.
 
 **Related docs**:
-- [Decisions.md](./Decisions.md) - Architectural decisions
+- [principles/Decisions.md](./principles/Decisions.md) - Architectural decisions
 - [00-overview/01-system-overview.md](./00-overview/01-system-overview.md) - System flow narrative
+- [00-overview/02-core-entities.md](./00-overview/02-core-entities.md) - Core data entities
 - [../strat-os-phere/docs/ARCHITECTURE.md](../strat-os-phere/docs/ARCHITECTURE.md) - Implementation architecture
+- [../strat-os-phere/docs/DATA_MODEL.md](../strat-os-phere/docs/DATA_MODEL.md) - Database schema source of truth
 
 ---
 

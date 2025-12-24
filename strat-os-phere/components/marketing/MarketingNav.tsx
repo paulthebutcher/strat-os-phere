@@ -24,7 +24,7 @@ export function MarketingNav() {
 
   return (
     <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-6xl px-4 sm:px-6 lg:px-8 pointer-events-none">
-      <GlassPanel className="pointer-events-auto">
+      <GlassPanel variant="nav" className="pointer-events-auto">
         <div className="flex h-14 items-center justify-between px-4 sm:px-6">
         <Logo
           href="/"
@@ -107,7 +107,7 @@ export function MarketingNav() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="mt-2 md:hidden">
-          <GlassPanel>
+          <GlassPanel variant="nav">
             <div className="flex flex-col gap-1 px-4 py-3">
             <Link
               href="#product"

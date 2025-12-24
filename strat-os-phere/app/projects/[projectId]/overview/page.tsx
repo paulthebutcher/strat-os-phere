@@ -29,7 +29,7 @@ import { getLatestRunningRunForProject } from '@/lib/data/runs'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { EvidenceCoveragePanelWrapper } from '@/components/evidence/EvidenceCoveragePanelWrapper'
-import { getEvidenceCoverage } from '@/lib/evidence/coverage'
+import { getEvidenceCoverage } from '@/lib/evidence'
 import { evaluateReadiness } from '@/lib/evidence/readiness'
 
 interface OverviewPageProps {

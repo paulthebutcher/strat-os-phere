@@ -73,6 +73,7 @@
   --marketing-accent-coral: 15 70% 55%; /* Coral accent */
   --marketing-surface: 0 0% 99%; /* Very light surface */
   --marketing-surface-2: 0 0% 97%; /* Slightly darker surface */
+  --marketing-background: 35 15% 97%; /* Very light tan background */
   
   /* Hero panel gradient - Deep navy to indigo */
   --hero-gradient-start: 230 50% 35%; /* Deep navy */
@@ -270,6 +271,7 @@
   --color-marketing-accent-coral: hsl(var(--marketing-accent-coral));
   --color-marketing-surface: hsl(var(--marketing-surface));
   --color-marketing-surface-2: hsl(var(--marketing-surface-2));
+  --color-marketing-background: hsl(var(--marketing-background));
   
   /* Hero gradient */
   --color-hero-gradient-start: hsl(var(--hero-gradient-start));
@@ -321,14 +323,9 @@
     -moz-osx-font-smoothing: grayscale;
   }
   
-  /* Marketing landing page background gradient - applied via class on main */
+  /* Marketing landing page background - tan background */
   .marketing-landing {
-    background: linear-gradient(to bottom, 
-      hsl(var(--marketing-surface)) 0%,
-      hsl(var(--background)) 20%,
-      hsl(var(--background)) 80%,
-      hsl(var(--marketing-surface)) 100%
-    );
+    background: hsl(var(--marketing-background));
     position: relative;
   }
   

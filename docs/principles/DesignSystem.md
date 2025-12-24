@@ -1,5 +1,7 @@
 # StratOSphere Design System
 
+**Status: Source of truth**
+
 ## Overview
 
 This design system establishes a professional, production-grade UI foundation for StratOSphere—a B2B strategy tool. The UI should feel **calm, trustworthy, and invisible**—not expressive or experimental.

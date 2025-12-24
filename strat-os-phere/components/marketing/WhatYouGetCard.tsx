@@ -17,7 +17,7 @@ interface WhatYouGetCardProps {
 export function WhatYouGetCard({ title, description, Preview }: WhatYouGetCardProps) {
   return (
     <div className={cn(
-      "group rounded-2xl border border-border-subtle bg-surface",
+      "group rounded-2xl border border-border-subtle bg-white",
       "shadow-sm hover:shadow-md hover:border-accent-primary/30",
       "transition-all duration-200 hover:-translate-y-[1px]",
       "flex flex-col h-full"

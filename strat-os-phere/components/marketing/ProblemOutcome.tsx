@@ -11,8 +11,10 @@ import { MarketingContainer } from "./MarketingContainer"
 
 export function ProblemOutcome() {
   return (
-    <MarketingSection variant="default">
-      <MarketingContainer maxWidth="6xl">
+    <MarketingSection variant="default" className="relative pt-32 md:pt-40 lg:pt-48">
+      {/* Soft divider to separate from hero overlap */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-subtle to-transparent" />
+      <MarketingContainer maxWidth="6xl" className="relative">
         <div className="grid md:grid-cols-2 gap-12 md:gap-16">
           {/* Problem column */}
           <div className="space-y-6">

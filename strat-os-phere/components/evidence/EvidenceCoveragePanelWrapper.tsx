@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getEvidenceCoverage } from '@/lib/evidence/coverage'
+import { getEvidenceCoverage } from '@/lib/evidence'
 import { evaluateReadiness } from '@/lib/evidence/readiness'
 import { EvidenceCoveragePanel } from './EvidenceCoveragePanel'
 

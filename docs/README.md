@@ -1,108 +1,92 @@
 # StratOSphere Documentation
 
-**Start Here** → This is the entry point for understanding StratOSphere's architecture, data model, and development workflows.
+**Start Here** → This is the canonical entry point for understanding StratOSphere.
+
+---
 
 ## Start Here
 
-StratOSphere is an AI-enabled operating system for experience strategy work. The platform helps strategy professionals conduct competitive analysis by generating strategic insights grounded in public evidence, producing ranked opportunities with citations.
+StratOSphere (also referred to as Plinth) is an AI-enabled operating system for experience strategy work. The platform helps strategy professionals conduct competitive analysis by generating strategic insights grounded in public evidence, producing ranked opportunities with citations.
 
-### System Flow
+**What problem does it solve?** Strategy professionals spend hours manually researching competitors, gathering evidence from fragmented sources, and struggling to structure competitive insights. StratOSphere automates evidence collection from competitor websites, reviews, docs, and pricing pages, then transforms this evidence into structured, citable opportunities.
+
+**Core differentiator:** Public evidence → structured opportunities with citations. Unlike generic competitive analysis tools, StratOSphere harvests real evidence from competitor sites, normalizes it into claims with citations, and generates opportunities that are grounded in verifiable sources. Every claim can be traced back to its source.
+
+---
+
+## How the system works (high level)
 
 The system follows this end-to-end flow:
 
-```
-User Inputs → Competitors → Evidence Harvest → Normalize → Runs → Opportunities → Evidence Inspection
-```
+1. **Project** → User creates a competitive analysis project with market context and business goals
+2. **Competitors** → User adds 3-7 competitors to analyze
+3. **Evidence collection** → System automatically searches and scrapes competitor websites (homepage, pricing, docs, reviews, jobs, changelog, status pages)
+4. **Normalization** → Evidence is normalized into structured claims with citations, deduplicated, and scored for support strength
+5. **Coverage gating** → System checks evidence quality (source diversity, recency) and applies coverage gates
+6. **Opportunities** → LLM generates ranked opportunities with JTBD (Jobs-to-be-Done) analysis, citations, and confidence bands
+7. **Shareable outputs** → Results include opportunities, competitor profiles, market synthesis, and strategic bets—all with inspectable evidence sources
 
-1. **Inputs**: User provides project context (market, target customer, business goals) and competitor information
-2. **Competitors**: System manages 3-7 competitors per project with evidence sources
-3. **Evidence Harvest**: Web search and scraping gather public evidence from competitor websites, reviews, docs, pricing pages, etc.
-4. **Normalize**: Evidence is normalized, cached, and structured into claims with citations
-5. **Runs**: Analysis runs generate artifacts (profiles, synthesis, opportunities) stored as append-only records
-6. **Opportunities**: Ranked opportunities with JTBD (Jobs-to-be-Done) analysis, citations, and confidence bands
-7. **Evidence Inspection**: Users can inspect evidence sources, claims, and citations to verify insights
+---
 
-### Golden Rules
+## Reading path (recommended order)
 
-These principles guide the system's design and should not be violated:
+Follow this path to understand the system in ≤30 minutes:
 
-1. **Evidence is harvested/stored before LLM use**: All evidence must be collected and stored in `evidence_sources` or `evidence_cache` before being used in LLM prompts. No invented citations.
+1. **[00-overview/01-system-overview.md](./00-overview/01-system-overview.md)** - End-to-end system narrative from user and system perspectives
+2. **[00-overview/02-core-entities.md](./00-overview/02-core-entities.md)** - Core data entities (projects, competitors, evidence, artifacts) explained in plain English
+3. **[00-overview/03-definition-of-done.md](./00-overview/03-definition-of-done.md)** - Viability checklist: what "done" looks like for evidence, coverage, opportunities
+4. **[reference/Schemas.md](./reference/Schemas.md)** - Data schemas (reference only; see `strat-os-phere/docs/DATA_MODEL.md` for source of truth)
+5. **[../strat-os-phere/docs/ARCHITECTURE.md](../strat-os-phere/docs/ARCHITECTURE.md)** - Implementation architecture and module organization
+6. **[../strat-os-phere/docs/DATA_MODEL.md](../strat-os-phere/docs/DATA_MODEL.md)** - Database schema source of truth
+7. **[evidence/EVIDENCE_CLAIMS.md](./evidence/EVIDENCE_CLAIMS.md)** - Claim-centric evidence system and follow-up questions
+8. **[evidence/EVIDENCE_OPTIMIZATION.md](./evidence/EVIDENCE_OPTIMIZATION.md)** - Evidence performance optimizations
+9. **[evidence/RESULTS_STABILIZATION.md](./evidence/RESULTS_STABILIZATION.md)** - Results architecture and normalization
+10. **[principles/Decisions.md](./principles/Decisions.md)** - Key architectural and design decisions
+11. **[principles/DesignRules.md](./principles/DesignRules.md)** - UI design rules and patterns
+12. **[principles/DesignSystem.md](./principles/DesignSystem.md)** - Design system tokens and components
+13. **[history/](./history/)** - Historical PR summaries and explorations (context only)
 
-2. **No invented citations**: Every claim in opportunities, profiles, and synthesis must be backed by actual evidence sources with real URLs. Citations are extracted from harvested evidence, not generated by the LLM.
+---
 
-3. **Projects table should not be a dumping ground for evolving fields**: Stable fields (id, user_id, name, created_at) live in `projects`. All evolving fields (onboarding inputs, market context, etc.) live in `project_inputs` table as versioned JSON.
+## Source of truth vs context
 
-4. **Runs are derived/append-only, not stored as projects.latest_***: Analysis runs produce artifacts stored in the `artifacts` table. Never store run state (latest_run_id, latest_generated_at, etc.) directly on the `projects` table. Artifacts are append-only; each run creates new records.
+**Source of truth (current system behavior):**
 
-## Reading Path
+- **`/docs/00-overview/`** - Narrative overview documents
+- **`/docs/reference/`** - Reference documentation (schemas, etc.)
+- **`/docs/evidence/`** - Evidence system documentation
+- **`/docs/principles/`** - Design decisions and rules
+- **`/strat-os-phere/docs/`** - Implementation-level truth (architecture, data model, pipelines)
 
-Follow this ordered path to understand the system:
+**Historical context (not source of truth):**
 
-### 1. Product Intent (Why We Exist)
+- **`/docs/history/`** - PR summaries and past explorations. These documents are snapshots of past work and provide context, but they are not the source of truth for current implementation.
 
-- **[PRD.md](./PRD.md)** - Product requirements and user flows
-- **[Decisions.md](./Decisions.md)** - Key architectural and design decisions
+**Product intent:**
 
-### 2. System Architecture (What Exists Today)
+- **`/docs/PRD.md`** - Product requirements and user flows
 
-- **[../strat-os-phere/docs/ARCHITECTURE.md](../strat-os-phere/docs/ARCHITECTURE.md)** - High-level system design and module organization
-- **[../strat-os-phere/docs/ANALYSIS_PIPELINE.md](../strat-os-phere/docs/ANALYSIS_PIPELINE.md)** - How competitive analysis generation works end-to-end
+---
 
-### 3. Data Model (Where Truth Lives)
+## If you're here to help with...
 
-- **[../strat-os-phere/docs/DATA_MODEL.md](../strat-os-phere/docs/DATA_MODEL.md)** - Database schema, relationships, and data access patterns
-- **[Schemas.md](./Schemas.md)** - Legacy schema notes (reference only, not source of truth)
-
-### 4. Evidence Subsystem (Core Differentiator)
-
-- **[EVIDENCE_CLAIMS.md](./EVIDENCE_CLAIMS.md)** - Claim-centric evidence system and follow-up questions
-- **[../strat-os-phere/docs/EVIDENCE_GENERATION.md](../strat-os-phere/docs/EVIDENCE_GENERATION.md)** - Web search and scraping for evidence generation
-- **[EVIDENCE_OPTIMIZATION.md](./EVIDENCE_OPTIMIZATION.md)** - Performance optimizations (parallel fetch, caching, shortlisting)
-
-### 5. Operations + Guardrails (How We Avoid Drift)
-
-- **[../strat-os-phere/docs/GUARDRAILS.md](../strat-os-phere/docs/GUARDRAILS.md)** - Layered guardrail system for stable, trustworthy outputs
-- **[../strat-os-phere/docs/MIGRATIONS.md](../strat-os-phere/docs/MIGRATIONS.md)** - Database migrations and schema changes
-- **[../strat-os-phere/docs/DEV_WORKFLOW.md](../strat-os-phere/docs/DEV_WORKFLOW.md)** - Development workflow and build policies
-
-### 6. Historical PR Notes (Context Only)
-
-**Status: Historical / reference (not source of truth)**
-
-These documents are snapshots of past work and decisions. They provide context but are not the source of truth for current implementation.
-
-- [PR-1-SUMMARY.md](./PR-1-SUMMARY.md) - Project inputs versioning
-- [PR-2-SUMMARY.md](./PR-2-SUMMARY.md) - (if exists)
-- [PR-3-SUMMARY.md](./PR-3-SUMMARY.md) - (if exists)
-- [PR-TOAST-PROGRESS-POLLING.md](./PR-TOAST-PROGRESS-POLLING.md) - Toast progress polling implementation
-- [PR-COMPETITOR-SUGGESTIONS-UX.md](./PR-COMPETITOR-SUGGESTIONS-UX.md) - Competitor suggestions UX
-
-## If You're Here to Help With...
-
-### Fix Schema Drift
+### Fix schema drift
 1. Read [MIGRATIONS.md](../strat-os-phere/docs/MIGRATIONS.md) for migration patterns
 2. Review [DATA_MODEL.md](../strat-os-phere/docs/DATA_MODEL.md) for current schema
 3. Check [GUARDRAILS.md](../strat-os-phere/docs/GUARDRAILS.md) for drift detection utilities
 
-### Improve Evidence
+### Improve evidence
 1. Start with [EVIDENCE_GENERATION.md](../strat-os-phere/docs/EVIDENCE_GENERATION.md) for the generation flow
-2. Review [EVIDENCE_CLAIMS.md](./EVIDENCE_CLAIMS.md) for claim extraction
-3. Check [EVIDENCE_OPTIMIZATION.md](./EVIDENCE_OPTIMIZATION.md) for performance considerations
+2. Review [evidence/EVIDENCE_CLAIMS.md](./evidence/EVIDENCE_CLAIMS.md) for claim extraction
+3. Check [evidence/EVIDENCE_OPTIMIZATION.md](./evidence/EVIDENCE_OPTIMIZATION.md) for performance considerations
 
-### Improve Results Quality
-1. Read [RESULTS_STABILIZATION.md](./RESULTS_STABILIZATION.md) for current architecture
+### Improve results quality
+1. Read [evidence/RESULTS_STABILIZATION.md](./evidence/RESULTS_STABILIZATION.md) for current architecture
 2. Review [PRD.md](./PRD.md) for product requirements
 3. Check [GUARDRAILS.md](../strat-os-phere/docs/GUARDRAILS.md) for quality checks and scoring guardrails
 
-## Bridge Documents
-
-For a narrative walkthrough of the system, see:
-
-- **[00-overview/01-system-overview.md](./00-overview/01-system-overview.md)** - End-to-end system narrative
-- **[00-overview/02-core-entities.md](./00-overview/02-core-entities.md)** - Core data entities explained
-- **[00-overview/03-definition-of-done.md](./00-overview/03-definition-of-done.md)** - Viability checklist for external users
+---
 
 ## Implementation Documentation
 
 For implementation details, see **[../strat-os-phere/docs/README.md](../strat-os-phere/docs/README.md)**.
-
