@@ -29,7 +29,7 @@ const faqs = [
 
 export function MiniFAQ() {
   return (
-    <MarketingSection variant="muted" id="faq">
+    <MarketingSection variant="default" id="faq">
       <MarketingContainer maxWidth="4xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">

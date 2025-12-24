@@ -25,17 +25,17 @@ export function MarketingSection({
   const baseClasses = "w-full"
   
   const variantClasses = {
-    default: "bg-background",
-    muted: "bg-surface-muted/30",
+    default: "bg-white",
+    muted: "bg-slate-50/60",
     gradient: "bg-gradient-to-b from-accent-primary/5 via-transparent to-transparent",
-    bordered: "bg-background border-y border-border-subtle",
-    tinted: "bg-surface-muted/50",
+    bordered: "bg-white border-y border-black/5",
+    tinted: "bg-slate-50/60",
   }
 
-  const spacingClasses = "py-20 md:py-24"
+  const spacingClasses = "py-16 md:py-24"
   
   // Add border-t to all sections except gradient (which handles its own styling)
-  const borderClasses = variant !== "gradient" ? "border-t border-border-subtle" : ""
+  const borderClasses = variant !== "gradient" ? "border-t border-black/5" : ""
 
   return (
     <section

@@ -8,6 +8,7 @@ import { Check, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
+import { GlassPanel } from "./GlassPanel"
 
 const weUse = [
   "Public pages only",
@@ -38,50 +39,54 @@ export function TrustMethod() {
         
         <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           {/* What we use */}
-          <div className="panel p-8 rounded-xl border border-border-subtle bg-surface shadow-sm">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success/10">
-                <Check className="h-5 w-5 text-success" />
+          <GlassPanel className="p-8">
+            <>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success/10">
+                  <Check className="h-5 w-5 text-success" />
+                </div>
+                <h3 className="text-xl font-semibold text-text-primary">
+                  What we use
+                </h3>
               </div>
-              <h3 className="text-xl font-semibold text-text-primary">
-                What we use
-              </h3>
-            </div>
-            
-            <ul className="space-y-4">
-              {weUse.map((item, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
-                  <span className="text-sm leading-relaxed text-text-secondary">
-                    {item}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
+              
+              <ul className="space-y-4">
+                {weUse.map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm leading-relaxed text-text-secondary">
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          </GlassPanel>
           
           {/* What we never do */}
-          <div className="panel p-8 rounded-xl border border-border-subtle bg-surface shadow-sm">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-danger/10">
-                <X className="h-5 w-5 text-danger" />
+          <GlassPanel className="p-8">
+            <>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-danger/10">
+                  <X className="h-5 w-5 text-danger" />
+                </div>
+                <h3 className="text-xl font-semibold text-text-primary">
+                  What we never do
+                </h3>
               </div>
-              <h3 className="text-xl font-semibold text-text-primary">
-                What we never do
-              </h3>
-            </div>
-            
-            <ul className="space-y-4">
-              {weNever.map((item, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <X className="h-5 w-5 text-danger shrink-0 mt-0.5" />
-                  <span className="text-sm leading-relaxed text-text-secondary">
-                    {item}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
+              
+              <ul className="space-y-4">
+                {weNever.map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <X className="h-5 w-5 text-danger shrink-0 mt-0.5" />
+                    <span className="text-sm leading-relaxed text-text-secondary">
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          </GlassPanel>
         </div>
         
         {/* Trust cues */}

@@ -15,7 +15,7 @@ import { MarketingContainer } from "./MarketingContainer"
 
 export function ExampleOutput() {
   return (
-    <MarketingSection variant="default" id="example-output">
+    <MarketingSection variant="muted" id="example-output">
       <MarketingContainer maxWidth="6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">

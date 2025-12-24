@@ -12,20 +12,32 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
+import { GlassPanel } from "./GlassPanel"
 
 export function Hero() {
   return (
-    <MarketingSection variant="gradient" className="relative overflow-hidden border-t-0 pt-20 md:pt-24 lg:pt-32">
+    <MarketingSection variant="gradient" className="relative overflow-hidden border-t-0 pt-24 md:pt-32 lg:pt-40">
+      {/* Subtle spotlight background effect */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div 
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-30"
+          style={{
+            background: "radial-gradient(ellipse 800px 600px at 50% 0%, hsl(var(--accent-primary) / 0.15) 0%, transparent 70%)",
+          }}
+        />
+      </div>
       <MarketingContainer maxWidth="7xl" className="relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
           {/* Left: Headline, subhead, CTAs */}
           <div className="text-center lg:text-left space-y-6">
             <div className="space-y-4">
               <h1 className={cn(
-                "text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-text-primary",
-                "leading-tight"
+                "text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight"
               )}>
-                Find your unfair advantage
+                <span className="bg-gradient-to-r from-text-primary via-text-primary to-accent-primary bg-clip-text text-transparent [@supports(not(-webkit-background-clip:text))]:text-text-primary">
+                  Find your unfair
+                </span>{" "}
+                <span className="text-text-primary">advantage</span>
               </h1>
               <p className={cn(
                 "text-lg md:text-xl leading-relaxed text-text-secondary max-w-prose",
@@ -44,12 +56,12 @@ export function Hero() {
             {/* CTAs */}
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start pt-2">
               <Link href="/new">
-                <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow">
+                <Button size="lg" className="w-full sm:w-auto text-base px-6 py-6 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
                   Start a new analysis
                 </Button>
               </Link>
               <Link href="#example-output">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5 transition-all duration-200">
                   See example output
                 </Button>
               </Link>
@@ -71,9 +83,10 @@ export function Hero() {
 
           {/* Right: Product preview mock */}
           <div className="relative">
-            <div className="relative rounded-2xl border-2 border-border-subtle shadow-xl bg-surface overflow-hidden">
+            <GlassPanel className="overflow-hidden shadow-xl">
+              <div className="relative bg-white/40 overflow-hidden">
               {/* Mock browser chrome */}
-              <div className="p-3 bg-surface-muted border-b border-border-subtle">
+              <div className="p-3 bg-white/30 border-b border-black/5">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-danger"></div>
                   <div className="h-2 w-2 rounded-full bg-warning"></div>
@@ -83,7 +96,7 @@ export function Hero() {
               </div>
               
               {/* Evidence sources bar */}
-              <div className="px-4 py-2.5 bg-surface-muted/50 border-b border-border-subtle">
+              <div className="px-4 py-2.5 bg-white/20 border-b border-black/5">
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="text-xs font-medium text-text-muted">Evidence sources:</span>
                   <Badge variant="secondary" className="text-xs">Pricing</Badge>
@@ -94,9 +107,9 @@ export function Hero() {
               </div>
               
               {/* Mock product preview - Opportunity card with details */}
-              <div className="p-5 space-y-4 bg-surface">
+              <div className="p-5 space-y-4 bg-white/10">
                 {/* Main opportunity card */}
-                <div className="p-4 rounded-lg border border-border-subtle bg-surface-muted/50">
+                <div className="p-4 rounded-lg border border-black/5 bg-white/30">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -129,7 +142,7 @@ export function Hero() {
                   </div>
                   
                   {/* Scoring breakdown */}
-                  <div className="pt-3 border-t border-border-subtle">
+                  <div className="pt-3 border-t border-black/5">
                     <p className="text-xs font-medium text-text-muted mb-2">Scoring drivers:</p>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex items-center justify-between text-xs">
@@ -153,7 +166,7 @@ export function Hero() {
                 </div>
                 
                 {/* Secondary opportunity (smaller) */}
-                <div className="p-3 rounded-lg border border-border-subtle bg-surface-muted/30">
+                <div className="p-3 rounded-lg border border-black/5 bg-white/20">
                   <div className="flex items-center gap-2 mb-1.5">
                     <Badge variant="primary" className="text-xs font-semibold">7.9</Badge>
                     <span className="text-xs text-text-muted">High confidence</span>
@@ -166,7 +179,8 @@ export function Hero() {
                   </p>
                 </div>
               </div>
-            </div>
+              </div>
+            </GlassPanel>
             
             {/* Decorative element */}
             <div className="absolute -right-8 -top-8 w-32 h-32 opacity-10 pointer-events-none">
