@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ArrowLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { PROJECT_NAV_ITEMS, getActiveNavItem } from '@/lib/nav/projectNav'
@@ -71,6 +71,18 @@ export function ProjectSidebar({
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 md:pt-[57px] md:border-r md:border-border plinth-surface">
         <div className="flex flex-col h-full overflow-y-auto">
+          {/* Back to Projects Link */}
+          <div className="p-3 border-b border-border">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              data-testid="back-to-projects-link"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to Projects</span>
+            </Link>
+          </div>
+
           {/* Project Header */}
           <div className="p-4 border-b border-border space-y-3">
             <div>
@@ -134,6 +146,18 @@ export function ProjectSidebar({
           {/* Drawer */}
           <aside className="fixed inset-y-0 left-0 z-50 w-64 plinth-surface border-r border-border pt-[57px] pb-4 overflow-y-auto md:hidden">
             <div className="flex flex-col h-full">
+              {/* Back to Projects Link */}
+              <div className="p-3 border-b border-border">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  data-testid="back-to-projects-link"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <span>Back to Projects</span>
+                </Link>
+              </div>
               {/* Navigation */}
               <nav className="flex-1 p-3 space-y-1" aria-label="Project navigation" data-testid="project-nav">
                 {PROJECT_NAV_ITEMS.map(renderNavLink)}

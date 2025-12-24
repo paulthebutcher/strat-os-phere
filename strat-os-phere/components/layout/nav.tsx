@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/login/actions'
 import { Button } from '@/components/ui/button'
@@ -6,6 +5,7 @@ import { Logo } from '@/components/brand/Logo'
 import { HelpDrawer } from '@/components/guidance/HelpDrawer'
 import { NavRunStatusChip } from '@/components/results/NavRunStatusChip'
 import { CommandPaletteProvider } from '@/components/command/CommandPaletteProvider'
+import { NavPrimaryLinks } from './NavPrimaryLinks'
 
 export async function Nav() {
   const supabase = await createClient()
@@ -29,28 +29,7 @@ export async function Nav() {
               size="sm"
               className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
             />
-            <div className="hidden items-center gap-4 md:flex">
-              <Link
-                href="/dashboard"
-                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Projects
-              </Link>
-              <span className="text-xs text-muted-foreground">·</span>
-              <Link
-                href="/dashboard"
-                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Insights
-              </Link>
-              <span className="text-xs text-muted-foreground">·</span>
-              <Link
-                href="/help"
-                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Help
-              </Link>
-            </div>
+            <NavPrimaryLinks />
           </div>
           <div className="flex items-center gap-3">
             <NavRunStatusChip />
