@@ -1,5 +1,16 @@
 # Product Requirements Document (PRD)
 
+**Purpose**: Defines what StratOSphere does, who it's for, and what's in scope vs out of scope.
+
+**When to read this**: Read this first to understand product intent and user flows before diving into implementation details.
+
+**Related docs**:
+- [Decisions.md](./Decisions.md) - Architectural decisions
+- [00-overview/01-system-overview.md](./00-overview/01-system-overview.md) - System flow narrative
+- [../strat-os-phere/docs/ARCHITECTURE.md](../strat-os-phere/docs/ARCHITECTURE.md) - Implementation architecture
+
+---
+
 ## Goal
 
 StratOSphere is an AI-enabled operating system for experience strategy work. The platform empowers strategy professionals to conduct competitive analysis and generate strategic insights through an intuitive, AI-powered workflow.

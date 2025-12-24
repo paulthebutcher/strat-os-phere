@@ -1,5 +1,9 @@
 # PR Summary: Competitor Suggestions UX Improvements (Parallel UX PR)
 
+**Status: Historical / reference (not source of truth)**
+
+This document is a snapshot of past work. It provides context but is not the source of truth for current implementation.
+
 ## Overview
 
 This PR improves the Step 2 competitor selection UX with logo fetching, client-side ranking, and enhanced UI polish. It runs in parallel with PR-3 and does not require database migrations. The changes focus on presentation layer improvements while maintaining compatibility with the existing API contract.

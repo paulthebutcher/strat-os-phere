@@ -1,6 +1,17 @@
 # Guardrail System
 
-A layered guardrail system to make Plinth's AI analysis stable, trustworthy, and resistant to silent drift.
+**Purpose**: Describes the layered guardrail system that makes StratOSphere's AI analysis stable, trustworthy, and resistant to silent drift.
+
+**When to read this**: Read this to understand how the system prevents low-quality outputs, detects model degradation, and maintains user trust.
+
+**Related docs**:
+- [ANALYSIS_PIPELINE.md](./ANALYSIS_PIPELINE.md) - How analysis is generated
+- [DATA_MODEL.md](./DATA_MODEL.md) - Signal storage in artifacts
+- [../docs/00-overview/03-definition-of-done.md](../docs/00-overview/03-definition-of-done.md) - Viability checklist
+
+---
+
+A layered guardrail system to make StratOSphere's AI analysis stable, trustworthy, and resistant to silent drift.
 
 ## Goals
 

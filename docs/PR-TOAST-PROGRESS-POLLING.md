@@ -1,5 +1,9 @@
 # PR: Toast Notifications + Progress UI + Polling
 
+**Status: Historical / reference (not source of truth)**
+
+This document is a snapshot of past work. It provides context but is not the source of truth for current implementation.
+
 ## Summary
 
 This PR adds toast notifications, progress UI components, and background polling for analysis runs. It's designed to be parallel-safe with ongoing serial data/schema work (project_inputs/project_runs), requires no DB migrations, and degrades gracefully if run APIs are not fully available yet.

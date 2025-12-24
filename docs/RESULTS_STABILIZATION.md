@@ -1,5 +1,16 @@
 # Results Stabilization
 
+**Purpose**: Describes the stabilized Results architecture with a single canonical route and centralized normalization.
+
+**When to read this**: Read this to understand how results are loaded, normalized, and displayed, especially if working on results UI or artifact handling.
+
+**Related docs**:
+- [../strat-os-phere/docs/DATA_MODEL.md](../strat-os-phere/docs/DATA_MODEL.md) - Artifact schema
+- [../strat-os-phere/docs/ANALYSIS_PIPELINE.md](../strat-os-phere/docs/ANALYSIS_PIPELINE.md) - How artifacts are generated
+- [PRD.md](./PRD.md) - Product requirements for results
+
+---
+
 ## Summary
 
 This document describes the stabilized Results architecture after removing dead paths, establishing a single canonical entry point, and centralizing artifact normalization.

@@ -1,6 +1,18 @@
 # Data Model
 
-Database schema and relationships for Plinth.
+**Purpose**: Database schema and relationships for StratOSphere. This is the source of truth for data structures.
+
+**When to read this**: Read this to understand what tables exist, their columns, relationships, and how to access data.
+
+**Related docs**:
+- [../docs/00-overview/02-core-entities.md](../docs/00-overview/02-core-entities.md) - Core entities explained
+- [MIGRATIONS.md](./MIGRATIONS.md) - Schema changes and migrations
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
+- [ANALYSIS_PIPELINE.md](./ANALYSIS_PIPELINE.md) - How artifacts are generated
+
+---
+
+Database schema and relationships for StratOSphere.
 
 ## Tables
 

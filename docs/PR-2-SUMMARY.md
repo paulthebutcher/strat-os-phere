@@ -1,5 +1,9 @@
 # PR-2 Summary: Create project_runs (append-only runs; no projects.latest_*)
 
+**Status: Historical / reference (not source of truth)**
+
+This document is a snapshot of past work. It provides context but is not the source of truth for current implementation.
+
 ## Overview
 
 This PR introduces `project_runs` as an append-only table to store analysis execution runs, replacing the need for `projects.latest_run_id` and `projects.latest_successful_run_id` fields. Runs become the source of truth for execution status and artifacts.

@@ -1,6 +1,18 @@
 # Architecture
 
-High-level system design and module organization for Plinth.
+**Purpose**: High-level system design and module organization for StratOSphere. This is the implementation source of truth.
+
+**When to read this**: Read this to understand how the codebase is organized, what modules exist, and how they interact.
+
+**Related docs**:
+- [../docs/PRD.md](../docs/PRD.md) - Product requirements
+- [DATA_MODEL.md](./DATA_MODEL.md) - Database schema
+- [ANALYSIS_PIPELINE.md](./ANALYSIS_PIPELINE.md) - Analysis generation flow
+- [../docs/00-overview/01-system-overview.md](../docs/00-overview/01-system-overview.md) - System flow narrative
+
+---
+
+High-level system design and module organization for StratOSphere.
 
 ## Module Map
 

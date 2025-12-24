@@ -1,5 +1,9 @@
 # PR-1: Project Inputs (Versioned JSON) + Onboarding Integration
 
+**Status: Historical / reference (not source of truth)**
+
+This document is a snapshot of past work. It provides context but is not the source of truth for current implementation.
+
 ## Summary
 
 This PR introduces versioned JSON inputs for projects to prevent schema drift when onboarding fields evolve. All evolving onboarding fields are now stored in the `project_inputs` table instead of adding columns to the `projects` table.

@@ -1,5 +1,9 @@
 # PR-3 Summary: Step 2 Competitors as Entities
 
+**Status: Historical / reference (not source of truth)**
+
+This document is a snapshot of past work. It provides context but is not the source of truth for current implementation.
+
 ## Overview
 Implemented PR-3 to ensure Step 2 competitor selection uses real companies (entities) with primary websites, not listicles/aggregators. All downstream pipelines now rely on the competitors table only.
 
