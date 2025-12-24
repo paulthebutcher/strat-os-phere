@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { HelpDrawer } from "@/components/guidance/HelpDrawer"
 import { Logo } from "@/components/brand/Logo"
 
 export function MarketingNav() {
@@ -78,7 +77,6 @@ export function MarketingNav() {
               Login
             </Button>
           </Link>
-          <HelpDrawer />
           <Link href="/new">
             <Button
               size="sm"
@@ -140,9 +138,6 @@ export function MarketingNav() {
             >
               Login
             </Link>
-            <div className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
-              <HelpDrawer />
-            </div>
             <Link href="/new" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
               <Button size="sm" className="w-full shadow-sm hover:shadow-md transition-all">
                 Try

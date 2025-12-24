@@ -8,9 +8,6 @@
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { StepsCarousel, type StepItem } from "./StepsCarousel"
-import PreviewCollectEvidence from "./previews/PreviewCollectEvidence"
-import PreviewNormalize from "./previews/PreviewNormalize"
-import PreviewRankBets from "./previews/PreviewRankBets"
 
 const steps: StepItem[] = [
   {
@@ -18,21 +15,21 @@ const steps: StepItem[] = [
     stepLabel: "STEP 1",
     title: "Collect public evidence",
     description: "We gather evidence from pricing pages, docs, changelogs, and reviews across your competitors.",
-    Preview: PreviewCollectEvidence,
+    previewId: "collect",
   },
   {
     id: "normalize",
     stepLabel: "STEP 2",
     title: "Normalize",
     description: "Evidence is organized by type with recency indicators. We structure signals into a unified evidence base.",
-    Preview: PreviewNormalize,
+    previewId: "normalize",
   },
   {
     id: "rank",
     stepLabel: "STEP 3",
     title: "Generate ranked bets",
     description: "Get prioritized strategic opportunities with citations, confidence scores, and defensibility metrics.",
-    Preview: PreviewRankBets,
+    previewId: "rank",
   },
 ]
 

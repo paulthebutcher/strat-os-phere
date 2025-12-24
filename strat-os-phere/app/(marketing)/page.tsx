@@ -1,4 +1,9 @@
-import { redirect } from "next/navigation"
+/**
+ * Marketing Homepage
+ * 
+ * Pure marketing page with NO auth dependencies, NO Supabase, NO server actions.
+ * All previews are static "blue sky" components using sample data.
+ */
 import type { Metadata } from "next"
 import { Hero } from "@/components/marketing/Hero"
 import { ProblemOutcome } from "@/components/marketing/ProblemOutcome"
@@ -20,34 +25,10 @@ export async function generateMetadata(): Promise<Metadata> {
     path: "/",
     ogVariant: "default",
     canonical: true,
-  });
+  })
 }
 
-interface HomeProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}
-
-export default async function Home(props: HomeProps) {
-  const searchParams = await props.searchParams
-  
-  // If magic link lands on / instead of /auth/callback, redirect to callback
-  // This handles cases where Supabase Site URL is set to root domain
-  const code = searchParams.code as string | undefined
-  const tokenHash = searchParams.token_hash as string | undefined
-  const type = searchParams.type as string | undefined
-  
-  // Check if this is a magic link callback that landed on root
-  if (code || (tokenHash && type)) {
-    const callbackUrl = new URL("/auth/callback", "http://localhost")
-    if (code) callbackUrl.searchParams.set("code", code)
-    if (tokenHash) callbackUrl.searchParams.set("token_hash", tokenHash)
-    if (type) callbackUrl.searchParams.set("type", type)
-    callbackUrl.searchParams.set("next", "/dashboard")
-    
-    // Redirect to proper callback route
-    redirect(callbackUrl.pathname + callbackUrl.search)
-  }
-
+export default function MarketingHome() {
   return (
     <MarketingShell>
       <main className="marketing-landing min-h-screen">
@@ -80,3 +61,4 @@ export default async function Home(props: HomeProps) {
     </MarketingShell>
   )
 }
+

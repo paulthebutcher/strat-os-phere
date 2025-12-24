@@ -9,13 +9,22 @@
 
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import PreviewCollectEvidence from './previews/PreviewCollectEvidence'
+import PreviewNormalize from './previews/PreviewNormalize'
+import PreviewRankBets from './previews/PreviewRankBets'
 
 export type StepItem = {
   id: string
   stepLabel: string // e.g. "STEP 1"
   title: string
   description: string
-  Preview: React.ComponentType
+  previewId: 'collect' | 'normalize' | 'rank'
+}
+
+const previewComponents = {
+  collect: PreviewCollectEvidence,
+  normalize: PreviewNormalize,
+  rank: PreviewRankBets,
 }
 
 interface StepsCarouselProps {
@@ -41,7 +50,7 @@ export function StepsCarousel({ steps }: StepsCarouselProps) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [steps.length])
 
-  const ActivePreview = steps[activeIndex].Preview
+  const ActivePreview = previewComponents[steps[activeIndex].previewId]
 
   return (
     <div className="w-full">

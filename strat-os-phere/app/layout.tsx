@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/layout/nav";
-import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { createClient } from "@/lib/supabase/server";
 import { createBaseMetadata } from "@/lib/seo/metadata";
 import { ToastProvider } from "@/components/toast/toast-provider";
@@ -29,7 +28,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // Only check auth for app routes, not marketing pages
-  // Marketing pages should never call Supabase
+  // Marketing route group has its own layout that doesn't need auth
   let user = null;
   try {
     const supabase = await createClient();
@@ -38,8 +37,8 @@ export default async function RootLayout({
     } = await supabase.auth.getUser();
     user = authUser;
   } catch (error) {
-    // Silently fail for marketing pages - they don't need auth
-    // This prevents crashes when logged out
+    // Silently fail - marketing pages don't need auth
+    // App routes will handle their own auth requirements
     user = null;
   }
 
@@ -49,7 +48,9 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased plinth-page`}
       >
         <ToastProvider>
-          {user ? <Nav /> : <MarketingNav />}
+          {/* Only render app nav for non-marketing routes */}
+          {/* Marketing routes have their own layout with MarketingNav */}
+          {user && <Nav />}
           <div className="min-h-screen">
             {children}
           </div>
