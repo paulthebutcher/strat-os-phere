@@ -28,6 +28,8 @@ import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
 import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
 import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 import { getLatestRunningRunForProject } from '@/lib/data/runs'
+import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
+import { logProjectError } from '@/lib/projects/logProjectError'
 
 interface OverviewPageProps {
   params: Promise<{
@@ -55,61 +57,143 @@ export async function generateMetadata(props: OverviewPageProps): Promise<Metada
 export default async function OverviewPage(props: OverviewPageProps) {
   const params = await props.params
   const projectId = params.projectId
+  const route = `/projects/${projectId}/overview`
   const isGenerating = getParam(props.searchParams, 'generating') === 'true'
   const viewResults = getParam(props.searchParams, 'view') === 'results'
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    
+    // Get user with error handling
+    let user
+    try {
+      const {
+        data: { user: authUser },
+        error: userError,
+      } = await supabase.auth.getUser()
 
-  if (!user) {
-    notFound()
-  }
+      if (userError) {
+        logProjectError({
+          route,
+          projectId,
+          queryName: 'auth.getUser',
+          error: userError,
+        })
+        notFound()
+      }
 
-  // Use safe query wrapper to handle schema drift gracefully
-  const projectResult = await safeQuery(
-    'getProjectById',
-    `/projects/${projectId}/overview`,
-    () => getProjectById(supabase, projectId)
-  )
-
-  if (!projectResult.success) {
-    // If it's a schema drift error, show user-friendly error state
-    if (projectResult.isSchemaDrift) {
-      return (
-        <PageShell>
-          <PageHeader
-            title="Project Overview"
-            subtitle="Review project status, readiness, and next actions"
-          />
-          <Section>
-            <InlineErrorState
-              title="We hit a data mismatch"
-              subtitle="This usually means the app is ahead of the database schema. We're fixing it."
-            />
-          </Section>
-        </PageShell>
-      )
+      user = authUser
+    } catch (error) {
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'auth.getUser',
+        error,
+      })
+      notFound()
     }
-    // For other errors, throw to show Next.js error page
-    throw new Error(projectResult.error)
-  }
 
-  const project = projectResult.data
+    if (!user) {
+      notFound()
+    }
 
-  if (!project || project.user_id !== user.id) {
-    notFound()
-  }
+    // Use safe query wrapper to handle schema drift gracefully
+    const projectResult = await safeQuery(
+      'getProjectById',
+      route,
+      () => getProjectById(supabase, projectId)
+    )
 
-  const [competitors, artifacts, runningRun] = await Promise.all([
-    listCompetitorsForProject(supabase, projectId),
-    listArtifacts(supabase, { projectId }),
-    getLatestRunningRunForProject(supabase, projectId),
-  ])
+    if (!projectResult.success) {
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'getProjectById',
+        error: new Error(projectResult.error),
+      })
+      
+      // If it's a schema drift error, show user-friendly error state
+      if (projectResult.isSchemaDrift) {
+        return (
+          <PageShell>
+            <PageHeader
+              title="Project Overview"
+              subtitle="Review project status, readiness, and next actions"
+            />
+            <Section>
+              <InlineErrorState
+                title="We hit a data mismatch"
+                subtitle="This usually means the app is ahead of the database schema. We're fixing it."
+              />
+            </Section>
+          </PageShell>
+        )
+      }
+      // For other errors, show error state instead of crashing
+      return <ProjectErrorState projectId={projectId} />
+    }
 
-  const competitorCount = competitors.length
-  const normalized = normalizeResultsArtifacts(artifacts)
+    const project = projectResult.data
+
+    if (!project || project.user_id !== user.id) {
+      notFound()
+    }
+
+    // Load related data with error handling - default to empty arrays on failure
+    let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
+    let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
+    let runningRun: Awaited<ReturnType<typeof getLatestRunningRunForProject>> = null
+
+    try {
+      const [competitorsResult, artifactsResult, runningRunResult] = await Promise.all([
+        listCompetitorsForProject(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'listCompetitorsForProject',
+            error,
+          })
+          return []
+        }),
+        listArtifacts(supabase, { projectId }).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'listArtifacts',
+            error,
+          })
+          return []
+        }),
+        getLatestRunningRunForProject(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'getLatestRunningRunForProject',
+            error,
+          })
+          return null
+        }),
+      ])
+      
+      competitors = competitorsResult ?? []
+      artifacts = artifactsResult ?? []
+      runningRun = runningRunResult ?? null
+    } catch (error) {
+      // Log but continue - we'll show empty states
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'loadRelatedData',
+        error,
+      })
+    }
+
+    // Ensure arrays are always arrays (defensive programming)
+    const safeCompetitors = Array.isArray(competitors) ? competitors : []
+    const safeArtifacts = Array.isArray(artifacts) ? artifacts : []
+    
+    const competitorCount = safeCompetitors.length
+  const normalized = normalizeResultsArtifacts(safeArtifacts)
   const {
     opportunitiesV2,
     opportunitiesV3,
@@ -128,13 +212,13 @@ export default async function OverviewPage(props: OverviewPageProps) {
   const effectiveCompetitorCount = normalized.competitorCount ?? competitorCount
 
   // Compute readiness
-  const readiness = getProjectReadiness(project, competitors)
+  const readiness = getProjectReadiness(project, safeCompetitors)
 
   // Derive view model for state and coverage
   const viewModel = deriveAnalysisViewModel({
     activeRunStatus: runningRun?.status ?? null,
     hasArtifacts: hasAnyArtifacts,
-    artifactCount: artifacts.length,
+    artifactCount: safeArtifacts.length,
     competitorCount: competitorCount,
   })
 
@@ -243,6 +327,18 @@ export default async function OverviewPage(props: OverviewPageProps) {
         />
       </div>
     </PageShell>
-  )
+    )
+  } catch (error) {
+    // Log any unexpected errors
+    logProjectError({
+      route,
+      projectId,
+      queryName: 'OverviewPage',
+      error,
+    })
+    
+    // Show error state instead of crashing
+    return <ProjectErrorState projectId={projectId} />
+  }
 }
 

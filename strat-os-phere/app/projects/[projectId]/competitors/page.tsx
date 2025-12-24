@@ -18,6 +18,9 @@ import Link from 'next/link'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
 import { TourLink } from '@/components/guidance/TourLink'
 import { FirstWinChecklistWrapper } from '@/components/onboarding/FirstWinChecklistWrapper'
+import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
+import { logProjectError } from '@/lib/projects/logProjectError'
+import { isMissingColumnError } from '@/lib/db/safeDb'
 
 interface CompetitorsPageProps {
   params: Promise<{
@@ -44,29 +47,114 @@ export async function generateMetadata(props: CompetitorsPageProps): Promise<Met
 export default async function CompetitorsPage(props: CompetitorsPageProps) {
   const params = await props.params
   const projectId = params.projectId
+  const route = `/projects/${projectId}/competitors`
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    
+    // Get user with error handling
+    let user
+    try {
+      const {
+        data: { user: authUser },
+        error: userError,
+      } = await supabase.auth.getUser()
 
-  if (!user) {
-    // When unauthenticated, simply render not found instead of leaking
-    // whether the project exists.
-    notFound()
-  }
+      if (userError) {
+        logProjectError({
+          route,
+          projectId,
+          queryName: 'auth.getUser',
+          error: userError,
+        })
+        notFound()
+      }
 
-  const project = await getProjectById(supabase, projectId)
+      user = authUser
+    } catch (error) {
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'auth.getUser',
+        error,
+      })
+      notFound()
+    }
 
-  if (!project || project.user_id !== user.id) {
-    notFound()
-  }
+    if (!user) {
+      // When unauthenticated, simply render not found instead of leaking
+      // whether the project exists.
+      notFound()
+    }
 
-  const [competitors, artifacts] = await Promise.all([
-    listCompetitorsForProject(supabase, projectId),
-    listArtifacts(supabase, { projectId }),
-  ])
-  const competitorCount = competitors.length
+    // Get project with error handling
+    let project
+    try {
+      project = await getProjectById(supabase, projectId)
+    } catch (error) {
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'getProjectById',
+        error,
+      })
+      
+      // If it's a schema drift error, show error state instead of crashing
+      if (isMissingColumnError(error)) {
+        return <ProjectErrorState projectId={projectId} />
+      }
+      
+      // Re-throw other errors to trigger error boundary
+      throw error
+    }
+
+    if (!project || project.user_id !== user.id) {
+      notFound()
+    }
+
+    // Load related data with error handling - default to empty arrays on failure
+    let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
+    let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
+
+    try {
+      const [competitorsResult, artifactsResult] = await Promise.all([
+        listCompetitorsForProject(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'listCompetitorsForProject',
+            error,
+          })
+          return []
+        }),
+        listArtifacts(supabase, { projectId }).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'listArtifacts',
+            error,
+          })
+          return []
+        }),
+      ])
+      
+      competitors = competitorsResult ?? []
+      artifacts = artifactsResult ?? []
+    } catch (error) {
+      // Log but continue - we'll show empty states
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'loadRelatedData',
+        error,
+      })
+    }
+    
+    // Ensure arrays are always arrays (defensive programming)
+    const safeCompetitors = Array.isArray(competitors) ? competitors : []
+    const safeArtifacts = Array.isArray(artifacts) ? artifacts : []
+    
+    const competitorCount = safeCompetitors.length
   const hasCompetitors = competitorCount > 0
   const readyForAnalysis = competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS
   const remainingToReady = Math.max(
@@ -74,7 +162,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
     MIN_COMPETITORS_FOR_ANALYSIS - competitorCount
   )
 
-  const normalized = normalizeResultsArtifacts(artifacts)
+  const normalized = normalizeResultsArtifacts(safeArtifacts)
   const hasAnyArtifacts = Boolean(
     normalized.profiles ||
     normalized.synthesis ||
@@ -134,7 +222,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
 
         <CompetitorsPageClient
           projectId={projectId}
-          competitors={competitors}
+          competitors={safeCompetitors}
           competitorCount={competitorCount}
           readyForAnalysis={readyForAnalysis}
           remainingToReady={remainingToReady}
@@ -142,6 +230,18 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
       </main>
     </div>
     </PageGuidanceWrapper>
-  )
+    )
+  } catch (error) {
+    // Log any unexpected errors
+    logProjectError({
+      route,
+      projectId,
+      queryName: 'CompetitorsPage',
+      error,
+    })
+    
+    // Show error state instead of crashing
+    return <ProjectErrorState projectId={projectId} />
+  }
 }
 

@@ -42,6 +42,9 @@ import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
 import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
 import { NextBestActionCard } from '@/components/ux/NextBestActionCard'
 import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
+import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
+import { logProjectError } from '@/lib/projects/logProjectError'
+import { isMissingColumnError } from '@/lib/db/safeDb'
 
 interface ResultsPageProps {
   params: Promise<{
@@ -75,52 +78,155 @@ export async function generateMetadata(props: ResultsPageProps): Promise<Metadat
 export default async function ResultsPage(props: ResultsPageProps) {
   const params = await props.params
   const projectId = params.projectId
+  const route = `/projects/${projectId}/results`
   const tab = getParam(props.searchParams, 'tab')
   const runId = getParam(props.searchParams, 'runId')
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    
+    // Get user with error handling
+    let user
+    try {
+      const {
+        data: { user: authUser },
+        error: userError,
+      } = await supabase.auth.getUser()
 
-  if (!user) {
-    notFound()
-  }
+      if (userError) {
+        logProjectError({
+          route,
+          projectId,
+          queryName: 'auth.getUser',
+          error: userError,
+        })
+        notFound()
+      }
 
-  // Handle legacy tab redirects (only for routes that need to redirect away)
-  if (tab) {
-    const tabToRoute: Record<string, string> = {
-      overview: `/projects/${projectId}/overview`,
-      competitors: `/projects/${projectId}/competitors`,
-      settings: `/projects/${projectId}/settings`,
+      user = authUser
+    } catch (error) {
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'auth.getUser',
+        error,
+      })
+      notFound()
     }
-    if (tabToRoute[tab]) {
-      redirect(tabToRoute[tab])
+
+    if (!user) {
+      notFound()
     }
-  }
 
-  // Load project results
-  const results = await getProjectResults(supabase, projectId, runId)
+    // Handle legacy tab redirects (only for routes that need to redirect away)
+    if (tab) {
+      const tabToRoute: Record<string, string> = {
+        overview: `/projects/${projectId}/overview`,
+        competitors: `/projects/${projectId}/competitors`,
+        settings: `/projects/${projectId}/settings`,
+      }
+      if (tabToRoute[tab]) {
+        redirect(tabToRoute[tab])
+      }
+    }
 
-  if (results.project.user_id !== user.id) {
-    notFound()
-  }
+    // Load project results with error handling
+    let results
+    try {
+      results = await getProjectResults(supabase, projectId, runId)
+    } catch (error) {
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'getProjectResults',
+        error,
+      })
+      
+      // If it's a schema drift error, show error state instead of crashing
+      if (isMissingColumnError(error)) {
+        return <ProjectErrorState projectId={projectId} />
+      }
+      
+      // Re-throw other errors to trigger error boundary
+      throw error
+    }
 
-  // Load competitors, all artifacts (for run history), and evidence bundle
-  const [competitors, allArtifacts, evidenceBundle] = await Promise.all([
-    listCompetitorsForProject(supabase, projectId),
-    listArtifacts(supabase, { projectId }),
-    readLatestEvidenceBundle(supabase, projectId),
-  ])
+    if (results.project.user_id !== user.id) {
+      notFound()
+    }
+
+    // Load competitors, all artifacts (for run history), and evidence bundle with error handling
+    let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
+    let allArtifacts: Awaited<ReturnType<typeof listArtifacts>> = []
+    let evidenceBundle: Awaited<ReturnType<typeof readLatestEvidenceBundle>> = null
+
+    try {
+      const [competitorsResult, allArtifactsResult, evidenceBundleResult] = await Promise.all([
+        listCompetitorsForProject(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'listCompetitorsForProject',
+            error,
+          })
+          return []
+        }),
+        listArtifacts(supabase, { projectId }).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'listArtifacts',
+            error,
+          })
+          return []
+        }),
+        readLatestEvidenceBundle(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'readLatestEvidenceBundle',
+            error,
+          })
+          return null
+        }),
+      ])
+      
+      competitors = competitorsResult ?? []
+      allArtifacts = allArtifactsResult ?? []
+      evidenceBundle = evidenceBundleResult ?? null
+    } catch (error) {
+      // Log but continue - we'll show empty states
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'loadRelatedData',
+        error,
+      })
+    }
+  
+    // Ensure arrays are always arrays (defensive programming)
+    const safeCompetitors = Array.isArray(competitors) ? competitors : []
+    const safeAllArtifacts = Array.isArray(allArtifacts) ? allArtifacts : []
   
   // Load and process claims if trust layer is enabled
-  const competitorDomains = competitors
+  const competitorDomains = safeCompetitors
     .map(c => c.url)
     .filter((u): u is string => Boolean(u))
   
-  const processedClaims = FLAGS.evidenceTrustLayerEnabled
-    ? await getProcessedClaims(supabase, projectId, competitorDomains)
-    : null
+  let processedClaims = null
+  if (FLAGS.evidenceTrustLayerEnabled && competitorDomains.length > 0) {
+    try {
+      processedClaims = await getProcessedClaims(supabase, projectId, competitorDomains)
+    } catch (error) {
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'getProcessedClaims',
+        error,
+      })
+      // Continue without processed claims - not critical
+    }
+  }
 
   // Normalize artifacts (may be partial if run is still running)
   const normalized = normalizeResultsArtifacts(results.artifacts, projectId)
@@ -147,7 +253,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
     activeRunStatus: results.activeRun?.status ?? null,
     hasArtifacts,
     artifactCount: results.artifacts.length,
-    competitorCount: competitors.length,
+    competitorCount: safeCompetitors.length,
     // Source count can be added here if evidence bundle structure is known
     // For now, coverage will default based on competitor count
   })
@@ -170,7 +276,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
           <FirstWinChecklistWrapper
             projectId={projectId}
             project={results.project}
-            competitorCount={competitors.length}
+            competitorCount={safeCompetitors.length}
             hasResults={hasArtifacts}
           />
 
@@ -297,7 +403,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
                   projectId={projectId}
                   scoring={scoringMatrix}
                   evidenceBundle={evidenceBundle}
-                  competitorDomains={competitors.map(c => c.url).filter((u): u is string => Boolean(u))}
+                  competitorDomains={safeCompetitors.map(c => c.url).filter((u): u is string => Boolean(u))}
                 />
               )}
               {tab === 'evidence' && (
@@ -322,5 +428,17 @@ export default async function ResultsPage(props: ResultsPageProps) {
         </PageShell>
       </ResultsPageClient>
     </PageGuidanceWrapper>
-  )
+    )
+  } catch (error) {
+    // Log any unexpected errors
+    logProjectError({
+      route,
+      projectId,
+      queryName: 'ResultsPage',
+      error,
+    })
+    
+    // Show error state instead of crashing
+    return <ProjectErrorState projectId={projectId} />
+  }
 }

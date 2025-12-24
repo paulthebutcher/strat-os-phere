@@ -19,6 +19,9 @@ import { EvidenceTrustPanelWrapper } from '@/components/evidence/EvidenceTrustPa
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Section } from '@/components/layout/Section'
+import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
+import { logProjectError } from '@/lib/projects/logProjectError'
+import { isMissingColumnError } from '@/lib/db/safeDb'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -51,27 +54,117 @@ export async function generateMetadata(props: OpportunitiesPageProps): Promise<M
 export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
   const params = await props.params
   const projectId = params.projectId
+  const route = `/projects/${projectId}/opportunities`
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    
+    // Get user with error handling
+    let user
+    try {
+      const {
+        data: { user: authUser },
+        error: userError,
+      } = await supabase.auth.getUser()
 
-  if (!user) {
-    notFound()
-  }
+      if (userError) {
+        logProjectError({
+          route,
+          projectId,
+          queryName: 'auth.getUser',
+          error: userError,
+        })
+        notFound()
+      }
 
-  const project = await getProjectById(supabase, projectId)
+      user = authUser
+    } catch (error) {
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'auth.getUser',
+        error,
+      })
+      notFound()
+    }
 
-  if (!project || project.user_id !== user.id) {
-    notFound()
-  }
+    if (!user) {
+      notFound()
+    }
 
-  const [competitors, artifacts, evidenceBundle] = await Promise.all([
-    listCompetitorsForProject(supabase, projectId),
-    listArtifacts(supabase, { projectId }),
-    readLatestEvidenceBundle(supabase, projectId),
-  ])
+    // Get project with error handling
+    let project
+    try {
+      project = await getProjectById(supabase, projectId)
+    } catch (error) {
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'getProjectById',
+        error,
+      })
+      
+      // If it's a schema drift error, show error state instead of crashing
+      if (isMissingColumnError(error)) {
+        return <ProjectErrorState projectId={projectId} />
+      }
+      
+      // Re-throw other errors to trigger error boundary
+      throw error
+    }
+
+    if (!project || project.user_id !== user.id) {
+      notFound()
+    }
+
+    // Load related data with error handling - default to empty arrays on failure
+    let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
+    let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
+    let evidenceBundle: Awaited<ReturnType<typeof readLatestEvidenceBundle>> = null
+
+    try {
+      const [competitorsResult, artifactsResult, evidenceBundleResult] = await Promise.all([
+        listCompetitorsForProject(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'listCompetitorsForProject',
+            error,
+          })
+          return []
+        }),
+        listArtifacts(supabase, { projectId }).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'listArtifacts',
+            error,
+          })
+          return []
+        }),
+        readLatestEvidenceBundle(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'readLatestEvidenceBundle',
+            error,
+          })
+          return null
+        }),
+      ])
+      
+      competitors = competitorsResult ?? []
+      artifacts = artifactsResult ?? []
+      evidenceBundle = evidenceBundleResult ?? null
+    } catch (error) {
+      // Log but continue - we'll show empty states
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'loadRelatedData',
+        error,
+      })
+    }
 
   // Normalize artifacts once using the canonical normalization function
   const normalized = normalizeResultsArtifacts(artifacts, projectId)
@@ -136,6 +229,18 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
         </Section>
       </PageShell>
     </PageGuidanceWrapper>
-  )
+    )
+  } catch (error) {
+    // Log any unexpected errors
+    logProjectError({
+      route,
+      projectId,
+      queryName: 'OpportunitiesPage',
+      error,
+    })
+    
+    // Show error state instead of crashing
+    return <ProjectErrorState projectId={projectId} />
+  }
 }
 
