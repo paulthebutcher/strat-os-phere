@@ -8,7 +8,7 @@ import type { Metadata } from "next"
 import { Hero } from "@/components/marketing/Hero"
 import { ProblemOutcome } from "@/components/marketing/ProblemOutcome"
 import { HowItWorksStepper } from "@/components/marketing/HowItWorksStepper"
-import { BentoFeatureGrid } from "@/components/marketing/BentoFeatureGrid"
+import { WhatYouGetSection } from "@/components/marketing/WhatYouGetSection"
 import { ExampleOutput } from "@/components/marketing/ExampleOutput"
 import { TrustMethod } from "@/components/marketing/TrustMethod"
 import { MiniFAQ } from "@/components/marketing/MiniFAQ"
@@ -42,7 +42,7 @@ export default function MarketingHome() {
         <HowItWorksStepper />
         
         {/* 4. What you get */}
-        <BentoFeatureGrid />
+        <WhatYouGetSection />
         
         {/* 5. Example output */}
         <ExampleOutput />
