@@ -3,6 +3,12 @@
  * 
  * Centralized design tokens for consistent styling across marketing and app.
  * All tokens are Tailwind class strings to maintain consistency with existing patterns.
+ * 
+ * Design Philosophy:
+ * - Restrained neutrals + single accent
+ * - Color encodes meaning, not personality
+ * - Status colors are semantic (draft/ready/has results)
+ * - Evidence strength uses subtle progress indicators
  */
 
 export const brand = {
@@ -16,6 +22,13 @@ export const brand = {
     bgStrong: "bg-accent-primary/90",
   },
   
+  // Primary gradient (for CTAs)
+  gradient: {
+    bg: "plinth-gradient",
+    text: "text-white",
+    hover: "hover:opacity-90",
+  },
+  
   // Surface colors (backgrounds, cards, panels)
   surface: {
     base: "bg-surface",
@@ -24,6 +37,8 @@ export const brand = {
     marketing2: "bg-[hsl(var(--marketing-surface-2))]",
     border: "border-border-subtle",
     borderStrong: "border-border-strong",
+    tint: "plinth-surface-tint",
+    tint2: "plinth-surface-tint-2",
   },
   
   // Typography scale
@@ -62,6 +77,49 @@ export const brand = {
     lg: "gap-6 space-y-6",
     xl: "gap-8 space-y-8",
     section: "py-24 md:py-32",
+  },
+  
+  // Project status colors (semantic states)
+  status: {
+    draft: {
+      bg: "bg-muted",
+      text: "text-muted-foreground",
+      border: "border-border",
+    },
+    ready: {
+      bg: "bg-accent-primary/10",
+      text: "text-accent-primary",
+      border: "border-accent-primary/30",
+    },
+    hasResults: {
+      bg: "bg-success/10",
+      text: "text-success",
+      border: "border-success/30",
+    },
+  },
+  
+  // Evidence strength colors (for progress indicators)
+  evidence: {
+    none: {
+      bg: "bg-muted-foreground/20",
+      text: "text-muted-foreground",
+      label: "None",
+    },
+    weak: {
+      bg: "bg-warning/30",
+      text: "text-warning",
+      label: "Low",
+    },
+    medium: {
+      bg: "bg-accent-primary/40",
+      text: "text-accent-primary",
+      label: "Medium",
+    },
+    strong: {
+      bg: "bg-success",
+      text: "text-success",
+      label: "Strong",
+    },
   },
   
   // Tone colors for TrustChips and status indicators

@@ -80,7 +80,7 @@ export const microcopy = {
   },
 
   actions: {
-    generateAnalysis: "Generate analysis",
+    generateAnalysis: "Run analysis",
     viewOpportunities: "View opportunities",
     fetchEvidence: "Fetch evidence",
     startAnalysis: "Start an analysis",
@@ -89,6 +89,8 @@ export const microcopy = {
     addCompetitors: "Add competitors",
     tryExample: "Try an example",
     seeExampleOutput: "See example output",
+    continueSetup: "Continue setup",
+    improveEvidence: "Improve evidence & rerun",
   },
 
   framing: {

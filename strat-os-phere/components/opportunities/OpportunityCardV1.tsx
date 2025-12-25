@@ -101,6 +101,7 @@ export function OpportunityCardV1({
   className,
 }: OpportunityCardV1Props) {
   const [isRisksExpanded, setIsRisksExpanded] = useState(false)
+  const [isConfidenceExpanded, setIsConfidenceExpanded] = useState(false)
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set())
   const [isEvidenceDrawerOpen, setIsEvidenceDrawerOpen] = useState(false)
 
@@ -379,55 +380,65 @@ export function OpportunityCardV1({
         </section>
       )}
 
-      {/* To increase confidence - actionable checklist */}
+      {/* What could change this recommendation - collapsible */}
       {hasConfidenceItems && (
         <section className="pt-4 border-t border-border">
-          <h4 className="text-sm font-semibold text-foreground mb-3">
-            To increase confidence
-          </h4>
-          <ul className="space-y-3 mb-4">
-            {whatWouldIncreaseConfidence.map((item, idx) => {
-              const href = projectId ? suggestNextStepHref(item, projectId) : null
-              const isChecked = checkedItems.has(idx)
+          <button
+            onClick={() => setIsConfidenceExpanded(!isConfidenceExpanded)}
+            className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-foreground/80 transition-colors w-full text-left"
+          >
+            <span>What could change this recommendation?</span>
+            <span className="text-muted-foreground ml-auto">
+              {isConfidenceExpanded ? '−' : '+'}
+            </span>
+          </button>
+          {isConfidenceExpanded && (
+            <div className="mt-3 space-y-4 pt-3">
+              <ul className="space-y-3 mb-4">
+                {whatWouldIncreaseConfidence.map((item, idx) => {
+                  const href = projectId ? suggestNextStepHref(item, projectId) : null
+                  const isChecked = checkedItems.has(idx)
 
-              return (
-                <li key={idx} className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => toggleCheckbox(idx)}
-                    className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span
-                      className={cn(
-                        'text-sm text-foreground leading-relaxed block',
-                        isChecked && 'line-through text-muted-foreground'
-                      )}
-                    >
-                      {item}
-                    </span>
-                    {href && (
-                      <div className="mt-1.5">
-                        <Button
-                          asChild
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-xs text-primary hover:text-primary/80"
+                  return (
+                    <li key={idx} className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleCheckbox(idx)}
+                        className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <span
+                          className={cn(
+                            'text-sm text-foreground leading-relaxed block',
+                            isChecked && 'line-through text-muted-foreground'
+                          )}
                         >
-                          <Link href={href}>Do this</Link>
-                        </Button>
+                          {item}
+                        </span>
+                        {href && (
+                          <div className="mt-1.5">
+                            <Button
+                              asChild
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 text-xs text-primary hover:text-primary/80"
+                            >
+                              <Link href={href}>Do this</Link>
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Plinth won't pretend uncertainty is resolved. These are the steps
-            that would strengthen the call.
-          </p>
+                    </li>
+                  )
+                })}
+              </ul>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Plinth won't pretend uncertainty is resolved. These are the steps
+                that would strengthen the call.
+              </p>
+            </div>
+          )}
         </section>
       )}
       </SectionCard>

@@ -26,6 +26,8 @@ import { OpportunityPlaybook } from '@/components/results/OpportunityPlaybook'
 import { OpportunityExperiments } from '@/components/results/OpportunityExperiments'
 import { OpportunityCardV1 } from '@/components/opportunities/OpportunityCardV1'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
+import { InlineCallout } from '@/components/ui/InlineCallout'
+import { computeEvidenceStrength } from '@/lib/ux/evidenceStrength'
 
 /**
  * Presenter input shape - simple DTO that doesn't depend on internal schemas
@@ -167,23 +169,19 @@ export function ResultsPresenter({
                 No opportunities met the evidence bar yet
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Add competitors / expand evidence coverage and rerun.
+                Plinth only surfaces opportunities it can support with sufficient evidence. Add competitors or expand evidence coverage, then rerun.
               </p>
             </div>
             {mode === 'project' && projectId && (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <GenerateResultsV2Button
-                  projectId={projectId}
-                  label="Generate Analysis"
-                />
-                <Button asChild variant="outline" type="button">
+                <Button asChild variant="default" type="button">
                   <Link href={`/projects/${projectId}/competitors`}>
-                    Add competitors
+                    Improve evidence
                   </Link>
                 </Button>
                 <Button asChild variant="outline" type="button">
-                  <Link href={`/projects/${projectId}/evidence`}>
-                    Add evidence
+                  <Link href={`/projects/${projectId}/overview`}>
+                    Edit inputs
                   </Link>
                 </Button>
               </div>
@@ -345,10 +343,26 @@ function OpportunitiesV3Presenter({
   const panelContent = panelContentLines.join('\n')
   const copyContent = formatOpportunitiesV3ToMarkdown(opportunitiesV3)
 
+  // Check if evidence is thin/limited across all opportunities
+  const allCitationsForStrength = citations.map((c) => ({
+    url: c.url,
+    sourceType: c.sourceType || 'unknown',
+    excerpt: c.url, // Use URL as excerpt since NormalizedCitation doesn't have excerpt
+  }))
+  const overallEvidenceStrength = computeEvidenceStrength(allCitationsForStrength as any)
+  const isEvidenceThin = overallEvidenceStrength.strength === 'Limited' || overallEvidenceStrength.isWeak
+
   return (
     <section className="space-y-6">
       {/* Evidence & Confidence Panel */}
       <EvidenceConfidencePanel citations={citations} />
+      
+      {/* Thin evidence callout - show when opportunities exist but evidence is limited */}
+      {sortedOpportunities.length > 0 && isEvidenceThin && (
+        <InlineCallout>
+          Evidence is limited. Treat these as directional. Add coverage to strengthen confidence boundaries.
+        </InlineCallout>
+      )}
       
       {qualityPackEnabled && (
         <EvidenceCoveragePanel artifact={opportunitiesV3} />
@@ -474,25 +488,21 @@ function OpportunitiesV2Presenter({
         <SectionCard className="py-16">
           <div className="w-full max-w-md space-y-6 text-center mx-auto">
             <h2 className="text-xl font-semibold text-foreground">
-              No opportunities yet
+              No opportunities met the evidence bar yet
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Increase evidence coverage and rerun to generate defensible opportunities.
+              Plinth only surfaces opportunities it can support with sufficient evidence. Add competitors or expand evidence coverage, then rerun.
             </p>
             {mode === 'project' && projectId && (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <GenerateResultsV2Button
-                  projectId={projectId}
-                  label="Generate Analysis"
-                />
-                <Button asChild variant="outline" type="button">
+                <Button asChild variant="default" type="button">
                   <Link href={`/projects/${projectId}/competitors`}>
-                    Add competitors
+                    Improve evidence
                   </Link>
                 </Button>
                 <Button asChild variant="outline" type="button">
-                  <Link href={`/projects/${projectId}/evidence`}>
-                    Add evidence
+                  <Link href={`/projects/${projectId}/overview`}>
+                    Edit inputs
                   </Link>
                 </Button>
               </div>
@@ -528,9 +538,25 @@ function OpportunitiesV2Presenter({
   // Sort by score
   const sortedOpportunities = [...opportunitiesToUse.opportunities].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
 
+  // Check if evidence is thin/limited across all opportunities
+  const allCitationsForStrength = citations.map((c) => ({
+    url: c.url,
+    sourceType: c.sourceType || 'unknown',
+    excerpt: c.url, // Use URL as excerpt since NormalizedCitation doesn't have excerpt
+  }))
+  const overallEvidenceStrength = computeEvidenceStrength(allCitationsForStrength as any)
+  const isEvidenceThin = overallEvidenceStrength.strength === 'Limited' || overallEvidenceStrength.isWeak
+
   return (
     <section className="space-y-6">
       <EvidenceConfidencePanel citations={citations} />
+      
+      {/* Thin evidence callout - show when opportunities exist but evidence is limited */}
+      {sortedOpportunities.length > 0 && isEvidenceThin && (
+        <InlineCallout>
+          Evidence is limited. Treat these as directional. Add coverage to strengthen confidence boundaries.
+        </InlineCallout>
+      )}
       
       {qualityPackEnabled && (
         <EvidenceCoveragePanel artifact={opportunitiesV2} />

@@ -13,6 +13,7 @@ import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import { logServerError } from '@/lib/server/errorLogger'
+import { logProjectRunCreated } from '@/lib/health/logHealth'
 
 type Client = TypedSupabaseClient
 
@@ -107,6 +108,9 @@ export async function createProjectRun(
         },
       }
     }
+
+    // Log health event (dev-only)
+    logProjectRunCreated(params.projectId, data.id, params.inputVersion)
 
     return { ok: true, data: data as ProjectRun }
   } catch (error) {

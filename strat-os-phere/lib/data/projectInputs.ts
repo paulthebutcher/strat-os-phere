@@ -12,6 +12,7 @@ import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import { logServerError } from '@/lib/server/errorLogger'
+import { logProjectInputSaved } from '@/lib/health/logHealth'
 
 type Client = TypedSupabaseClient
 
@@ -236,6 +237,9 @@ export async function createDraftProjectInput(
       }
     }
 
+    // Log health event (dev-only)
+    logProjectInputSaved(projectId, nextVersion, 'draft')
+
     return { ok: true, data: data as ProjectInput }
   } catch (error) {
     logServerError('createDraftProjectInput', error, { projectId })
@@ -338,6 +342,12 @@ export async function updateProjectInput(
       }
     }
 
+    // Log health event (dev-only) - only if status was updated
+    if (status !== undefined) {
+      const updatedInput = data as ProjectInput
+      logProjectInputSaved(updatedInput.project_id, updatedInput.version, updatedInput.status)
+    }
+
     return { ok: true, data: data as ProjectInput }
   } catch (error) {
     logServerError('updateProjectInput', error, { id })
@@ -388,6 +398,10 @@ export async function finalizeProjectInput(
         },
       }
     }
+
+    // Log health event (dev-only)
+    const finalizedInput = data as ProjectInput
+    logProjectInputSaved(finalizedInput.project_id, finalizedInput.version, 'final')
 
     return { ok: true, data: data as ProjectInput }
   } catch (error) {

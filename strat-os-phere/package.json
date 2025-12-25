@@ -34,7 +34,8 @@
     "test:smoke": "playwright test tests/smoke --reporter=line",
     "health": "npm run test:smoke",
     "check:schema": "tsx scripts/check-schema-drift.ts",
-    "check:forbidden": "tsx scripts/checkForbiddenTokens.ts"
+    "check:forbidden": "tsx scripts/checkForbiddenTokens.ts",
+    "schema:health": "tsx scripts/schemaHealthCheck.ts"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

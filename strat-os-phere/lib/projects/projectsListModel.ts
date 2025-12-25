@@ -10,7 +10,7 @@ export type ProjectsListRow = {
   projectId: string;
   name: string;
   subtitle?: string; // market/industry
-  status: "Draft" | "Ready" | "Has results";
+  status: "Draft" | "Ready" | "Results available";
   evidenceStrength: EvidenceStrength;
   evidenceScore: number; // 0-100
   lastRunAt?: string; // ISO date string
@@ -94,9 +94,9 @@ export function toProjectsListRow(project: ProjectWithCounts): ProjectsListRow {
   const primaryCta = determinePrimaryCta(hasSuccessfulRun, hasRun, hasEvidence);
   
   // Determine status
-  let status: "Draft" | "Ready" | "Has results";
+  let status: "Draft" | "Ready" | "Results available";
   if (hasSuccessfulRun) {
-    status = "Has results";
+    status = "Results available";
   } else if (hasRun || hasEvidence) {
     status = "Ready";
   } else {

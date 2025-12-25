@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { formatRelativeDate } from './formatRelativeDate'
+import { formatTimeLabel, formatNoRunsLabel } from '@/lib/ux/timeLabels'
 import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
 import { addActiveRun } from '@/lib/runs/runToastStore'
 import { toastSuccess, toastError } from '@/lib/toast/toast'
@@ -128,16 +129,40 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
       : <ArrowDown className="h-3 w-3 ml-1" />
   }
 
-  const getEvidenceBadgeVariant = (strength: EvidenceStrength): 'success' | 'default' | 'secondary' | 'muted' => {
+  const getStatusVariant = (status: ProjectsListRow['status']) => {
+    switch (status) {
+      case 'Results available':
+        return 'success'
+      case 'Ready':
+        return 'default'
+      default:
+        return 'secondary'
+    }
+  }
+
+  const getEvidenceColor = (strength: EvidenceStrength) => {
     switch (strength) {
       case 'Strong':
-        return 'success'
+        return 'bg-success'
       case 'Medium':
-        return 'default'
+        return 'bg-accent-primary'
       case 'Weak':
-        return 'secondary'
+        return 'bg-warning'
       default:
-        return 'muted'
+        return 'bg-muted-foreground/20'
+    }
+  }
+
+  const getEvidenceLabel = (strength: EvidenceStrength) => {
+    switch (strength) {
+      case 'Strong':
+        return 'Strong'
+      case 'Medium':
+        return 'Medium'
+      case 'Weak':
+        return 'Low'
+      default:
+        return 'None'
     }
   }
 
@@ -145,7 +170,7 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
     return (
       <div className="py-12 text-center">
         <p className="text-sm text-muted-foreground">
-          {searchQuery ? 'No projects match your search.' : 'No projects yet.'}
+          {searchQuery ? 'No projects match your search.' : 'No projects found.'}
         </p>
       </div>
     )
@@ -155,48 +180,36 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
     <div className="border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-muted/50 border-b">
+          <thead className="bg-muted/30 border-b">
             <tr>
               <th
-                className="text-left px-4 py-3 text-sm font-semibold text-foreground cursor-pointer hover:bg-muted/70 transition-colors"
+                className="text-left px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => handleSort('name')}
               >
-                <div className="flex items-center">
+                <div className="flex items-center gap-1">
                   Project
                   <SortIcon columnKey="name" />
                 </div>
               </th>
               <th
-                className="text-left px-4 py-3 text-sm font-semibold text-foreground cursor-pointer hover:bg-muted/70 transition-colors"
+                className="text-left px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => handleSort('lastTouched')}
               >
-                <div className="flex items-center">
+                <div className="flex items-center gap-1">
                   Status
                   <SortIcon columnKey="lastTouched" />
                 </div>
               </th>
               <th
-                className="text-left px-4 py-3 text-sm font-semibold text-foreground cursor-pointer hover:bg-muted/70 transition-colors"
+                className="text-left px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => handleSort('evidenceScore')}
               >
-                <div className="flex items-center">
+                <div className="flex items-center gap-1">
                   Evidence strength
                   <SortIcon columnKey="evidenceScore" />
                 </div>
               </th>
-              <th
-                className="text-left px-4 py-3 text-sm font-semibold text-foreground cursor-pointer hover:bg-muted/70 transition-colors"
-                onClick={() => handleSort('lastRun')}
-              >
-                <div className="flex items-center">
-                  Last run
-                  <SortIcon columnKey="lastRun" />
-                </div>
-              </th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
-                Last touched
-              </th>
-              <th className="text-right px-4 py-3 text-sm font-semibold text-foreground">
+              <th className="text-right px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 Action
               </th>
             </tr>
@@ -205,13 +218,13 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
             {sortedRows.map((row) => (
               <tr
                 key={row.projectId}
-                className="hover:bg-muted/30 transition-colors cursor-pointer"
+                className="hover:bg-muted/20 transition-colors cursor-pointer group"
                 onClick={() => {
                   // Navigate to project overview if row is clicked (but not on button)
                   window.location.href = `/projects/${row.projectId}/overview`
                 }}
               >
-                <td className="px-4 py-3">
+                <td className="px-4 py-4">
                   <div>
                     <div className="font-semibold text-foreground">{row.name}</div>
                     {row.subtitle && (
@@ -219,60 +232,56 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3">
-                  <Badge
-                    variant={
-                      row.status === 'Has results'
-                        ? 'success'
-                        : row.status === 'Ready'
-                        ? 'default'
-                        : 'secondary'
-                    }
-                    className="text-xs"
-                  >
-                    {row.status}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
+                <td className="px-4 py-4">
+                  <div className="space-y-1">
                     <Badge
-                      variant={getEvidenceBadgeVariant(row.evidenceStrength)}
+                      variant={getStatusVariant(row.status)}
                       className="text-xs"
                     >
-                      {row.evidenceStrength}
+                      {row.status}
                     </Badge>
-                    <div className="flex-1 max-w-[80px]">
+                    {row.lastRunAt && (
+                      <div className="text-xs text-muted-foreground">
+                        Last run {formatTimeLabel(row.lastRunAt)}
+                      </div>
+                    )}
+                    {!row.lastRunAt && (
+                      <div className="text-xs text-muted-foreground">
+                        {formatNoRunsLabel()}
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <span className={cn(
+                      "text-xs font-medium min-w-[50px]",
+                      row.evidenceStrength === 'Strong' ? "text-success" :
+                      row.evidenceStrength === 'Medium' ? "text-accent-primary" :
+                      row.evidenceStrength === 'Weak' ? "text-warning" :
+                      "text-muted-foreground"
+                    )}>
+                      {getEvidenceLabel(row.evidenceStrength)}
+                    </span>
+                    <div className="flex-1 max-w-[120px]">
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
                           className={cn(
                             "h-full transition-all",
-                            row.evidenceScore >= 80
-                              ? "bg-green-500"
-                              : row.evidenceScore >= 50
-                              ? "bg-yellow-500"
-                              : row.evidenceScore > 0
-                              ? "bg-orange-500"
-                              : "bg-muted-foreground/20"
+                            getEvidenceColor(row.evidenceStrength)
                           )}
                           style={{ width: `${row.evidenceScore}%` }}
                         />
                       </div>
                     </div>
-                    <span className="text-xs text-muted-foreground">{row.evidenceScore}%</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-foreground">
-                  {row.lastRunAt ? formatRelativeDate(row.lastRunAt) : 'Never'}
-                </td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">
-                  {formatRelativeDate(row.lastTouchedAt)}
-                </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-4">
                   <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                     {row.primaryCta === 'View Opportunities' ? (
                       <Button asChild size="sm" variant="default">
                         <Link href={row.primaryHref!}>
-                          View Opportunities
+                          View opportunities
                         </Link>
                       </Button>
                     ) : (
@@ -288,11 +297,11 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
                             Starting...
                           </>
                         ) : (
-                          'Generate Analysis'
+                          'Run analysis'
                         )}
                       </Button>
                     )}
-                    <Button asChild size="sm" variant="ghost">
+                    <Button asChild size="sm" variant="link" className="text-xs">
                       <Link href={`/projects/${row.projectId}/competitors`}>
                         Edit inputs
                       </Link>

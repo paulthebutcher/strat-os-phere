@@ -130,7 +130,7 @@ export default async function DashboardPage() {
         <PageShell data-testid="projects-page">
           <PageHeader
             title="Projects"
-            subtitle="Create and manage competitive analyses. Start new or resume recent work."
+            subtitle="Manage your competitive analyses and identify evidence-bound opportunities."
             primaryAction={
               <Link href="/new">
                 <Button size="lg" variant="brand">{microcopy.actions.newAnalysis}</Button>
@@ -145,11 +145,11 @@ export default async function DashboardPage() {
     )
   }
 
-  // Find most recent project for "Continue" panel
-  const mostRecentProject = projectCards.length > 0
-    ? projectCards.reduce((latest, current) => {
-        const latestDate = latest.lastTouchedAt ?? latest.createdAt ?? ''
-        const currentDate = current.lastTouchedAt ?? current.createdAt ?? ''
+  // Find most recent project row for "Continue" panel (Next Action card)
+  const mostRecentRow = tableRows.length > 0
+    ? tableRows.reduce((latest, current) => {
+        const latestDate = latest.lastTouchedAt ?? ''
+        const currentDate = current.lastTouchedAt ?? ''
         if (!currentDate) return latest
         if (!latestDate) return current
         return new Date(currentDate).getTime() > new Date(latestDate).getTime()
@@ -161,11 +161,11 @@ export default async function DashboardPage() {
   const hasProjects = tableRows.length > 0
 
   return (
-    <DashboardPageClient>
-      <PageShell data-testid="projects-page">
+      <DashboardPageClient>
+        <PageShell data-testid="projects-page">
           <PageHeader
             title="Projects"
-            subtitle="Create and manage competitive analyses. Start new or resume recent work."
+            subtitle="Manage your competitive analyses and identify evidence-bound opportunities."
             primaryAction={
               <Link href="/new">
                 <Button size="lg" variant="brand">{microcopy.actions.newAnalysis}</Button>
@@ -193,10 +193,10 @@ export default async function DashboardPage() {
           </Section>
         )}
 
-        {/* Continue Panel (only if user has projects) */}
-        {hasProjects && mostRecentProject && (
+        {/* Next Action Card (only if user has projects) */}
+        {hasProjects && mostRecentRow && (
           <Section>
-            <ContinuePanel project={mostRecentProject} />
+            <ContinuePanel row={mostRecentRow} />
           </Section>
         )}
 

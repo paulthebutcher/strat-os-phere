@@ -122,8 +122,10 @@ function findViolations(): Violation[] {
   const files = getAllFiles(cwd)
 
   for (const file of files) {
-    // Skip this script file and the old schema drift check
-    if (file.includes('checkForbiddenTokens.ts') || file.includes('check-schema-drift.ts')) {
+    // Skip this script file and schema check scripts (they contain patterns that match forbidden tokens)
+    if (file.includes('checkForbiddenTokens.ts') || 
+        file.includes('check-schema-drift.ts') || 
+        file.includes('schemaHealthCheck.ts')) {
       continue
     }
 

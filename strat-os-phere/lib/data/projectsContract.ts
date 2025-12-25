@@ -15,6 +15,7 @@ import { buildProjectUpdate } from '@/lib/db/projectUpdate'
 import { pickAllowedProjectFields, pickStableProjectFields } from '@/lib/db/projectsSafeWrite'
 import type { ProjectStableInsert } from '@/lib/db/projectsSchema'
 import { logServerError } from '@/lib/server/errorLogger'
+import { logProjectCreated } from '@/lib/health/logHealth'
 
 type Client = TypedSupabaseClient
 
@@ -177,6 +178,9 @@ export async function createProjectSafe(
         },
       }
     }
+
+    // Log health event (dev-only)
+    logProjectCreated(data.id, Object.keys(insertPayload))
 
     return { ok: true, data }
   } catch (error) {
