@@ -13,21 +13,17 @@
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
+import type { EvidenceCoverageLite } from './coverageTypes'
+import { EMPTY_EVIDENCE_COVERAGE_LITE } from './coverageTypes'
+import { normalizeEvidenceType, type EvidenceSourceType } from './evidenceTypes'
+
+// Re-export the type for backward compatibility
+export type { EvidenceCoverageLite } from './coverageTypes'
 
 // Thresholds for evidence sufficiency (local constants, easy to change)
 export const MIN_COMPETITORS = 3
 export const MIN_EVIDENCE_TYPES_OVERALL = 2 // across the whole project
 export const MIN_COMPETITORS_WITH_EVIDENCE = 2 // at least N competitors must have >=1 evidence row
-
-export type EvidenceCoverageLite = {
-  totalSources: number
-  evidenceTypesPresent: string[] // unique source_type values (non-empty, normalized)
-  evidenceTypeCounts: Record<string, number>
-  competitorIdsWithEvidence: string[] // unique competitor_id with >=1 source (non-null)
-  competitorEvidenceCounts: Record<string, number> // competitor_id -> count
-  isEvidenceSufficient: boolean
-  reasonsMissing: string[] // human readable reasons for insufficient
-}
 
 /**
  * Helper to get a properly typed Supabase client
@@ -37,14 +33,11 @@ function getTypedClient(client: TypedSupabaseClient): SupabaseClient<Database> {
 }
 
 /**
- * Normalize source_type to a consistent string representation
+ * Helper to safely cast string keys to EvidenceSourceType[]
+ * Since we normalize all types using normalizeEvidenceType, all keys are valid EvidenceSourceType
  */
-function normalizeSourceType(sourceType: unknown): string {
-  if (!sourceType) {
-    return 'other'
-  }
-  const t = sourceType.toString().trim().toLowerCase()
-  return t || 'other'
+function castToEvidenceSourceTypes(keys: string[]): EvidenceSourceType[] {
+  return keys as EvidenceSourceType[]
 }
 
 /**
@@ -70,18 +63,10 @@ export async function computeEvidenceCoverageLite(
 
     if (error) {
       // Query failed - return safe defaults with error message
-      return {
-        totalSources: 0,
-        evidenceTypesPresent: [],
-        evidenceTypeCounts: {},
-        competitorIdsWithEvidence: [],
-        competitorEvidenceCounts: {},
-        isEvidenceSufficient: false,
-        reasonsMissing: ['Evidence data unavailable. Try reloading or collect evidence again.'],
-      }
+      return EMPTY_EVIDENCE_COVERAGE_LITE
     }
 
-    const rows = sources ?? []
+    const rows = (sources ?? []) as Array<{ competitor_id: string | null; source_type: string }>
     
     // Initialize aggregations
     const evidenceTypeCounts: Record<string, number> = {}
@@ -90,8 +75,8 @@ export async function computeEvidenceCoverageLite(
 
     // Process each row
     for (const row of rows) {
-      // Normalize source_type
-      const normalizedType = normalizeSourceType(row.source_type)
+      // Normalize source_type to EvidenceSourceType
+      const normalizedType = normalizeEvidenceType(row.source_type)
       
       // Count evidence types
       evidenceTypeCounts[normalizedType] = (evidenceTypeCounts[normalizedType] || 0) + 1
@@ -106,7 +91,10 @@ export async function computeEvidenceCoverageLite(
     }
 
     // Build evidenceTypesPresent (sorted, unique)
-    const evidenceTypesPresent = Object.keys(evidenceTypeCounts).sort()
+    // All keys are EvidenceSourceType since we normalize with normalizeEvidenceType
+    const evidenceTypesPresent: EvidenceSourceType[] = castToEvidenceSourceTypes(
+      Object.keys(evidenceTypeCounts).sort()
+    )
     const competitorIdsWithEvidence = Array.from(competitorIdsWithEvidenceSet).sort()
 
     // Determine if evidence is sufficient
@@ -142,15 +130,7 @@ export async function computeEvidenceCoverageLite(
   } catch (error) {
     // Catch any unexpected errors (network, parsing, etc.)
     // Return safe defaults - must not throw
-    return {
-      totalSources: 0,
-      evidenceTypesPresent: [],
-      evidenceTypeCounts: {},
-      competitorIdsWithEvidence: [],
-      competitorEvidenceCounts: {},
-      isEvidenceSufficient: false,
-      reasonsMissing: ['Evidence data unavailable. Try reloading or collect evidence again.'],
-    }
+    return EMPTY_EVIDENCE_COVERAGE_LITE
   }
 }
 

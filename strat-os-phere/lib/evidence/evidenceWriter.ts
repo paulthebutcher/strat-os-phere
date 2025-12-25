@@ -3,7 +3,7 @@
  * All evidence harvesting should route through this writer to ensure consistency
  */
 
-import type { TypedSupabaseClient, NewEvidenceSource, EvidenceSource } from '@/lib/supabase/types'
+import type { TypedSupabaseClient, NewEvidenceSource, EvidenceSource, EvidenceSourceConfidence } from '@/lib/supabase/types'
 import { normalizeUrl } from './normalizeUrl'
 import { logger } from '@/lib/logger'
 
@@ -103,7 +103,7 @@ export async function upsertEvidenceSource(
     page_title: input.pageTitle ?? null,
     extracted_text: input.extractedText.trim(),
     extracted_at: input.extractedAt ?? new Date().toISOString(),
-    source_confidence: input.sourceConfidence ?? null,
+    source_confidence: (input.sourceConfidence as EvidenceSourceConfidence | null) ?? null,
   }
 
   try {
@@ -111,14 +111,14 @@ export async function upsertEvidenceSource(
     // This ensures deterministic deduplication
     const { data, error } = await supabase
       .from('evidence_sources')
-      .upsert(payload, {
+      .upsert(payload as any, {
         onConflict: 'project_id,url',
         ignoreDuplicates: false, // Update on conflict
       })
       .select()
       .single()
 
-    if (error) {
+    if (error || !data) {
       // Check if it's a unique constraint violation (shouldn't happen with upsert, but handle gracefully)
       if (error.code === '23505') {
         // Try to fetch existing record
@@ -169,7 +169,7 @@ export async function upsertEvidenceSource(
       competitorId: input.competitorId,
       url: normalizedUrl,
       sourceType: input.sourceType,
-      id: data.id,
+      id: (data as any).id,
     })
 
     return { ok: true, source: data }

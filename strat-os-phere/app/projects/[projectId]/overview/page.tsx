@@ -29,6 +29,7 @@ import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } fro
 import { logAppError } from '@/lib/errors/log'
 import { EvidenceCoveragePanelWrapper } from '@/components/evidence/EvidenceCoveragePanelWrapper'
 import { computeEvidenceCoverageLite } from '@/lib/evidence/coverageLite'
+import { EMPTY_EVIDENCE_COVERAGE_LITE } from '@/lib/evidence/coverageTypes'
 import { getNextBestAction } from '@/lib/projects/nextBestAction'
 
 interface OverviewPageProps {
@@ -194,15 +195,7 @@ export default async function OverviewPage(props: OverviewPageProps) {
   const hasOpportunitiesArtifact = Boolean(opportunitiesV3 || opportunitiesV2)
   
   // Compute evidence coverage using coverageLite (schema-free, fail-safe)
-  let coverageLite = {
-    totalSources: 0,
-    evidenceTypesPresent: [],
-    evidenceTypeCounts: {},
-    competitorIdsWithEvidence: [],
-    competitorEvidenceCounts: {},
-    isEvidenceSufficient: false,
-    reasonsMissing: ['Evidence data unavailable. Try reloading or collect evidence again.'],
-  }
+  let coverageLite = EMPTY_EVIDENCE_COVERAGE_LITE
   try {
     coverageLite = await computeEvidenceCoverageLite(supabase, projectId)
   } catch (error) {

@@ -51,12 +51,12 @@ export function Hero() {
           
           {/* CTAs */}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
-            <Link href="/new">
+            <Link href="#how">
               <Button size="lg" className="w-full sm:w-auto text-base px-6 py-6 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
                 {microcopy.marketing.primaryCTA}
               </Button>
             </Link>
-            <Link href="#output-preview">
+            <Link href="#example">
               <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5 transition-all duration-200">
                 {microcopy.marketing.secondaryCTA}
               </Button>

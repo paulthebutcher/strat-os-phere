@@ -1,13 +1,11 @@
 /**
  * Example Output Section
  * 
- * Shows a detailed example of what Plinth generates.
- * Includes an opportunity card with citations and scoring breakdown.
+ * Shows a single annotated opportunity with confidence boundaries.
+ * Section id: #example
  */
 "use client"
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
@@ -15,30 +13,25 @@ import { MarketingContainer } from "./MarketingContainer"
 
 export function ExampleOutput() {
   return (
-    <MarketingSection variant="muted" id="example-output">
+    <MarketingSection variant="muted" id="example">
       <MarketingContainer maxWidth="6xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
-            Example output
+            One opportunity. Clear boundaries.
           </h2>
-          <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-            See what a ranked opportunity looks like with citations, confidence, and scoring breakdown.
-          </p>
         </div>
         
         <div className="max-w-3xl mx-auto">
           {/* Example opportunity card */}
           <div className="rounded-xl border-2 border-border-subtle shadow-lg bg-surface overflow-hidden">
-            {/* Card header */}
+            {/* Card header with confidence level */}
             <div className="p-5 bg-surface-muted/50 border-b border-border-subtle">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <Badge variant="primary" className="text-sm font-semibold px-3 py-1">8.7</Badge>
-                  <span className="text-sm text-text-muted">High confidence</span>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="secondary" className="text-xs">12 sources</Badge>
-                  <Badge variant="secondary" className="text-xs">4 evidence types</Badge>
+                  <Badge variant="default" className="text-sm font-semibold px-3 py-1 bg-accent-primary/10 text-accent-primary border-accent-primary/20">
+                    Directional
+                  </Badge>
+                  <span className="text-sm text-text-muted">Safe to prioritize discovery</span>
                 </div>
               </div>
             </div>
@@ -50,14 +43,11 @@ export function ExampleOutput() {
                 <h3 className="text-lg font-semibold text-text-primary mb-2">
                   Launch enterprise SSO to match competitor positioning
                 </h3>
-                <p className="text-sm leading-relaxed text-text-secondary">
-                  Three competitors now offer SSO in their enterprise tiers. This is a table-stakes feature for B2B positioning, with strong evidence from pricing pages and feature requests.
-                </p>
               </div>
               
-              {/* Top evidence citations */}
+              {/* Citations */}
               <div>
-                <h4 className="text-sm font-semibold text-text-primary mb-3">Top evidence citations</h4>
+                <h4 className="text-sm font-semibold text-text-primary mb-3">Citations</h4>
                 <div className="space-y-2">
                   <div className="flex items-start gap-3 p-3 rounded-lg border border-border-subtle bg-surface-muted/30">
                     <div className="w-1.5 h-1.5 rounded-full bg-accent-primary mt-1.5 shrink-0"></div>
@@ -83,45 +73,40 @@ export function ExampleOutput() {
                 </div>
               </div>
               
-              {/* Scoring breakdown */}
+              {/* What this is safe to decide */}
               <div className="pt-4 border-t border-border-subtle">
-                <h4 className="text-sm font-semibold text-text-primary mb-3">Scoring breakdown</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-xs text-text-muted">Evidence strength</p>
-                    <p className="text-lg font-semibold text-text-primary">8.9</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-text-muted">Defensibility</p>
-                    <p className="text-lg font-semibold text-text-primary">8.5</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-text-muted">Market timing</p>
-                    <p className="text-lg font-semibold text-text-primary">8.2</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-text-muted">Strategic fit</p>
-                    <p className="text-lg font-semibold text-text-primary">9.1</p>
-                  </div>
-                </div>
+                <h4 className="text-sm font-semibold text-text-primary mb-3">What this is safe to decide</h4>
+                <p className="text-sm leading-relaxed text-text-secondary">
+                  Multiple competitors have this in enterprise tiers. This is worth prioritizing discovery and scoping—the evidence suggests it's table-stakes for B2B positioning.
+                </p>
               </div>
               
-              {/* VP-ready framing note */}
+              {/* What would increase confidence */}
+              <div className="pt-4 border-t border-border-subtle">
+                <h4 className="text-sm font-semibold text-text-primary mb-3">What would increase confidence</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-text-secondary text-sm">•</span>
+                    <span className="text-sm leading-relaxed text-text-secondary">
+                      Customer interview data confirming SSO as a deal-breaker (not just nice-to-have)
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-text-secondary text-sm">•</span>
+                    <span className="text-sm leading-relaxed text-text-secondary">
+                      Pricing evidence showing SSO drives enterprise tier upsells
+                    </span>
+                  </li>
+                </ul>
+              </div>
+              
+              {/* Why this surfaced */}
               <div className="pt-4 border-t border-border-subtle">
                 <p className="text-xs text-text-muted italic">
-                  "This is a table-stakes feature for B2B positioning. Three competitors have it in enterprise tiers. The evidence is strong and recent. This should be prioritized in Q2."
+                  This surfaced because three competitors have SSO in enterprise tiers, and it's a top-voted feature request. The signals align, but we don't yet know if it's a deal-breaker or just expected.
                 </p>
               </div>
             </div>
-          </div>
-          
-          {/* CTA */}
-          <div className="mt-8 text-center">
-            <Link href="/samples">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                View more examples
-              </Button>
-            </Link>
           </div>
         </div>
       </MarketingContainer>

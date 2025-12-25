@@ -21,20 +21,20 @@ export function FinalCTABand() {
         )}>
           <div className="space-y-6">
             <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-              Decide where to invest next
+              Make the call with your eyes open.
             </h2>
             <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
-              Evidence before insight. Confidence you can explain. A repeatable method for strategic investment decisions.
+              Get to an evidence-bound point of view faster — without pretending uncertainty doesn't exist.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
               <Link href="/new">
                 <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow">
-                  {microcopy.actions.startAnalysis}
+                  Get started
                 </Button>
               </Link>
-              <Link href="#example-output">
+              <Link href="#how">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 hover:bg-accent-primary/5">
-                  {microcopy.actions.seeExampleOutput}
+                  See how it works
                 </Button>
               </Link>
             </div>

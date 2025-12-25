@@ -1,5 +1,6 @@
 import { ProjectStatusBar } from './ProjectStatusBar'
 import { computeEvidenceCoverageLite } from '@/lib/evidence/coverageLite'
+import { EMPTY_EVIDENCE_COVERAGE_LITE } from '@/lib/evidence/coverageTypes'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { listArtifacts } from '@/lib/data/artifacts'
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
@@ -23,15 +24,7 @@ export async function ProjectStatusBarWrapper({
   // Load data with error handling - default to safe values on failure
   let competitorCount = 0
   let hasOpportunitiesArtifact = false
-  let coverage = {
-    totalSources: 0,
-    evidenceTypesPresent: [],
-    evidenceTypeCounts: {},
-    competitorIdsWithEvidence: [],
-    competitorEvidenceCounts: {},
-    isEvidenceSufficient: false,
-    reasonsMissing: ['Evidence data unavailable. Try reloading or collect evidence again.'],
-  }
+  let coverage = EMPTY_EVIDENCE_COVERAGE_LITE
 
   try {
     // Load competitors count

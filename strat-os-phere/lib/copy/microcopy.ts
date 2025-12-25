@@ -10,11 +10,11 @@
 
 export const microcopy = {
   marketing: {
-    heroHeadline: "Decide where to invest next—grounded in public evidence.",
-    heroSubhead: "Plinth turns competitor signals—pricing, docs, changelogs, reviews—into ranked strategic bets with citations and confidence.",
+    heroHeadline: "Find your unfair advantage",
+    heroSubhead: "Plinth turns public market evidence into strategic opportunities with explicit confidence boundaries — so you know what's safe to act on now, what isn't yet, and what would increase certainty.",
     heroTagline: "Decision credibility over AI novelty.",
-    primaryCTA: "Start an analysis",
-    secondaryCTA: "See how it works",
+    primaryCTA: "See how it works",
+    secondaryCTA: "View an example",
     trustBadges: [
       "Citations included",
       "Deterministic scoring",

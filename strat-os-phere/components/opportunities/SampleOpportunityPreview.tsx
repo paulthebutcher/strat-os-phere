@@ -238,7 +238,7 @@ export function SampleOpportunityPreview({ className }: SampleOpportunityPreview
           </h3>
           <div className="flex flex-wrap gap-2">
             {opportunity.competitors_impacted.map((competitor, idx) => (
-              <Badge key={idx} variant="outline">
+              <Badge key={idx} variant="secondary">
                 {competitor}
               </Badge>
             ))}
@@ -284,7 +284,7 @@ export function SampleOpportunityPreview({ className }: SampleOpportunityPreview
                     {citation.title || citation.url}
                   </a>
                   <Badge
-                    variant="outline"
+                    variant="secondary"
                     className={cn('text-xs shrink-0', getSourceTypeColor(citation.source_type))}
                   >
                     {citation.source_type.replace('_', ' ')}

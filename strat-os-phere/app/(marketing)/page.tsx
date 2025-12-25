@@ -3,18 +3,15 @@
  * 
  * Pure marketing page with NO auth dependencies, NO Supabase, NO server actions.
  * All previews are static "blue sky" components using sample data.
+ * 
+ * Single-lens positioning: confidence boundaries, not persona forks.
  */
 import type { Metadata } from "next"
 import { Hero } from "@/components/marketing/Hero"
-import { CredibilitySection } from "@/components/marketing/sections/CredibilitySection"
-import { OutputPreviewSection } from "@/components/marketing/sections/OutputPreviewSection"
-import { WhoItsForSection } from "@/components/marketing/sections/WhoItsForSection"
-import { ProblemOutcome } from "@/components/marketing/ProblemOutcome"
+import { ValueSection } from "@/components/marketing/sections/ValueSection"
 import { HowItWorksStepper } from "@/components/marketing/HowItWorksStepper"
-import { WhatYouGetSection } from "@/components/marketing/WhatYouGetSection"
+import { ConfidenceBoundaries } from "@/components/marketing/ConfidenceBoundaries"
 import { ExampleOutput } from "@/components/marketing/ExampleOutput"
-import { TrustMethod } from "@/components/marketing/TrustMethod"
-import { MiniFAQ } from "@/components/marketing/MiniFAQ"
 import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
@@ -23,7 +20,7 @@ import { microcopy } from "@/lib/copy/microcopy"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Plinth — Decide where to invest next",
+    title: "Plinth — Find your unfair advantage",
     description: microcopy.marketing.heroSubhead,
     path: "/",
     ogVariant: "default",
@@ -38,34 +35,19 @@ export default function MarketingHome() {
         {/* 1. Hero */}
         <Hero />
         
-        {/* 2. Credibility Section */}
-        <CredibilitySection />
+        {/* 2. What Plinth delivers */}
+        <ValueSection />
         
-        {/* 3. Output Preview Section */}
-        <OutputPreviewSection />
-        
-        {/* 4. Who It's For Section */}
-        <WhoItsForSection />
-        
-        {/* 5. Problem → Outcome */}
-        <ProblemOutcome />
-        
-        {/* 6. How it works */}
+        {/* 3. How it works */}
         <HowItWorksStepper />
         
-        {/* 7. What you get */}
-        <WhatYouGetSection />
+        {/* 4. Confidence boundaries */}
+        <ConfidenceBoundaries />
         
-        {/* 8. Example output */}
+        {/* 5. Example output */}
         <ExampleOutput />
         
-        {/* 9. Trust / Method */}
-        <TrustMethod />
-        
-        {/* 10. Mini FAQ */}
-        <MiniFAQ />
-        
-        {/* 11. Final CTA */}
+        {/* 6. Final CTA */}
         <FinalCTABand />
         
         <Footer />

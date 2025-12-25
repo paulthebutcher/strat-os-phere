@@ -13,40 +13,44 @@ const steps: StepItem[] = [
   {
     id: "collect",
     stepLabel: "STEP 1",
-    title: "Collect public evidence",
-    description: "We gather evidence from pricing pages, docs, changelogs, and reviews across your competitors.",
+    title: "Collect public market evidence",
+    description: "Pricing, docs, changelogs, reviews",
     previewId: "collect",
   },
   {
     id: "normalize",
     stepLabel: "STEP 2",
-    title: "Normalize",
-    description: "Evidence is organized by type with recency indicators. We structure signals into a unified evidence base.",
+    title: "Normalize signals into comparable claims",
+    description: "Structure signals into a unified evidence base",
     previewId: "normalize",
   },
   {
     id: "rank",
     stepLabel: "STEP 3",
-    title: "Generate ranked bets",
-    description: "Get prioritized strategic opportunities with citations, confidence scores, and defensibility metrics.",
+    title: "Generate opportunities with citations + confidence boundaries",
+    description: "Prioritized strategic opportunities with explicit confidence levels",
     previewId: "rank",
   },
 ]
 
 export function HowItWorksStepper() {
   return (
-    <MarketingSection variant="muted" id="how-it-works">
+    <MarketingSection variant="muted" id="how">
       <MarketingContainer maxWidth="6xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
-            How it works
+            How Plinth works
           </h2>
-          <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-            Three steps from public evidence to ranked strategic bets.
-          </p>
         </div>
         
         <StepsCarousel steps={steps} />
+        
+        {/* Optional note */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-text-muted italic max-w-xl mx-auto">
+            Plinth won't pretend the evidence is stronger than it is.
+          </p>
+        </div>
       </MarketingContainer>
     </MarketingSection>
   )
