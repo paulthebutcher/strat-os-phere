@@ -61,7 +61,7 @@ export function OutcomeExampleSection() {
                 What you actually get
               </h2>
               <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
-                A decision artifact you can share with stakeholders. No dashboards, no fluff.
+                A strategic brief you can share with stakeholders. No dashboards, no fluff.
               </p>
             </div>
 
@@ -93,7 +93,7 @@ export function OutcomeExampleSection() {
                     variant="outline"
                     className="w-full sm:w-auto"
                   >
-                    See a real decision
+                    See what holds up
                   </Button>
                 </Link>
               </div>

@@ -15,7 +15,7 @@ export function ProblemPromiseSection() {
         <Reveal>
           <div className="text-center space-y-3 sm:space-y-4">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight lg:whitespace-nowrap">
-              Decisions that matter shouldn't feel like guesswork.
+              Strategy that matters shouldn't feel like guesswork.
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed text-text-secondary max-w-3xl mx-auto line-clamp-3 sm:line-clamp-none">
               Most teams generate ideas or summaries. Plinth turns them into defensible calls backed by evidence you can point to — in minutes, not meetings.

@@ -22,7 +22,7 @@ export function FinalCTABand() {
           )}>
             <div className="space-y-6">
               <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-                Ready to stop debating and start deciding?
+                Ready to move forward with confidence?
               </h2>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
                 <Link href="/new">
@@ -34,7 +34,7 @@ export function FinalCTABand() {
                       HoverLift.className
                     )}
                   >
-                    Get your first decision in minutes →
+                    Pressure-test an idea →
                   </Button>
                 </Link>
               </div>

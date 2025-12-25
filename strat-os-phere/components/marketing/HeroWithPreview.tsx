@@ -39,7 +39,7 @@ export function HeroWithPreview() {
                   "text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight leading-tight text-text-primary",
                   "lg:whitespace-nowrap"
                 )}>
-                  Make decisions you can defend
+                  Stand behind your strategy
                 </h1>
               </Reveal>
               
@@ -47,7 +47,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
                 )}>
-                  Ranked opportunities, backed by real evidence and explicit confidence boundaries.
+                  Evidence-backed insights that hold up in real conversations — not just docs.
                 </p>
               </Reveal>
 
@@ -63,7 +63,7 @@ export function HeroWithPreview() {
                           HoverLift.className
                         )}
                       >
-                        Try it on your idea
+                        Pressure-test an idea
                       </Button>
                     </Link>
                     <Link href="/example" className="w-full sm:w-auto">
@@ -103,7 +103,7 @@ export function HeroWithPreview() {
                     href="/example" 
                     className="text-sm text-accent-primary hover:text-accent-primary/80 font-medium inline-flex items-center gap-1 transition-colors"
                   >
-                    Click to see a real decision →
+                    Click to see what holds up →
                   </Link>
                 </div>
               </div>

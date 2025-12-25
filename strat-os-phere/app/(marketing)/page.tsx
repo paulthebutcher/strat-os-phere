@@ -21,8 +21,8 @@ import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Make decisions you can defend",
-    description: "Plinth turns public market evidence into ranked opportunities with explicit confidence boundaries.",
+    title: "Stand behind your strategy",
+    description: "Evidence-backed insights that hold up in real conversations — not just docs.",
     path: "/",
     ogVariant: "default",
     canonical: true,
@@ -33,7 +33,7 @@ export default function MarketingHome() {
   return (
     <MarketingShell>
       <main className="marketing-landing min-h-screen">
-        {/* 1. Hero: "Make decisions you can defend" */}
+        {/* 1. Hero: "Stand behind your strategy" */}
         <HeroWithPreview />
         
         {/* 2. How it works carousel */}

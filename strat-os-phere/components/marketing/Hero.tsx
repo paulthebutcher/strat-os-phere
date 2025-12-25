@@ -37,7 +37,7 @@ export function Hero() {
                   "text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight leading-tight text-text-primary",
                   "lg:whitespace-nowrap"
                 )}>
-                  A decision you can defend.
+                  Stand behind your strategy.
                 </h2>
               </Reveal>
               
@@ -45,7 +45,7 @@ export function Hero() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-3xl mx-auto"
                 )}>
-                  Plinth turns public market evidence into a recommendation — with confidence boundaries and the conditions that would change the call.
+                  Evidence-backed insights that hold up in real conversations — not just docs.
                 </p>
               </Reveal>
             </div>
@@ -61,7 +61,7 @@ export function Hero() {
                 <p className={cn(
                   "text-sm sm:text-base text-text-secondary"
                 )}>
-                  From a rough idea to a call you can defend — with evidence attached.
+                  From a rough idea to clarity you can trust — with evidence attached.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
@@ -74,7 +74,7 @@ export function Hero() {
                         HoverLift.className
                       )}
                     >
-                      Try it on your idea
+                      Pressure-test an idea
                     </Button>
                   </Link>
                   <Link href="/example" className="w-full sm:w-auto">

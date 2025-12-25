@@ -11,8 +11,8 @@ export function HowItWorks() {
   return (
     <Section
       id="how-it-works"
-      title="From hunch to decision"
-      description="How Plinth turns an initial hunch into a sourced, defensible recommendation. Quick flow that shows what you input, how Plinth processes it, and what you output."
+      title="From hunch to clarity"
+      description="How Plinth turns early intuition into evidence you can trust."
       tone="default"
     >
       <HowItWorksCarousel />

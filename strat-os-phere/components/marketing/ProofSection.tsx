@@ -57,8 +57,8 @@ export function ProofSection() {
     },
     {
       icon: ArrowRight,
-      title: "Next steps built in",
-      description: "Clear recommendations — plus what would change the call.",
+      title: "A clear point of view",
+      description: "Not just options — a recommendation, plus what would change it.",
     },
   ]
 
@@ -68,10 +68,10 @@ export function ProofSection() {
         <Reveal>
           <div className="text-center mb-8 sm:mb-12 space-y-2 sm:space-y-3">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight lg:whitespace-nowrap">
-              Why decisions hold up
+              Why this holds up under scrutiny
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-text-secondary max-w-2xl mx-auto line-clamp-2 sm:line-clamp-none">
-              Not dashboards. Not summaries. Decisions built from inspectable evidence.
+              Every claim is sourced. Confidence is explicit. Unknowns are visible.
             </p>
           </div>
         </Reveal>
