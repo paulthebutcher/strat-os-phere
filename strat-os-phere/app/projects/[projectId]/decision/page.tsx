@@ -17,7 +17,7 @@ import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
 import { EvidenceTrustPanelWrapper } from '@/components/evidence/EvidenceTrustPanelWrapper'
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Section } from '@/components/layout/Section'
+import { PageSection } from '@/components/layout/Section'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
@@ -39,7 +39,6 @@ import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunSta
 import { DecisionReceipt } from '@/components/results/DecisionReceipt'
 import { DecisionSummary } from '@/components/results/DecisionSummary'
 import { ProjectBreadcrumbs } from '@/components/layout/ProjectBreadcrumbs'
-import { Section } from '@/components/layout/Section'
 
 interface DecisionPageProps {
   params: Promise<{
@@ -283,12 +282,12 @@ export default async function DecisionPage(props: DecisionPageProps) {
       <PageGuidanceWrapper pageId={PAGE_IDS.decision}>
         <PageShell size="wide">
           {/* Breadcrumb Navigation */}
-          <Section>
+          <PageSection>
             <ProjectBreadcrumbs
               projectId={projectId}
               projectName={project.name}
             />
-          </Section>
+          </PageSection>
 
           <PageHeader
             title="Decision Summary"
@@ -303,14 +302,14 @@ export default async function DecisionPage(props: DecisionPageProps) {
 
           {/* DecisionRun Status Banner - persistent run/evidence status */}
           {decisionRunState && (
-            <Section>
+            <PageSection>
               <DecisionRunStatusBanner state={decisionRunState} />
-            </Section>
+            </PageSection>
           )}
 
           {/* System State Banner - shows empty/running/partial/complete states */}
           {viewModel.systemState !== 'complete' && (
-            <Section>
+            <PageSection>
               <SystemStateBanner
                 state={viewModel.systemState}
                 actions={
@@ -328,34 +327,34 @@ export default async function DecisionPage(props: DecisionPageProps) {
                   ) : undefined
                 }
               />
-            </Section>
+            </PageSection>
           )}
 
           {/* Coverage Indicator - Show when we have results */}
           {viewModel.systemState !== 'empty' && viewModel.systemState !== 'running' && (
-            <Section>
+            <PageSection>
               <CoverageIndicator
                 level={viewModel.coverageLevel}
                 sourceCount={viewModel.sourceCount}
                 competitorCount={viewModel.competitorCount}
               />
-            </Section>
+            </PageSection>
           )}
 
           {/* Evidence Trust Panel (if enabled) */}
           {FLAGS.evidenceTrustLayerEnabled && processedClaims && (
-            <Section>
+            <PageSection>
               <EvidenceTrustPanelWrapper
                 coverage={processedClaims.coverage}
                 claimsByType={processedClaims.claimsByType}
                 bundle={evidenceBundle}
                 lastUpdated={evidenceBundle?.createdAt || null}
               />
-            </Section>
+            </PageSection>
           )}
 
           {/* Decision Summary - Primary decision-oriented synthesis surface */}
-          <Section>
+          <PageSection>
             <DecisionSummary
               projectId={projectId}
               opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
@@ -366,21 +365,21 @@ export default async function DecisionPage(props: DecisionPageProps) {
               projectMarket={project?.market || undefined}
               justGenerated={justGenerated}
             />
-          </Section>
+          </PageSection>
 
           {/* Decision Quality Indicators - Collapsed by default, always accessible */}
-          <Section>
-            <DecisionQualityIndicators
+          <PageSection>
+            <DecisionQualityIndicators>
               competitorCount={competitorCount}
               coverage={coverageLite}
               hasOpportunitiesArtifact={hasOpportunitiesArtifact}
               projectId={projectId}
               defaultCollapsed={true}
             />
-          </Section>
+          </PageSection>
 
           {/* Deep Dive Links - Link to other sections */}
-          <Section>
+          <PageSection>
             <div className="p-4 bg-muted/30 rounded-lg border border-border-subtle">
               <h3 className="text-sm font-semibold text-foreground mb-3">Deep dives</h3>
               <div className="flex flex-wrap gap-3">
@@ -410,7 +409,7 @@ export default async function DecisionPage(props: DecisionPageProps) {
                 </Link>
               </div>
             </div>
-          </Section>
+          </PageSection>
         </PageShell>
       </PageGuidanceWrapper>
     )

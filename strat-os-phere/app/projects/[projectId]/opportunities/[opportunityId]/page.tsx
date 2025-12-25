@@ -12,7 +12,7 @@ import { TourLink } from '@/components/guidance/TourLink'
 import { ShareButton } from '@/components/results/ShareButton'
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Section } from '@/components/layout/Section'
+import { PageSection } from '@/components/layout/Section'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
@@ -176,13 +176,13 @@ export default async function OpportunityDetailPage(props: OpportunityDetailPage
       <PageGuidanceWrapper pageId={PAGE_IDS.opportunityDetail}>
         <PageShell size="wide">
           {/* Breadcrumb Navigation */}
-          <Section>
+          <PageSection>
             <ProjectBreadcrumbs
               projectId={projectId}
               projectName={project.name}
               opportunityTitle={opportunity.title}
             />
-          </Section>
+          </PageSection>
 
           <PageHeader
             title={opportunity.title}
@@ -196,14 +196,14 @@ export default async function OpportunityDetailPage(props: OpportunityDetailPage
           />
 
           {/* Opportunity Detail Component */}
-          <Section>
+          <PageSection>
             <OpportunityDetail
               opportunity={opportunity}
               projectId={projectId}
               opportunitiesV3={opportunities.v3?.content || null}
               opportunitiesV2={opportunities.v2?.content || null}
             />
-          </Section>
+          </PageSection>
         </PageShell>
       </PageGuidanceWrapper>
     )

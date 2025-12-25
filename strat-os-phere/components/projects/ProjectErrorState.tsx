@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { PageShell } from '@/components/layout/PageShell'
-import { Section } from '@/components/layout/Section'
+import { PageSection } from '@/components/layout/Section'
 import type { AppError } from '@/lib/errors/errors'
 
 interface ProjectErrorStateProps {
@@ -74,7 +74,7 @@ export function ProjectErrorState({
 
   return (
     <PageShell>
-      <Section>
+      <PageSection>
         <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
           <div className="max-w-md w-full space-y-4 text-center">
             <div className="flex justify-center">
@@ -89,7 +89,7 @@ export function ProjectErrorState({
             </div>
           </div>
         </div>
-      </Section>
+      </PageSection>
     </PageShell>
   )
 }

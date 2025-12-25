@@ -16,7 +16,7 @@ import { getDecisionRunState } from '@/lib/decisionRun/getDecisionRunState'
 import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunStatusBanner'
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Section } from '@/components/layout/Section'
+import { PageSection } from '@/components/layout/Section'
 import { resolveActiveRunId } from '@/lib/runs/activeRun'
 import { getEvidenceSourcesForRun } from '@/lib/data/evidenceSources'
 import { getParam } from '@/lib/routing/searchParams'
@@ -211,7 +211,7 @@ export default async function EvidencePage(props: EvidencePageProps) {
             title="Evidence"
             subtitle="Supporting evidence and citations for the competitive analysis."
           />
-          <Section>
+          <PageSection>
             <div className="rounded-lg border border-border bg-card p-8 text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 No analysis run yet
@@ -223,7 +223,7 @@ export default async function EvidencePage(props: EvidencePageProps) {
                 Run: none • Source: {runResolution.source}
               </div>
             </div>
-          </Section>
+          </PageSection>
         </PageShell>
       )
     }
@@ -240,12 +240,12 @@ export default async function EvidencePage(props: EvidencePageProps) {
 
         {/* DecisionRun Status Banner - persistent run/evidence status */}
         {decisionRunState && (
-          <Section>
+          <PageSection>
             <DecisionRunStatusBanner state={decisionRunState} />
-          </Section>
+          </PageSection>
         )}
 
-        <Section>
+        <PageSection>
           <EvidenceContent
             projectId={projectId}
             opportunitiesV3={opportunitiesV3?.content}
@@ -263,7 +263,7 @@ export default async function EvidencePage(props: EvidencePageProps) {
               Run: {activeRunId} • Source: {runResolution.source} • Evidence sources: {evidenceSourcesForRun.length}
             </div>
           )}
-        </Section>
+        </PageSection>
       </PageShell>
     )
   } catch (error) {

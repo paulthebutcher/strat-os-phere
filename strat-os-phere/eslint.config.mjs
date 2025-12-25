@@ -13,6 +13,16 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Prevent variable redeclaration (catches duplicate imports, etc.)
+      "no-redeclare": "error",
+      // TypeScript-aware shadowing detection (prevents name collisions)
+      "@typescript-eslint/no-shadow": "error",
+      // Disable base no-shadow rule in favor of TypeScript version
+      "no-shadow": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

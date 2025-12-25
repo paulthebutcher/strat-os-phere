@@ -36,7 +36,7 @@ import { normalizeEvidenceBundleToLedger } from '@/lib/evidence/ledger'
 import { EvidenceLedgerSection } from '@/components/evidence/EvidenceLedgerSection'
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Section } from '@/components/layout/Section'
+import { PageSection } from '@/components/layout/Section'
 import { EmptyState } from '@/components/layout/EmptyState'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -305,9 +305,9 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
           {/* System State Banner - Always visible to show current state */}
           {!isRunning && (
-            <Section>
+            <PageSection>
               <SystemStateBanner state={viewModel.systemState} />
-            </Section>
+            </PageSection>
           )}
 
           {/* In-progress banner - Shows when running (replaces state banner) */}
@@ -317,25 +317,25 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
           {/* Coverage Indicator - Show when we have results or partial results */}
           {viewModel.systemState !== 'empty' && (
-            <Section>
+            <PageSection>
               <CoverageIndicator
                 level={viewModel.coverageLevel}
                 sourceCount={viewModel.sourceCount}
                 competitorCount={viewModel.competitorCount}
               />
-            </Section>
+            </PageSection>
           )}
 
           {/* Evidence Trust Panel (if enabled) */}
           {FLAGS.evidenceTrustLayerEnabled && processedClaims && (
-            <Section>
+            <PageSection>
               <EvidenceTrustPanelWrapper
                 coverage={processedClaims.coverage}
                 claimsByType={processedClaims.claimsByType}
                 bundle={evidenceBundle}
                 lastUpdated={evidenceBundle?.createdAt || null}
               />
-            </Section>
+            </PageSection>
           )}
 
           {/* Follow-up question (after analysis completes) */}
@@ -350,14 +350,14 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
           {!hasArtifacts ? (
             // Empty/failed state: show NextBestActionCard
-            <Section>
+            <PageSection>
               <NextBestActionCard
                 state={viewModel.systemState === 'failed' ? 'failed' : 'empty'}
                 primaryAction={
                   <RerunAnalysisButton projectId={projectId} />
                 }
               />
-            </Section>
+            </PageSection>
           ) : showReadout ? (
             // Default: Show decision brief view
             (opportunities.best || !isRunning) && (
@@ -374,7 +374,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
                     </Button>
                   }
                 />
-                <Section>
+                <PageSection>
                   <ResultsReadoutView
                     projectId={projectId}
                     projectName={results.project?.name || 'Results'}
@@ -382,11 +382,11 @@ export default async function ResultsPage(props: ResultsPageProps) {
                     normalized={normalized}
                     hideHeader={true}
                   />
-                </Section>
+                </PageSection>
                 {/* Evidence Ledger Section - Always visible (handles empty state internally) */}
-                <Section>
+                <PageSection>
                   <EvidenceLedgerSection model={evidenceLedgerModel} />
-                </Section>
+                </PageSection>
               </>
             )
           ) : showTabContent ? (

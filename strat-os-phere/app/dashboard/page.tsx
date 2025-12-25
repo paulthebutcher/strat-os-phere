@@ -16,7 +16,7 @@ import { TourLink } from '@/components/guidance/TourLink'
 import { OnboardingCardWrapper } from '@/components/onboarding/OnboardingCardWrapper'
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Section } from '@/components/layout/Section'
+import { PageSection } from '@/components/layout/Section'
 import { EmptyState } from '@/components/layout/EmptyState'
 import { PageErrorState } from '@/components/system/PageErrorState'
 import { toAppError, SchemaMismatchError } from '@/lib/errors/errors'
@@ -137,9 +137,9 @@ export default async function DashboardPage() {
               </Link>
             }
           />
-          <Section>
+          <PageSection>
             <PageErrorState error={appError} />
-          </Section>
+          </PageSection>
         </PageShell>
       </DashboardPageClient>
     )
@@ -182,22 +182,22 @@ export default async function DashboardPage() {
             }
           />
         
-        <Section>
+        <PageSection>
           <TourLink />
-        </Section>
+        </PageSection>
 
         {/* Onboarding Card for New Users (only if 0 projects) */}
         {!hasProjects && (
-          <Section>
+          <PageSection>
             <OnboardingCardWrapper projects={projects} />
-          </Section>
+          </PageSection>
         )}
 
         {/* Next Action Card (only if user has projects) */}
         {hasProjects && mostRecentRow && (
-          <Section>
+          <PageSection>
             <ContinuePanel row={mostRecentRow} />
-          </Section>
+          </PageSection>
         )}
 
         {/* Main Content */}
@@ -217,9 +217,9 @@ export default async function DashboardPage() {
             }
           />
         ) : (
-          <Section>
+          <PageSection>
             <ProjectsTableWrapper rows={tableRows} />
-          </Section>
+          </PageSection>
         )}
       </PageShell>
     </DashboardPageClient>

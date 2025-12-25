@@ -11,7 +11,7 @@ import { WizardStep3Details } from './WizardStep3Details'
 import { FirstWinChecklist } from './FirstWinChecklist'
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Section } from '@/components/layout/Section'
+import { PageSection } from '@/components/layout/Section'
 import { microcopy } from '@/lib/copy/microcopy'
 
 interface AnalysisWizardProps {
@@ -140,17 +140,17 @@ export function AnalysisWizard({
 
       {/* Logged out notice */}
       {!isAuthenticated && (
-        <Section>
+        <PageSection>
           <div className="rounded-lg border border-border bg-surface-muted/50 px-4 py-3">
             <p className="text-sm text-muted-foreground">
               You'll be asked to sign in to save and generate results.
             </p>
           </div>
-        </Section>
+        </PageSection>
       )}
 
       {/* Stepper indicator */}
-      <Section>
+      <PageSection>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             {currentStep >= 1 ? (
@@ -203,28 +203,28 @@ export function AnalysisWizard({
             </span>
           </div>
         </div>
-      </Section>
+      </PageSection>
 
       {currentStep === 1 ? (
         // Step 1 handles its own layout with side rail
-        <Section>
+        <PageSection>
           <WizardStep1Describe
             initialState={wizardState}
             onComplete={handleStep1Complete}
-            isGuidedMode={isGuidedMode}
-          />
-        </Section>
+              isGuidedMode={isGuidedMode}
+            />
+        </PageSection>
       ) : currentStep === 2 ? (
         // Step 2 uses the original layout
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8">
-            <Section>
+            <PageSection>
               <WizardStep2Confirm
                 state={wizardState}
                 onBack={handleStep2Back}
                 onComplete={handleStep2Complete}
               />
-            </Section>
+            </PageSection>
           </div>
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-20 space-y-4">
@@ -253,14 +253,14 @@ export function AnalysisWizard({
         // Step 3: Details
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8">
-            <Section>
+            <PageSection>
               <WizardStep3Details
                 state={wizardState}
                 onBack={handleStep3Back}
                 onComplete={handleStep3Complete}
                 isAuthenticated={isAuthenticated}
               />
-            </Section>
+            </PageSection>
           </div>
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-20 space-y-4">

@@ -11,7 +11,7 @@ export interface SectionProps {
 }
 
 /**
- * Section - Consistent section wrapper
+ * PageSection - Consistent section wrapper
  * 
  * Provides:
  * - Optional title + description
@@ -20,7 +20,7 @@ export interface SectionProps {
  * 
  * Use for grouping related content with consistent rhythm.
  */
-export function Section({
+export function PageSection({
   title,
   description,
   children,
@@ -55,4 +55,7 @@ export function Section({
     </section>
   )
 }
+
+/** @deprecated Use PageSection instead. Kept for backwards compatibility. */
+export const Section = PageSection;
 

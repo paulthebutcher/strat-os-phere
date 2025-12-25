@@ -19,7 +19,7 @@ import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
 import { EvidenceTrustPanelWrapper } from '@/components/evidence/EvidenceTrustPanelWrapper'
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Section } from '@/components/layout/Section'
+import { PageSection } from '@/components/layout/Section'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
@@ -278,12 +278,12 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
       <PageGuidanceWrapper pageId={PAGE_IDS.results}>
         <PageShell size="wide">
           {/* Breadcrumb Navigation */}
-          <Section>
+          <PageSection>
             <ProjectBreadcrumbs
               projectId={projectId}
               projectName={project.name}
             />
-          </Section>
+          </PageSection>
 
           <PageHeader
             title="Opportunities"
@@ -298,14 +298,14 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
 
         {/* DecisionRun Status Banner - persistent run/evidence status */}
         {decisionRunState && (
-          <Section>
+          <PageSection>
             <DecisionRunStatusBanner state={decisionRunState} />
-          </Section>
+          </PageSection>
         )}
 
         {/* System State Banner - only show for empty/running/failed states (not partial/complete) */}
         {(viewModel.systemState === 'empty' || viewModel.systemState === 'running' || viewModel.systemState === 'failed') && (
-          <Section>
+          <PageSection>
             <SystemStateBanner
               state={viewModel.systemState}
               actions={
@@ -323,23 +323,23 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
                 ) : undefined
               }
             />
-          </Section>
+          </PageSection>
         )}
 
         {/* Evidence Trust Panel (if enabled) */}
         {FLAGS.evidenceTrustLayerEnabled && processedClaims && (
-          <Section>
+          <PageSection>
             <EvidenceTrustPanelWrapper
               coverage={processedClaims.coverage}
               claimsByType={processedClaims.claimsByType}
               bundle={evidenceBundle}
               lastUpdated={evidenceBundle?.createdAt || null}
             />
-          </Section>
+          </PageSection>
         )}
 
         {/* Decision Receipt - Above-the-fold decision artifact (Phase 2) */}
-        <Section>
+        <PageSection>
           <DecisionReceipt
             projectId={projectId}
             opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
@@ -348,11 +348,11 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             competitorCount={competitorCount}
             justGenerated={justGenerated}
           />
-        </Section>
+        </PageSection>
 
         {/* Decision Brief - Primary post-run experience (shown first when results exist) */}
         {hasOpportunitiesArtifact && (
-          <Section id="decision-brief">
+          <PageSection id="decision-brief">
             <ResultsReadout
               projectId={projectId}
               opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
@@ -361,7 +361,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
               projectName={project?.name || undefined}
               competitorCount={competitorCount}
             />
-          </Section>
+          </PageSection>
         )}
 
         {/* Entry state handler for just-generated state */}
@@ -373,7 +373,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
         )}
 
         {/* Decision Quality Indicators - Collapsed by default, always accessible */}
-        <Section>
+        <PageSection>
           <DecisionQualityIndicators
             competitorCount={competitorCount}
             coverage={coverageLite}
@@ -381,22 +381,22 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             projectId={projectId}
             defaultCollapsed={true}
           />
-        </Section>
+        </PageSection>
 
         {/* Progress & Results Header - Unified status and coverage above opportunities list */}
         {hasOpportunitiesArtifact && (
-          <Section>
+          <PageSection>
             <OpportunitiesStatusHeader
               projectId={projectId}
               competitorCount={competitorCount}
               coverage={coverageLite}
               hasOpportunitiesArtifact={hasOpportunitiesArtifact}
             />
-          </Section>
+          </PageSection>
         )}
 
         {/* Opportunities Content - primary view */}
-        <Section>
+        <PageSection>
           <OpportunitiesContent
             projectId={projectId}
             opportunitiesV3={opportunities.v3?.content}
@@ -406,7 +406,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             jtbd={jtbd?.content}
             evidenceBundle={evidenceBundle}
           />
-        </Section>
+        </PageSection>
       </PageShell>
     </PageGuidanceWrapper>
     )
