@@ -8,6 +8,7 @@
  * All previews are static "blue sky" components using sample data.
  */
 import type { Metadata } from "next"
+import Link from "next/link"
 import { HeroWithPreview } from "@/components/marketing/HeroWithPreview"
 import { NarrativeStep } from "@/components/marketing/NarrativeStep"
 import { ProjectSetupPreview } from "@/components/marketing/previews/ProjectSetupPreview"
@@ -18,6 +19,9 @@ import { NextStepsPreview } from "@/components/marketing/previews/NextStepsPrevi
 import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
+import { MarketingSection } from "@/components/marketing/MarketingSection"
+import { MarketingContainer } from "@/components/marketing/MarketingContainer"
+import { Button } from "@/components/ui/button"
 import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,15 +49,15 @@ export default function MarketingHome() {
           alignment="right"
         />
         
-        {/* 3. "We collect evidence you can inspect" */}
+        {/* 3. Evidence section */}
         <NarrativeStep
-          title="We collect evidence you can inspect"
+          title="Here's how a decision actually comes together"
           copy="Every claim has a source you can open and share."
           image={<EvidenceTablePreview />}
           alignment="left"
         />
         
-        {/* 4. "Opportunities, ranked" */}
+        {/* 4. Opportunities section */}
         <NarrativeStep
           title="Opportunities, ranked"
           copy="Not a list of ideas — a prioritized shortlist based on signal strength."
@@ -61,15 +65,32 @@ export default function MarketingHome() {
           alignment="right"
         />
         
-        {/* 5. "Confidence boundaries (what's safe to act on)" */}
+        {/* Mid-page soft CTA */}
+        <MarketingSection variant="muted">
+          <MarketingContainer maxWidth="4xl">
+            <div className="text-center space-y-4">
+              <p className="text-lg text-text-secondary">
+                Curious what this looks like for your market?
+              </p>
+              <Link href="/new">
+                <Button variant="outline" size="lg" className="border-2">
+                  Try it with your idea →
+                </Button>
+              </Link>
+            </div>
+          </MarketingContainer>
+        </MarketingSection>
+        
+        {/* 5. Confidence section */}
         <NarrativeStep
           title="Confidence boundaries (what's safe to act on)"
-          copy="Plinth shows what's supported, what's uncertain, and what would change the recommendation."
+          copy="Shows what's supported, what's uncertain, and what would change the recommendation."
           image={<ConfidenceBoundariesPreview />}
           alignment="left"
+          framingLine="Most tools give you ideas. Plinth shows what's safe to act on."
         />
         
-        {/* 6. "Next moves (action, not analysis)" */}
+        {/* 6. Next moves section */}
         <NarrativeStep
           title="Next moves (action, not analysis)"
           copy="Clear actions to increase confidence — customer checks, competitive scans, and tests."

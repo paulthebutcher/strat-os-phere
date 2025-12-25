@@ -44,7 +44,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary"
                 )}>
-                  Plinth turns public market evidence into ranked opportunities with explicit confidence boundaries.
+                  Ranked opportunities, backed by real evidence and explicit confidence.
                 </p>
               </Reveal>
 
@@ -86,21 +86,13 @@ export function HeroWithPreview() {
                   <DecisionBriefPreview />
                 </div>
                 
-                {/* Subtle callouts */}
-                <div className="absolute top-4 right-4">
-                  <span className="text-[10px] font-medium text-text-primary bg-white/90 backdrop-blur-sm px-2 py-1 rounded border border-border-subtle">
-                    Evidence attached
-                  </span>
-                </div>
-                <div className="absolute bottom-16 left-4">
-                  <span className="text-[10px] font-medium text-text-primary bg-white/90 backdrop-blur-sm px-2 py-1 rounded border border-border-subtle">
-                    Confidence boundaries
-                  </span>
-                </div>
-                <div className="absolute -bottom-4 -right-4 bg-white rounded-lg border border-border-subtle shadow-lg p-2.5 max-w-[180px] hidden lg:block">
-                  <p className="text-[10px] text-text-secondary leading-relaxed">
-                    <span className="font-semibold text-text-primary">What would change this call?</span>
-                  </p>
+                {/* Static receipt checklist */}
+                <div className="absolute -bottom-6 left-0 right-0 flex justify-center">
+                  <div className="bg-white rounded-lg border border-border-subtle shadow-lg px-4 py-3 flex gap-4 text-xs">
+                    <span className="text-text-primary">✓ Recommendation</span>
+                    <span className="text-text-primary">✓ Evidence attached</span>
+                    <span className="text-text-primary">✓ What would change this call</span>
+                  </div>
                 </div>
               </div>
             </Reveal>

@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import type { AppBadgeVariant } from '@/components/ui/badgeVariants'
 import {
   Table,
   TableBody,
@@ -51,15 +52,13 @@ function formatImpact(impact: number): string {
 /**
  * Get strength badge variant
  */
-function getStrengthVariant(strength: EvidenceTableItem['strength']): 'default' | 'secondary' | 'outline' {
-  switch (strength) {
-    case 'Strong':
-      return 'default'
-    case 'Directional':
-      return 'secondary'
-    case 'Weak':
-      return 'outline'
-  }
+function getStrengthVariant(strength: EvidenceTableItem['strength']): AppBadgeVariant {
+  const s = strength?.toLowerCase();
+
+  if (s === 'strong') return 'success';
+  if (s === 'directional') return 'warning'; // or "neutral" depending on your semantics
+  if (s === 'weak' || s === 'low') return 'neutral';
+  return 'secondary';
 }
 
 /**

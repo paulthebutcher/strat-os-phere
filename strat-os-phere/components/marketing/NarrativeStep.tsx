@@ -18,6 +18,7 @@ interface NarrativeStepProps {
   image: ReactNode
   alignment?: "left" | "right"
   id?: string
+  framingLine?: string
 }
 
 export function NarrativeStep({
@@ -26,6 +27,7 @@ export function NarrativeStep({
   image,
   alignment = "right",
   id,
+  framingLine,
 }: NarrativeStepProps) {
   const isImageRight = alignment === "right"
 
@@ -60,9 +62,17 @@ export function NarrativeStep({
           {/* Image/Preview */}
           <div
             className={cn(
+              "space-y-3",
               !isImageRight && "lg:col-start-1"
             )}
           >
+            {framingLine && (
+              <Reveal delay={75}>
+                <p className="text-sm text-text-secondary font-medium">
+                  {framingLine}
+                </p>
+              </Reveal>
+            )}
             <Reveal delay={90}>
               <div className="relative rounded-xl border-2 border-border-subtle shadow-xl overflow-hidden bg-white">
                 {image}

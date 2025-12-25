@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils"
 import { ExternalLink } from "lucide-react"
 
 const evidence = [
-  { domain: "pagerduty.com", type: "Pricing", url: "/pricing" },
-  { domain: "atlassian.com", type: "Docs", url: "/docs/sso" },
-  { domain: "trustpilot.com", type: "Reviews", url: "/reviews" },
+  { domain: "competitor-a.com/pricing", type: "Pricing" },
+  { domain: "G2 Enterprise review", type: "Reviews" },
+  { domain: "competitor-b.com/docs", type: "Docs" },
 ]
 
 const sourcePills = [
@@ -66,6 +66,13 @@ export function EvidenceTablePreview() {
               <ExternalLink className="w-4 h-4 text-text-muted shrink-0" />
             </div>
           ))}
+        </div>
+        
+        {/* Affordance text */}
+        <div className="mt-4 pt-4 border-t border-border-subtle">
+          <p className="text-xs text-text-secondary">
+            Open source →
+          </p>
         </div>
       </div>
     </div>

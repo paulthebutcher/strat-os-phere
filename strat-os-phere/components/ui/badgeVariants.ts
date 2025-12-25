@@ -1,23 +1,27 @@
-import type { BadgeProps } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
+import type { ComponentProps } from "react";
 
 /**
- * Single source of truth for Badge variant types
- * Extracted from Badge component props to ensure type safety
+ * Single source of truth for Badge variant types.
+ * Derived directly from the Badge component so it can't drift.
+ * 
+ * Do not pass raw strings to Badge.variant. Use AppBadgeVariant or toBadgeVariant().
  */
-export type AppBadgeVariant = NonNullable<BadgeProps["variant"]>;
+export type AppBadgeVariant = NonNullable<ComponentProps<typeof Badge>["variant"]>;
 
 /**
- * Maps string values to valid Badge variants
- * Handles common "design" tokens that may not match Badge's exact variant names
+ * Maps loose / legacy variant tokens to the supported Badge variants.
+ * Ensures callers never pass invalid strings like "outline".
  * 
  * @param v - String value to map to a Badge variant
  * @returns Valid Badge variant, defaults to "neutral" for unrecognized values
  */
-export function badgeVariant(v: string): AppBadgeVariant {
-  // Map common "design" tokens to supported badge variants
-  switch (v) {
+export function toBadgeVariant(v: unknown): AppBadgeVariant {
+  const s = String(v ?? "").toLowerCase();
+
+  switch (s) {
     case "outline":
-      return "neutral"; // closest visual intent
+      return "neutral"; // closest intent
     case "primary":
     case "secondary":
     case "success":
@@ -27,7 +31,7 @@ export function badgeVariant(v: string): AppBadgeVariant {
     case "default":
     case "neutral":
     case "muted":
-      return v;
+      return s as AppBadgeVariant;
     default:
       return "neutral";
   }

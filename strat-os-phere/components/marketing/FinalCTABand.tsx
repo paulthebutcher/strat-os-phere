@@ -21,6 +21,14 @@ export function FinalCTABand() {
             "bg-surface p-12 text-center shadow-lg md:p-16"
           )}>
             <div className="space-y-6">
+              <div className="space-y-4">
+                <p className="text-base md:text-lg text-text-secondary">
+                  Before: opinions and slides
+                </p>
+                <p className="text-base md:text-lg text-text-secondary">
+                  After: a decision with evidence attached
+                </p>
+              </div>
               <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
                 Start with a rough idea. Leave with a defensible call.
               </h2>
@@ -34,7 +42,7 @@ export function FinalCTABand() {
                       HoverLift.className
                     )}
                   >
-                    Try Plinth
+                    Try it on your idea
                   </Button>
                 </Link>
                 <Link href="/example">
