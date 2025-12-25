@@ -10,16 +10,12 @@
 
 export const microcopy = {
   marketing: {
-    heroHeadline: "Find your unfair advantage",
-    heroSubhead: "Plinth turns public market evidence into strategic opportunities with explicit confidence boundaries — so you know what's safe to act on now, what isn't yet, and what would increase certainty.",
-    heroTagline: "Decision credibility over AI novelty.",
-    primaryCTA: "See how it works",
-    secondaryCTA: "View an example",
-    trustBadges: [
-      "Citations included",
-      "Deterministic scoring",
-      "Exec-ready output",
-    ],
+    heroHeadline: "Find your unfair advantage.\nMake the call you can defend.",
+    heroSubhead: "Plinth turns public market evidence into ranked opportunities with explicit confidence boundaries—so you know what's safe to act on now, what isn't yet, and what would increase certainty.",
+    heroTagline: "No dashboards. No fluff. Just evidence-bound calls.",
+    primaryCTA: "Get a defensible readout",
+    secondaryCTA: "See a real example",
+    proofLine: "Citations included · Explainable ranking · Confidence boundaries",
   },
 
   onboarding: {

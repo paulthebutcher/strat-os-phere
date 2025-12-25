@@ -7,7 +7,6 @@ import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/brand/Logo"
-import { GlassPanel } from "./GlassPanel"
 
 export function MarketingNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -24,68 +23,40 @@ export function MarketingNav() {
 
   return (
     <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-6xl px-4 sm:px-6 lg:px-8 pointer-events-none">
-      <GlassPanel variant="nav" className="pointer-events-auto">
-        <div className="flex h-14 items-center justify-between px-4 sm:px-6">
+      <div className="pointer-events-auto bg-white/95 backdrop-blur-sm border border-border-subtle rounded-xl shadow-sm">
+        <div className="flex h-16 items-center justify-between px-6 lg:px-8">
         <Logo
           href="/"
           variant="lockup"
           size="md"
           priority
-          className="text-lg font-bold text-foreground hover:text-primary transition-colors"
+          className="text-lg font-semibold text-foreground hover:text-primary transition-colors"
         />
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-6 md:flex">
-          <Link
-            href="#product"
-            className={cn(
-              "relative text-sm font-medium text-text-secondary transition-all duration-200 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
-              "after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:rounded-full after:bg-accent-primary after:content-[''] after:transition-all after:duration-200",
-              "hover:after:w-full"
-            )}
-          >
-            Product
-          </Link>
-          <Link
-            href="#how-it-works"
-            className={cn(
-              "relative text-sm font-medium text-text-secondary transition-all duration-200 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
-              "after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:rounded-full after:bg-accent-primary after:content-[''] after:transition-all after:duration-200",
-              "hover:after:w-full"
-            )}
-          >
-            How it works
-          </Link>
-          <Link
-            href="#trust"
-            className={cn(
-              "relative text-sm font-medium text-text-secondary transition-all duration-200 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
-              "after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:rounded-full after:bg-accent-primary after:content-[''] after:transition-all after:duration-200",
-              "hover:after:w-full"
-            )}
-          >
-            Trust
-          </Link>
-          <Link href="/login">
+          <Link href="/example">
             <Button
               variant="ghost"
               size="sm"
-              className={cn(
-                "text-sm font-medium text-text-secondary transition-all duration-200 hover:text-text-primary hover:bg-white/40",
-                isActive("/login") && "text-text-primary"
-              )}
-              aria-current={isActive("/login") ? "page" : undefined}
+              className="text-sm font-medium text-text-secondary transition-all duration-200 hover:text-text-primary"
             >
-              Login
+              See an example
             </Button>
           </Link>
           <Link href="/new">
-            <Button
-              size="sm"
-              className="shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-            >
-              Try
-            </Button>
+            <div className="flex flex-col items-end gap-0.5">
+              <Button
+                size="sm"
+                variant="brand"
+                className="shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                Get a defensible readout
+              </Button>
+              <span className="text-[10px] text-text-muted hidden lg:block">
+                ~2 minutes · citations included
+              </span>
+            </div>
           </Link>
         </div>
 
@@ -106,51 +77,24 @@ export function MarketingNav() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="mt-2 md:hidden">
-          <GlassPanel variant="nav">
-            <div className="flex flex-col gap-1 px-4 py-3">
+        <div className="mt-2 md:hidden bg-white/95 backdrop-blur-sm border border-border-subtle rounded-xl shadow-sm">
+          <div className="flex flex-col gap-1 px-4 py-3">
             <Link
-              href="#product"
-              className="px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-white/40 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              href="/example"
+              className="px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-muted transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Product
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-white/40 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              How it works
-            </Link>
-            <Link
-              href="#trust"
-              className="px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-white/40 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Trust
-            </Link>
-            <Link
-              href="/login"
-              className={cn(
-                "px-3 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-white/40 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                isActive("/login") && "text-text-primary bg-white/40"
-              )}
-              onClick={() => setMobileMenuOpen(false)}
-              aria-current={isActive("/login") ? "page" : undefined}
-            >
-              Login
+              See an example
             </Link>
             <Link href="/new" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
-              <Button size="sm" className="w-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-                Try
+              <Button size="sm" variant="brand" className="w-full shadow-sm hover:shadow-md transition-all">
+                Get a defensible readout
               </Button>
             </Link>
           </div>
-          </GlassPanel>
         </div>
       )}
-      </GlassPanel>
+      </div>
     </nav>
   )
 }
