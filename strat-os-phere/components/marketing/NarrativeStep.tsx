@@ -31,6 +31,10 @@ interface NarrativeStepProps {
   artifactSubtitle?: string
   /** Receipt callouts (max 3) - chips that highlight key proof points */
   receiptCallouts?: ReceiptCallout[]
+  /** Show output connector below the preview (for input → output sections) */
+  showOutputConnector?: boolean
+  /** Lighter visual weight for the preview (reduced border contrast) */
+  lighterWeight?: boolean
 }
 
 export function NarrativeStep({
@@ -43,6 +47,8 @@ export function NarrativeStep({
   artifactTitle,
   artifactSubtitle,
   receiptCallouts = [],
+  showOutputConnector = false,
+  lighterWeight = false,
 }: NarrativeStepProps) {
   const isImageRight = alignment === "right"
 
@@ -94,15 +100,47 @@ export function NarrativeStep({
                   title={artifactTitle}
                   subtitle={artifactSubtitle}
                   callouts={receiptCallouts}
+                  lighterWeight={lighterWeight}
                 >
                   {image}
                 </PreviewArtifact>
               ) : (
-                <div className="relative rounded-xl border-2 border-border-subtle shadow-xl overflow-hidden bg-white">
+                <div className={cn(
+                  "relative rounded-xl border-2 overflow-hidden bg-white",
+                  lighterWeight ? "border-border-subtle/60 shadow-lg" : "border-border-subtle shadow-xl"
+                )}>
                   {image}
                 </div>
               )}
             </Reveal>
+            
+            {/* Output connector */}
+            {showOutputConnector && (
+              <Reveal delay={105}>
+                <div className="flex flex-col items-center gap-2 pt-2">
+                  <div className="flex items-center gap-2 text-sm text-text-muted">
+                    <div className="h-px w-8 bg-border-subtle" />
+                    <svg
+                      className="w-4 h-4 text-accent-primary"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                    <div className="h-px w-8 bg-border-subtle" />
+                  </div>
+                  <p className="text-xs text-text-muted text-center max-w-xs">
+                    This becomes a decision receipt with sources, confidence, and assumptions.
+                  </p>
+                </div>
+              </Reveal>
+            )}
           </div>
         </div>
       </MarketingContainer>

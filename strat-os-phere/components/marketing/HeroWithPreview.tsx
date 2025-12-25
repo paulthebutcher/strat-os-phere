@@ -101,7 +101,7 @@ export function HeroWithPreview() {
                   subtitle=""
                   callouts={[
                     { label: "Confidence is explicit" },
-                    { label: "Evidence attached" },
+                    { label: "Every claim is sourced" },
                     { label: "What changes the call" }
                   ]}
                 >

@@ -25,6 +25,8 @@ interface PreviewArtifactProps {
   callouts?: ReceiptCallout[]
   /** Optional className for the container */
   className?: string
+  /** Lighter visual weight (reduced border contrast) */
+  lighterWeight?: boolean
 }
 
 export function PreviewArtifact({
@@ -33,6 +35,7 @@ export function PreviewArtifact({
   subtitle,
   callouts = [],
   className,
+  lighterWeight = false,
 }: PreviewArtifactProps) {
   // Limit to 3 callouts max
   const displayCallouts = callouts.slice(0, 3)
@@ -69,7 +72,12 @@ export function PreviewArtifact({
       )}
 
       {/* Preview container with enhanced visual treatment */}
-      <div className="relative rounded-xl border-2 border-border-subtle/80 shadow-2xl overflow-hidden bg-white">
+      <div className={cn(
+        "relative rounded-xl border-2 overflow-hidden bg-white",
+        lighterWeight 
+          ? "border-border-subtle/60 shadow-lg" 
+          : "border-border-subtle/80 shadow-2xl"
+      )}>
         {/* Reduced background gradient/tint for better contrast */}
         <div className="absolute inset-0 bg-gradient-to-br from-surface-muted/10 via-transparent to-transparent pointer-events-none" />
         

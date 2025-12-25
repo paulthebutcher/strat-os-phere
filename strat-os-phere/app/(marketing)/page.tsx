@@ -45,30 +45,50 @@ export default function MarketingHome() {
         {/* 2. How it works carousel */}
         <HowItWorks />
         
-        {/* 3. "Start with a hunch" */}
+        {/* 3. "Start with a hunch" - Repositioned after carousel, reframed as input → output */}
         <NarrativeStep
-          title="Start with a hunch"
-          copy="Start with an idea, a competitor set, or a market question."
+          title="Start with a hunch. End with a decision you can defend."
+          copy={
+            <>
+              <p className="mb-3">
+                A market, a focus, and a real question are enough to generate an evidence-backed recommendation.
+              </p>
+              <p className="text-sm text-text-muted italic">
+                You don't need perfect framing. Plinth pressure-tests the question for you.
+              </p>
+            </>
+          }
           image={<ProjectSetupPreview />}
           alignment="right"
-          artifactTitle="Project Input"
-          artifactSubtitle="One page. Defensible call. Sources included."
+          artifactTitle="Minimal Input"
+          artifactSubtitle="A starter prompt, not a workflow commitment."
           receiptCallouts={[
             { label: "Decision question is explicit" },
             { label: "Market context included" }
           ]}
+          showOutputConnector={true}
+          lighterWeight={true}
         />
         
         {/* 4. Evidence section */}
         <NarrativeStep
           title="Here's how a decision actually comes together"
-          copy="Every claim has a source you can open and share."
+          copy={
+            <>
+              <p className="mb-3">
+                Every claim is sourced. Nothing is hand-wavy. No black-box conclusions.
+              </p>
+              <p className="text-sm text-text-muted">
+                If the evidence doesn't support a strong recommendation, Plinth will say so.
+              </p>
+            </>
+          }
           image={<EvidenceTablePreview />}
           alignment="left"
-          artifactTitle="Evidence Attached"
+          artifactTitle="Evidence Sourced"
           artifactSubtitle="One page. Defensible call. Sources included."
           receiptCallouts={[
-            { label: "Evidence attached" },
+            { label: "Every claim is sourced" },
             { label: "Sources are inspectable" },
             { label: "Citations included" }
           ]}

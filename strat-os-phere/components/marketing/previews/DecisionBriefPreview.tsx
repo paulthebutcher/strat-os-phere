@@ -94,7 +94,7 @@ export function DecisionBriefPreview() {
         <div className="w-full md:w-64 border-t md:border-t-0 md:border-l border-border-subtle bg-surface-muted/30 p-5 md:p-6 flex flex-col">
           <div className="mb-4">
             <p className="text-sm font-semibold text-text-primary mb-3">
-              Evidence attached
+              Every claim is sourced
             </p>
           </div>
 
