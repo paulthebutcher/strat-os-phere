@@ -25,6 +25,7 @@ import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
 import { OpportunityPlaybook } from '@/components/results/OpportunityPlaybook'
 import { OpportunityExperiments } from '@/components/results/OpportunityExperiments'
 import { OpportunityCardV1 } from '@/components/opportunities/OpportunityCardV1'
+import { DecisionView } from '@/components/results/DecisionView'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 
 /**
@@ -313,32 +314,7 @@ function OpportunitiesV3Presenter({
 
   // Get top opportunity
   const topOpportunity = sortedOpportunities[0]
-  const topScore = getOpportunityScore(topOpportunity)
 
-  // Build panel content for copy
-  const panelContentLines = [
-    '# If you did only one thing in the next 90 days',
-    '',
-    'A single bet that maximizes learning and leverage.',
-    '',
-    `## ${topOpportunity.title}`,
-    '',
-    topOpportunity.one_liner,
-    '',
-  ]
-
-  const rationale = topOpportunity.one_liner || topOpportunity.proposed_move || ''
-  if (rationale) {
-    panelContentLines.push('**Rationale:**', rationale, '')
-  }
-
-  if (topOpportunity.experiments && topOpportunity.experiments.length > 0) {
-    panelContentLines.push('**First experiment:**', topOpportunity.experiments[0].hypothesis || topOpportunity.experiments[0].smallest_test || '')
-  } else {
-    panelContentLines.push('**First experiment:** Run a small validation test to confirm customer interest and feasibility.')
-  }
-
-  const panelContent = panelContentLines.join('\n')
   const copyContent = formatOpportunitiesV3ToMarkdown(opportunitiesV3)
 
   return (
@@ -356,59 +332,11 @@ function OpportunitiesV3Presenter({
         </div>
       )}
       
-      <ProgressiveRevealWrapper section="top" storageKey="opportunities-progressive-reveal">
-        <div className="mb-4 rounded-lg bg-muted/30 border border-border p-4">
-          <p className="text-sm text-foreground font-medium mb-1">Results are ready</p>
-          <p className="text-sm text-muted-foreground">
-            Start with the top opportunity. Each card shows what to do, why now, and what would increase confidence.
-          </p>
-        </div>
-      </ProgressiveRevealWrapper>
-
-      {/* "If you did only one thing" panel */}
-      <ProgressiveRevealWrapper section="top" storageKey="opportunities-progressive-reveal">
-        <SectionCard className="border-2 border-primary/20">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold text-foreground mb-1">
-                If you did only one thing in the next 90 days
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                A single bet that maximizes learning and leverage.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {topScore !== null && (
-                <div className="flex shrink-0 items-center gap-2 rounded-lg bg-[rgba(var(--plinth-accent)/0.1)] px-3 py-1.5">
-                  <span className="text-lg font-bold text-[rgb(var(--plinth-accent))]">
-                    {topScore.toFixed(1)}
-                  </span>
-                  <span className="text-xs text-[rgb(var(--plinth-muted))]">score</span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-base font-semibold text-foreground mb-2">{topOpportunity.title}</h3>
-              <p className="text-sm text-foreground leading-relaxed">{topOpportunity.one_liner}</p>
-            </div>
-            {topOpportunity.experiments && topOpportunity.experiments.length > 0 && (
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                  First experiment
-                </h4>
-                <p className="text-sm text-foreground leading-relaxed">
-                  {topOpportunity.experiments[0].hypothesis || topOpportunity.experiments[0].smallest_test}
-                </p>
-              </div>
-            )}
-          </div>
-          <div className="mt-4 pt-4 border-t border-border">
-            <CopySectionButton content={panelContent} label="Copy summary" />
-          </div>
-        </SectionCard>
-      </ProgressiveRevealWrapper>
+      {/* Decision View - Expanded recommended opportunity */}
+      <DecisionView
+        opportunity={topOpportunity}
+        projectId={projectId}
+      />
 
       {/* Aggregate confidence summary */}
       {sortedOpportunities.length > 0 && (
@@ -420,23 +348,25 @@ function OpportunitiesV3Presenter({
         />
       )}
 
-      {/* All opportunities */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">All opportunities</h2>
-          <CopySectionButton content={copyContent} label="Copy all" />
+      {/* Other opportunities (excluding the top one shown in DecisionView) */}
+      {sortedOpportunities.length > 1 && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-foreground">Other opportunities</h2>
+            <CopySectionButton content={copyContent} label="Copy all" />
+          </div>
+          
+          {sortedOpportunities.slice(1).map((opp, index) => {
+            return (
+              <OpportunityCardV1
+                key={index}
+                opportunity={opp}
+                projectId={projectId}
+              />
+            )
+          })}
         </div>
-        
-        {sortedOpportunities.map((opp, index) => {
-          return (
-            <OpportunityCardV1
-              key={index}
-              opportunity={opp}
-              projectId={projectId}
-            />
-          )
-        })}
-      </div>
+      )}
     </section>
   )
 }
