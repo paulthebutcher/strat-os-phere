@@ -21,16 +21,8 @@ export function FinalCTABand() {
             "bg-surface p-12 text-center shadow-lg md:p-16"
           )}>
             <div className="space-y-6">
-              <div className="space-y-4">
-                <p className="text-base md:text-lg text-text-secondary">
-                  Before: opinions and slides
-                </p>
-                <p className="text-base md:text-lg text-text-secondary">
-                  After: a decision with evidence attached
-                </p>
-              </div>
               <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-                Start with a rough idea. Leave with a defensible call.
+                Ready to stop debating and start deciding?
               </h2>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
                 <Link href="/new">
@@ -42,22 +34,13 @@ export function FinalCTABand() {
                       HoverLift.className
                     )}
                   >
-                    Try it on your idea
-                  </Button>
-                </Link>
-                <Link href="/example">
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className={cn(
-                      "w-full sm:w-auto border-2 hover:bg-accent-primary/5",
-                      HoverLift.subtle
-                    )}
-                  >
-                    See a sample brief
+                    Get your first decision in minutes →
                   </Button>
                 </Link>
               </div>
+              <p className="text-sm md:text-base text-text-muted pt-2">
+                No dashboards. No fluff. Just the evidence that matters.
+              </p>
             </div>
           </div>
         </Reveal>
