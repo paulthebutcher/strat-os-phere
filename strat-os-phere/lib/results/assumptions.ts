@@ -9,6 +9,7 @@ import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import { getOpportunityScore } from './opportunityUx'
 import { isFluffy } from '@/lib/assumptions/isFluffy'
+import { normalizeProjectContext } from './normalizeProjectContext'
 
 export type AssumptionCategory = 'Market' | 'Buyer' | 'Product' | 'Competition' | 'Evidence' | 'Execution'
 
@@ -402,7 +403,7 @@ export async function refineAssumptions(
   const refined = await refineFluffyAssumptions(
     needsRefinement,
     {
-      project: projectContext,
+      project: normalizeProjectContext(projectContext),
       competitorNames,
     }
   )
