@@ -44,15 +44,20 @@ export async function DELETE(
     }
 
     // Verify project exists and belongs to user
-    const { data: project, error: fetchError } = await supabase
+    // Explicitly type the result to avoid TypeScript inferring 'never'
+    type ProjectLookup = { id: string; user_id: string } | null
+    const queryResult = await (supabase
       .from('projects')
       .select('id, user_id')
       .eq('id', projectId)
-      .single()
+      .single() as unknown as Promise<{ data: ProjectLookup; error: { message: string; code?: string } | null }>)
+    
+    const { data: project, error: fetchError } = queryResult
 
-    if (fetchError || !project) {
+    // Handle fetch error first
+    if (fetchError) {
       const appError = new NotFoundError('Project not found')
-      logAppError('api.projects.delete', appError, { projectId })
+      logAppError('api.projects.delete.not_found', appError, { projectId, userId: user.id })
       return NextResponse.json(
         {
           ok: false,
@@ -62,6 +67,20 @@ export async function DELETE(
       )
     }
 
+    // Handle null/not-found before accessing properties
+    if (!project) {
+      const appError = new NotFoundError('Project not found')
+      logAppError('api.projects.delete.not_found', appError, { projectId, userId: user.id })
+      return NextResponse.json(
+        {
+          ok: false,
+          message: appError.userMessage,
+        },
+        { status: 404 }
+      )
+    }
+
+    // Now TypeScript knows project is { id: string; user_id: string }
     if (project.user_id !== user.id) {
       const appError = new UnauthorizedError('You do not have permission to delete this project')
       logAppError('api.projects.delete', appError, { projectId, userId: user.id })
