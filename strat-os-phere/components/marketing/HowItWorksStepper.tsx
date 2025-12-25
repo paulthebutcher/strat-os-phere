@@ -3,6 +3,7 @@
  * 
  * Visual-first progression showing how a hunch becomes a defendable call.
  * Each step anchored to a visual, not more words.
+ * Enhanced with icons and interactive visual flow.
  */
 "use client"
 
@@ -12,6 +13,7 @@ import { Reveal, Stagger } from "./motion"
 import { Badge } from "@/components/ui/badge"
 import { ConfidencePill } from "./ConfidencePill"
 import { cn } from "@/lib/utils"
+import { Lightbulb, Search, TrendingUp, ArrowRight } from "lucide-react"
 
 // Step 1 Visual: Single sentence input
 function Step1Visual() {
@@ -85,26 +87,30 @@ function Step4Visual() {
 const steps = [
   {
     stepNumber: 1,
-    title: "Start with a hunch",
-    description: "What you think might be true",
+    title: "Bring Your Hunch",
+    description: "Start with what you think might be true",
+    icon: Lightbulb,
     visual: <Step1Visual />,
   },
   {
     stepNumber: 2,
-    title: "Ground it in evidence",
-    description: "Claims tied to real sources",
+    title: "Collect Evidence",
+    description: "We gather real sources and citations",
+    icon: Search,
     visual: <Step2Visual />,
   },
   {
     stepNumber: 3,
-    title: "Make confidence explicit",
-    description: "What's supported vs unknown",
+    title: "Rank Opportunities",
+    description: "Prioritized by evidence strength and market signals",
+    icon: TrendingUp,
     visual: <Step3Visual />,
   },
   {
     stepNumber: 4,
-    title: "Get a next step",
-    description: "What to do now—and what would change the call",
+    title: "See Confidence",
+    description: "Clear next steps and what would change the call",
+    icon: ArrowRight,
     visual: <Step4Visual />,
   },
 ]
@@ -125,29 +131,37 @@ export function DecisionsYouCanDefend() {
         </Reveal>
         
         <Stagger stagger={60} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {steps.map((step, index) => (
-            <Reveal key={index} delay={index * 60}>
-              <div className="flex flex-col">
-                <div className="mb-3">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {step.stepNumber}
-                  </span>
+          {steps.map((step, index) => {
+            const Icon = step.icon
+            return (
+              <Reveal key={index} delay={index * 60}>
+                <div className="flex flex-col h-full">
+                  {/* Step number and icon */}
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent-primary/10 border border-accent-primary/20">
+                      <Icon className="w-5 h-5 text-accent-primary" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Step {step.stepNumber}
+                    </span>
+                  </div>
+                  
+                  {/* Visual */}
+                  <div className="mb-4 flex-1">
+                    {step.visual}
+                  </div>
+                  
+                  {/* Title and description */}
+                  <h3 className="text-lg font-semibold mb-2 text-text-primary">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    {step.description}
+                  </p>
                 </div>
-                
-                {/* Visual */}
-                <div className="mb-3">
-                  {step.visual}
-                </div>
-                
-                <h3 className="text-base font-semibold mb-2 text-text-primary">
-                  {step.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-text-secondary">
-                  {step.description}
-                </p>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            )
+          })}
         </Stagger>
       </MarketingContainer>
     </MarketingSection>

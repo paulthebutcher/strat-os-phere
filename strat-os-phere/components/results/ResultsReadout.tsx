@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { ExecutiveReadout } from './ExecutiveReadout'
+import { DecisionBrief } from './DecisionBrief'
 import { AssumptionsExplorer } from './AssumptionsExplorer'
 import { deriveAssumptionsFromOpportunities } from '@/lib/results/assumptions'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
@@ -13,14 +13,15 @@ interface ResultsReadoutProps {
   opportunitiesV2?: OpportunitiesArtifactContent | null
   generatedAt?: string | null
   projectName?: string
+  competitorCount?: number
 }
 
 /**
- * ResultsReadout - Wrapper component for Executive Summary and Assumptions Explorer
+ * ResultsReadout - Wrapper component for Decision Brief and Assumptions Explorer
  * 
  * This component:
  * - Derives assumptions from opportunities on the client (pure function)
- * - Renders Executive Summary and unified Assumptions Explorer
+ * - Renders Decision Brief and unified Assumptions Explorer
  */
 export function ResultsReadout({
   projectId,
@@ -28,6 +29,7 @@ export function ResultsReadout({
   opportunitiesV2,
   generatedAt,
   projectName,
+  competitorCount,
 }: ResultsReadoutProps) {
   // Derive assumptions from opportunities (memoized)
   const assumptions = useMemo(() => {
@@ -36,12 +38,14 @@ export function ResultsReadout({
 
   return (
     <div className="space-y-6">
-      {/* Executive Readout */}
-      <ExecutiveReadout
+      {/* Decision Brief */}
+      <DecisionBrief
+        projectId={projectId}
         opportunitiesV3={opportunitiesV3}
         opportunitiesV2={opportunitiesV2}
         generatedAt={generatedAt}
         projectName={projectName}
+        competitorCount={competitorCount}
       />
 
       {/* Assumptions Explorer (Map + Ledger) */}

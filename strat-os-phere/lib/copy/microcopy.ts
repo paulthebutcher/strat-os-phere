@@ -10,11 +10,11 @@
 
 export const microcopy = {
   marketing: {
-    heroHeadline: "Find your unfair advantage",
-    heroSubhead: "Turn an idea into a clear next step—backed by public evidence you can point to.",
+    heroHeadline: "Make Better Decisions — Backed by Real Evidence and Confidence",
+    heroSubhead: "Plinth turns hunches into ranked strategic opportunities with explicit confidence — all backed by real sources.",
     heroTagline: "No dashboards. No fluff. Just the evidence behind the call.",
-    primaryCTA: "See a real example",
-    secondaryCTA: "Try it on your idea",
+    primaryCTA: "Try It on Your Idea",
+    secondaryCTA: "See Example",
     proofLine: "Citations included · Explainable ranking · Clear \"what would change my mind\"",
   },
 

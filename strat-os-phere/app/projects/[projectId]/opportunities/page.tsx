@@ -25,7 +25,7 @@ import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } fro
 import { logAppError } from '@/lib/errors/log'
 import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
 import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
-import { EvidenceReadinessChecklist } from '@/components/projects/ReadinessChecklist'
+import { DecisionQualityIndicators } from '@/components/projects/DecisionQualityIndicators'
 import { getLatestRunningRunForProject } from '@/lib/data/runs'
 import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 import { computeEvidenceCoverageLite } from '@/lib/evidence/coverageLite'
@@ -298,26 +298,28 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
           </Section>
         )}
 
-        {/* Readiness Checklist - Show when empty or not ready */}
-        {(!hasOpportunitiesArtifact || !coverageLite.isEvidenceSufficient) && (
+        {/* Decision Brief - Primary post-run experience (shown first when results exist) */}
+        {hasOpportunitiesArtifact && (
           <Section>
-            <EvidenceReadinessChecklist
-              competitorCount={competitorCount}
-              coverage={coverageLite}
-              hasOpportunitiesArtifact={hasOpportunitiesArtifact}
+            <ResultsReadout
               projectId={projectId}
+              opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
+              opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
+              generatedAt={normalized.meta.lastGeneratedAt || undefined}
+              projectName={project?.name || undefined}
+              competitorCount={competitorCount}
             />
           </Section>
         )}
-        
-        {/* Executive Readout, Assumptions Map, and Assumptions Ledger */}
+
+        {/* Decision Quality Indicators - Collapsed by default, always accessible */}
         <Section>
-          <ResultsReadout
+          <DecisionQualityIndicators
+            competitorCount={competitorCount}
+            coverage={coverageLite}
+            hasOpportunitiesArtifact={hasOpportunitiesArtifact}
             projectId={projectId}
-            opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
-            opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
-            generatedAt={normalized.meta.lastGeneratedAt || undefined}
-            projectName={project?.name || undefined}
+            defaultCollapsed={true}
           />
         </Section>
 

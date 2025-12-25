@@ -2,7 +2,7 @@
  * Proof Without Hype Section
  * 
  * Compact visual strip showing citation drawer, ranking breakdown, and confidence boundaries.
- * Visual-first proof, not promises.
+ * Visual-first proof, not promises. Enhanced with better visual hierarchy and trust elements.
  */
 "use client"
 
@@ -11,6 +11,7 @@ import { MarketingContainer } from "./MarketingContainer"
 import { Badge } from "@/components/ui/badge"
 import { Reveal } from "./motion"
 import { cn } from "@/lib/utils"
+import { FileText, TrendingUp, AlertCircle } from "lucide-react"
 
 // Citation drawer preview
 function CitationDrawerPreview() {
@@ -20,18 +21,23 @@ function CitationDrawerPreview() {
   ]
 
   return (
-    <div className="bg-white rounded-lg border border-border-subtle p-3 sm:p-4 space-y-2 min-h-[100px]">
-      <p className="text-[10px] font-medium text-muted-foreground mb-2">Citations</p>
-      {citations.map((citation, idx) => (
-        <div key={idx} className="space-y-0.5">
-          <p className="text-[10px] sm:text-xs font-medium text-text-primary">
-            {citation.domain}
-          </p>
-          <p className="text-[10px] text-text-secondary line-clamp-1">
-            {citation.quote}
-          </p>
-        </div>
-      ))}
+    <div className="bg-white rounded-lg border border-border-subtle p-4 sm:p-5 space-y-3 min-h-[140px] flex flex-col">
+      <div className="flex items-center gap-2">
+        <FileText className="w-4 h-4 text-accent-primary" />
+        <p className="text-xs font-semibold text-text-primary">Citations</p>
+      </div>
+      <div className="space-y-2 flex-1">
+        {citations.map((citation, idx) => (
+          <div key={idx} className="space-y-0.5 p-2 rounded border border-border-subtle bg-surface-muted/30">
+            <p className="text-xs font-medium text-text-primary">
+              {citation.domain}
+            </p>
+            <p className="text-[10px] text-text-secondary line-clamp-1">
+              {citation.quote}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -45,16 +51,21 @@ function RankingBreakdownPreview() {
   ]
 
   return (
-    <div className="bg-white rounded-lg border border-border-subtle p-3 sm:p-4 space-y-2 min-h-[100px]">
-      <p className="text-[10px] font-medium text-muted-foreground mb-2">Ranking drivers</p>
-      {drivers.map((driver, idx) => (
-        <div key={idx} className="flex items-center justify-between">
-          <span className="text-[10px] sm:text-xs text-text-secondary">{driver.label}</span>
-          <span className="text-[10px] sm:text-xs font-semibold text-text-primary">
-            {driver.value}
-          </span>
-        </div>
-      ))}
+    <div className="bg-white rounded-lg border border-border-subtle p-4 sm:p-5 space-y-3 min-h-[140px] flex flex-col">
+      <div className="flex items-center gap-2">
+        <TrendingUp className="w-4 h-4 text-accent-primary" />
+        <p className="text-xs font-semibold text-text-primary">Ranking drivers</p>
+      </div>
+      <div className="space-y-2.5 flex-1">
+        {drivers.map((driver, idx) => (
+          <div key={idx} className="flex items-center justify-between p-2 rounded border border-border-subtle bg-surface-muted/30">
+            <span className="text-xs text-text-secondary">{driver.label}</span>
+            <span className="text-xs font-semibold text-accent-primary">
+              {driver.value}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -62,11 +73,16 @@ function RankingBreakdownPreview() {
 // Confidence boundary callout
 function ConfidenceBoundaryPreview() {
   return (
-    <div className="bg-white rounded-lg border border-border-subtle p-3 sm:p-4 space-y-2 min-h-[100px]">
-      <p className="text-[10px] font-medium text-muted-foreground mb-2">Would change if</p>
-      <p className="text-[10px] sm:text-xs text-text-secondary leading-relaxed">
-        Competitor pricing shifts or new market data emerges
-      </p>
+    <div className="bg-white rounded-lg border border-border-subtle p-4 sm:p-5 space-y-3 min-h-[140px] flex flex-col">
+      <div className="flex items-center gap-2">
+        <AlertCircle className="w-4 h-4 text-accent-primary" />
+        <p className="text-xs font-semibold text-text-primary">Would change if</p>
+      </div>
+      <div className="flex-1 flex items-center">
+        <p className="text-xs text-text-secondary leading-relaxed">
+          Competitor pricing shifts or new market data emerges
+        </p>
+      </div>
     </div>
   )
 }

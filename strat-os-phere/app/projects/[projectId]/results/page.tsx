@@ -243,7 +243,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
   const normalizedArtifacts = normalizeArtifactsInternal(results.artifacts)
   const scoringMatrix = normalizedArtifacts.scoringMatrix?.content || null
 
-  // Select readout data for the new executive readout view
+  // Select readout data for the decision brief view
   const readoutData = selectReadoutData(normalized)
 
   // Normalize evidence bundle to ledger model
@@ -343,7 +343,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
               />
             </Section>
           ) : showReadout ? (
-            // Default: Show executive readout view
+            // Default: Show decision brief view
             (opportunities.best || !isRunning) && (
               <>
                 <PageHeader
