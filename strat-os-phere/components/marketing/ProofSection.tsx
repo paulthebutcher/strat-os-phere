@@ -25,14 +25,14 @@ interface ProofRowProps {
 function ProofRow({ icon: Icon, title, description }: ProofRowProps) {
   return (
     <div className={cn(
-      "flex items-start gap-4 py-4 border-b border-border-subtle last:border-0",
+      "flex items-start gap-3 py-3 border-b border-border-subtle last:border-0",
       "group transition-colors"
     )}>
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-primary/10 shrink-0 group-hover:bg-accent-primary/15 transition-colors">
-        <Icon className="h-5 w-5 text-accent-primary" />
+      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent-primary/10 shrink-0 group-hover:bg-accent-primary/15 transition-colors">
+        <Icon className="h-4 w-4 text-accent-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-base font-semibold text-text-primary mb-1">
+        <h3 className="text-sm font-semibold text-text-primary mb-1">
           {title}
         </h3>
         <p className="text-sm leading-relaxed text-text-secondary">
@@ -76,34 +76,41 @@ export function ProofSection() {
           </div>
         </Reveal>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start">
-          {/* Mobile: Visual first, then pillars */}
-          {/* Right Column: Concrete Visual Proof */}
-          <Reveal delay={60} className="order-2 lg:order-1">
-            <PreviewArtifact
-              title=""
-              subtitle=""
-              callouts={[]}
-            >
-              <DecidePreview />
-            </PreviewArtifact>
-          </Reveal>
+        {/* Proof section with unified frame */}
+        <div className="rounded-2xl border border-border-subtle bg-surface-muted/30 p-6 sm:p-8 lg:p-10">
+          <div className="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-6 sm:gap-8 lg:gap-8 items-start">
+            {/* Mobile: Visual first, then pillars */}
+            {/* Right Column: Concrete Visual Proof */}
+            <Reveal delay={60} className="order-1 lg:order-2">
+              <PreviewArtifact
+                title="Decision Receipt"
+                subtitle=""
+                callouts={[
+                  { label: "One page" },
+                  { label: "Defensible" },
+                  { label: "Sources included" }
+                ]}
+              >
+                <DecidePreview />
+              </PreviewArtifact>
+            </Reveal>
 
-          {/* Left Column: Compact Proof Pillars */}
-          <Reveal delay={120} className="order-1 lg:order-2">
-            <div className="panel p-4 sm:p-6 md:p-8 rounded-2xl border border-border-subtle bg-surface">
-              <Stagger>
-                {proofPillars.map((pillar, index) => (
-                  <ProofRow
-                    key={index}
-                    icon={pillar.icon}
-                    title={pillar.title}
-                    description={pillar.description}
-                  />
-                ))}
-              </Stagger>
-            </div>
-          </Reveal>
+            {/* Left Column: Compact Proof Pillars */}
+            <Reveal delay={120} className="order-2 lg:order-1">
+              <div className="p-4">
+                <Stagger>
+                  {proofPillars.map((pillar, index) => (
+                    <ProofRow
+                      key={index}
+                      icon={pillar.icon}
+                      title={pillar.title}
+                      description={pillar.description}
+                    />
+                  ))}
+                </Stagger>
+              </div>
+            </Reveal>
+          </div>
         </div>
 
         {/* Mobile CTA */}
