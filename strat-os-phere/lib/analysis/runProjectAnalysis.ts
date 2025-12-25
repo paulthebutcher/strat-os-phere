@@ -27,6 +27,7 @@ import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
 import { getProjectById } from '@/lib/data/projects'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { generateOpportunitiesV1 } from '@/lib/opportunities/generateOpportunitiesV1'
+import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 
 /**
  * Pipeline version constant - update when pipeline logic changes
@@ -220,7 +221,35 @@ export async function runProjectAnalysis(
     steps.push(validateStep)
 
     try {
-      // Mock validation for now - just mark as done
+      // Validate minimum competitors requirement
+      const competitors = await listCompetitorsForProject(supabase, projectId)
+      if (competitors.length < MIN_COMPETITORS_FOR_ANALYSIS) {
+        validateStep.status = 'failed'
+        validateStep.finished_at = new Date().toISOString()
+        validateStep.error = `At least ${MIN_COMPETITORS_FOR_ANALYSIS} competitors required`
+        
+        const failedRun = await setRunFailed(supabase, run.id, {
+          error_code: 'INSUFFICIENT_COMPETITORS',
+          error_message: `Add at least ${MIN_COMPETITORS_FOR_ANALYSIS} competitors to get useful evidence.`,
+          error_detail: `Found ${competitors.length} competitors, need ${MIN_COMPETITORS_FOR_ANALYSIS}`,
+          metricsPatch: {
+            steps: steps,
+          },
+        })
+
+        if (failedRun.ok) {
+          return {
+            ok: false,
+            error: {
+              code: 'INSUFFICIENT_COMPETITORS',
+              message: `Add at least ${MIN_COMPETITORS_FOR_ANALYSIS} competitors to get useful evidence.`,
+              runId: run.id,
+            },
+          }
+        }
+      }
+
+      // Validation passed
       validateStep.status = 'done'
       validateStep.finished_at = new Date().toISOString()
       

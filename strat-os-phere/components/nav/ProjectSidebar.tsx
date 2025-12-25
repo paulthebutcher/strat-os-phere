@@ -46,11 +46,25 @@ export function ProjectSidebar({
     const isActive = activeItemId === item.id
     const Icon = item.icon
 
+    // Dev-only debug logging for navigation
+    const handleClick = () => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[ProjectSidebar] Navigation click:', {
+          itemId: item.id,
+          href,
+          currentPathname: pathname,
+          willNavigateTo: href,
+        })
+      }
+    }
+
     return (
       <Link
         key={item.id}
         href={href}
+        prefetch
         data-testid={`project-nav-item-${item.id}`}
+        onClick={handleClick}
         className={cn(
           'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
           'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
@@ -69,12 +83,13 @@ export function ProjectSidebar({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 md:pt-[57px] md:border-r md:border-border plinth-surface">
+      <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 md:pt-[57px] md:border-r md:border-border md:z-10 md:bg-background plinth-surface">
         <div className="flex flex-col h-full overflow-y-auto">
           {/* Back to Projects Link */}
           <div className="p-3 border-b border-border">
             <Link
               href="/dashboard"
+              prefetch
               className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               data-testid="back-to-projects-link"
             >
@@ -150,6 +165,7 @@ export function ProjectSidebar({
               <div className="p-3 border-b border-border">
                 <Link
                   href="/dashboard"
+                  prefetch
                   className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="back-to-projects-link"
                   onClick={() => setMobileMenuOpen(false)}

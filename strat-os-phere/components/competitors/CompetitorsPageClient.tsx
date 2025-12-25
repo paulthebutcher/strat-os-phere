@@ -24,6 +24,7 @@ import {
 import type { Competitor } from '@/lib/supabase/types'
 import { addCompetitorFromSearch } from '@/app/projects/[projectId]/competitors/actions'
 import { normalizeUrl, toDisplayDomain } from '@/lib/url/normalizeUrl'
+import { normalizeDomain } from '@/lib/competitors/domainFilters'
 
 interface CompetitorsPageClientProps {
   projectId: string
@@ -33,10 +34,12 @@ interface CompetitorsPageClientProps {
   remainingToReady: number
 }
 
-type CompetitorResult = {
+type CompetitorCandidate = {
   name: string
-  website: string
+  url: string
   domain: string
+  score: number
+  reason?: string
 }
 
 export function CompetitorsPageClient({
@@ -49,7 +52,7 @@ export function CompetitorsPageClient({
   const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<CompetitorResult[]>([])
+  const [searchResults, setSearchResults] = useState<CompetitorCandidate[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
   const [addingCompetitor, setAddingCompetitor] = useState<string | null>(null)
@@ -97,28 +100,28 @@ export function CompetitorsPageClient({
 
       const data = await response.json()
 
-      if (data.ok && Array.isArray(data.results)) {
-        setSearchResults(data.results)
-        if (data.results.length === 0) {
+      if (data.ok && Array.isArray(data.candidates)) {
+        setSearchResults(data.candidates)
+        if (data.candidates.length === 0) {
           setSearchError(
-            'No competitors found. We only show primary company websites (no listicles). Try a different query.'
+            data.error || 'No clean company domains found. Try a specific company name or remove "alternatives" from your query.'
           )
         }
       } else {
         setSearchResults([])
-        setSearchError(data.error || 'Failed to search for competitors')
+        setSearchError(data.error || 'Couldn\'t fetch suggestions. Try again.')
       }
     } catch (err) {
       console.error('[CompetitorsPage] Search failed:', err)
       setSearchResults([])
-      setSearchError('Failed to search for competitors. You can add them manually.')
+      setSearchError('Couldn\'t fetch suggestions. Try again.')
     } finally {
       setIsSearching(false)
     }
   }
 
   // Add competitor from search result
-  const handleAddFromSearch = async (result: CompetitorResult) => {
+  const handleAddFromSearch = async (result: CompetitorCandidate) => {
     if (isAtMax) {
       setSearchError(`You can add up to ${MAX_COMPETITORS_PER_PROJECT} competitors`)
       return
@@ -136,7 +139,7 @@ export function CompetitorsPageClient({
     try {
       const response = await addCompetitorFromSearch(projectId, {
         name: result.name,
-        url: result.website,
+        url: result.url,
       })
 
       if (response.success) {
@@ -148,8 +151,13 @@ export function CompetitorsPageClient({
         )
         // Update existing domains
         existingDomains.add(normalizedDomain)
+        setSearchError(null)
       } else {
-        setSearchError(response.message || 'Failed to add competitor')
+        if (response.message?.includes('already')) {
+          setSearchError('Already added')
+        } else {
+          setSearchError(response.message || 'Failed to add competitor')
+        }
       }
     } catch (err) {
       console.error('[CompetitorsPage] Add failed:', err)
@@ -157,6 +165,18 @@ export function CompetitorsPageClient({
     } finally {
       setAddingCompetitor(null)
     }
+  }
+
+  // Validate URL for manual add
+  const validateManualUrl = (url: string): string | null => {
+    if (!url.trim()) {
+      return null // URL is optional
+    }
+    const normalized = normalizeUrl(url)
+    if (!normalized.ok) {
+      return normalized.reason
+    }
+    return null
   }
 
   // Add competitor manually
@@ -171,6 +191,13 @@ export function CompetitorsPageClient({
       return
     }
 
+    // Validate URL if provided
+    const urlError = validateManualUrl(manualUrl)
+    if (urlError) {
+      setManualError(`Invalid URL: ${urlError}`)
+      return
+    }
+
     let url = manualUrl.trim()
     if (url) {
       const normalized = normalizeUrl(url)
@@ -180,8 +207,15 @@ export function CompetitorsPageClient({
       }
       url = normalized.url
     } else {
-      // If no URL, create a placeholder
+      // URL is optional but recommended
       url = `https://${manualName.toLowerCase().replace(/\s+/g, '')}.com`
+    }
+
+    // Check for duplicate
+    const normalizedDomain = normalizeDomain(url)
+    if (existingDomains.has(normalizedDomain)) {
+      setManualError('This competitor is already added')
+      return
     }
 
     setManualError(null)
@@ -403,7 +437,7 @@ export function CompetitorsPageClient({
           {/* Helper text */}
           <div className="panel px-4 py-3">
             <p className="text-sm text-muted-foreground">
-              Select at least {MIN_COMPETITORS_FOR_ANALYSIS} competitors to generate credible comparisons.
+              Add at least {MIN_COMPETITORS_FOR_ANALYSIS} competitors to get useful evidence.
             </p>
           </div>
         </section>
@@ -619,7 +653,7 @@ export function CompetitorsPageClient({
           {competitorCount < MIN_COMPETITORS_FOR_ANALYSIS && (
             <div className="panel px-4 py-3">
               <p className="text-xs text-muted-foreground">
-                Select at least {MIN_COMPETITORS_FOR_ANALYSIS} competitors to generate credible comparisons.
+                Add at least {MIN_COMPETITORS_FOR_ANALYSIS} competitors to get useful evidence.
               </p>
             </div>
           )}

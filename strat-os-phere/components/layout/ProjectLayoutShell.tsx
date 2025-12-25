@@ -26,15 +26,15 @@ export function ProjectLayoutShell({
   children,
 }: ProjectLayoutShellProps) {
   return (
-    <div className="flex min-h-[calc(100vh-57px)]">
+    <div className="flex min-h-[calc(100vh-57px)] relative">
       <ProjectSidebar
         projectId={projectId}
         projectName={projectName}
         subtitle={subtitle}
       />
 
-      {/* Main Content */}
-      <main className="flex-1 md:ml-60">
+      {/* Main Content - positioned to not overlap sidebar */}
+      <main className="flex-1 md:ml-60 relative z-0">
         <div className="pt-0 md:pt-0">
           {children}
         </div>

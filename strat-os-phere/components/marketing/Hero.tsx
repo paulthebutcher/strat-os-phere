@@ -9,8 +9,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { HeroArtifactBand } from "./HeroArtifactBand"
-import { ArtifactPreviewRow } from "./ArtifactPreviewRow"
+import { DecisionFormationAnimation } from "./DecisionFormationAnimation"
 import { microcopy } from "@/lib/copy/microcopy"
 import { Reveal, HoverLift } from "./motion"
 import { MarketingContainer } from "./MarketingContainer"
@@ -88,20 +87,23 @@ export function Hero() {
                 {microcopy.marketing.heroTagline}
               </p>
             </Reveal>
-            
-            {/* Proof line */}
-            <Reveal delay={150}>
-              <p className={cn(
-                "text-sm text-text-muted"
-              )}>
-                {microcopy.marketing.proofLine}
-              </p>
-            </Reveal>
           </div>
 
-          {/* Visual proof row: Idea → Evidence → Call */}
-          <div className="mt-8 sm:mt-12 md:mt-16 px-4 sm:px-0">
-            <ArtifactPreviewRow />
+          {/* Decision formation animation */}
+          <div className="mt-12 sm:mt-16 md:mt-20 px-4 sm:px-0">
+            <Reveal delay={150}>
+              <div className="space-y-4 text-center mb-8">
+                <p className="text-lg sm:text-xl md:text-2xl font-medium text-text-primary">
+                  Watch how a decision takes shape.
+                </p>
+              </div>
+              <DecisionFormationAnimation />
+              <div className="mt-6 text-center">
+                <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
+                  From a rough idea to a call you can defend — with evidence attached.
+                </p>
+              </div>
+            </Reveal>
           </div>
         </MarketingContainer>
       </div>

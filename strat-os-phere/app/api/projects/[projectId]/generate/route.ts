@@ -49,6 +49,15 @@ export async function POST(
             details: { projectId, runId: result.error.runId, code: errorCode }
           }
         )
+      } else if (errorCode === 'INSUFFICIENT_COMPETITORS') {
+        appError = new NotReadyError(
+          result.error.message,
+          {
+            userMessage: result.error.message || 'Add at least 3 competitors to get useful evidence.',
+            action: { label: 'Add competitors', href: `/projects/${projectId}/competitors` },
+            details: { projectId, runId: result.error.runId, code: errorCode }
+          }
+        )
       } else if (errorCode === 'INSUFFICIENT_EVIDENCE' || errorCode === 'INSUFFICIENT_EVIDENCE_COVERAGE') {
         appError = new NotReadyError(
           result.error.message,
