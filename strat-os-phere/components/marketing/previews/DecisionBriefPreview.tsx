@@ -11,30 +11,22 @@ import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import { ConfidencePill } from "@/components/marketing/ConfidencePill"
 
-const opportunities = [
-  {
-    title: "Introduce a constrained free tier to unlock mid-market adoption",
-    confidence: "investment_ready" as const,
-    citationsCount: 8,
-    bullets: [
-      "4/5 competitors offer free tiers capped at usage",
-      "Reviews cite 'trial friction' as a blocker to adoption"
-    ]
-  },
-  {
-    title: "Improve API rate limits based on competitor signals",
-    confidence: "directional" as const,
-    citationsCount: 6,
-    bullets: [
-      "Market standard appears to be 10K requests/hour for free tier",
-    ]
-  },
-]
+// Hero proof asset — single investment-ready recommendation only
+const primaryOpportunity = {
+  title: "Introduce a constrained free tier to unlock mid-market adoption",
+  confidence: "investment_ready" as const,
+  citationsCount: 8,
+  bullets: [
+    "4/5 competitors offer free tiers capped at usage",
+    "Reviews cite 'trial friction' as a blocker to adoption"
+  ]
+}
 
 const citations = [
   { domain: "competitor-a.com", type: "Pricing" },
   { domain: "competitor-b.com", type: "Docs" },
   { domain: "reviews-site.com", type: "Reviews" },
+  { domain: "competitor-c.com", type: "Pricing" },
 ]
 
 function prefersReducedMotion(): boolean {
@@ -57,81 +49,63 @@ export function DecisionBriefPreview() {
   return (
     <div 
       className={cn(
-        "flex flex-col bg-white min-h-[450px] md:min-h-[520px]",
+        "flex flex-col bg-white min-h-[450px] md:min-h-[520px] rounded-lg shadow-lg border border-border-subtle",
         "transition-opacity duration-500 ease-out",
         isVisible ? "opacity-100" : "opacity-0"
       )}
     >
-      {/* Proof-first: Remove header chrome, focus on content */}
+      {/* Proof-first: Single investment-ready recommendation only */}
       {/* Main content: two-column layout */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* Left: Top opportunity (most prominent) */}
-        <div className="flex-1 p-5 md:p-6 space-y-3 overflow-y-auto">
-          {/* Top recommendation - highlighted */}
-          <div className="p-4 rounded-lg border-2 border-accent-primary/50 bg-accent-primary/8">
+        {/* Left: Primary recommendation (single call) */}
+        <div className="flex-1 p-6 md:p-8 space-y-4 overflow-y-auto">
+          {/* Primary recommendation - prominent and clear */}
+          <div className="p-5 md:p-6 rounded-lg border-2 border-accent-primary/50 bg-accent-primary/8 shadow-sm">
             {/* Title and confidence */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
-              <h3 className="text-sm font-semibold text-text-primary leading-snug flex-1">
-                {opportunities[0].title}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+              <h3 className="text-base md:text-lg font-semibold text-text-primary leading-snug flex-1">
+                {primaryOpportunity.title}
               </h3>
-              <ConfidencePill level={opportunities[0].confidence} className="text-xs shrink-0 self-start" />
+              <ConfidencePill level={primaryOpportunity.confidence} className="text-xs shrink-0 self-start" />
             </div>
 
             {/* Evidence strength */}
-            <div className="mb-3">
-              <p className="text-xs font-medium text-text-muted">
-                {opportunities[0].citationsCount} sources attached
+            <div className="mb-4">
+              <p className="text-sm font-medium text-text-primary">
+                {primaryOpportunity.citationsCount} sources attached
               </p>
             </div>
 
             {/* Why this ranks bullets */}
-            <div className="space-y-1.5">
-              {opportunities[0].bullets.map((bullet, bulletIdx) => (
-                <div key={bulletIdx} className="flex items-start gap-2">
-                  <span className="text-accent-primary mt-0.5 shrink-0">•</span>
-                  <p className="text-xs text-text-secondary leading-relaxed">
+            <div className="space-y-2">
+              {primaryOpportunity.bullets.map((bullet, bulletIdx) => (
+                <div key={bulletIdx} className="flex items-start gap-2.5">
+                  <span className="text-accent-primary mt-0.5 shrink-0 font-semibold">•</span>
+                  <p className="text-sm text-text-primary leading-relaxed">
                     {bullet}
                   </p>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Other opportunities - compact */}
-          {opportunities.slice(1).map((opp, idx) => (
-            <div
-              key={idx}
-              className="p-3 rounded-lg border border-border-subtle bg-white"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
-                <h3 className="text-xs font-semibold text-text-primary leading-snug flex-1">
-                  {opp.title}
-                </h3>
-                <ConfidencePill level={opp.confidence} className="text-[10px] shrink-0 self-start" />
-              </div>
-              <p className="text-[10px] text-text-muted">
-                {opp.citationsCount} sources
-              </p>
-            </div>
-          ))}
         </div>
 
         {/* Right: Evidence snippet panel */}
-        <div className="w-full md:w-56 border-t md:border-t-0 md:border-l border-border-subtle bg-surface-muted/30 p-4 md:p-5 flex flex-col">
-          <div className="mb-3">
-            <p className="text-xs font-semibold text-text-primary mb-2">
+        <div className="w-full md:w-64 border-t md:border-t-0 md:border-l border-border-subtle bg-surface-muted/30 p-5 md:p-6 flex flex-col">
+          <div className="mb-4">
+            <p className="text-sm font-semibold text-text-primary mb-3">
               Evidence attached
             </p>
           </div>
 
-          {/* Citation list */}
-          <div className="space-y-2.5">
+          {/* Citation list with improved spacing */}
+          <div className="space-y-3">
             {citations.map((citation, idx) => (
-              <div key={idx} className="flex items-center justify-between gap-2">
-                <span className="text-xs font-medium text-text-primary truncate">
+              <div key={idx} className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-text-primary truncate">
                   {citation.domain}
                 </span>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 shrink-0">
+                <Badge variant="secondary" className="text-xs px-2 py-1 shrink-0">
                   {citation.type}
                 </Badge>
               </div>
@@ -139,12 +113,12 @@ export function DecisionBriefPreview() {
           </div>
 
           {/* What would change this call section */}
-          <div className="mt-auto pt-3 border-t border-border-subtle">
-            <p className="text-xs font-semibold text-text-primary mb-1.5">
+          <div className="mt-auto pt-4 border-t border-border-subtle">
+            <p className="text-sm font-semibold text-text-primary mb-2">
               What would change this call?
             </p>
-            <p className="text-[11px] text-text-secondary">
-              Competitor pricing shifts or new market data would update recommendations
+            <p className="text-xs text-text-secondary leading-relaxed">
+              This changes if two competitors launch comparable free tiers with similar limits.
             </p>
           </div>
         </div>

@@ -18,6 +18,7 @@ import { ConfidenceBoundariesPreview } from "@/components/marketing/previews/Con
 import { NextStepsPreview } from "@/components/marketing/previews/NextStepsPreview"
 import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
+import { HowItWorks } from "@/components/marketing/HowItWorks"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
 import { MarketingSection } from "@/components/marketing/MarketingSection"
 import { MarketingContainer } from "@/components/marketing/MarketingContainer"
@@ -41,7 +42,10 @@ export default function MarketingHome() {
         {/* 1. Hero: "Make decisions you can defend" */}
         <HeroWithPreview />
         
-        {/* 2. "Start with a hunch" */}
+        {/* 2. How it works carousel */}
+        <HowItWorks />
+        
+        {/* 3. "Start with a hunch" */}
         <NarrativeStep
           title="Start with a hunch"
           copy="Start with an idea, a competitor set, or a market question."
@@ -55,7 +59,7 @@ export default function MarketingHome() {
           ]}
         />
         
-        {/* 3. Evidence section */}
+        {/* 4. Evidence section */}
         <NarrativeStep
           title="Here's how a decision actually comes together"
           copy="Every claim has a source you can open and share."
@@ -70,7 +74,7 @@ export default function MarketingHome() {
           ]}
         />
         
-        {/* 4. Opportunities section */}
+        {/* 5. Opportunities section */}
         <NarrativeStep
           title="Opportunities, ranked"
           copy="Not a list of ideas — a prioritized shortlist based on signal strength."
@@ -101,7 +105,7 @@ export default function MarketingHome() {
           </MarketingContainer>
         </MarketingSection>
         
-        {/* 5. Confidence section */}
+        {/* 6. Confidence section */}
         <NarrativeStep
           title="Confidence boundaries (what's safe to act on)"
           copy="Shows what's supported, what's uncertain, and what would change the recommendation."
@@ -116,7 +120,7 @@ export default function MarketingHome() {
           ]}
         />
         
-        {/* 6. Next moves section */}
+        {/* 7. Next moves section */}
         <NarrativeStep
           title="Next moves (action, not analysis)"
           copy="Clear actions to increase confidence — customer checks, competitive scans, and tests."
@@ -130,7 +134,7 @@ export default function MarketingHome() {
           ]}
         />
         
-        {/* 7. Final CTA */}
+        {/* 8. Final CTA */}
         <FinalCTABand />
         
         <Footer />

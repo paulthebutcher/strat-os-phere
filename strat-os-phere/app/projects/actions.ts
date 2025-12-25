@@ -161,4 +161,41 @@ export async function createProjectFromForm(
   return { success: true, projectId }
 }
 
+/**
+ * Create a new analysis - always creates a fresh project.
+ * This is the dedicated entry point for "New Analysis" button clicks.
+ * No resume logic, no reuse of existing projects.
+ */
+export async function createNewAnalysis(): Promise<CreateProjectResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  // Generate a default project name
+  const defaultName = `New Analysis - ${new Date().toLocaleDateString()}`
+
+  // Create project with ONLY stable fields (name, user_id)
+  const result = await createProjectSafe(supabase, {
+    user_id: user.id,
+    name: defaultName,
+  })
+
+  if (!result.ok) {
+    return {
+      success: false,
+      message: result.error.message || 'Failed to create project.',
+    }
+  }
+
+  const projectId = result.data.id
+
+  // Return success - project is created, ready for Step 1
+  return { success: true, projectId }
+}
+
 
