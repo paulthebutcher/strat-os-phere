@@ -16,7 +16,7 @@ describe('diffHelpers', () => {
         meta: {
           generated_at: '2024-01-01T00:00:00Z',
         },
-        jobs: jobs.map((job, index) => ({
+        jobs: jobs.map((job) => ({
           job_statement: job.job_statement,
           context: 'test context',
           desired_outcomes: ['outcome'],

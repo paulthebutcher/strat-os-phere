@@ -31,12 +31,18 @@ const eslintConfig = defineConfig([
       // If they cause issues, they can be removed as Next.js config already includes React linting
     },
   },
-  // Override for test files: allow `any` to avoid blocking builds
-  // Production code (app/, components/, lib/) still enforces no-explicit-any
+  // Override for test files: allow `any` and relax unused vars to avoid blocking builds
+  // Production code (app/, components/, lib/) still enforces strict rules
   {
     files: ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**", "tests/**"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": ["warn", { 
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        // Allow unused vars in tests for better readability and future use
+        caughtErrorsIgnorePattern: "^_",
+      }],
     },
   },
 ]);

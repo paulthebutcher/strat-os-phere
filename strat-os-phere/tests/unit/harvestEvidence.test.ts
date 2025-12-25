@@ -4,7 +4,7 @@ import {
   buildQueriesForType,
   EVIDENCE_TYPES,
 } from '@/lib/evidence/packs'
-import type { HarvestEvidenceCtx, HarvestEvidenceType } from '@/lib/evidence/types'
+import type { HarvestEvidenceCtx } from '@/lib/evidence/types'
 
 describe('buildEvidencePacks', () => {
   it('should produce packs for all evidence types by default', () => {

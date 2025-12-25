@@ -6,9 +6,6 @@ import {
   shouldShowNumericScore,
   directionalFromScore,
   gateScore,
-  type CoverageStatus,
-  type ConfidenceLevel,
-  type DirectionalSignal,
 } from '@/lib/scoring/evidenceGating'
 
 describe('summarizeCitations', () => {

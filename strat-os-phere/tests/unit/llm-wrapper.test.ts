@@ -1,18 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { callLLM } from '@/lib/llm/callLLM'
-import type { LLMProvider, LLMResponse } from '@/lib/llm/provider'
+import type { LLMResponse } from '@/lib/llm/provider'
 
 describe('callLLM wrapper', () => {
-  let mockProvider: LLMProvider
-  let originalProvider: typeof callLLM
-
   beforeEach(() => {
-    // Create a mock provider
-    mockProvider = {
-      name: 'openai',
-      generate: vi.fn(),
-    }
-
     // We need to mock the provider creation, but since callLLM uses a singleton,
     // we'll test the actual behavior with a controlled provider
     // In a real scenario, we'd use dependency injection, but for now we test
