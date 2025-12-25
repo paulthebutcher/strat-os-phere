@@ -7,6 +7,7 @@ import { loadProject } from '@/lib/projects/loadProject'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeResults'
 import { createClient } from '@/lib/supabase/server'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { PAGE_IDS } from '@/lib/guidance/content'
 import { TourLink } from '@/components/guidance/TourLink'
 import { ShareButton } from '@/components/results/ShareButton'
 import { PageShell } from '@/components/layout/PageShell'
@@ -173,7 +174,7 @@ export default async function OpportunityDetailPage(props: OpportunityDetailPage
     }
 
     return (
-      <PageGuidanceWrapper pageId="opportunity-detail">
+      <PageGuidanceWrapper pageId={PAGE_IDS.opportunityDetail}>
         <PageShell size="wide">
           {/* Breadcrumb Navigation */}
           <Section>

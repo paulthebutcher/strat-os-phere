@@ -16,6 +16,7 @@ import { EvidenceContent } from '@/components/results/EvidenceContent'
 import { StrategicBetsSection } from '@/components/results/memo/StrategicBetsSection'
 import { ShareButton } from '@/components/results/ShareButton'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { PAGE_IDS } from '@/lib/guidance/content'
 import { RerunAnalysisButton } from '@/components/results/RerunAnalysisButton'
 import { RunHistoryDrawer } from '@/components/results/RunHistoryDrawer'
 import { InProgressBanner } from '@/components/results/InProgressBanner'
@@ -287,7 +288,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
   const showTabContent = tab && tab !== 'readout' && tab !== 'appendix'
 
   return (
-    <PageGuidanceWrapper pageId="results">
+    <PageGuidanceWrapper pageId={PAGE_IDS.results}>
       <ResultsPageClient
         projectId={projectId}
         initialRun={results.activeRun}

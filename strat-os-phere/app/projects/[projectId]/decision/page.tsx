@@ -9,6 +9,7 @@ import { normalizeResultsArtifacts } from '@/lib/results/normalizeResults'
 import { createClient } from '@/lib/supabase/server'
 import { ShareButton } from '@/components/results/ShareButton'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { PAGE_IDS } from '@/lib/guidance/content'
 import { TourLink } from '@/components/guidance/TourLink'
 import { FLAGS } from '@/lib/flags'
 import { getProcessedClaims } from '@/lib/evidence'
@@ -277,7 +278,7 @@ export default async function DecisionPage(props: DecisionPageProps) {
       : null
 
     return (
-      <PageGuidanceWrapper pageId="decision">
+      <PageGuidanceWrapper pageId={PAGE_IDS.decision}>
         <PageShell size="wide">
           <PageHeader
             title="Decision Summary"

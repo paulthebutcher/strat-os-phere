@@ -11,6 +11,7 @@ import { OpportunitiesContent } from '@/components/results/OpportunitiesContent'
 import { ResultsReadout } from '@/components/results/ResultsReadout'
 import { ShareButton } from '@/components/results/ShareButton'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { PAGE_IDS } from '@/lib/guidance/content'
 import { TourLink } from '@/components/guidance/TourLink'
 import { FLAGS } from '@/lib/flags'
 import { getProcessedClaims } from '@/lib/evidence'
@@ -24,8 +25,8 @@ import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
 import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
-import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
 import { DecisionQualityIndicators } from '@/components/projects/DecisionQualityIndicators'
+import { OpportunitiesStatusHeader } from '@/components/opportunities/OpportunitiesStatusHeader'
 import { getLatestRunningRunForProject } from '@/lib/data/runs'
 import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 import { computeEvidenceCoverageLite } from '@/lib/evidence/coverageLite'
@@ -274,7 +275,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
     : null
 
     return (
-      <PageGuidanceWrapper pageId="results">
+      <PageGuidanceWrapper pageId={PAGE_IDS.results}>
         <PageShell size="wide">
           {/* Breadcrumb Navigation */}
           <Section>
@@ -313,8 +314,8 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
           </Section>
         )}
 
-        {/* System State Banner - shows empty/running/partial/complete states */}
-        {viewModel.systemState !== 'complete' && (
+        {/* System State Banner - only show for empty/running/failed states (not partial/complete) */}
+        {(viewModel.systemState === 'empty' || viewModel.systemState === 'running' || viewModel.systemState === 'failed') && (
           <Section>
             <SystemStateBanner
               state={viewModel.systemState}
@@ -332,17 +333,6 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
                   </Link>
                 ) : undefined
               }
-            />
-          </Section>
-        )}
-
-        {/* Coverage Indicator - Show when we have results */}
-        {viewModel.systemState !== 'empty' && viewModel.systemState !== 'running' && (
-          <Section>
-            <CoverageIndicator
-              level={viewModel.coverageLevel}
-              sourceCount={viewModel.sourceCount}
-              competitorCount={viewModel.competitorCount}
             />
           </Section>
         )}
@@ -403,6 +393,18 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             defaultCollapsed={true}
           />
         </Section>
+
+        {/* Progress & Results Header - Unified status and coverage above opportunities list */}
+        {hasOpportunitiesArtifact && (
+          <Section>
+            <OpportunitiesStatusHeader
+              projectId={projectId}
+              competitorCount={competitorCount}
+              coverage={coverageLite}
+              hasOpportunitiesArtifact={hasOpportunitiesArtifact}
+            />
+          </Section>
+        )}
 
         {/* Opportunities Content - primary view */}
         <Section>

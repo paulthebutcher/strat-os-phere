@@ -1,4 +1,22 @@
-export type PageId = 'landing' | 'dashboard' | 'new_project' | 'competitors' | 'decision' | 'results'
+/**
+ * Central registry of all valid page IDs.
+ * This is the single source of truth for page IDs - use PAGE_IDS constants instead of string literals.
+ */
+export const PAGE_IDS = {
+  landing: 'landing',
+  dashboard: 'dashboard',
+  newProject: 'new_project',
+  competitors: 'competitors',
+  decision: 'decision',
+  results: 'results',
+  opportunityDetail: 'opportunity-detail',
+} as const
+
+/**
+ * Union type derived from PAGE_IDS values.
+ * This ensures type safety while preventing unregistered page IDs.
+ */
+export type PageId = (typeof PAGE_IDS)[keyof typeof PAGE_IDS]
 
 export interface GuidanceLink {
   label: string
@@ -14,8 +32,12 @@ export interface PageGuidance {
   links: GuidanceLink[]
 }
 
+/**
+ * Guidance configuration for all pages.
+ * This Record ensures exhaustiveness - if you add a new PageId, TypeScript will require you to add its config here.
+ */
 export const guidanceContent: Record<PageId, PageGuidance> = {
-  landing: {
+  [PAGE_IDS.landing]: {
     title: 'Welcome to Plinth',
     intro: 'Plinth turns competitor signals into decision-ready opportunities, backed by evidence and citations.',
     nextSteps: [
@@ -38,7 +60,7 @@ export const guidanceContent: Record<PageId, PageGuidance> = {
       { label: 'Get started', href: '/login' },
     ],
   },
-  dashboard: {
+  [PAGE_IDS.dashboard]: {
     title: 'Your Projects',
     intro: 'Manage your competitive analysis projects. Create new analyses or continue working on existing ones.',
     nextSteps: [
@@ -59,7 +81,7 @@ export const guidanceContent: Record<PageId, PageGuidance> = {
       { label: 'Help center', href: '/help' },
     ],
   },
-  new_project: {
+  [PAGE_IDS.newProject]: {
     title: 'New Analysis',
     intro: 'Set up your competitive analysis by defining your market, target customer, and business goal.',
     nextSteps: [
@@ -83,7 +105,7 @@ export const guidanceContent: Record<PageId, PageGuidance> = {
       { label: 'Help with setup', href: '/help#new_project' },
     ],
   },
-  competitors: {
+  [PAGE_IDS.competitors]: {
     title: 'Competitors',
     intro: 'Add real alternatives so Plinth can generate a sharp, exec-ready landscape summary. You need at least 3 competitors to generate an analysis.',
     nextSteps: [
@@ -106,7 +128,7 @@ export const guidanceContent: Record<PageId, PageGuidance> = {
       { label: 'Back to project', href: '/dashboard' },
     ],
   },
-  decision: {
+  [PAGE_IDS.decision]: {
     title: 'Decision Summary',
     intro: 'Primary recommendation, confidence assessment, and key insights from your competitive analysis. This is your decision-oriented synthesis surface.',
     nextSteps: [
@@ -131,7 +153,7 @@ export const guidanceContent: Record<PageId, PageGuidance> = {
       { label: 'Understanding confidence', href: '/help#results' },
     ],
   },
-  results: {
+  [PAGE_IDS.results]: {
     title: 'Opportunities',
     intro: 'Ranked differentiation opportunities with scores, confidence levels, and actionable next steps. Each opportunity is backed by evidence and citations.',
     nextSteps: [
@@ -153,6 +175,30 @@ export const guidanceContent: Record<PageId, PageGuidance> = {
     links: [
       { label: 'View evidence', href: '/help#evidence' },
       { label: 'Understanding scores', href: '/help#results' },
+    ],
+  },
+  [PAGE_IDS.opportunityDetail]: {
+    title: 'Opportunity',
+    intro: 'Deep dive into a strategic opportunity: signals, evidence, and relationship to the overall decision.',
+    nextSteps: [
+      'Review the opportunity details and supporting evidence',
+      'Check citations to validate the evidence sources',
+      'Understand how this opportunity relates to the overall decision',
+    ],
+    glossary: {
+      Opportunity: 'A ranked differentiation opportunity with scores, confidence levels, and actionable next steps.',
+      Evidence: 'Public signals from competitors (pricing pages, reviews, job postings, changelogs) that support this opportunity.',
+      Citations: 'Links to the public sources that support each insight in this opportunity.',
+      Confidence: 'How certain we are about this opportunity based on evidence quality and recency.',
+    },
+    commonMistakes: [
+      'Not reviewing the citations to validate evidence quality',
+      'Ignoring confidence levels when evaluating the opportunity',
+      'Not considering how this opportunity fits into the broader decision context',
+    ],
+    links: [
+      { label: 'View all opportunities', href: '/help#opportunities' },
+      { label: 'Understanding confidence', href: '/help#results' },
     ],
   },
 }

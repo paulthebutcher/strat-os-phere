@@ -1,4 +1,4 @@
-import type { PageId } from './content'
+import { PAGE_IDS, type PageId } from './content'
 
 /**
  * Maps a pathname to a page ID for guidance content.
@@ -10,22 +10,27 @@ export function routeToPageId(pathname: string): PageId {
 
   // Landing page
   if (normalized === '' || normalized === 'login') {
-    return 'landing'
+    return PAGE_IDS.landing
   }
 
   // Dashboard
   if (normalized === 'dashboard') {
-    return 'dashboard'
+    return PAGE_IDS.dashboard
   }
 
   // New project
   if (normalized === 'projects/new') {
-    return 'new_project'
+    return PAGE_IDS.newProject
+  }
+
+  // Opportunity detail page
+  if (normalized.match(/^projects\/[^/]+\/opportunities\/[^/]+$/)) {
+    return PAGE_IDS.opportunityDetail
   }
 
   // Competitors page
   if (normalized.match(/^projects\/[^/]+\/competitors$/)) {
-    return 'competitors'
+    return PAGE_IDS.competitors
   }
 
   // Decision page (primary entry point)
@@ -34,7 +39,7 @@ export function routeToPageId(pathname: string): PageId {
     normalized.match(/^projects\/[^/]+\/decision\?/) ||
     normalized.match(/^projects\/[^/]+$/) // Root project route now redirects to decision
   ) {
-    return 'decision'
+    return PAGE_IDS.decision
   }
 
   // Results/Opportunities page
@@ -42,15 +47,15 @@ export function routeToPageId(pathname: string): PageId {
     normalized.match(/^projects\/[^/]+\/(results|opportunities)$/) ||
     normalized.match(/^projects\/[^/]+\/results\?/)
   ) {
-    return 'results'
+    return PAGE_IDS.results
   }
 
   // Default to dashboard for authenticated routes
   if (normalized.startsWith('projects/')) {
-    return 'dashboard'
+    return PAGE_IDS.dashboard
   }
 
   // Default fallback
-  return 'landing'
+  return PAGE_IDS.landing
 }
 

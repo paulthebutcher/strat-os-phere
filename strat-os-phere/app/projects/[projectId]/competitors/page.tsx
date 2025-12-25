@@ -18,6 +18,7 @@ import { getEvidenceSourcesForProject } from '@/lib/data/evidenceSources'
 import { DataRecencyNote } from '@/components/shared/DataRecencyNote'
 import Link from 'next/link'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { PAGE_IDS } from '@/lib/guidance/content'
 import { TourLink } from '@/components/guidance/TourLink'
 import { FirstWinChecklistWrapper } from '@/components/onboarding/FirstWinChecklistWrapper'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
@@ -207,7 +208,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
   const effectiveCompetitorCount = normalized.competitorCount ?? competitorCount
 
   return (
-    <PageGuidanceWrapper pageId="competitors">
+    <PageGuidanceWrapper pageId={PAGE_IDS.competitors}>
       <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
         <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
           <header className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-start md:justify-between">

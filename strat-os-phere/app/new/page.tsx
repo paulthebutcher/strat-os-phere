@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { AnalysisWizard } from '@/components/onboarding/AnalysisWizard'
 import { createClient } from '@/lib/supabase/server'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { PAGE_IDS } from '@/lib/guidance/content'
 import { createPageMetadata } from '@/lib/seo/metadata'
 import type { SearchParams } from '@/lib/routing/searchParams'
 import { isParamTruthy, getParam } from '@/lib/routing/searchParams'
@@ -64,7 +65,7 @@ export default async function NewAnalysisPage(props: PageProps) {
   const example = getParam(props.searchParams, 'example')
 
   return (
-    <PageGuidanceWrapper pageId="new_project">
+    <PageGuidanceWrapper pageId={PAGE_IDS.newProject}>
       <NewAnalysisPageClient 
         isGuidedMode={isGuidedMode}
         isAuthenticated={isAuthenticated}

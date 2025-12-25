@@ -17,7 +17,7 @@ import { MarketingContainer } from "./MarketingContainer"
 
 export function HeroWithPreview() {
   return (
-    <section className="relative overflow-hidden pt-16 sm:pt-24 md:pt-32 lg:pt-40 pb-8 sm:pb-12 md:pb-16">
+    <section className="relative overflow-hidden pt-12 sm:pt-12 md:pt-14 lg:pt-14 pb-8 sm:pb-12 md:pb-16">
       {/* Subtle radial gradient background */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div 
@@ -31,12 +31,13 @@ export function HeroWithPreview() {
       {/* Main content: stacked layout */}
       <div className="relative z-10">
         <MarketingContainer maxWidth="6xl">
-          <div className="flex flex-col gap-4 sm:gap-6 md:gap-8">
+          <div className="flex flex-col gap-3 sm:gap-4 md:gap-5">
             {/* Top: Copy and CTAs */}
-            <div className="max-w-3xl mx-auto text-center space-y-4 sm:space-y-6">
+            <div className="max-w-[1100px] mx-auto text-center space-y-3 sm:space-y-4">
               <Reveal delay={0}>
                 <h1 className={cn(
-                  "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-text-primary"
+                  "text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight leading-tight text-text-primary",
+                  "lg:whitespace-nowrap"
                 )}>
                   Make decisions you can defend
                 </h1>
@@ -51,8 +52,8 @@ export function HeroWithPreview() {
               </Reveal>
 
               <Reveal delay={90}>
-                <div className="flex flex-col items-center gap-3">
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full">
+                <div className="flex flex-col items-center gap-2.5">
+                  <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center items-center w-full">
                     <Link href="/new" className="w-full sm:w-auto">
                       <Button 
                         size="lg" 
@@ -78,7 +79,7 @@ export function HeroWithPreview() {
                       </Button>
                     </Link>
                   </div>
-                  <p className="text-xs text-text-muted">Takes ~2 minutes. No login required.</p>
+                  <p className="text-xs text-text-muted mt-0.5">Takes ~2 minutes. No login required.</p>
                 </div>
               </Reveal>
             </div>
@@ -86,13 +87,15 @@ export function HeroWithPreview() {
             {/* Below: Decision Brief Preview - immediately after CTAs */}
             <Reveal delay={120}>
               <div className="max-w-6xl mx-auto w-full">
-                <PreviewArtifact
-                  title=""
-                  subtitle=""
-                  callouts={[]}
-                >
-                  <DecisionBriefPreview />
-                </PreviewArtifact>
+                <div className="max-h-[420px] lg:max-h-[520px] overflow-hidden">
+                  <PreviewArtifact
+                    title=""
+                    subtitle=""
+                    callouts={[]}
+                  >
+                    <DecisionBriefPreview />
+                  </PreviewArtifact>
+                </div>
                 
                 {/* Interactive affordance */}
                 <div className="mt-3 px-1 text-center sm:text-left">
