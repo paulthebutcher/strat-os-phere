@@ -24,6 +24,7 @@ import type { NormalizedCitation } from '@/lib/results/evidence'
 import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
 import { OpportunityPlaybook } from '@/components/results/OpportunityPlaybook'
 import { OpportunityExperiments } from '@/components/results/OpportunityExperiments'
+import { OpportunityCardV1 } from '@/components/opportunities/OpportunityCardV1'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 
 /**
@@ -163,10 +164,10 @@ export function ResultsPresenter({
           <div className="w-full max-w-md space-y-6 text-center mx-auto">
             <div className="space-y-2">
               <h2 className="text-xl font-semibold text-foreground">
-                No opportunities generated yet
+                No opportunities met the evidence bar yet
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Once inputs are confirmed, Plinth will surface defensible opportunities ranked by impact and confidence.
+                Add competitors / expand evidence coverage and rerun.
               </p>
             </div>
             {mode === 'project' && projectId && (
@@ -177,7 +178,12 @@ export function ResultsPresenter({
                 />
                 <Button asChild variant="outline" type="button">
                   <Link href={`/projects/${projectId}/competitors`}>
-                    Review inputs
+                    Add competitors
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" type="button">
+                  <Link href={`/projects/${projectId}/evidence`}>
+                    Add evidence
                   </Link>
                 </Button>
               </div>
@@ -358,7 +364,7 @@ function OpportunitiesV3Presenter({
         <div className="mb-4 rounded-lg bg-muted/30 border border-border p-4">
           <p className="text-sm text-foreground font-medium mb-1">Results are ready</p>
           <p className="text-sm text-muted-foreground">
-            Start with the top opportunity. Everything else supports why it's worth betting on.
+            Start with the top opportunity. Each card shows what to do, why now, and what would increase confidence.
           </p>
         </div>
       </ProgressiveRevealWrapper>
@@ -426,112 +432,12 @@ function OpportunitiesV3Presenter({
         </div>
         
         {sortedOpportunities.map((opp, index) => {
-          const score = getOpportunityScore(opp)
-          const whyNowSignals = getWhyNowSignals(opp)
-          const isTop3 = index < 3
-
           return (
-            <SectionCard key={index} className="p-6">
-              <header className="mb-5 space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start gap-2">
-                      <h3 className="text-base font-semibold text-foreground leading-snug">{opp.title}</h3>
-                      {qualityPackEnabled && 'mergedCount' in opp && typeof opp.mergedCount === 'number' && opp.mergedCount > 1 && (
-                        <MergeBadge
-                          mergedCount={opp.mergedCount}
-                          mergedTitles={('mergedTitles' in opp && Array.isArray(opp.mergedTitles)) ? (opp.mergedTitles as string[]) : []}
-                        />
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {score !== null && (
-                      <div className="flex shrink-0 items-center gap-2 rounded-lg bg-[rgba(var(--plinth-accent)/0.1)] px-3 py-1.5">
-                        <span className="text-lg font-bold text-[rgb(var(--plinth-accent))]">
-                          {score.toFixed(1)}
-                        </span>
-                        <span className="text-xs text-[rgb(var(--plinth-muted))]">score</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <p className="text-sm text-foreground leading-relaxed">{opp.one_liner}</p>
-              </header>
-
-              <div className="space-y-5 text-sm">
-                {opp.why_now && (
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                      Why now
-                    </h4>
-                    <p className="text-foreground leading-relaxed">{opp.why_now}</p>
-                    {whyNowSignals.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {whyNowSignals.map((signal, signalIndex) => (
-                          <WhyNowChip key={signalIndex} signal={signal} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Steal This Playbook */}
-                <OpportunityPlaybook
-                  opportunity={opp}
-                  competitors={competitors}
-                />
-
-                {/* Recommended Experiments */}
-                <OpportunityExperiments
-                  opportunity={opp}
-                />
-
-                {opp.experiments && opp.experiments.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                      Experiments
-                    </h4>
-                    <ul className="space-y-3">
-                      {opp.experiments.map((exp, expIndex) => (
-                        <li key={expIndex} className="space-y-2">
-                          <p className="text-foreground font-medium">{exp.hypothesis || exp.smallest_test}</p>
-                          {exp.success_metric && (
-                            <p className="text-muted-foreground text-xs">Success metric: {exp.success_metric}</p>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {opp.proof_points && opp.proof_points.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                      Proof points
-                    </h4>
-                    <ul className="space-y-2">
-                      {opp.proof_points.map((proof, proofIndex) => (
-                        <li key={proofIndex} className="text-foreground leading-relaxed">
-                          {proof.claim && (
-                            <span>{proof.claim}</span>
-                          )}
-                          {proof.citations && proof.citations.length > 0 && (
-                            <span className="text-muted-foreground text-xs ml-2">
-                              ({proof.citations.length} source{proof.citations.length !== 1 ? 's' : ''})
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {isTop3 && (
-                  <CounterfactualCallout opportunity={opp} />
-                )}
-              </div>
-            </SectionCard>
+            <OpportunityCardV1
+              key={index}
+              opportunity={opp}
+              projectId={projectId}
+            />
           )
         })}
       </div>
@@ -568,10 +474,10 @@ function OpportunitiesV2Presenter({
         <SectionCard className="py-16">
           <div className="w-full max-w-md space-y-6 text-center mx-auto">
             <h2 className="text-xl font-semibold text-foreground">
-              No opportunities generated yet
+              No opportunities yet
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Once inputs are confirmed, Plinth will surface defensible opportunities ranked by impact and confidence.
+              Increase evidence coverage and rerun to generate defensible opportunities.
             </p>
             {mode === 'project' && projectId && (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -581,7 +487,12 @@ function OpportunitiesV2Presenter({
                 />
                 <Button asChild variant="outline" type="button">
                   <Link href={`/projects/${projectId}/competitors`}>
-                    Review inputs
+                    Add competitors
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" type="button">
+                  <Link href={`/projects/${projectId}/evidence`}>
+                    Add evidence
                   </Link>
                 </Button>
               </div>
@@ -634,7 +545,7 @@ function OpportunitiesV2Presenter({
       <div className="rounded-lg bg-muted/50 border border-border p-4">
         <h3 className="text-sm font-semibold text-foreground mb-1">Opportunities</h3>
         <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-          A defensible way to win that forces competitors to react. Ranked by score (impact, effort, confidence, and linked job importance).
+          Decisions you can defend. Ranked by evidence, impact, and confidence.
         </p>
       </div>
 
