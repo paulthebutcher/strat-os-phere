@@ -269,3 +269,47 @@ export async function updateProjectSafe(
   }
 }
 
+/**
+ * Delete a project permanently and all associated data
+ * This will cascade delete related records (competitors, evidence, runs, etc.)
+ * via database foreign key constraints
+ */
+export async function deleteProjectSafe(
+  client: Client,
+  projectId: string
+): Promise<ProjectResult<void>> {
+  try {
+    const typedClient = getTypedClient(client)
+    
+    // Delete the project - cascade deletes should handle related data
+    // If cascade is not configured, we may need to delete related tables explicitly
+    const { error } = await typedClient
+      .from('projects')
+      .delete()
+      .eq('id', projectId)
+
+    if (error) {
+      logServerError('deleteProjectSafe', error, { projectId })
+      
+      return {
+        ok: false,
+        error: {
+          code: error.code || 'UNKNOWN',
+          message: error.message || 'Failed to delete project',
+        },
+      }
+    }
+
+    return { ok: true, data: undefined }
+  } catch (error) {
+    logServerError('deleteProjectSafe', error, { projectId })
+    return {
+      ok: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      },
+    }
+  }
+}
+

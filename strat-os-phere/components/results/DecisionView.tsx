@@ -12,6 +12,7 @@ import { computeDecisionConfidence } from '@/lib/ui/decisionConfidence'
 import { formatSourceType } from '@/lib/ux/evidenceStrength'
 import type { OpportunityV3Item } from '@/lib/schemas/opportunityV3'
 import type { Citation } from '@/lib/schemas/opportunityV3'
+import { safeString } from '@/lib/text/safeString'
 
 interface DecisionViewProps {
   opportunity: OpportunityV3Item
@@ -180,6 +181,10 @@ export function DecisionView({
   const whatWouldChange = getWhatWouldChange(opportunity)
   const confidenceInfo = getConfidenceInfo(opportunity)
   
+  // Evidence readiness: never show high confidence without evidence
+  const hasEvidence = allCitations.length > 0
+  const evidenceCount = allCitations.length
+  
   // Build executive rationale - synthesize from one_liner, why_now, and proposed_move
   // This should read like an exec summary, not analysis notes
   const rationaleBullets: string[] = []
@@ -189,9 +194,10 @@ export function DecisionView({
     rationaleBullets.push(opportunity.one_liner)
   }
   
-  // Add why_now as context if it adds value
-  if (opportunity.why_now && !opportunity.one_liner?.toLowerCase().includes(opportunity.why_now.toLowerCase().slice(0, 20))) {
-    rationaleBullets.push(opportunity.why_now)
+  // Add why_now as context if it adds value - safely handle non-string types
+  const whyNow = safeString(opportunity.why_now)
+  if (whyNow && !opportunity.one_liner?.toLowerCase().includes(whyNow.toLowerCase().slice(0, 20))) {
+    rationaleBullets.push(whyNow)
   }
   
   // Add proposed_move if it's distinct from one_liner
@@ -253,52 +259,39 @@ export function DecisionView({
           {opportunity.title}
         </h1>
         
-        {/* Metadata row */}
+        {/* Metadata row - Only show confidence/score if evidence exists */}
         <div className="flex flex-wrap items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <Badge variant={confidenceInfo.label === 'Investment-ready' ? 'default' : 'secondary'}>
-              {confidenceInfo.label}
-            </Badge>
-          </div>
-          
-          {allCitations.length > 0 && (
-            <div className="text-muted-foreground">
-              <span className="font-medium text-foreground">{allCitations.length}</span> source{allCitations.length !== 1 ? 's' : ''} attached
-            </div>
-          )}
-          
-          {score !== null && (
-            <div className="text-muted-foreground">
-              Score: <span className="font-medium text-foreground">{score.toFixed(1)}</span>
+          {hasEvidence ? (
+            <>
+              <div className="flex items-center gap-2">
+                <Badge variant={confidenceInfo.label === 'Investment-ready' ? 'default' : 'secondary'}>
+                  {confidenceInfo.label}
+                </Badge>
+              </div>
+              
+              <div className="text-muted-foreground">
+                <span className="font-medium text-foreground">{evidenceCount}</span> source{evidenceCount !== 1 ? 's' : ''} attached
+              </div>
+              
+              {score !== null && (
+                <div className="text-muted-foreground">
+                  Score: <span className="font-medium text-foreground">{score.toFixed(1)}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">Early signals</Badge>
+              <span className="text-sm text-muted-foreground">
+                Evidence is still being collected
+              </span>
             </div>
           )}
         </div>
       </header>
 
-      {/* 2. Executive Rationale */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">Why this is the right call</h2>
-        <div className="space-y-2">
-          {rationaleBullets.length > 0 ? (
-            <ul className="space-y-2">
-              {rationaleBullets.map((item, idx) => (
-                <li key={idx} className="text-base text-foreground leading-relaxed">
-                  • {item}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-base text-foreground leading-relaxed">
-              {opportunity.one_liner || 'This opportunity is supported by strong evidence and competitive signals.'}
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* 3. Evidence Breakdown (Inline, grouped by type) */}
-      {(evidenceGroups.competitive.length > 0 || 
-        evidenceGroups.customer.length > 0 || 
-        evidenceGroups.product.length > 0) && (
+      {/* 2. Evidence Breakdown - NOW FIRST, before rationale (reordered per PR) */}
+      {hasEvidence ? (
         <section className="space-y-6">
           <h2 className="text-lg font-semibold text-foreground">Evidence</h2>
           
@@ -437,7 +430,40 @@ export function DecisionView({
             </div>
           )}
         </section>
+      ) : (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">Evidence</h2>
+          <div className="p-4 bg-muted/30 rounded-lg border border-border">
+            <p className="text-sm text-foreground mb-2 font-medium">
+              Evidence is still being collected
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              We're gathering sources from competitor sites, reviews, and documentation.
+              This decision will sharpen as evidence completes.
+            </p>
+          </div>
+        </section>
       )}
+
+      {/* 3. Executive Rationale (moved after evidence) */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-foreground">Why this is the right call</h2>
+        <div className="space-y-2">
+          {rationaleBullets.length > 0 ? (
+            <ul className="space-y-2">
+              {rationaleBullets.map((item, idx) => (
+                <li key={idx} className="text-base text-foreground leading-relaxed">
+                  • {item}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-base text-foreground leading-relaxed">
+              {opportunity.one_liner || 'This opportunity is supported by strong evidence and competitive signals.'}
+            </p>
+          )}
+        </div>
+      </section>
 
       {/* 4. What Would Change This Call */}
       {whatWouldChange.length > 0 && (

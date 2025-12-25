@@ -11,6 +11,7 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { safeString } from '@/lib/text/safeString'
 
 interface Citation {
   url: string
@@ -216,7 +217,7 @@ export function SampleOpportunityPreview({ className }: SampleOpportunityPreview
           Why Now
         </h3>
         <p className="text-base text-[rgb(var(--plinth-text))] leading-relaxed">
-          {opportunity.why_now}
+          {safeString(opportunity.why_now) || 'Why now information not available'}
         </p>
       </div>
 

@@ -19,8 +19,7 @@ import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } fro
 import { logAppError } from '@/lib/errors/log'
 import { OpportunityDetail } from '@/components/opportunities/OpportunityDetail'
 import { decodeOpportunityId } from '@/lib/opportunities/opportunityId'
-import Link from 'next/link'
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { ProjectBreadcrumbs } from '@/components/layout/ProjectBreadcrumbs'
 
 interface OpportunityDetailPageProps {
   params: Promise<{
@@ -178,29 +177,11 @@ export default async function OpportunityDetailPage(props: OpportunityDetailPage
         <PageShell size="wide">
           {/* Breadcrumb Navigation */}
           <Section>
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link href={`/projects/${projectId}/decision`}>
-                      {project?.name || 'Project'}
-                    </Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link href={`/projects/${projectId}/opportunities`}>
-                      Opportunities
-                    </Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{opportunity.title}</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <ProjectBreadcrumbs
+              projectId={projectId}
+              projectName={project.name}
+              opportunityTitle={opportunity.title}
+            />
           </Section>
 
           <PageHeader

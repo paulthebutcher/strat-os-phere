@@ -8,6 +8,7 @@ import { computeDecisionConfidence } from '@/lib/ui/decisionConfidence'
 import type { OpportunityV3Item } from '@/lib/schemas/opportunityV3'
 import type { OpportunityItem } from '@/lib/schemas/opportunities'
 import { encodeOpportunityId } from '@/lib/opportunities/opportunityId'
+import { getOpportunityBlurb } from '@/lib/opportunities/getOpportunityBlurb'
 
 type Opportunity = OpportunityV3Item | OpportunityItem
 
@@ -21,23 +22,18 @@ interface OpportunitiesListProps {
  * Get a 1-line insight/why it exists for an opportunity
  */
 function getOneLineInsight(opportunity: Opportunity): string {
-  // V3: Use one_liner or why_now
+  // V3: Use one_liner first
   if ('one_liner' in opportunity && opportunity.one_liner) {
     return opportunity.one_liner
   }
-  if ('why_now' in opportunity && opportunity.why_now) {
-    return opportunity.why_now
+  
+  // Fallback to blurb helper which safely handles description/why_now/summary
+  const blurb = getOpportunityBlurb(opportunity)
+  if (blurb && blurb !== "Opportunity details are still being generated.") {
+    return blurb
   }
   
-  // V2: Use description or why_now
-  if ('description' in opportunity && opportunity.description) {
-    return opportunity.description
-  }
-  if ('why_now' in opportunity && typeof opportunity.why_now === 'string') {
-    return opportunity.why_now
-  }
-  
-  // Fallback: Use title as insight
+  // Final fallback: Use title as insight
   return opportunity.title
 }
 

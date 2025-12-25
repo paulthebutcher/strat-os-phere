@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import type { Artifact } from '@/lib/supabase/types'
+import { safeString } from '@/lib/text/safeString'
 import {
   CompetitorSnapshotSchema,
   type CompetitorSnapshot,
@@ -655,7 +656,7 @@ export function formatOpportunitiesToMarkdown(
     lines.push(
       `## [Priority ${opportunity.priority}] ${opportunity.opportunity}`,
       `Who it serves: ${opportunity.who_it_serves}`,
-      `Why now: ${opportunity.why_now}`,
+      `Why now: ${safeString(opportunity.why_now) || 'Not specified'}`,
       `Why competitors miss it: ${opportunity.why_competitors_miss_it}`,
       `Suggested angle: ${opportunity.suggested_angle}`,
       `Risk or assumption: ${opportunity.risk_or_assumption}`,

@@ -11,6 +11,7 @@ import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import type { EvidenceCoverageLite } from '@/lib/evidence/coverageLite'
 import { EMPTY_EVIDENCE_COVERAGE_LITE } from '@/lib/evidence/coverageTypes'
 import type { Citation } from '@/lib/schemas/opportunityV3'
+import { safeString } from '@/lib/text/safeString'
 
 interface DecisionSummaryProps {
   projectId: string
@@ -81,21 +82,29 @@ function getWhyThisMatters(opportunity: any): string[] {
     insights.push(opportunity.one_liner)
   }
   
-  // Use why_now (V3) or why_this_matters
-  if ('why_now' in opportunity && typeof opportunity.why_now === 'string') {
-    insights.push(opportunity.why_now)
-  } else if ('why_this_matters' in opportunity && typeof opportunity.why_this_matters === 'string') {
-    insights.push(opportunity.why_this_matters)
+  // Use why_now (V3) or why_this_matters - safely handle non-string types
+  const whyNow = 'why_now' in opportunity ? safeString(opportunity.why_now) : null
+  if (whyNow) {
+    insights.push(whyNow)
+  } else {
+    const whyThisMatters = 'why_this_matters' in opportunity ? safeString(opportunity.why_this_matters) : null
+    if (whyThisMatters) {
+      insights.push(whyThisMatters)
+    }
   }
   
   // Extract from problem_today (V3)
-  if ('problem_today' in opportunity && typeof opportunity.problem_today === 'string') {
-    insights.push(opportunity.problem_today)
+  const problemToday = 'problem_today' in opportunity ? safeString(opportunity.problem_today) : null
+  if (problemToday) {
+    insights.push(problemToday)
   }
   
   // Fallback to description or summary
-  if (insights.length === 0 && 'description' in opportunity && typeof opportunity.description === 'string') {
-    insights.push(opportunity.description)
+  if (insights.length === 0) {
+    const description = 'description' in opportunity ? safeString(opportunity.description) : null
+    if (description) {
+      insights.push(description)
+    }
   }
   
   // Limit to 3 key insights
@@ -340,13 +349,37 @@ export function DecisionSummary({
   const score = getOpportunityScore(primaryOpportunity)
   const evidenceCount = countEvidence(primaryOpportunity)
   const evidenceCategories = categorizeEvidence(primaryOpportunity)
-  const confidence = getConfidenceLabel(primaryOpportunity, score)
   const whyThisMatters = getWhyThisMatters(primaryOpportunity)
   const keyFactors = getKeyScoringFactors(primaryOpportunity)
   const whatWouldChange = getWhatWouldChange(primaryOpportunity, score, evidenceCount)
 
   // Get title
   const title = 'title' in primaryOpportunity ? primaryOpportunity.title : 'Untitled Opportunity'
+
+  // Evidence readiness state: determines what we can show
+  // CRITICAL: Never show high confidence or scores without evidence
+  const hasEvidence = evidenceCount > 0
+  const evidenceReadiness: 'loading' | 'early' | 'ready' | 'unavailable' = 
+    hasEvidence 
+      ? 'ready'
+      : coverage?.isEvidenceSufficient === false && coverage?.reasonsMissing?.length > 0
+        ? 'unavailable' // Evidence collection failed or insufficient
+        : justGenerated
+          ? 'loading' // Just generated, evidence may still be loading
+          : 'early' // Early signals, evidence not yet collected
+
+  // Only show confidence/score if we have evidence OR it's a degraded/early state
+  // But never show "High confidence" without evidence
+  const canShowConfidence = hasEvidence || evidenceReadiness === 'early'
+  const confidence = getConfidenceLabel(primaryOpportunity, score)
+  
+  // Degrade confidence label if no evidence
+  const displayConfidence = hasEvidence 
+    ? confidence 
+    : {
+        label: 'Early signals',
+        description: 'Evidence is still being collected. This decision will sharpen as sources complete.',
+      }
 
   return (
     <Card
@@ -370,25 +403,108 @@ export function DecisionSummary({
             {title}
           </h2>
           
-          {/* Confidence and context */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-            <div>
-              <span className="text-sm font-medium text-foreground">{confidence.label}</span>
-              {score !== null && (
-                <span className="text-sm text-muted-foreground ml-2">Score: {score}/100</span>
-              )}
-            </div>
-            {projectMarket && (
-              <span className="text-sm text-muted-foreground">{projectMarket}</span>
-            )}
-          </div>
-          
-          <p className="text-sm text-muted-foreground">
-            {confidence.description}
-          </p>
+          {/* Confidence and context - Only show if evidence ready OR early signals */}
+          {canShowConfidence && (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                <div>
+                  <span className="text-sm font-medium text-foreground">{displayConfidence.label}</span>
+                  {/* Only show score if we have evidence */}
+                  {hasEvidence && score !== null && (
+                    <span className="text-sm text-muted-foreground ml-2">Score: {score}/100</span>
+                  )}
+                </div>
+                {projectMarket && (
+                  <span className="text-sm text-muted-foreground">{projectMarket}</span>
+                )}
+              </div>
+              
+              <p className="text-sm text-muted-foreground">
+                {displayConfidence.description}
+              </p>
+            </>
+          )}
         </div>
 
-        {/* 2. Why This Matters - Concise rationale */}
+        {/* 2. Evidence Snapshot - NOW FIRST, before narrative (reordered per PR) */}
+        <div className="mb-6 pb-6 border-b border-border-subtle">
+          <h3 className="text-sm font-semibold text-foreground mb-3">Evidence snapshot</h3>
+          
+          {/* Evidence readiness states */}
+          {evidenceReadiness === 'loading' && (
+            <div className="p-4 bg-muted/30 rounded-lg border border-border-subtle">
+              <p className="text-sm text-foreground mb-2 font-medium">
+                Evidence is still being collected
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                We're gathering sources from competitor sites, reviews, and documentation.
+                This decision will sharpen as evidence completes.
+              </p>
+            </div>
+          )}
+
+          {evidenceReadiness === 'early' && (
+            <div className="p-4 bg-muted/30 rounded-lg border border-border-subtle">
+              <p className="text-sm text-foreground mb-2 font-medium">
+                Early signals available
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Evidence coverage is still expanding. This decision is based on initial signals and will strengthen as more sources are collected.
+              </p>
+            </div>
+          )}
+
+          {evidenceReadiness === 'unavailable' && (
+            <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+              <p className="text-sm text-foreground mb-2 font-medium">
+                Evidence unavailable
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                We couldn't retrieve supporting sources for this recommendation.
+                This decision is incomplete and should not be relied on yet.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/projects/${projectId}/evidence`}>
+                  Retry evidence collection
+                </Link>
+              </Button>
+            </div>
+          )}
+
+          {evidenceReadiness === 'ready' && (
+            <div className="p-4 bg-muted/30 rounded-lg border border-border-subtle">
+              {/* Source count by type */}
+              <div className="flex flex-wrap gap-4 text-sm text-foreground mb-3">
+                {evidenceCategories.pricing > 0 && (
+                  <span className="font-medium">Pricing ({evidenceCategories.pricing})</span>
+                )}
+                {evidenceCategories.reviews > 0 && (
+                  <span className="font-medium">Reviews ({evidenceCategories.reviews})</span>
+                )}
+                {evidenceCategories.docs > 0 && (
+                  <span className="font-medium">Docs ({evidenceCategories.docs})</span>
+                )}
+                {evidenceCategories.changelog > 0 && (
+                  <span className="font-medium">Changelog ({evidenceCategories.changelog})</span>
+                )}
+              </div>
+              
+              {/* Competitors represented - extract from citations */}
+              {competitorCount > 0 && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  {competitorCount} {competitorCount === 1 ? 'competitor' : 'competitors'} analyzed
+                </p>
+              )}
+              
+              {/* Total count */}
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">{evidenceCount}</span> {evidenceCount === 1 ? 'source' : 'sources'} total
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Why This Matters - Concise rationale (moved after evidence) */}
         {whyThisMatters.length > 0 && (
           <div className="mb-6 pb-6 border-b border-border-subtle">
             <h3 className="text-sm font-semibold text-foreground mb-3">Why this matters</h3>
@@ -402,32 +518,8 @@ export function DecisionSummary({
           </div>
         )}
 
-        {/* 3. Evidence Snapshot - Inline, not exhaustive */}
-        <div className="mb-6 pb-6 border-b border-border-subtle">
-          <h3 className="text-sm font-semibold text-foreground mb-3">Evidence snapshot</h3>
-          <div className="p-4 bg-muted/30 rounded-lg border border-border-subtle">
-            <div className="flex flex-wrap gap-4 text-sm text-foreground mb-2">
-              {evidenceCategories.pricing > 0 && (
-                <span>Pricing ({evidenceCategories.pricing})</span>
-              )}
-              {evidenceCategories.reviews > 0 && (
-                <span>Reviews ({evidenceCategories.reviews})</span>
-              )}
-              {evidenceCategories.docs > 0 && (
-                <span>Docs ({evidenceCategories.docs})</span>
-              )}
-              {evidenceCategories.changelog > 0 && (
-                <span>Changelog ({evidenceCategories.changelog})</span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {evidenceCount} {evidenceCount === 1 ? 'source' : 'sources'} total
-            </p>
-          </div>
-        </div>
-
-        {/* 4. Scoring & Confidence - Explicit */}
-        {keyFactors.length > 0 && (
+        {/* 4. Scoring & Confidence - Explicit (only show if we have evidence) */}
+        {hasEvidence && keyFactors.length > 0 && (
           <div className="mb-6 pb-6 border-b border-border-subtle">
             <h3 className="text-sm font-semibold text-foreground mb-3">Key scoring factors</h3>
             <div className="space-y-2">

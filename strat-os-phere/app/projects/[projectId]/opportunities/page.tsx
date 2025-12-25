@@ -40,7 +40,7 @@ import { OpportunitiesEntryState } from '@/components/results/OpportunitiesEntry
 import { getDecisionRunState } from '@/lib/decisionRun/getDecisionRunState'
 import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunStatusBanner'
 import { DecisionReceipt } from '@/components/results/DecisionReceipt'
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { ProjectBreadcrumbs } from '@/components/layout/ProjectBreadcrumbs'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -279,21 +279,10 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
         <PageShell size="wide">
           {/* Breadcrumb Navigation */}
           <Section>
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link href={`/projects/${projectId}/decision`}>
-                      {project?.name || 'Project'}
-                    </Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Opportunities</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <ProjectBreadcrumbs
+              projectId={projectId}
+              projectName={project.name}
+            />
           </Section>
 
           <PageHeader

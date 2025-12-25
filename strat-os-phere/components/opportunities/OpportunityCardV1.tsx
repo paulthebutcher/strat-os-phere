@@ -17,6 +17,7 @@ import {
   formatEvidenceStrengthLabel,
   formatSourceType,
 } from '@/lib/ux/evidenceStrength'
+import { safeString } from '@/lib/text/safeString'
 
 /**
  * Opportunity Card V1 - Executive Brief Format
@@ -138,10 +139,10 @@ export function OpportunityCardV1({
   }
 
   // Recommendation block (What to do)
-  const whatToDo = isV1 ? opportunity.recommendation?.whatToDo : opportunity.one_liner
+  const whatToDo = isV1 ? opportunity.recommendation?.whatToDo : safeString(opportunity.one_liner) || undefined
   const whyNow = isV1
     ? opportunity.recommendation?.whyNow
-    : opportunity.why_now
+    : safeString(opportunity.why_now) || undefined
   const expectedImpact = isV1 ? opportunity.recommendation?.expectedImpact : undefined
 
   // Why this ranks

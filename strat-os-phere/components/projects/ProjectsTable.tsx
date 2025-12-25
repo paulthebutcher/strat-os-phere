@@ -11,19 +11,30 @@ import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
 import { addActiveRun } from '@/lib/runs/runToastStore'
 import { toastSuccess, toastError } from '@/lib/toast/toast'
 import type { ProjectsListRow, EvidenceStrength } from '@/lib/projects/projectsListModel'
-import { ArrowUpDown, ArrowUp, ArrowDown, Loader2 } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, Loader2, MoreVertical, Trash2 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export type TableSortKey = 'lastTouched' | 'lastRun' | 'evidenceScore' | 'name'
 
 interface ProjectsTableProps {
   rows: ProjectsListRow[]
   searchQuery?: string
+  onDelete?: (projectId: string) => Promise<void>
 }
 
-export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
+export function ProjectsTable({ rows, searchQuery = '', onDelete }: ProjectsTableProps) {
   const [sortKey, setSortKey] = useState<TableSortKey>('lastTouched')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [generatingProjectId, setGeneratingProjectId] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null)
 
   // Filter by search query
   const filteredRows = useMemo(() => {
@@ -120,6 +131,20 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
     }
   }
 
+  const handleDeleteClick = (projectId: string, projectName: string, event: React.MouseEvent) => {
+    event.stopPropagation() // Prevent row click
+    setProjectToDelete({ id: projectId, name: projectName })
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!projectToDelete || !onDelete) return
+    
+    await onDelete(projectToDelete.id)
+    setDeleteDialogOpen(false)
+    setProjectToDelete(null)
+  }
+
   const SortIcon = ({ columnKey }: { columnKey: TableSortKey }) => {
     if (sortKey !== columnKey) {
       return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />
@@ -177,9 +202,10 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
   }
 
   return (
-    <div className="border border-border-subtle rounded-lg overflow-hidden shadow-sm bg-card">
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <>
+      <div className="border border-border-subtle rounded-lg overflow-hidden shadow-sm bg-card">
+        <div className="overflow-x-auto">
+          <table className="w-full">
           <thead className="bg-muted/20 border-b border-border-subtle">
             <tr>
               <th
@@ -301,11 +327,33 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
                         )}
                       </Button>
                     )}
-                    <Button asChild size="sm" variant="link" className="text-xs">
-                      <Link href={`/projects/${row.projectId}/competitors`}>
-                        Edit inputs
-                      </Link>
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          aria-label="More options"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/projects/${row.projectId}/competitors`}>
+                            Edit inputs
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={(e) => handleDeleteClick(row.projectId, row.name, e)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete analysis
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </td>
               </tr>
@@ -314,6 +362,19 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
         </table>
       </div>
     </div>
+    {projectToDelete && (
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete this analysis?"
+        description={`This will permanently delete ${projectToDelete.name} and all associated results and evidence. This can't be undone.`}
+        confirmLabel="Delete forever"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+      />
+    )}
+    </>
   )
 }
 

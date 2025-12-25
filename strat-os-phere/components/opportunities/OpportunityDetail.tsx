@@ -14,6 +14,7 @@ import type { OpportunityItem } from '@/lib/schemas/opportunities'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import { useState } from 'react'
+import { safeString } from '@/lib/text/safeString'
 
 type Opportunity = OpportunityV3Item | OpportunityItem
 
@@ -252,11 +253,11 @@ export function OpportunityDetail({
 
   const keySignals = getKeySignals(opportunity)
 
-  // Get thesis/summary
-  const thesis = 'one_liner' in opportunity 
-    ? opportunity.one_liner 
+  // Get thesis/summary - safely handle non-string types
+  const thesis = 'one_liner' in opportunity && opportunity.one_liner
+    ? safeString(opportunity.one_liner) || opportunity.title
     : 'description' in opportunity 
-      ? opportunity.description 
+      ? safeString(opportunity.description) || opportunity.title
       : opportunity.title
 
   return (
@@ -288,12 +289,15 @@ export function OpportunityDetail({
             <p className="text-sm text-foreground leading-relaxed">
               {thesis}
             </p>
-            {('why_now' in opportunity && opportunity.why_now) && (
-              <div className="pt-2 border-t border-border-subtle">
-                <p className="text-xs font-medium text-muted-foreground mb-1">Why now</p>
-                <p className="text-sm text-foreground">{opportunity.why_now}</p>
-              </div>
-            )}
+            {(() => {
+              const whyNow = 'why_now' in opportunity ? safeString(opportunity.why_now) : null
+              return whyNow ? (
+                <div className="pt-2 border-t border-border-subtle">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Why now</p>
+                  <p className="text-sm text-foreground">{whyNow}</p>
+                </div>
+              ) : null
+            })()}
           </div>
         </SectionCard>
 

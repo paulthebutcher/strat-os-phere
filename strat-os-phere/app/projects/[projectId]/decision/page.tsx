@@ -38,6 +38,8 @@ import { getDecisionRunState } from '@/lib/decisionRun/getDecisionRunState'
 import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunStatusBanner'
 import { DecisionReceipt } from '@/components/results/DecisionReceipt'
 import { DecisionSummary } from '@/components/results/DecisionSummary'
+import { ProjectBreadcrumbs } from '@/components/layout/ProjectBreadcrumbs'
+import { Section } from '@/components/layout/Section'
 
 interface DecisionPageProps {
   params: Promise<{
@@ -280,6 +282,14 @@ export default async function DecisionPage(props: DecisionPageProps) {
     return (
       <PageGuidanceWrapper pageId={PAGE_IDS.decision}>
         <PageShell size="wide">
+          {/* Breadcrumb Navigation */}
+          <Section>
+            <ProjectBreadcrumbs
+              projectId={projectId}
+              projectName={project.name}
+            />
+          </Section>
+
           <PageHeader
             title="Decision Summary"
             subtitle="Primary recommendation, confidence assessment, and key insights from your analysis."
