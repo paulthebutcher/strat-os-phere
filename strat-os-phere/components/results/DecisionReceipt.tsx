@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { getOpportunityScore } from '@/lib/results/opportunityUx'
@@ -313,7 +314,7 @@ export function DecisionReceipt({
             </p>
           </div>
           <Button asChild>
-            <Link href={`/projects/${projectId}/opportunities`}>Generate opportunities</Link>
+            <Link href={paths.opportunities(projectId)}>Generate opportunities</Link>
           </Button>
         </CardContent>
       </Card>
@@ -450,13 +451,13 @@ export function DecisionReceipt({
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             {needsMoreEvidence ? (
               <Button asChild>
-                <Link href={`/projects/${projectId}/evidence`}>
+                <Link href={paths.evidence(projectId)}>
                   Fetch more evidence
                 </Link>
               </Button>
             ) : nextAction.onClickIntent === 'generate' ? (
               <Button asChild>
-                <Link href={`/projects/${projectId}/opportunities`}>
+                <Link href={paths.opportunities(projectId)}>
                   {nextAction.label}
                 </Link>
               </Button>
@@ -468,7 +469,7 @@ export function DecisionReceipt({
               </Button>
             ) : (
               <Button asChild>
-                <Link href={`/projects/${projectId}/opportunities`}>
+                <Link href={paths.opportunities(projectId)}>
                   View opportunities
                 </Link>
               </Button>
@@ -476,7 +477,7 @@ export function DecisionReceipt({
 
             {/* Secondary text link */}
             <Link
-              href={`/projects/${projectId}/evidence`}
+              href={paths.evidence(projectId)}
               className="text-sm font-medium text-primary underline-offset-4 hover:underline"
             >
               View supporting evidence

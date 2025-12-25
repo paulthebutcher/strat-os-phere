@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import type { ResultsFrame } from '@/lib/results/selectors'
 import { cn } from '@/lib/utils'
 
@@ -32,7 +33,7 @@ export function ResultsFrameToggle({
       params.set('tab', currentTab)
     }
     params.set('frame', frame)
-    router.push(`/projects/${projectId}/results?${params.toString()}`)
+    router.push(`${paths.decision(projectId)}?${params.toString()}`)
   }
 
   return (

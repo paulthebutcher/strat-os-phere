@@ -45,6 +45,28 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
+      // Legacy project route redirects - ensure canonical URLs
+      {
+        source: "/projects/:projectId",
+        destination: "/projects/:projectId/decision",
+        permanent: false, // Use temporary redirect to allow gradual migration
+      },
+      {
+        source: "/projects/:projectId/results",
+        destination: "/projects/:projectId/decision",
+        permanent: false,
+      },
+      {
+        source: "/projects/:projectId/opportunity/:opportunityId",
+        destination: "/projects/:projectId/opportunities/:opportunityId",
+        permanent: false,
+      },
+      // Legacy /app/projects routes (if they existed)
+      {
+        source: "/app/projects/:projectId/:path*",
+        destination: "/projects/:projectId/:path*",
+        permanent: false,
+      },
     ];
   },
 };

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { SectionCard } from '@/components/results/SectionCard'
 import { microcopy } from '@/lib/copy/microcopy'
 
@@ -23,7 +24,7 @@ export function EmptyEvidenceState({ className, projectId }: EmptyEvidenceStateP
         {projectId && (
           <div className="pt-2">
             <Button asChild variant="default">
-              <Link href={`/projects/${projectId}/competitors`}>
+              <Link href={paths.competitors(projectId)}>
                 Run evidence collection
               </Link>
             </Button>

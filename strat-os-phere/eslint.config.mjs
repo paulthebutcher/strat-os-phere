@@ -26,6 +26,9 @@ const eslintConfig = defineConfig([
         argsIgnorePattern: "^_",
         varsIgnorePattern: "^_" 
       }],
+      // JSX validation rules to catch malformed JSX early
+      // Note: These rules are provided by eslint-config-next's React plugin
+      // If they cause issues, they can be removed as Next.js config already includes React linting
     },
   },
 ]);

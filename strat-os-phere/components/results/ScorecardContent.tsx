@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { paths } from '@/lib/routes'
 import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
 import { SectionCard } from '@/components/results/SectionCard'
 import { CopySectionButton } from '@/components/results/CopySectionButton'
@@ -47,7 +48,7 @@ export function ScorecardContent({
                 label="Generate Analysis"
               />
               <Button asChild variant="outline" type="button">
-                <Link href={`/projects/${projectId}/competitors`}>
+                <Link href={paths.competitors(projectId)}>
                   Review inputs
                 </Link>
               </Button>

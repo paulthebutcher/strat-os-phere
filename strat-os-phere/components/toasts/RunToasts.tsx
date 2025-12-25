@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import {
   getActiveRuns,
   updateActiveRunStatus,
@@ -86,7 +87,7 @@ export function RunToasts() {
             toastSuccess('Analysis complete', 'Your analysis is ready to view.')
             // Auto-redirect to opportunities page with justGenerated flag
             if (run.projectId) {
-              router.push(`/projects/${run.projectId}/opportunities?justGenerated=true`)
+              router.push(`${paths.opportunities(run.projectId)}?justGenerated=true`)
             }
           } else if (newStatus === 'failed') {
             toastError(
@@ -174,7 +175,7 @@ export function RunToasts() {
 
   const handleViewResults = useCallback(
     (projectId: string, runId: string) => {
-      router.push(`/projects/${projectId}/opportunities?justGenerated=true`)
+      router.push(`${paths.opportunities(projectId)}?justGenerated=true`)
     },
     [router]
   )

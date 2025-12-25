@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "pnpm -s build:guarded",
-    "build:guarded": "node scripts/guard-next-build.mjs && pnpm -s check:forbidden && pnpm -s check:schema && next build",
+    "build:guarded": "pnpm -s lint && pnpm -s typecheck && node scripts/guard-next-build.mjs && pnpm -s check:forbidden && pnpm -s check:schema && next build",
     "build:safe": "node scripts/guard-next-build.mjs; pnpm -s build",
     "build:clean": "node scripts/guard-next-build.mjs && next build",
     "build:ci": "CI=true node scripts/guard-next-build.mjs && next build",
@@ -16,6 +16,8 @@
     "lint": "eslint .",
     "lint:fast": "pnpm -s lint",
     "fast": "pnpm -s lint:fast && pnpm -s typecheck:fast",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint:deadlinks": "tsx scripts/find-dead-links.ts",
     "harvest:evidence": "tsx scripts/harvest-evidence.ts",
     "preflight": "node scripts/preflight.mjs",

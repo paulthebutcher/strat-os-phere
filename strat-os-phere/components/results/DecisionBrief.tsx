@@ -7,6 +7,7 @@
 
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { paths } from '@/lib/routes'
 import type { AppBadgeVariant } from '@/components/ui/badgeVariants'
 import { CopySectionButton } from './CopySectionButton'
 import { ShareButton } from './ShareButton'
@@ -353,7 +354,7 @@ export function DecisionBrief({
               {whyNow}
             </p>
             <Link
-              href={`/projects/${projectId}/evidence`}
+              href={paths.evidence(projectId)}
               className="text-sm font-medium text-primary underline-offset-4 hover:underline inline-flex items-center gap-1"
             >
               View supporting evidence →

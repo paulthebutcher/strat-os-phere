@@ -13,7 +13,7 @@ import {
   Archive,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { projectRoutes } from '@/lib/routing/projectRoutes'
+import { paths, matchProjectSection } from '@/lib/routes'
 
 export type ProjectNavItemId =
   | 'decision'
@@ -48,22 +48,22 @@ export const PROJECT_NAV_ITEMS: ProjectNavItem[] = [
   {
     id: 'decision',
     label: 'Decision',
-    href: projectRoutes.decision,
+    href: paths.decision,
     icon: Scale, // Scale = judgment/verdict
     category: 'primary',
     matchers: (id) => [
-      `/projects/${id}`,
-      `/projects/${id}/decision`,
+      paths.project(id),
+      paths.decision(id),
     ],
   },
   {
     id: 'opportunities',
     label: 'Opportunities',
-    href: projectRoutes.opportunities,
+    href: paths.opportunities,
     icon: Target, // Target = candidates/opportunities (scanning for strategic options)
     category: 'primary',
     matchers: (id) => [
-      `/projects/${id}/opportunities`,
+      paths.opportunities(id),
       `/projects/${id}/results`, // Legacy results route
     ],
   },
@@ -71,54 +71,54 @@ export const PROJECT_NAV_ITEMS: ProjectNavItem[] = [
   {
     id: 'competitors',
     label: 'Competitors',
-    href: projectRoutes.competitors,
+    href: paths.competitors,
     icon: Users,
     category: 'supporting',
     matchers: (id) => [
-      `/projects/${id}/competitors`,
+      paths.competitors(id),
     ],
   },
   {
     id: 'scorecard',
     label: 'Scorecard',
-    href: projectRoutes.scorecard,
+    href: paths.scorecard,
     icon: ClipboardList,
     category: 'supporting',
     matchers: (id) => [
-      `/projects/${id}/scorecard`,
+      paths.scorecard(id),
     ],
   },
   {
     id: 'evidence',
     label: 'Evidence',
-    href: projectRoutes.evidence,
+    href: paths.evidence,
     icon: FileText, // FileText = evidence/sources (changed from LinkIcon per PR requirements)
     category: 'supporting',
     matchers: (id) => [
-      `/projects/${id}/evidence`,
+      paths.evidence(id),
       // Include evidence subpages if any
-      `/projects/${id}/evidence/`,
+      `${paths.evidence(id)}/`,
     ],
   },
   {
     id: 'appendix',
     label: 'Appendix',
-    href: projectRoutes.appendix,
+    href: paths.appendix,
     icon: Archive, // Archive = reference/storage (more semantic than FileCode)
     category: 'supporting',
     matchers: (id) => [
-      `/projects/${id}/appendix`,
+      paths.appendix(id),
     ],
     group: 'appendix', // Can be made collapsible later
   },
   {
     id: 'settings',
     label: 'Settings',
-    href: projectRoutes.settings,
+    href: paths.settings,
     icon: Settings,
     category: 'supporting',
     matchers: (id) => [
-      `/projects/${id}/settings`,
+      paths.settings(id),
     ],
   },
 ]
@@ -139,6 +139,8 @@ export function getSupportingNavItems(): ProjectNavItem[] {
 
 /**
  * Get the active nav item ID based on the current pathname
+ * 
+ * Uses matchProjectSection for consistent matching logic
  */
 export function getActiveNavItem(
   pathname: string | null,
@@ -146,21 +148,22 @@ export function getActiveNavItem(
 ): ProjectNavItemId | null {
   if (!pathname) return null
 
-  for (const item of PROJECT_NAV_ITEMS) {
-    const matchers = item.matchers(projectId)
-    // Check exact match or if pathname starts with matcher followed by / or end of string
-    if (matchers.some((matcher) => {
-      if (pathname === matcher) return true
-      // For opportunities, also match detail routes like /projects/{id}/opportunities/{opportunityId}
-      if (item.id === 'opportunities' && pathname.startsWith(matcher + '/')) return true
-      // For evidence, also match subpages
-      if (item.id === 'evidence' && pathname.startsWith(matcher + '/')) return true
-      // For other routes, only exact match or direct child
-      if (pathname.startsWith(matcher + '/')) return true
-      return false
-    })) {
-      return item.id
-    }
+  // Use the canonical matchProjectSection function for consistency
+  const section = matchProjectSection(pathname)
+  
+  // Verify the section is a valid nav item ID
+  const validNavItemIds: ProjectNavItemId[] = [
+    'decision',
+    'opportunities',
+    'competitors',
+    'scorecard',
+    'evidence',
+    'appendix',
+    'settings',
+  ]
+  
+  if (validNavItemIds.includes(section as ProjectNavItemId)) {
+    return section as ProjectNavItemId
   }
 
   return null

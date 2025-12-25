@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { SectionCard } from '@/components/results/SectionCard'
 import { cn } from '@/lib/utils'
 
@@ -34,7 +35,7 @@ export function EvidencePartialPanel({
       {projectId && (
         <div className="pt-2 border-t border-border">
           <Button asChild variant="default" className="mb-3">
-            <Link href={`/projects/${projectId}/competitors`}>
+            <Link href={paths.competitors(projectId)}>
               Fetch more evidence
             </Link>
           </Button>

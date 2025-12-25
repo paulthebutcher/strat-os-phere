@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { Loader2 } from 'lucide-react'
 import type { VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
@@ -77,7 +78,7 @@ export function GenerateAnalysisButton({
         })
 
         // Redirect to opportunities page with runId and justGenerated flag
-        router.push(`/projects/${projectId}/opportunities?run=${result.runId}&justGenerated=1`)
+        router.push(`${paths.opportunities(projectId)}?run=${result.runId}&justGenerated=1`)
 
         // Toast will appear automatically via RunToasts component
         // User can continue navigating - toast persists

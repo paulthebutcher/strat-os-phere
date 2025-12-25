@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { GenerateAnalysisButton } from '@/components/projects/GenerateAnalysisButton'
 import { RegenerateButton } from '@/components/results/RegenerateButton'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
@@ -82,13 +83,13 @@ export function ProjectActionsPanel({
           {/* Secondary actions */}
           <div className="space-y-2 pt-2 border-t border-border">
             <Button asChild variant="outline" className="w-full" size="sm">
-              <Link href={`/projects/${projectId}/competitors`}>
+              <Link href={paths.competitors(projectId)}>
                 Add Competitor
               </Link>
             </Button>
 
             <Button asChild variant="ghost" className="w-full" size="sm">
-              <Link href={`/projects/${projectId}/competitors`}>
+              <Link href={paths.competitors(projectId)}>
                 Edit Competitors
               </Link>
             </Button>

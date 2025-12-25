@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { Badge } from '@/components/ui/badge'
 import { FreshnessBadge } from '@/components/shared/FreshnessBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -172,7 +173,7 @@ function RecentOutputsPreview({
           )}
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/projects/${projectId}/opportunities`}>
+          <Link href={paths.opportunities(projectId)}>
             View full results
           </Link>
         </Button>

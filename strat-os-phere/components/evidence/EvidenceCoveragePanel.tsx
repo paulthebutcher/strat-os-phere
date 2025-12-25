@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import type { EvidenceCoverageModel } from '@/lib/evidence'
 import type { ReadinessEvaluation } from '@/lib/evidence/readiness'
 import Link from 'next/link'
+import { paths } from '@/lib/routes'
 
 interface EvidenceCoveragePanelProps {
   coverage: EvidenceCoverageModel
@@ -83,7 +84,7 @@ export function EvidenceCoveragePanel({
             size="sm"
             className="shrink-0"
           >
-            <Link href={`/projects/${projectId}/competitors`}>
+            <Link href={paths.competitors(projectId)}>
               Collect more evidence
             </Link>
           </Button>

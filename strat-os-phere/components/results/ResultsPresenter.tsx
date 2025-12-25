@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { paths } from '@/lib/routes'
 import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
 import { EvidenceConfidencePanel } from '@/components/results/EvidenceConfidencePanel'
 import { EvidenceCoveragePanel } from '@/components/results/EvidenceCoveragePanel'
@@ -174,12 +175,12 @@ export function ResultsPresenter({
             {mode === 'project' && projectId && (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button asChild variant="default" type="button">
-                  <Link href={`/projects/${projectId}/competitors`}>
+                  <Link href={paths.competitors(projectId)}>
                     Improve evidence
                   </Link>
                 </Button>
                 <Button asChild variant="outline" type="button">
-                  <Link href={`/projects/${projectId}/competitors`}>
+                  <Link href={paths.competitors(projectId)}>
                     Edit inputs
                   </Link>
                 </Button>
@@ -408,12 +409,12 @@ function OpportunitiesV2Presenter({
             {mode === 'project' && projectId && (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button asChild variant="default" type="button">
-                  <Link href={`/projects/${projectId}/competitors`}>
+                  <Link href={paths.competitors(projectId)}>
                     Improve evidence
                   </Link>
                 </Button>
                 <Button asChild variant="outline" type="button">
-                  <Link href={`/projects/${projectId}/competitors`}>
+                  <Link href={paths.competitors(projectId)}>
                     Edit inputs
                   </Link>
                 </Button>

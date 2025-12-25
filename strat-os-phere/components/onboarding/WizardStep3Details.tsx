@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import { paths } from '@/lib/routes'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
@@ -136,7 +137,7 @@ export function WizardStep3Details({
       })
 
       // Navigate to competitors page (or results if analysis auto-runs)
-      router.push(`/projects/${projectId}/competitors`)
+      router.push(paths.competitors(projectId))
     } catch (err) {
       setError(
         err instanceof Error

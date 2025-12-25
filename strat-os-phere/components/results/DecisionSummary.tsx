@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { getOpportunityScore } from '@/lib/results/opportunityUx'
@@ -326,7 +327,7 @@ export function DecisionSummary({
             </p>
           </div>
           <Button asChild>
-            <Link href={`/projects/${projectId}/opportunities`}>Generate analysis</Link>
+            <Link href={paths.opportunities(projectId)}>Generate analysis</Link>
           </Button>
         </CardContent>
       </Card>
@@ -464,7 +465,7 @@ export function DecisionSummary({
                 This decision is incomplete and should not be relied on yet.
               </p>
               <Button asChild variant="outline" size="sm">
-                <Link href={`/projects/${projectId}/evidence`}>
+                <Link href={paths.evidence(projectId)}>
                   Retry evidence collection
                 </Link>
               </Button>
@@ -542,12 +543,12 @@ export function DecisionSummary({
         {/* Action links */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-4 border-t border-border-subtle">
           <Button asChild variant="outline">
-            <Link href={`/projects/${projectId}/opportunities`}>
+            <Link href={paths.opportunities(projectId)}>
               View all opportunities
             </Link>
           </Button>
           <Link
-            href={`/projects/${projectId}/evidence`}
+            href={paths.evidence(projectId)}
             className="text-sm font-medium text-primary underline-offset-4 hover:underline"
           >
             Review evidence →

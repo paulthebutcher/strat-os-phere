@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 
 interface AnalysisRunToastProps {
   projectId: string
@@ -169,7 +170,7 @@ export function AnalysisRunToast({
 
       if (result.ok && result.runId) {
         // Navigate to results and update toast
-        router.push(`/projects/${projectId}/results?runId=${result.runId}`)
+        router.push(`${paths.decision(projectId)}?runId=${result.runId}`)
         // Toast will be updated by the button that triggered this
         onDismiss()
       } else {

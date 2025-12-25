@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { paths } from '@/lib/routes'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { SectionCard } from '@/components/results/SectionCard'
@@ -439,7 +440,7 @@ export function OpportunityDetail({
             </div>
             <div className="pt-3 border-t border-border-subtle">
               <Button variant="outline" asChild>
-                <Link href={`/projects/${projectId}/decision`}>
+                <Link href={paths.decision(projectId)}>
                   View decision summary
                 </Link>
               </Button>
@@ -454,7 +455,7 @@ export function OpportunityDetail({
         onOpenChange={setIsEvidenceDrawerOpen}
         opportunityTitle={opportunity.title}
         citations={uniqueCitations}
-        onAddEvidenceHref={`/projects/${projectId}/competitors`}
+        onAddEvidenceHref={paths.competitors(projectId)}
       />
     </>
   )

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { paths } from '@/lib/routes'
 import { Badge } from '@/components/ui/badge'
 import { getOpportunityScore } from '@/lib/results/opportunityUx'
 import { computeDecisionConfidence } from '@/lib/ui/decisionConfidence'
@@ -111,7 +112,7 @@ export function OpportunitiesList({
         return (
           <Link
             key={opportunityId}
-            href={`/projects/${projectId}/opportunities/${encodedId}`}
+            href={paths.opportunity(projectId, encodedId)}
             className="block rounded-lg border border-border-subtle bg-card p-4 transition-colors hover:border-border hover:bg-muted/30"
           >
             <div className="flex items-start justify-between gap-4">

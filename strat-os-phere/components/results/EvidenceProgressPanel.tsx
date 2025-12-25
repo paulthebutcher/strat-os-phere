@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { SectionCard } from '@/components/results/SectionCard'
 import { cn } from '@/lib/utils'
 
@@ -50,7 +51,7 @@ export function EvidenceProgressPanel({
         </p>
         {projectId && (
           <Button asChild variant="default">
-            <Link href={`/projects/${projectId}/competitors`}>
+            <Link href={paths.competitors(projectId)}>
               Continue evidence collection
             </Link>
           </Button>

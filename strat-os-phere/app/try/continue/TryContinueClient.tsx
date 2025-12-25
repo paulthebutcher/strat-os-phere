@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import { paths } from '@/lib/routes'
 
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import { Button } from '@/components/ui/button'
@@ -43,9 +44,9 @@ export function TryContinueClient() {
         clearTryDraft()
         clearPostAuthIntent()
 
-        // Redirect to results page
+        // Redirect to decision page
         // The run will be started automatically by the action
-        router.push(`/projects/${result.projectId}/results`)
+        router.push(paths.decision(result.projectId))
       } catch (err) {
         setStatus('error')
         setError(
@@ -125,7 +126,7 @@ export function TryContinueClient() {
                         if (result.success && result.projectId) {
                           clearTryDraft()
                           clearPostAuthIntent()
-                          router.push(`/projects/${result.projectId}/results`)
+                          router.push(paths.decision(result.projectId))
                         } else {
                           setStatus('error')
                           setError(result.message || 'Failed to create project')

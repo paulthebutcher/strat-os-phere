@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { Badge } from '@/components/ui/badge'
 import { getOpportunityScore } from '@/lib/results/opportunityUx'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
@@ -149,7 +150,7 @@ export function ExecutiveSummary({
                 </div>
                 <div className="flex justify-center">
                   <Button asChild variant="outline">
-                    <Link href={`/projects/${projectId}/opportunities`}>
+                    <Link href={paths.opportunities(projectId)}>
                       View all opportunities
                     </Link>
                   </Button>
@@ -168,7 +169,7 @@ export function ExecutiveSummary({
               <h2 className="text-lg font-semibold text-foreground">Quick Links</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Link
-                  href={`/projects/${projectId}/opportunities`}
+                  href={paths.opportunities(projectId)}
                   className="panel p-4 hover:border-primary/50 transition-colors block"
                 >
                   <h3 className="text-sm font-semibold text-foreground mb-1">
@@ -190,7 +191,7 @@ export function ExecutiveSummary({
                   </p>
                 </Link>
                 <Link
-                  href={`/projects/${projectId}/scorecard`}
+                  href={paths.scorecard(projectId)}
                   className="panel p-4 hover:border-primary/50 transition-colors block"
                 >
                   <h3 className="text-sm font-semibold text-foreground mb-1">
@@ -201,7 +202,7 @@ export function ExecutiveSummary({
                   </p>
                 </Link>
                 <Link
-                  href={`/projects/${projectId}/competitors`}
+                  href={paths.competitors(projectId)}
                   className="panel p-4 hover:border-primary/50 transition-colors block"
                 >
                   <h3 className="text-sm font-semibold text-foreground mb-1">

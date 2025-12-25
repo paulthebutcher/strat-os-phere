@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, TrendingUp, FileText, Link2, Loader2 } from 'lucide-react'
+import { paths } from '@/lib/routes'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -913,7 +914,7 @@ export function NewAnalysisForm({
       }
 
       // Navigate to competitors page
-      router.push(`/projects/${projectId}/competitors`)
+      router.push(paths.competitors(projectId))
     } catch (err) {
       setError(
         err instanceof Error
@@ -970,7 +971,7 @@ export function NewAnalysisForm({
             'Something went wrong while creating the project.'
         )
       } else if (result.projectId) {
-        router.push(`/projects/${result.projectId}/competitors`)
+        router.push(paths.competitors(result.projectId))
       } else {
         setError('Something went wrong while creating the project.')
       }

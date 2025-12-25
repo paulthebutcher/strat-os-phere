@@ -379,7 +379,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             coverage={coverageLite}
             hasOpportunitiesArtifact={hasOpportunitiesArtifact}
             projectId={projectId}
-            defaultCollapsed={true}
+            defaultCollapsed
           />
         </PageSection>
 

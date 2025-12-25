@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
 import { addActiveRun } from '@/lib/runs/runToastStore'
 import { toastSuccess, toastError } from '@/lib/toast/toast'
@@ -53,7 +54,7 @@ export function GenerateAnalysisButton({
         })
 
         // Redirect to opportunities page with runId and justGenerated flag
-        router.push(`/projects/${projectId}/opportunities?run=${result.runId}&justGenerated=1`)
+        router.push(`${paths.opportunities(projectId)}?run=${result.runId}&justGenerated=1`)
 
         // Toast will appear automatically via RunToasts component
         // User can continue navigating - toast persists

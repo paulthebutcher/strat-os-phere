@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { paths } from '@/lib/routes'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { formatRelativeDate } from './formatRelativeDate'
@@ -340,7 +341,7 @@ export function ProjectsTable({ rows, searchQuery = '', onDelete }: ProjectsTabl
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/projects/${row.projectId}/competitors`}>
+                          <Link href={paths.competitors(row.projectId)}>
                             Edit inputs
                           </Link>
                         </DropdownMenuItem>

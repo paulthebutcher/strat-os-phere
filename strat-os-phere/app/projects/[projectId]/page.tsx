@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { paths } from '@/lib/routes'
 
 /**
  * Root project route redirects to canonical decision route
@@ -15,6 +16,6 @@ export default async function ProjectPage(props: ProjectPageProps) {
   const projectId = params.projectId
   
   // Redirect to canonical decision route
-  redirect(`/projects/${projectId}/decision`)
+  redirect(paths.decision(projectId))
 }
 

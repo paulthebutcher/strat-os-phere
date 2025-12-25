@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
+import { paths } from '@/lib/routes'
 import { createPageMetadata } from '@/lib/seo/metadata'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
@@ -39,6 +40,7 @@ import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunSta
 import { DecisionReceipt } from '@/components/results/DecisionReceipt'
 import { DecisionSummary } from '@/components/results/DecisionSummary'
 import { ProjectBreadcrumbs } from '@/components/layout/ProjectBreadcrumbs'
+import { DeepDiveLinks } from '@/components/projects/DeepDiveLinks'
 
 interface DecisionPageProps {
   params: Promise<{
@@ -380,35 +382,7 @@ export default async function DecisionPage(props: DecisionPageProps) {
 
           {/* Deep Dive Links - Link to other sections */}
           <PageSection>
-            <div className="p-4 bg-muted/30 rounded-lg border border-border-subtle">
-              <h3 className="text-sm font-semibold text-foreground mb-3">Deep dives</h3>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href={`/projects/${projectId}/opportunities`}
-                  className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  All opportunities →
-                </Link>
-                <Link
-                  href={`/projects/${projectId}/competitors`}
-                  className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Competitors →
-                </Link>
-                <Link
-                  href={`/projects/${projectId}/scorecard`}
-                  className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Scorecard →
-                </Link>
-                <Link
-                  href={`/projects/${projectId}/evidence`}
-                  className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Evidence →
-                </Link>
-              </div>
-            </div>
+            <DeepDiveLinks projectId={projectId} />
           </PageSection>
         </PageShell>
       </PageGuidanceWrapper>
