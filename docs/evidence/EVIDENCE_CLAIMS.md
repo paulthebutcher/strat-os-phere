@@ -7,7 +7,7 @@
 **When to read this**: Read this to understand how evidence is structured into claims and how follow-up questions help address uncertainty or gaps.
 
 **Related docs**:
-- [../../strat-os-phere/docs/EVIDENCE_GENERATION.md](../../strat-os-phere/docs/EVIDENCE_GENERATION.md) - Evidence generation flow
+- [../../strat-os-phere/docs/pipeline/EVIDENCE_GENERATION.md](../../strat-os-phere/docs/pipeline/EVIDENCE_GENERATION.md) - Evidence generation flow
 - [EVIDENCE_OPTIMIZATION.md](./EVIDENCE_OPTIMIZATION.md) - Performance optimizations
 - [../00-overview/01-system-overview.md](../00-overview/01-system-overview.md) - System flow context
 

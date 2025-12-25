@@ -1,6 +1,12 @@
 # Testing
 
-Test strategy, conventions, and setup for Plinth.
+**Purpose**: Testing strategies, conventions, and setup for Plinth (Vitest, Playwright).
+
+**When to read this**: Read this to understand how to write tests, test patterns, and testing best practices.
+
+**Last updated**: 2025-01-27
+
+---
 
 ## Test Pyramid
 

@@ -5,7 +5,7 @@
 **When to read this**: Read this to understand what data the system stores and how entities relate to each other before diving into schema details.
 
 **Related docs**:
-- [../../strat-os-phere/docs/DATA_MODEL.md](../../strat-os-phere/docs/DATA_MODEL.md) - Database schema and relationships
+- [../../strat-os-phere/docs/data/DATA_MODEL.md](../../strat-os-phere/docs/data/DATA_MODEL.md) - Database schema and relationships
 - [01-system-overview.md](./01-system-overview.md) - System flow context
 
 ---
@@ -162,6 +162,6 @@ auth.users
 
 ## Next Steps
 
-- Read [../../strat-os-phere/docs/DATA_MODEL.md](../../strat-os-phere/docs/DATA_MODEL.md) for detailed schema definitions
-- Read [../../strat-os-phere/docs/ANALYSIS_PIPELINE.md](../../strat-os-phere/docs/ANALYSIS_PIPELINE.md) for how artifacts are generated
+- Read [../../strat-os-phere/docs/data/DATA_MODEL.md](../../strat-os-phere/docs/data/DATA_MODEL.md) for detailed schema definitions
+- Read [../../strat-os-phere/docs/pipeline/ANALYSIS_PIPELINE.md](../../strat-os-phere/docs/pipeline/ANALYSIS_PIPELINE.md) for how artifacts are generated
 

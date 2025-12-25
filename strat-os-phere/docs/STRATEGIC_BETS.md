@@ -140,5 +140,5 @@ These features are explicitly out of scope for the current version, which focuse
 
 - [RESULTS_V2.md](./RESULTS_V2.md) — Results v2 generation pipeline
 - [SCHEMAS.md](../docs/Schemas.md) — Schema definitions
-- [GUARDRAILS.md](./GUARDRAILS.md) — Quality guardrails and validation
+- [guards/GUARDRAILS.md](./guards/GUARDRAILS.md) — Quality guardrails and validation
 

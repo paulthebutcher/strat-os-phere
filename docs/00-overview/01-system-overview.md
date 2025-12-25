@@ -7,7 +7,7 @@
 **Related docs**: 
 - [02-core-entities.md](./02-core-entities.md) - Core data entities
 - [../PRD.md](../PRD.md) - Product requirements
-- [../../strat-os-phere/docs/ARCHITECTURE.md](../../strat-os-phere/docs/ARCHITECTURE.md) - Implementation architecture
+- [../../strat-os-phere/docs/architecture/ARCHITECTURE.md](../../strat-os-phere/docs/architecture/ARCHITECTURE.md) - Implementation architecture
 
 ---
 
@@ -127,6 +127,6 @@ The system establishes trust through:
 ## Next Steps
 
 - Read [02-core-entities.md](./02-core-entities.md) to understand the core data entities
-- Read [../../strat-os-phere/docs/DATA_MODEL.md](../../strat-os-phere/docs/DATA_MODEL.md) for database schema details
-- Read [../../strat-os-phere/docs/GUARDRAILS.md](../../strat-os-phere/docs/GUARDRAILS.md) for guardrail implementation details
+- Read [../../strat-os-phere/docs/data/DATA_MODEL.md](../../strat-os-phere/docs/data/DATA_MODEL.md) for database schema details
+- Read [../../strat-os-phere/docs/guards/GUARDRAILS.md](../../strat-os-phere/docs/guards/GUARDRAILS.md) for guardrail implementation details
 

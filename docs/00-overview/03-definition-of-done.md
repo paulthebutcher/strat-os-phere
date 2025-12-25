@@ -6,7 +6,7 @@
 
 **Related docs**:
 - [01-system-overview.md](./01-system-overview.md) - System flow
-- [../../strat-os-phere/docs/GUARDRAILS.md](../../strat-os-phere/docs/GUARDRAILS.md) - Guardrail implementation
+- [../../strat-os-phere/docs/guards/GUARDRAILS.md](../../strat-os-phere/docs/guards/GUARDRAILS.md) - Guardrail implementation
 
 ---
 
@@ -115,6 +115,6 @@
 
 ## Next Steps
 
-- Read [../../strat-os-phere/docs/GUARDRAILS.md](../../strat-os-phere/docs/GUARDRAILS.md) for guardrail implementation details
-- Read [../../strat-os-phere/docs/ANALYSIS_PIPELINE.md](../../strat-os-phere/docs/ANALYSIS_PIPELINE.md) for generation flow details
+- Read [../../strat-os-phere/docs/guards/GUARDRAILS.md](../../strat-os-phere/docs/guards/GUARDRAILS.md) for guardrail implementation details
+- Read [../../strat-os-phere/docs/pipeline/ANALYSIS_PIPELINE.md](../../strat-os-phere/docs/pipeline/ANALYSIS_PIPELINE.md) for generation flow details
 

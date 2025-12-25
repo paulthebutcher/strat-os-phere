@@ -5,9 +5,9 @@
 **When to read this**: Read this to understand the foundational rules that prevent drift and trust failures. Required reading before making changes to analysis generation, evidence handling, or project data access.
 
 **Related docs**:
-- [../strat-os-phere/docs/GUARDRAILS.md](../strat-os-phere/docs/GUARDRAILS.md) - Guardrail system for AI analysis quality
+- [../strat-os-phere/docs/guards/GUARDRAILS.md](../strat-os-phere/docs/guards/GUARDRAILS.md) - Guardrail system for AI analysis quality
 - [Decisions.md](./Decisions.md) - Architectural decisions
-- [../strat-os-phere/docs/ARCHITECTURE.md](../strat-os-phere/docs/ARCHITECTURE.md) - System architecture
+- [../strat-os-phere/docs/architecture/ARCHITECTURE.md](../strat-os-phere/docs/architecture/ARCHITECTURE.md) - System architecture
 
 ---
 

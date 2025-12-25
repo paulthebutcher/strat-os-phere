@@ -6,6 +6,7 @@
 import { tavilySearch } from '@/lib/tavily/client'
 import { canonicalizeUrl, normalizeTavilyResults } from './normalize'
 import { buildEvidencePacks } from './packs'
+import { canonicalizeEvidenceKey } from './dedupeEvidence'
 import type {
   HarvestEvidenceCtx,
   HarvestEvidenceBundle,
@@ -34,24 +35,34 @@ async function runWithConcurrency<T>(
 }
 
 /**
- * Deduplicate sources by canonical URL
+ * Deduplicate sources by canonical evidence key (PR4.5)
+ * Uses canonicalizeEvidenceKey for stricter deduplication (strips query params, fragments)
  * Prefers sources from preferredDomains when duplicates exist
  */
 function deduplicateSources(
   sources: HarvestEvidenceSource[],
   preferredDomains?: string[]
 ): HarvestEvidenceSource[] {
-  const urlMap = new Map<string, HarvestEvidenceSource>()
+  const keyMap = new Map<string, HarvestEvidenceSource>()
   const preferredDomainSet = preferredDomains
     ? new Set(preferredDomains.map((d) => d.toLowerCase()))
     : undefined
 
   for (const source of sources) {
-    const canonical = canonicalizeUrl(source.url)
-    const existing = urlMap.get(canonical)
+    const canonicalKey = canonicalizeEvidenceKey({
+      url: source.url,
+      title: source.title,
+    })
+    
+    // Skip sources with empty keys (invalid URLs/titles)
+    if (!canonicalKey) {
+      continue
+    }
+    
+    const existing = keyMap.get(canonicalKey)
 
     if (!existing) {
-      urlMap.set(canonical, source)
+      keyMap.set(canonicalKey, source)
       continue
     }
 
@@ -64,14 +75,14 @@ function deduplicateSources(
       const existingIsPreferred = preferredDomainSet.has(existingDomain)
 
       if (sourceIsPreferred && !existingIsPreferred) {
-        urlMap.set(canonical, source)
+        keyMap.set(canonicalKey, source)
       }
       // Otherwise keep existing
     }
     // If no preferred domains, keep first occurrence
   }
 
-  return Array.from(urlMap.values())
+  return Array.from(keyMap.values())
 }
 
 /**

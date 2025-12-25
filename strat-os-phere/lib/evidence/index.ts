@@ -36,3 +36,16 @@ export type {
   EvidenceBundle,
 } from './types'
 
+// PR4.5: Evidence type detection and deduplication
+export {
+  detectEvidenceType,
+  type DetectEvidenceTypeInput,
+} from './detectEvidenceType'
+export type { EvidenceType as DetectedEvidenceType } from './detectEvidenceType'
+
+export {
+  canonicalizeEvidenceKey,
+  dedupeEvidenceByKey,
+  type CanonicalizeEvidenceKeyInput,
+} from './dedupeEvidence'
+

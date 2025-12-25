@@ -8,8 +8,8 @@
 
 **Related docs**:
 - [../PRD.md](../PRD.md) - Product requirements
-- [../../strat-os-phere/docs/ARCHITECTURE.md](../../strat-os-phere/docs/ARCHITECTURE.md) - Current architecture
-- [../../strat-os-phere/docs/DATA_MODEL.md](../../strat-os-phere/docs/DATA_MODEL.md) - Data model decisions
+- [../../strat-os-phere/docs/architecture/ARCHITECTURE.md](../../strat-os-phere/docs/architecture/ARCHITECTURE.md) - Current architecture
+- [../../strat-os-phere/docs/data/DATA_MODEL.md](../../strat-os-phere/docs/data/DATA_MODEL.md) - Data model decisions
 
 ---
 

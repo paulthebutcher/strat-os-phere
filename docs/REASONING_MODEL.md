@@ -12,7 +12,7 @@
 - [OPPORTUNITY_MODEL.md](./OPPORTUNITY_MODEL.md) - How claims justify Opportunity artifact fields
 - [00-overview/02-core-entities.md](./00-overview/02-core-entities.md) - Evidence sources data structure
 - [principles/SystemInvariants.md](./principles/SystemInvariants.md) - System invariants that enforce this contract
-- [../strat-os-phere/docs/GUARDRAILS.md](../strat-os-phere/docs/GUARDRAILS.md) - Implementation guardrails
+- [../strat-os-phere/docs/guards/GUARDRAILS.md](../strat-os-phere/docs/guards/GUARDRAILS.md) - Implementation guardrails
 
 ---
 

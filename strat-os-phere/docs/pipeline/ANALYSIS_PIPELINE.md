@@ -1,6 +1,12 @@
 # Analysis Pipeline
 
-How competitive analysis generation works in Plinth.
+**Purpose**: How competitive analysis generation works end-to-end in Plinth (LLM calls, validation, artifact storage).
+
+**When to read this**: Read this to understand how the analysis pipeline orchestrates competitor snapshot and market synthesis generation.
+
+**Last updated**: 2025-01-27
+
+---
 
 ## Overview
 

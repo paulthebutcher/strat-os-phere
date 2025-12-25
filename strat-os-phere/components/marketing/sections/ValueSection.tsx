@@ -1,17 +1,29 @@
 /**
  * Value Section
  * 
- * "What Plinth delivers" - tight bullets about decision defense.
+ * "What Plinth delivers" - outcome-oriented statements about decision defense.
  * Section id: #value
  */
 import { MarketingSection } from "../MarketingSection"
 import { MarketingContainer } from "../MarketingContainer"
 
 const valuePoints = [
-  "Evidence-bound opportunities (with citations)",
-  "Clear assumptions and confidence boundaries",
-  "Explainable prioritization (why this outranks alternatives)",
-  "Executive-ready framing (what to do, why now, what could change)",
+  {
+    title: "Evidence-bound opportunities",
+    description: "Claims are grounded in public signals — pricing, docs, changelogs, reviews — with citations you can point to.",
+  },
+  {
+    title: "Explicit confidence boundaries",
+    description: "Every recommendation makes clear what the evidence supports today — and what would need to change to support a stronger call.",
+  },
+  {
+    title: "Explainable prioritization",
+    description: "Rankings aren't arbitrary. You can see exactly why one opportunity outranks another, and which signals drove the result.",
+  },
+  {
+    title: "Executive-ready framing",
+    description: "Clear guidance on what to do, why now, and what risks or assumptions could invalidate the decision.",
+  },
 ]
 
 export function ValueSection() {
@@ -22,21 +34,29 @@ export function ValueSection() {
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
             Decisions you can defend.
           </h2>
+          <p className="text-lg text-text-secondary">
+            When the question isn't what's interesting, but what's safe to act on.
+          </p>
         </div>
 
-        {/* Value points grid - simple bullet list */}
+        {/* Value points - outcome-oriented statements */}
         <div className="max-w-2xl mx-auto">
-          <ul className="space-y-4">
+          <ul className="space-y-6">
             {valuePoints.map((point, index) => (
               <li
                 key={index}
-                className="flex items-start gap-3 text-lg text-text-secondary"
+                className="text-lg text-text-secondary"
               >
-                <span className="text-accent-primary font-semibold mt-1">•</span>
-                <span>{point}</span>
+                <span className="font-semibold text-text-primary">{point.title}</span>
+                <span className="ml-2">{point.description}</span>
               </li>
             ))}
           </ul>
+          
+          {/* Contrast line */}
+          <p className="mt-10 text-sm text-muted-foreground text-center">
+            Most tools optimize for insight generation. Plinth optimizes for decision credibility.
+          </p>
         </div>
       </MarketingContainer>
     </MarketingSection>

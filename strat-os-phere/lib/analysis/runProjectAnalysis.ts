@@ -23,6 +23,10 @@ import { logger } from '@/lib/logger'
 import { getEvidenceCoverage } from '@/lib/evidence'
 import { evaluateReadiness } from '@/lib/evidence/readiness'
 import { invariant } from '@/lib/guardrails/invariants'
+import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
+import { getProjectById } from '@/lib/data/projects'
+import { listCompetitorsForProject } from '@/lib/data/competitors'
+import { generateOpportunitiesV1 } from '@/lib/opportunities/generateOpportunitiesV1'
 
 /**
  * Pipeline version constant - update when pipeline logic changes
@@ -401,7 +405,7 @@ export async function runProjectAnalysis(
       }
     }
 
-    // Step: generate_opportunities (mocked for now)
+    // Step: generate_opportunities
     const opportunitiesStep: Step = {
       name: 'generate_opportunities',
       status: 'started',
@@ -409,9 +413,40 @@ export async function runProjectAnalysis(
     }
     steps.push(opportunitiesStep)
 
+    let opportunitiesArtifact: any = null
+
     try {
-      // Mock opportunity generation
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // Get evidence bundle for opportunity generation
+      const evidenceBundle = await readLatestEvidenceBundle(supabase, projectId)
+
+      // Get project and competitors for context
+      const project = await getProjectById(supabase, projectId)
+      const competitors = project ? await listCompetitorsForProject(supabase, projectId) : []
+
+      // Generate opportunities V1
+      const generationResult = await generateOpportunitiesV1({
+        projectRunId: run.id,
+        pipelineVersion,
+        inputVersion,
+        evidenceBundle,
+        projectContext: project
+          ? {
+              projectId: project.id,
+              projectName: project.name || undefined,
+              market: project.market || undefined,
+              targetCustomer: project.target_customer || undefined,
+              competitors: competitors.map((c) => ({
+                name: c.name,
+                url: c.url || undefined,
+              })),
+            }
+          : undefined,
+      })
+
+      // Store opportunities artifact for inclusion in final output
+      // Note: Even if opportunities array is empty (fail-closed), we still store the artifact
+      opportunitiesArtifact = generationResult.artifact
+
       opportunitiesStep.status = 'done'
       opportunitiesStep.finished_at = new Date().toISOString()
       
@@ -446,12 +481,16 @@ export async function runProjectAnalysis(
     }
 
     // Step 6: Mark as succeeded with output
-    const output = {
+    // Build output with opportunities artifact if generated
+    const output: Record<string, any> = {
       pipeline_version: pipelineVersion,
       input_version: inputVersion,
-      summary: 'Analysis completed successfully (mocked)',
-      opportunities: [],
-      notes: 'This is a mock run. Real analysis will be implemented in future PRs.',
+      summary: 'Analysis completed successfully',
+    }
+
+    // Include opportunities artifact if it was generated
+    if (opportunitiesArtifact) {
+      output.opportunities_artifact_v1 = opportunitiesArtifact
     }
 
     const successResult = await setRunSucceeded(supabase, run.id, {

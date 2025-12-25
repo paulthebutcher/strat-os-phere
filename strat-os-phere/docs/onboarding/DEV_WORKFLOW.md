@@ -1,5 +1,13 @@
 # Development Workflow
 
+**Purpose**: Development workflow, build policies, and iteration patterns for Plinth.
+
+**When to read this**: Read this to understand when to use `preflight` vs `build`, how to iterate quickly, and build policies.
+
+**Last updated**: 2025-01-27
+
+---
+
 ## Build Policy
 
 **Fast iteration, slow build**: Use `pnpm preflight` during everyday development. Only run `pnpm build` when necessary.

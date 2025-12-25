@@ -1,6 +1,12 @@
-# Authentication Configuration
+# Authentication
 
-This document describes the authentication setup for Plinth, including Supabase magic link authentication and 7-day session persistence.
+**Purpose**: Authentication and authorization implementation details for Plinth (Supabase magic links, session persistence).
+
+**When to read this**: Read this to understand how authentication works, session management, and auth configuration.
+
+**Last updated**: 2025-01-27
+
+---
 
 ## Session Persistence
 

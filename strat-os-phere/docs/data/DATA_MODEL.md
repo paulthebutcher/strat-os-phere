@@ -1,14 +1,16 @@
 # Data Model
 
-**Purpose**: Database schema and relationships for StratOSphere. This is the source of truth for data structures.
+**Purpose**: Database schema, table definitions, relationships, and data access patterns. This is the source of truth for data structures.
 
 **When to read this**: Read this to understand what tables exist, their columns, relationships, and how to access data.
 
 **Related docs**:
-- [../docs/00-overview/02-core-entities.md](../docs/00-overview/02-core-entities.md) - Core entities explained
+- [../../docs/00-overview/02-core-entities.md](../../docs/00-overview/02-core-entities.md) - Core entities explained
 - [MIGRATIONS.md](./MIGRATIONS.md) - Schema changes and migrations
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
-- [ANALYSIS_PIPELINE.md](./ANALYSIS_PIPELINE.md) - How artifacts are generated
+- [../architecture/ARCHITECTURE.md](../architecture/ARCHITECTURE.md) - System architecture
+- [../pipeline/ANALYSIS_PIPELINE.md](../pipeline/ANALYSIS_PIPELINE.md) - How artifacts are generated
+
+**Last updated**: 2025-01-27
 
 ---
 
@@ -262,5 +264,5 @@ Artifact content is validated using Zod schemas:
 - **On retrieval**: Schemas ensure type safety when reading artifacts
 - **Schema location**: `lib/schemas/artifacts.ts`, `lib/schemas/competitorSnapshot.ts`, `lib/schemas/marketSynthesis.ts`
 
-See [Analysis Pipeline](./ANALYSIS_PIPELINE.md) for how artifacts are generated and validated.
+See [Analysis Pipeline](../pipeline/ANALYSIS_PIPELINE.md) for how artifacts are generated and validated.
 

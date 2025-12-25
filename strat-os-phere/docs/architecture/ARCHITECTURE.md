@@ -5,10 +5,12 @@
 **When to read this**: Read this to understand how the codebase is organized, what modules exist, and how they interact.
 
 **Related docs**:
-- [../docs/PRD.md](../docs/PRD.md) - Product requirements
-- [DATA_MODEL.md](./DATA_MODEL.md) - Database schema
-- [ANALYSIS_PIPELINE.md](./ANALYSIS_PIPELINE.md) - Analysis generation flow
-- [../docs/00-overview/01-system-overview.md](../docs/00-overview/01-system-overview.md) - System flow narrative
+- [../../docs/PRD.md](../../docs/PRD.md) - Product requirements
+- [../data/DATA_MODEL.md](../data/DATA_MODEL.md) - Database schema
+- [../pipeline/ANALYSIS_PIPELINE.md](../pipeline/ANALYSIS_PIPELINE.md) - Analysis generation flow
+- [../../docs/00-overview/01-system-overview.md](../../docs/00-overview/01-system-overview.md) - System flow narrative
+
+**Last updated**: 2025-01-27
 
 ---
 

@@ -6,7 +6,7 @@
 
 **Related docs**:
 - [EVIDENCE_CLAIMS.md](./EVIDENCE_CLAIMS.md) - Claim-centric evidence system
-- [../../strat-os-phere/docs/EVIDENCE_GENERATION.md](../../strat-os-phere/docs/EVIDENCE_GENERATION.md) - Evidence generation flow
+- [../../strat-os-phere/docs/pipeline/EVIDENCE_GENERATION.md](../../strat-os-phere/docs/pipeline/EVIDENCE_GENERATION.md) - Evidence generation flow
 - [../00-overview/01-system-overview.md](../00-overview/01-system-overview.md) - System flow context
 
 ---

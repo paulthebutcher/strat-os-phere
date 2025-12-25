@@ -1,6 +1,12 @@
 # Deployment
 
-Deployment guide for Plinth on Vercel.
+**Purpose**: Deployment procedures, Vercel configuration, and environment setup.
+
+**When to read this**: Read this to understand how to deploy Plinth to Vercel and configure environments.
+
+**Last updated**: 2025-01-27
+
+---
 
 ## Environments
 

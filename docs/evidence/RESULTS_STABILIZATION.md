@@ -7,8 +7,8 @@
 **When to read this**: Read this to understand how results are loaded, normalized, and displayed, especially if working on results UI or artifact handling.
 
 **Related docs**:
-- [../../strat-os-phere/docs/DATA_MODEL.md](../../strat-os-phere/docs/DATA_MODEL.md) - Artifact schema
-- [../../strat-os-phere/docs/ANALYSIS_PIPELINE.md](../../strat-os-phere/docs/ANALYSIS_PIPELINE.md) - How artifacts are generated
+- [../../strat-os-phere/docs/data/DATA_MODEL.md](../../strat-os-phere/docs/data/DATA_MODEL.md) - Artifact schema
+- [../../strat-os-phere/docs/pipeline/ANALYSIS_PIPELINE.md](../../strat-os-phere/docs/pipeline/ANALYSIS_PIPELINE.md) - How artifacts are generated
 - [../PRD.md](../PRD.md) - Product requirements for results
 
 ---

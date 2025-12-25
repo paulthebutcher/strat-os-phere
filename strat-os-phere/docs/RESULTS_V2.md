@@ -262,7 +262,7 @@ score = min(100, round(opportunity / 2))
 
 ## Related Documentation
 
-- **Architecture**: See `docs/ARCHITECTURE.md` for overall system design
-- **Data Model**: See `docs/DATA_MODEL.md` for database schema
-- **Auth**: See `docs/Auth.md` for authentication flow
+- **Architecture**: See [architecture/ARCHITECTURE.md](./architecture/ARCHITECTURE.md) for overall system design
+- **Data Model**: See [data/DATA_MODEL.md](./data/DATA_MODEL.md) for database schema
+- **Auth**: See [security/Auth.md](./security/Auth.md) for authentication flow
 

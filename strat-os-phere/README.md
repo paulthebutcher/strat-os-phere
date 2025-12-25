@@ -147,7 +147,7 @@ npm run test:watch
 npm run test:coverage
 ```
 
-Tests use Vitest with mocked Supabase client. See [docs/TESTING.md](./docs/TESTING.md) for details.
+Tests use Vitest with mocked Supabase client. See [docs/testing/TESTING.md](./docs/testing/TESTING.md) for details.
 
 ### E2E Tests
 ```bash
@@ -158,7 +158,7 @@ npm run e2e
 npm run e2e:ui
 ```
 
-E2E tests require the dev server running. See [docs/TESTING.md](./docs/TESTING.md) for auth setup.
+E2E tests require the dev server running. See [docs/testing/TESTING.md](./docs/testing/TESTING.md) for auth setup.
 
 ## Deployment
 
@@ -187,7 +187,7 @@ Configure in Supabase Dashboard → Authentication → URL Configuration:
 **Preview** (Vercel):
 - Redirect URLs: `https://*.vercel.app/auth/callback`
 
-See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for detailed deployment guide.
+See [docs/ops/DEPLOYMENT.md](./docs/ops/DEPLOYMENT.md) for detailed deployment guide.
 
 ## Troubleshooting
 
@@ -217,13 +217,17 @@ See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for detailed deployment guide.
 
 ## Documentation
 
-- [Development Workflow](./docs/DEV_WORKFLOW.md) - Fast iteration workflow and build policy
-- [Architecture](./docs/ARCHITECTURE.md) - System design and module map
-- [Authentication](./docs/AUTH.md) - Auth flow and implementation details
-- [Data Model](./docs/DATA_MODEL.md) - Database schema and relationships
-- [Analysis Pipeline](./docs/ANALYSIS_PIPELINE.md) - How analysis generation works
-- [Testing](./docs/TESTING.md) - Test strategy and conventions
-- [Deployment](./docs/DEPLOYMENT.md) - Deployment guide and environment setup
+**New here?** Start with [docs/onboarding/START_HERE.md](./docs/onboarding/START_HERE.md) or see [docs/INDEX.md](./docs/INDEX.md) for a complete index.
+
+- **[Getting Started](./docs/onboarding/START_HERE.md)** - Onboarding guide for new developers
+- [Development Workflow](./docs/onboarding/DEV_WORKFLOW.md) - Fast iteration workflow and build policy
+- [Architecture](./docs/architecture/ARCHITECTURE.md) - System design and module map
+- [Authentication](./docs/security/Auth.md) - Auth flow and implementation details
+- [Data Model](./docs/data/DATA_MODEL.md) - Database schema and relationships
+- [Analysis Pipeline](./docs/pipeline/ANALYSIS_PIPELINE.md) - How analysis generation works
+- [Testing](./docs/testing/TESTING.md) - Test strategy and conventions
+- [Deployment](./docs/ops/DEPLOYMENT.md) - Deployment guide and environment setup
+- [Troubleshooting](./docs/troubleshooting/TROUBLESHOOTING.md) - Common issues and solutions
 
 ## License
 

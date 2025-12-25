@@ -1,13 +1,15 @@
-# Database Migrations
+# Migrations
 
-**Purpose**: SQL migrations for database schema changes. Use this when adding new tables, columns, or modifying existing schema.
+**Purpose**: SQL migrations for schema changes and migration patterns. Use this when adding new tables, columns, or modifying existing schema.
 
 **When to read this**: Read this before making schema changes or when applying migrations to understand what changes have been made.
 
 **Related docs**:
 - [DATA_MODEL.md](./DATA_MODEL.md) - Current schema
-- [GUARDRAILS.md](./GUARDRAILS.md) - Schema drift prevention
-- [../docs/00-overview/02-core-entities.md](../docs/00-overview/02-core-entities.md) - Core entities
+- [../guards/GUARDRAILS.md](../guards/GUARDRAILS.md) - Schema drift prevention
+- [../../docs/00-overview/02-core-entities.md](../../docs/00-overview/02-core-entities.md) - Core entities
+
+**Last updated**: 2025-01-27
 
 ---
 
