@@ -52,7 +52,7 @@ export function Hero() {
             {/* CTAs */}
             <Reveal delay={90}>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                <Link href="/new" className="w-full sm:w-auto">
+                <Link href="/example" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
                     variant="brand"
@@ -64,7 +64,7 @@ export function Hero() {
                     {microcopy.marketing.primaryCTA}
                   </Button>
                 </Link>
-                <Link href="/example" className="w-full sm:w-auto">
+                <Link href="/new" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
                     variant="outline" 
@@ -79,21 +79,21 @@ export function Hero() {
               </div>
             </Reveal>
             
-            {/* Proof line */}
+            {/* Microcopy under CTAs */}
             <Reveal delay={120}>
-              <p className={cn(
-                "text-sm text-text-muted"
-              )}>
-                {microcopy.marketing.proofLine}
-              </p>
-            </Reveal>
-            
-            {/* Helper line */}
-            <Reveal delay={150}>
               <p className={cn(
                 "text-xs md:text-sm text-text-muted"
               )}>
                 {microcopy.marketing.heroTagline}
+              </p>
+            </Reveal>
+            
+            {/* Proof line */}
+            <Reveal delay={150}>
+              <p className={cn(
+                "text-sm text-text-muted"
+              )}>
+                {microcopy.marketing.proofLine}
               </p>
             </Reveal>
           </div>

@@ -1,8 +1,7 @@
 /**
  * Final CTA Band
  * 
- * Clean, high-contrast (but restrained) CTA section.
- * One sentence value prop + primary CTA + optional secondary link.
+ * Simple and welcoming final CTA section.
  */
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -23,24 +22,25 @@ export function FinalCTABand() {
           )}>
             <div className="space-y-6">
               <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-                Make the call with your eyes open.
+                Try it on a real idea
               </h2>
               <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
-                Get to an evidence-bound point of view faster — without pretending uncertainty doesn't exist.
+                Bring your hunch. Plinth will bring the evidence.
               </p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
-                <Link href="/new">
+                <Link href="/example">
                   <Button 
                     size="lg" 
+                    variant="brand"
                     className={cn(
                       "w-full sm:w-auto shadow-lg",
                       HoverLift.className
                     )}
                   >
-                    Get started
+                    {microcopy.marketing.primaryCTA}
                   </Button>
                 </Link>
-                <Link href="#how">
+                <Link href="/new">
                   <Button 
                     size="lg" 
                     variant="outline" 
@@ -49,7 +49,7 @@ export function FinalCTABand() {
                       HoverLift.subtle
                     )}
                   >
-                    See how it works
+                    {microcopy.marketing.secondaryCTA}
                   </Button>
                 </Link>
               </div>

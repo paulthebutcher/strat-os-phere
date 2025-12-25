@@ -11,11 +11,11 @@
 export const microcopy = {
   marketing: {
     heroHeadline: "Find your unfair advantage",
-    heroSubhead: "Plinth turns public market evidence into ranked strategic opportunities—with explicit confidence boundaries.",
-    heroTagline: "No dashboards. No fluff. Just evidence-bound calls.",
-    primaryCTA: "Get a defensible readout",
-    secondaryCTA: "See a real example",
-    proofLine: "Citations included · Explainable ranking · Confidence boundaries",
+    heroSubhead: "Turn an idea into a clear next step—backed by public evidence you can point to.",
+    heroTagline: "No dashboards. No fluff. Just the evidence behind the call.",
+    primaryCTA: "See a real example",
+    secondaryCTA: "Try it on your idea",
+    proofLine: "Citations included · Explainable ranking · Clear \"what would change my mind\"",
   },
 
   onboarding: {

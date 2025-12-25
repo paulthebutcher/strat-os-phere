@@ -8,11 +8,11 @@
  */
 import type { Metadata } from "next"
 import { Hero } from "@/components/marketing/Hero"
-import { ValueSection } from "@/components/marketing/sections/ValueSection"
-import { HowItWorksStepper } from "@/components/marketing/HowItWorksStepper"
-import { ConfidenceBoundaries } from "@/components/marketing/ConfidenceBoundaries"
+import { WhoIsThisFor } from "@/components/marketing/sections/WhoIsThisFor"
+import { DecisionsYouCanDefend } from "@/components/marketing/HowItWorksStepper"
+import { WhatYouGet } from "@/components/marketing/sections/WhatYouGet"
 import { ExampleOutput } from "@/components/marketing/ExampleOutput"
-import { SocialProofPreview } from "@/components/marketing/SocialProofPreview"
+import { EnterpriseCredibility } from "@/components/marketing/SocialProofPreview"
 import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
@@ -36,20 +36,20 @@ export default function MarketingHome() {
         {/* 1. Hero */}
         <Hero />
         
-        {/* 2. What Plinth delivers */}
-        <ValueSection />
+        {/* 2. Who is this for? */}
+        <WhoIsThisFor />
         
-        {/* 3. How it works */}
-        <HowItWorksStepper />
+        {/* 3. Decisions you can defend */}
+        <DecisionsYouCanDefend />
         
-        {/* 4. Confidence boundaries */}
-        <ConfidenceBoundaries />
+        {/* 4. What you get */}
+        <WhatYouGet />
         
-        {/* 5. Example output */}
+        {/* 5. Example snippet */}
         <ExampleOutput />
         
-        {/* 6. Social proof preview */}
-        <SocialProofPreview />
+        {/* 6. Enterprise credibility */}
+        <EnterpriseCredibility />
         
         {/* 7. Final CTA */}
         <FinalCTABand />
