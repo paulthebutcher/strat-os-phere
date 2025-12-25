@@ -1,16 +1,15 @@
 /**
  * Hero Section
  * 
- * Two-column layout: left-aligned text + right product preview.
- * Visual-first design with high-fidelity product screenshot/preview.
+ * Centered layout with header above and decision credibility visual below.
+ * Single static visual that communicates value in one frame.
  */
 "use client"
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { HeroProductPreview } from "./HeroProductPreview"
-import { microcopy } from "@/lib/copy/microcopy"
+import { DecisionCredibilityVisual } from "./DecisionCredibilityVisual"
 import { Reveal, HoverLift } from "./motion"
 import { MarketingContainer } from "./MarketingContainer"
 
@@ -27,33 +26,44 @@ export function Hero() {
         />
       </div>
 
-      {/* Main content: two-column layout */}
+      {/* Main content: centered layout */}
       <div className="relative z-10">
         <MarketingContainer maxWidth="7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left: Text content */}
-            <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
-              {/* Hero headline */}
+          <div className="space-y-8 sm:space-y-12">
+            {/* Section header */}
+            <div className="text-center space-y-4">
               <Reveal delay={0}>
-                <h1 className={cn(
-                  "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight"
+                <h2 className={cn(
+                  "text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight leading-tight text-text-primary"
                 )}>
-                  {microcopy.marketing.heroHeadline}
-                </h1>
+                  A decision you can defend.
+                </h2>
               </Reveal>
               
-              {/* Subhead */}
               <Reveal delay={60}>
                 <p className={cn(
-                  "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-2xl mx-auto lg:mx-0"
+                  "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-3xl mx-auto"
                 )}>
-                  {microcopy.marketing.heroSubhead}
+                  Plinth turns public market evidence into a recommendation — with confidence boundaries and the conditions that would change the call.
                 </p>
               </Reveal>
-              
-              {/* CTAs */}
-              <Reveal delay={90}>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+            </div>
+
+            {/* Main visual */}
+            <Reveal delay={90}>
+              <DecisionCredibilityVisual />
+            </Reveal>
+
+            {/* Footer line and CTAs */}
+            <Reveal delay={120}>
+              <div className="text-center space-y-6">
+                <p className={cn(
+                  "text-sm sm:text-base text-text-secondary"
+                )}>
+                  From a rough idea to a call you can defend — with evidence attached.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                   <Link href="/new" className="w-full sm:w-auto">
                     <Button 
                       size="lg" 
@@ -63,7 +73,7 @@ export function Hero() {
                         HoverLift.className
                       )}
                     >
-                      {microcopy.marketing.primaryCTA}
+                      Try it on your idea
                     </Button>
                   </Link>
                   <Link href="/example" className="w-full sm:w-auto">
@@ -75,28 +85,12 @@ export function Hero() {
                         HoverLift.subtle
                       )}
                     >
-                      {microcopy.marketing.secondaryCTA}
+                      See a sample brief
                     </Button>
                   </Link>
                 </div>
-              </Reveal>
-              
-              {/* Microcopy under CTAs */}
-              <Reveal delay={120}>
-                <p className={cn(
-                  "text-xs md:text-sm text-text-muted max-w-xl mx-auto lg:mx-0"
-                )}>
-                  {microcopy.marketing.heroTagline}
-                </p>
-              </Reveal>
-            </div>
-
-            {/* Right: Product preview */}
-            <div className="mt-8 lg:mt-0">
-              <Reveal delay={150}>
-                <HeroProductPreview />
-              </Reveal>
-            </div>
+              </div>
+            </Reveal>
           </div>
         </MarketingContainer>
       </div>

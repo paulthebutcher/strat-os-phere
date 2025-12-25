@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { DecisionBrief } from './DecisionBrief'
-import { AssumptionsExplorer } from './AssumptionsExplorer'
+import { DecisionLeversSection } from '@/components/decision-levers/DecisionLeversSection'
 import { deriveAssumptionsFromOpportunities } from '@/lib/results/assumptions'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
@@ -46,13 +46,14 @@ export function ResultsReadout({
         generatedAt={generatedAt}
         projectName={projectName}
         competitorCount={competitorCount}
+        levers={assumptions}
       />
 
-      {/* Assumptions Explorer (Map + Ledger) */}
+      {/* Decision Levers (Action Matrix + Queue) */}
       {assumptions.length > 0 && (
-        <AssumptionsExplorer
+        <DecisionLeversSection
           projectId={projectId}
-          assumptions={assumptions}
+          levers={assumptions}
         />
       )}
     </div>

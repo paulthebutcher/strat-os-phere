@@ -7,11 +7,14 @@
 
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import type { AppBadgeVariant } from '@/components/ui/badgeVariants'
 import { CopySectionButton } from './CopySectionButton'
 import { ShareButton } from './ShareButton'
 import { getOpportunityScore } from '@/lib/results/opportunityUx'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
+import type { Assumption } from '@/lib/results/assumptions'
+import { getLeverQuadrant, getQuadrantLabel } from '@/lib/results/leverQuadrants'
 import { cn } from '@/lib/utils'
 
 interface DecisionBriefProps {
@@ -21,17 +24,18 @@ interface DecisionBriefProps {
   generatedAt?: string | null
   projectName?: string
   competitorCount?: number
+  levers?: Assumption[]
 }
 
 /**
  * Get confidence range label from score
  */
-function getConfidenceRange(score: number | null): { label: string; variant: 'default' | 'secondary' | 'outline' } {
-  if (score === null) return { label: 'Limited', variant: 'outline' }
+function getConfidenceRange(score: number | null): { label: string; variant: AppBadgeVariant } {
+  if (score === null) return { label: 'Limited', variant: 'neutral' }
   if (score >= 70) return { label: 'Strong', variant: 'default' }
   if (score >= 50) return { label: 'Medium–High', variant: 'default' }
   if (score >= 30) return { label: 'Limited–Medium', variant: 'secondary' }
-  return { label: 'Limited', variant: 'outline' }
+  return { label: 'Limited', variant: 'neutral' }
 }
 
 /**
@@ -239,6 +243,7 @@ export function DecisionBrief({
   generatedAt,
   projectName,
   competitorCount = 0,
+  levers = [],
 }: DecisionBriefProps) {
   const opportunities = opportunitiesV3?.opportunities ?? opportunitiesV2?.opportunities ?? []
   
@@ -400,8 +405,61 @@ export function DecisionBrief({
             </div>
           </div>
 
-          {/* E) What could change this decision */}
-          {whatCouldChange.length > 0 && (
+          {/* E) Levers that could change this decision */}
+          {levers.length > 0 && (() => {
+            // Get up to 3 levers in "Must Prove Now" + "Watch Closely"
+            const relevantLevers = levers
+              .filter(lever => {
+                const quadrant = getLeverQuadrant(lever)
+                return quadrant === 'mustProveNow' || quadrant === 'watchClosely'
+              })
+              .slice(0, 3)
+            
+            if (relevantLevers.length > 0) {
+              return (
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground mb-3">
+                    Levers that could change this decision
+                  </h4>
+                  <ul className="space-y-2">
+                    {relevantLevers.map((lever) => {
+                      const quadrant = getLeverQuadrant(lever)
+                      const quadrantLabel = getQuadrantLabel(quadrant)
+                      return (
+                        <li key={lever.id} className="text-sm text-foreground">
+                          <a
+                            href={`#decision-levers`}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              // Scroll to decision levers section and trigger drawer
+                              const section = document.getElementById('decision-levers')
+                              if (section) {
+                                section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                                // Trigger custom event to open drawer for this lever
+                                window.dispatchEvent(new CustomEvent('open-lever-drawer', {
+                                  detail: { leverId: lever.id }
+                                }))
+                              }
+                            }}
+                            className="text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            <span>{lever.statement}</span>
+                            <Badge variant="muted" className="text-xs">
+                              {quadrantLabel}
+                            </Badge>
+                          </a>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              )
+            }
+            return null
+          })()}
+          
+          {/* Fallback: What could change this decision (if no levers) */}
+          {levers.length === 0 && whatCouldChange.length > 0 && (
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-3">What could change this decision</h4>
               <ul className="space-y-2">
