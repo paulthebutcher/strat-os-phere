@@ -48,7 +48,8 @@ export function EvidenceContent({
   const opportunitiesArray = opportunitiesV3?.opportunities || opportunitiesV2?.opportunities || []
   
   // Normalize evidence for table display
-  const evidenceItems = useProjectEvidence(bundle, opportunitiesArray)
+  const safeBundle = bundle ?? null
+  const evidenceItems = useProjectEvidence(safeBundle, opportunitiesArray)
   
   // Feature flag check
   const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')

@@ -227,16 +227,17 @@ function sortByImpact(items: EvidenceTableItem[]): EvidenceTableItem[] {
 /**
  * Hook for accessing project evidence
  * 
- * @param bundle - Normalized evidence bundle (can be null)
+ * @param bundle - Normalized evidence bundle (can be null or undefined)
  * @param opportunities - Optional opportunities array for linking (V3 or V2 format)
  * @returns Sorted evidence items ready for table display
  */
 export function useProjectEvidence(
-  bundle: NormalizedEvidenceBundle | null,
+  bundle: NormalizedEvidenceBundle | null | undefined,
   opportunities: OpportunityItem[] = []
 ): EvidenceTableItem[] {
   return useMemo(() => {
-    const items = normalizeToTableItems(bundle, opportunities)
+    const safeBundle = bundle ?? null
+    const items = normalizeToTableItems(safeBundle, opportunities)
     return sortByImpact(items)
   }, [bundle, opportunities])
 }
