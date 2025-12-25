@@ -1,0 +1,72 @@
+/**
+ * Example Page
+ * 
+ * Annotated example of a Plinth opportunity output.
+ * Shows how to read opportunities with citations, confidence, and next steps.
+ */
+import type { Metadata } from "next"
+import Link from "next/link"
+import { MarketingPageShell } from "@/components/marketing/MarketingPageShell"
+import { MarketingSection } from "@/components/marketing/MarketingSection"
+import { MarketingContainer } from "@/components/marketing/MarketingContainer"
+import { ExampleOpportunityArtifact } from "@/components/marketing/ExampleOpportunityArtifact"
+import { Button } from "@/components/ui/button"
+import { createPageMetadata } from "@/lib/seo/metadata"
+import { EXAMPLE_OPPORTUNITIES } from "@/lib/examples/opportunities"
+
+// Use the "directional" opportunity as our example
+const exampleOpportunity = EXAMPLE_OPPORTUNITIES.find(
+  (opp) => opp.confidenceLevel === "directional"
+) || EXAMPLE_OPPORTUNITIES[1]
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata({
+    title: "Example — Plinth",
+    description:
+      "An example of how Plinth ties recommendations to evidence — and calls out what would increase confidence.",
+    path: "/example",
+    robots: {
+      index: true,
+      follow: true,
+    },
+  })
+}
+
+export default function ExamplePage() {
+  return (
+    <MarketingPageShell
+      title="One opportunity, clearly bounded"
+      eyebrow="Example"
+      lead="An example of how Plinth ties recommendations to evidence — and calls out what would increase confidence."
+    >
+      <MarketingSection>
+        <MarketingContainer maxWidth="4xl">
+          <div className="bg-white border border-border-subtle rounded-2xl p-8 md:p-12">
+            <ExampleOpportunityArtifact opportunity={exampleOpportunity} />
+          </div>
+        </MarketingContainer>
+      </MarketingSection>
+
+      {/* Custom CTA */}
+      <MarketingSection variant="muted">
+        <MarketingContainer maxWidth="4xl">
+          <div className="text-center space-y-6">
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
+              <Link href="/how-plinth-thinks">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                  How Plinth thinks
+                </Button>
+              </Link>
+              <Link href="/new">
+                <Button size="lg" className="w-full sm:w-auto">
+                  Get started
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </MarketingContainer>
+      </MarketingSection>
+    </MarketingPageShell>
+  )
+}
+

@@ -1,7 +1,7 @@
 /**
  * Privacy Policy Page
  * 
- * Basic privacy policy page for Plinth.
+ * Simple, transparent, minimal privacy policy—honest and non-legalese.
  */
 import type { Metadata } from "next"
 import { MarketingPageShell } from "@/components/marketing/MarketingPageShell"
@@ -13,7 +13,7 @@ import { createPageMetadata } from "@/lib/seo/metadata"
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
     title: "Privacy Policy — Plinth",
-    description: "Privacy Policy for Plinth.",
+    description: "How we collect, use, and protect your data at Plinth.",
     path: "/privacy",
     robots: {
       index: false,
@@ -27,96 +27,55 @@ export default function PrivacyPage() {
     <MarketingPageShell
       title="Privacy Policy"
       eyebrow="Company"
-      lead="How we collect, use, and protect your data."
+      lead="Simple, transparent explanation of how we handle your data."
     >
       <MarketingSection>
         <MarketingContainer maxWidth="4xl">
           <div className="space-y-8">
-            <GlassPanel className="p-8">
-              <div className="prose prose-sm max-w-none space-y-6 text-text-secondary">
+            <GlassPanel className="p-8 md:p-12">
+              <div className="space-y-10 text-text-secondary">
                 <div>
                   <h2 className="text-xl font-semibold text-text-primary mb-4">
-                    Last updated
+                    What we collect
                   </h2>
-                  <p>
-                    This Privacy Policy was last updated on{" "}
-                    {new Date().toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                    .
+                  <p className="text-base leading-relaxed">
+                    Account information: your email address when you sign up, and usage signals (which pages you visit, when you create projects, etc.). Project data: your decision questions, competitor names, and the evidence we collect during analysis runs. This data is private to your account.
                   </p>
                 </div>
+
                 <div>
                   <h2 className="text-xl font-semibold text-text-primary mb-4">
-                    Information we collect
+                    What we don't collect
                   </h2>
-                  <p>
-                    We collect information you provide directly to us, such as when you create an account, create projects, or contact us for support. This may include your email address, project data, and analysis inputs.
+                  <p className="text-base leading-relaxed">
+                    We don't collect customer secrets unless you explicitly provide them. We don't access private data from competitors—we only collect from publicly accessible pages (marketing sites, help docs, blog posts). We don't share your competitive data with other users.
                   </p>
                 </div>
+
                 <div>
                   <h2 className="text-xl font-semibold text-text-primary mb-4">
-                    How we use your information
+                    How we use data
                   </h2>
-                  <p>
-                    We use the information we collect to provide, maintain, and improve our service, to process your requests, and to communicate with you. We do not share your project data or analysis inputs with other users or third parties without your explicit consent.
+                  <p className="text-base leading-relaxed">
+                    We use your data to provide the product (running analyses, storing projects, managing your account) and to improve quality (understanding usage patterns, fixing bugs, improving recommendations). We don't sell your data or share it with third parties for marketing purposes.
                   </p>
                 </div>
+
                 <div>
                   <h2 className="text-xl font-semibold text-text-primary mb-4">
-                    Data security
+                    Retention
                   </h2>
-                  <p>
-                    We take reasonable measures to protect your information from unauthorized access, use, or disclosure. However, no method of transmission over the internet or electronic storage is 100% secure.
+                  <p className="text-base leading-relaxed">
+                    We retain your account and project data while your account is active. If you delete your account, we delete your data. Evidence we collect during analysis runs is stored in the context of your projects—we don't maintain a shared evidence pool across users.
                   </p>
                 </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-text-primary mb-4">
-                    Evidence collection
-                  </h2>
-                  <p>
-                    When you use Plinth to analyze competitors, we collect evidence exclusively from publicly accessible pages (marketing sites, help docs, blog posts, etc.). We do not access private data, attempt to bypass authentication, or use methods that would violate terms of service.
-                  </p>
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-text-primary mb-4">
-                    Cookies and tracking
-                  </h2>
-                  <p>
-                    We use cookies and similar technologies to maintain your session and improve your experience. You can control cookie settings through your browser preferences.
-                  </p>
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-text-primary mb-4">
-                    Your rights
-                  </h2>
-                  <p>
-                    You have the right to access, update, or delete your account and data. If you would like to exercise these rights, please contact us at{" "}
-                    <a
-                      href="mailto:hello@myplinth.com"
-                      className="text-primary hover:underline"
-                    >
-                      hello@myplinth.com
-                    </a>
-                    .
-                  </p>
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-text-primary mb-4">
-                    Changes to this policy
-                  </h2>
-                  <p>
-                    We may update this Privacy Policy from time to time. We will notify users of material changes by posting the updated policy on this page with a new "Last updated" date.
-                  </p>
-                </div>
+
                 <div>
                   <h2 className="text-xl font-semibold text-text-primary mb-4">
                     Contact
                   </h2>
-                  <p>
-                    If you have questions about this Privacy Policy, please contact us at{" "}
+                  <p className="text-base leading-relaxed">
+                    Questions about privacy? Email us at{" "}
                     <a
                       href="mailto:hello@myplinth.com"
                       className="text-primary hover:underline"

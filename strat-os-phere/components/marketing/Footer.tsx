@@ -66,6 +66,22 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
+                  href="/how-plinth-thinks"
+                  className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
+                >
+                  How Plinth thinks
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/example"
+                  className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
+                >
+                  Example
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/how-it-works/collect"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
@@ -140,10 +156,34 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/login"
+                  href="/"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
-                  Login
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/trust"
+                  className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
+                >
+                  How Plinth Thinks
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/samples"
+                  className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
+                >
+                  Example
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/faq"
+                  className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
+                >
+                  FAQ
                 </Link>
               </li>
               <li>
@@ -156,6 +196,14 @@ export function Footer() {
               </li>
               <li>
                 <Link
+                  href="/privacy"
+                  className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
+                >
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/terms"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
@@ -164,10 +212,10 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/privacy"
+                  href="/login"
                   className={cn("text-sm", "text-text-secondary transition-colors hover:text-text-primary")}
                 >
-                  Privacy
+                  Login
                 </Link>
               </li>
             </ul>
