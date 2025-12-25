@@ -35,6 +35,8 @@ import { getNextBestAction } from '@/lib/projects/nextBestAction'
 import Link from 'next/link'
 import type { SearchParams } from '@/lib/routing/searchParams'
 import { OpportunitiesEntryState } from '@/components/results/OpportunitiesEntryState'
+import { getDecisionRunState } from '@/lib/decisionRun/getDecisionRunState'
+import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunStatusBanner'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -84,7 +86,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
   const searchParams = props.searchParams
   const projectId = params.projectId
   const route = `/projects/${projectId}/opportunities`
-  const justGenerated = searchParams?.justGenerated === 'true' || searchParams?.justGenerated === true
+  const justGenerated = searchParams?.justGenerated === 'true' || searchParams?.justGenerated === '1' || searchParams?.justGenerated === true
 
   try {
     const supabase = await createClient()
@@ -148,9 +150,10 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
     let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
     let evidenceBundle: Awaited<ReturnType<typeof readLatestEvidenceBundle>> = null
     let runningRun: Awaited<ReturnType<typeof getLatestRunningRunForProject>> = null
+    let decisionRunState: Awaited<ReturnType<typeof getDecisionRunState>> | null = null
 
     try {
-      const [competitorsResult, artifactsResult, evidenceBundleResult, runningRunResult] = await Promise.all([
+      const [competitorsResult, artifactsResult, evidenceBundleResult, runningRunResult, decisionRunStateResult] = await Promise.all([
         listCompetitorsForProject(supabase, projectId).catch((error) => {
           logProjectError({
             route,
@@ -187,12 +190,22 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
           })
           return null
         }),
+        getDecisionRunState(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'getDecisionRunState',
+            error,
+          })
+          return null
+        }),
       ])
       
       competitors = competitorsResult ?? []
       artifacts = artifactsResult ?? []
       evidenceBundle = evidenceBundleResult ?? null
       runningRun = runningRunResult ?? null
+      decisionRunState = decisionRunStateResult
     } catch (error) {
       // Log but continue - we'll show empty states
       logProjectError({
@@ -270,6 +283,13 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             </>
           }
         />
+
+        {/* DecisionRun Status Banner - persistent run/evidence status */}
+        {decisionRunState && (
+          <Section>
+            <DecisionRunStatusBanner state={decisionRunState} />
+          </Section>
+        )}
 
         {/* System State Banner - shows empty/running/partial/complete states */}
         {viewModel.systemState !== 'complete' && (

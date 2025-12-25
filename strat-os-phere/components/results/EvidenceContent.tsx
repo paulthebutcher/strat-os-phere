@@ -5,6 +5,7 @@ import { EvidenceCoveragePanel } from '@/components/results/EvidenceCoveragePane
 import { EvidenceTable } from '@/components/evidence/EvidenceTable'
 import { EvidenceProgressPanel } from '@/components/results/EvidenceProgressPanel'
 import { EvidenceNotStartedPanel } from '@/components/results/EvidenceNotStartedPanel'
+import { EvidencePartialPanel } from '@/components/results/EvidencePartialPanel'
 import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
 import { useProjectEvidence } from '@/lib/hooks/useProjectEvidence'
 import { isFlagEnabled } from '@/lib/flags'
@@ -15,6 +16,7 @@ import type { StrategicBetsArtifactContent } from '@/lib/schemas/strategicBet'
 import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
 import type { NormalizedEvidenceBundle } from '@/lib/evidence/types'
+import type { DecisionRunState } from '@/lib/decisionRun/getDecisionRunState'
 
 interface EvidenceContentProps {
   projectId: string
@@ -24,6 +26,7 @@ interface EvidenceContentProps {
   strategicBets: StrategicBetsArtifactContent | null | undefined
   jtbd: JtbdArtifactContent | null | undefined
   bundle?: NormalizedEvidenceBundle | null
+  evidenceStatus?: DecisionRunState['evidenceStatus']
 }
 
 export function EvidenceContent({
@@ -34,6 +37,7 @@ export function EvidenceContent({
   strategicBets,
   jtbd,
   bundle,
+  evidenceStatus,
 }: EvidenceContentProps) {
   // Prefer v3, fallback to v2
   const opportunities = opportunitiesV3 ?? opportunitiesV2 ?? null
@@ -56,12 +60,18 @@ export function EvidenceContent({
   // Feature flag check
   const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')
 
-  // Determine evidence state
-  const hasEvidence = evidenceItems.length > 0
-  const evidenceCollectionStarted = bundle !== null && bundle !== undefined
+  // Use DecisionRunState evidenceStatus if provided, otherwise fall back to local heuristics
+  // This allows backward compatibility while migrating to DecisionRunState
+  const effectiveEvidenceStatus = evidenceStatus ?? (
+    evidenceItems.length > 0
+      ? 'complete'
+      : bundle !== null && bundle !== undefined
+        ? 'collecting'
+        : 'not_started'
+  )
 
   // Determine subhead based on state
-  const subhead = hasEvidence
+  const subhead = effectiveEvidenceStatus === 'complete'
     ? 'Sources grounding this recommendation'
     : 'Evidence will appear here as sources are collected'
 
@@ -92,15 +102,18 @@ export function EvidenceContent({
         <EvidenceCoveragePanel artifact={opportunities} />
       )}
 
-      {/* Three-state evidence display */}
-      {hasEvidence ? (
-        // State A: Evidence Available
+      {/* Evidence display driven by DecisionRunState */}
+      {effectiveEvidenceStatus === 'complete' ? (
+        // Complete: Show evidence table
         <EvidenceTable items={evidenceItems} density="full" projectId={projectId} />
-      ) : evidenceCollectionStarted ? (
-        // State B: Evidence In Progress
+      ) : effectiveEvidenceStatus === 'collecting' ? (
+        // Collecting: Show progress panel
         <EvidenceProgressPanel projectId={projectId} />
+      ) : effectiveEvidenceStatus === 'partial' ? (
+        // Partial: Show partial panel with CTA
+        <EvidencePartialPanel projectId={projectId} />
       ) : (
-        // State C: Evidence Not Started
+        // Not started: Show not started panel
         <EvidenceNotStartedPanel projectId={projectId} />
       )}
     </section>

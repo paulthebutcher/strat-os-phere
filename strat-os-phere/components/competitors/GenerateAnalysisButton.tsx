@@ -52,8 +52,8 @@ export function GenerateAnalysisButton({
           createdAt: new Date().toISOString(),
         })
 
-        // Redirect to opportunities page with justGenerated flag
-        router.push(`/projects/${projectId}/opportunities?justGenerated=true`)
+        // Redirect to opportunities page with runId and justGenerated flag
+        router.push(`/projects/${projectId}/opportunities?run=${result.runId}&justGenerated=1`)
 
         // Toast will appear automatically via RunToasts component
         // User can continue navigating - toast persists

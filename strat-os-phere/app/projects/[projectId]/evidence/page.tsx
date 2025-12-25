@@ -12,6 +12,11 @@ import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
+import { getDecisionRunState } from '@/lib/decisionRun/getDecisionRunState'
+import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunStatusBanner'
+import { PageShell } from '@/components/layout/PageShell'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Section } from '@/components/layout/Section'
 
 interface EvidencePageProps {
   params: Promise<{
@@ -114,9 +119,10 @@ export default async function EvidencePage(props: EvidencePageProps) {
     // Load related data with error handling - default to empty arrays on failure
     let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
     let evidenceBundle: Awaited<ReturnType<typeof readLatestEvidenceBundle>> = null
+    let decisionRunState: Awaited<ReturnType<typeof getDecisionRunState>> | null = null
 
     try {
-      const [artifactsResult, evidenceBundleResult] = await Promise.all([
+      const [artifactsResult, evidenceBundleResult, decisionRunStateResult] = await Promise.all([
         listArtifacts(supabase, { projectId }).catch((error) => {
           logProjectError({
             route,
@@ -135,10 +141,20 @@ export default async function EvidencePage(props: EvidencePageProps) {
           })
           return null
         }),
+        getDecisionRunState(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'getDecisionRunState',
+            error,
+          })
+          return null
+        }),
       ])
       
       artifacts = artifactsResult ?? []
       evidenceBundle = evidenceBundleResult ?? null
+      decisionRunState = decisionRunStateResult
     } catch (error) {
       // Log but continue - we'll show empty states
       logProjectError({
@@ -153,8 +169,20 @@ export default async function EvidencePage(props: EvidencePageProps) {
   const { opportunitiesV3, opportunitiesV2, profiles, strategicBets, jtbd } = normalized
 
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-      <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
+    <PageShell size="wide">
+      <PageHeader
+        title="Evidence"
+        subtitle="Supporting evidence and citations for the competitive analysis."
+      />
+
+      {/* DecisionRun Status Banner - persistent run/evidence status */}
+      {decisionRunState && (
+        <Section>
+          <DecisionRunStatusBanner state={decisionRunState} />
+        </Section>
+      )}
+
+      <Section>
         <EvidenceContent
           projectId={projectId}
           opportunitiesV3={opportunitiesV3?.content}
@@ -163,9 +191,10 @@ export default async function EvidencePage(props: EvidencePageProps) {
           strategicBets={strategicBets?.content}
           jtbd={jtbd?.content}
           bundle={evidenceBundle}
+          evidenceStatus={decisionRunState?.evidenceStatus}
         />
-      </main>
-    </div>
+      </Section>
+    </PageShell>
     )
   } catch (error) {
     // Log any unexpected errors

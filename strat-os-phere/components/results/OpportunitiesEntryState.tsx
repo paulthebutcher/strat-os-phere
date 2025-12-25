@@ -58,7 +58,7 @@ export function OpportunitiesEntryState({
     // Use window.location to avoid useSearchParams() which requires Suspense
     const urlParams = new URLSearchParams(window.location.search)
     const justGenerated = urlParams.get('justGenerated')
-    if (justGenerated === 'true') {
+    if (justGenerated === 'true' || justGenerated === '1') {
       // Remove the query param from URL without reload
       urlParams.delete('justGenerated')
       const newUrl = `${window.location.pathname}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`
