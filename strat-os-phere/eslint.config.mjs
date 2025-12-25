@@ -31,6 +31,14 @@ const eslintConfig = defineConfig([
       // If they cause issues, they can be removed as Next.js config already includes React linting
     },
   },
+  // Override for test files: allow `any` to avoid blocking builds
+  // Production code (app/, components/, lib/) still enforces no-explicit-any
+  {
+    files: ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**", "tests/**"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -3,6 +3,7 @@ import { MockSupabaseStore, createMockSupabaseClient } from '../mocks/supabase'
 import { assertHasCompetitors, assertHasCompetitorProfiles, COMPETITOR_PROFILE_ARTIFACT_TYPES } from '@/lib/results/prerequisites'
 import { AppError } from '@/lib/errors'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
+import type { ArtifactType } from '@/lib/artifacts/registry'
 
 describe('Prerequisites', () => {
   let store: MockSupabaseStore
@@ -83,7 +84,7 @@ describe('Prerequisites', () => {
       // Create profiles artifact with snapshots
       store.createArtifact({
         project_id: project.id,
-        type: 'profiles' as any,
+        type: 'profiles' as ArtifactType,
         content_json: {
           run_id: 'test-run-123',
           generated_at: new Date().toISOString(),
@@ -149,7 +150,7 @@ describe('Prerequisites', () => {
       // Create profiles artifact without snapshots
       store.createArtifact({
         project_id: project.id,
-        type: 'profiles' as any,
+        type: 'profiles' as ArtifactType,
         content_json: {
           run_id: 'test-run-123',
           generated_at: new Date().toISOString(),
@@ -195,7 +196,7 @@ describe('Prerequisites', () => {
       const artifactType = COMPETITOR_PROFILE_ARTIFACT_TYPES[0]
       store.createArtifact({
         project_id: project.id,
-        type: artifactType as any,
+        type: artifactType as ArtifactType,
         content_json: {
           run_id: 'test-run-123',
           generated_at: new Date().toISOString(),
@@ -270,7 +271,7 @@ describe('Prerequisites', () => {
       // Create profiles artifact with different run_id (old run)
       store.createArtifact({
         project_id: project.id,
-        type: 'profiles' as any,
+        type: 'profiles' as ArtifactType,
         content_json: {
           run_id: 'old-run-456', // Different from any current run
           generated_at: new Date(Date.now() - 86400000).toISOString(), // Yesterday
@@ -310,7 +311,7 @@ describe('Prerequisites', () => {
       // Test format 1: { snapshots: [...] } - current format
       store.createArtifact({
         project_id: project.id,
-        type: 'profiles' as any,
+        type: 'profiles' as ArtifactType,
         content_json: {
           run_id: 'test-run-123',
           snapshots: [

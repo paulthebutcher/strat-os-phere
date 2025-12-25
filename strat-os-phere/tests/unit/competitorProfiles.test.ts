@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { MockSupabaseStore, createMockSupabaseClient } from '../mocks/supabase'
 import { checkCompetitorProfileStatus } from '@/lib/results/competitorProfiles'
+import type { ArtifactType } from '@/lib/artifacts/registry'
 
 describe('checkCompetitorProfileStatus', () => {
   let store: MockSupabaseStore
@@ -69,7 +70,7 @@ describe('checkCompetitorProfileStatus', () => {
     // Create profile artifact with snapshots
     store.createArtifact({
       project_id: project.id,
-      type: 'profiles' as any,
+      type: 'profiles' as ArtifactType,
       content_json: {
         run_id: 'test-run-123',
         generated_at: new Date().toISOString(),
@@ -156,7 +157,7 @@ describe('checkCompetitorProfileStatus', () => {
     // Create profile artifact with only 2 snapshots (missing one)
     store.createArtifact({
       project_id: project.id,
-      type: 'profiles' as any,
+      type: 'profiles' as ArtifactType,
       content_json: {
         run_id: 'test-run-123',
         generated_at: new Date().toISOString(),
@@ -243,7 +244,7 @@ describe('checkCompetitorProfileStatus', () => {
     // Create profile artifact with content format (alternative schema)
     store.createArtifact({
       project_id: project.id,
-      type: 'profiles' as any,
+      type: 'profiles' as ArtifactType,
       content_json: {
         run_id: 'test-run-123',
         generated_at: new Date().toISOString(),
