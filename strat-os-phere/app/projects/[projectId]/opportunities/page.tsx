@@ -346,6 +346,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
             strategicBets={strategicBets?.content}
             jtbd={jtbd?.content}
+            evidenceBundle={evidenceBundle}
           />
         </Section>
       </PageShell>

@@ -2,11 +2,14 @@
 
 import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
 import { ResultsPresenter } from '@/components/results/ResultsPresenter'
+import { EvidenceTable } from '@/components/evidence/EvidenceTable'
+import { useProjectEvidence } from '@/lib/hooks/useProjectEvidence'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import type { StrategicBetsArtifactContent } from '@/lib/schemas/strategicBet'
 import type { JtbdArtifactContent } from '@/lib/schemas/jtbd'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
+import type { NormalizedEvidenceBundle } from '@/lib/evidence/types'
 
 interface OpportunitiesContentProps {
   projectId: string
@@ -15,6 +18,7 @@ interface OpportunitiesContentProps {
   profiles: { snapshots: CompetitorSnapshot[] } | null | undefined
   strategicBets: StrategicBetsArtifactContent | null | undefined
   jtbd: JtbdArtifactContent | null | undefined
+  evidenceBundle?: NormalizedEvidenceBundle | null
 }
 
 export function OpportunitiesContent({
@@ -24,6 +28,7 @@ export function OpportunitiesContent({
   profiles,
   strategicBets,
   jtbd,
+  evidenceBundle,
 }: OpportunitiesContentProps) {
   // Prefer v3, fallback to v2
   const opportunities = opportunitiesV3 ?? opportunitiesV2 ?? null
@@ -36,6 +41,12 @@ export function OpportunitiesContent({
     strategicBets,
     jtbd
   )
+  
+  // Get opportunities array for linking evidence
+  const opportunitiesArray = opportunitiesV3?.opportunities || opportunitiesV2?.opportunities || []
+  
+  // Normalize evidence for table display
+  const evidenceItems = useProjectEvidence(evidenceBundle || null, opportunitiesArray)
   
   // Build header from available metadata
   const header = {
@@ -54,18 +65,27 @@ export function OpportunitiesContent({
   
   // Use ResultsPresenter - it will handle V3/V2 rendering internally
   return (
-    <ResultsPresenter
-      mode="project"
-      projectId={projectId}
-      header={header}
-      opportunities={presenterOpportunities}
-      citations={citations}
-      opportunitiesV3={opportunitiesV3 || undefined}
-      opportunitiesV2={opportunitiesV2 || undefined}
-      profiles={profiles || undefined}
-      strategicBets={strategicBets || undefined}
-      jtbd={jtbd || undefined}
-    />
+    <>
+      <ResultsPresenter
+        mode="project"
+        projectId={projectId}
+        header={header}
+        opportunities={presenterOpportunities}
+        citations={citations}
+        opportunitiesV3={opportunitiesV3 || undefined}
+        opportunitiesV2={opportunitiesV2 || undefined}
+        profiles={profiles || undefined}
+        strategicBets={strategicBets || undefined}
+        jtbd={jtbd || undefined}
+      />
+      
+      {/* Evidence Table in compact mode for Opportunities context */}
+      {evidenceItems.length > 0 && (
+        <div className="mt-6">
+          <EvidenceTable items={evidenceItems} density="compact" projectId={projectId} />
+        </div>
+      )}
+    </>
   )
 }
 

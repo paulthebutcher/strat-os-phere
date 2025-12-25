@@ -22,11 +22,8 @@ export function FinalCTABand() {
           )}>
             <div className="space-y-6">
               <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-                Start with a rough idea.
+                Start with a rough idea. Leave with a defensible call.
               </h2>
-              <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
-                Leave with a decision you can defend.
-              </p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
                 <Link href="/new">
                   <Button 
@@ -37,7 +34,7 @@ export function FinalCTABand() {
                       HoverLift.className
                     )}
                   >
-                    Try it on your idea
+                    Try Plinth
                   </Button>
                 </Link>
                 <Link href="/example">
@@ -49,7 +46,7 @@ export function FinalCTABand() {
                       HoverLift.subtle
                     )}
                   >
-                    See a sample decision
+                    See a sample brief
                   </Button>
                 </Link>
               </div>

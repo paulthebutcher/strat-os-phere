@@ -8,6 +8,7 @@
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
 import type { OpportunitiesArtifactContent } from '@/lib/schemas/opportunities'
 import { getOpportunityScore } from './opportunityUx'
+import { isFluffy } from '@/lib/assumptions/isFluffy'
 
 export type AssumptionCategory = 'Market' | 'Buyer' | 'Product' | 'Competition' | 'Evidence' | 'Execution'
 
@@ -16,12 +17,15 @@ export type AssumptionConfidence = 'High' | 'Medium' | 'Low'
 export interface Assumption {
   id: string // Deterministic hash from text+category
   category: AssumptionCategory
-  statement: string // 1 sentence
+  statement: string // 1 sentence, ≤140 characters preferred
   whyItMatters: string // 1 sentence
   confidence: AssumptionConfidence
   impact: number // 1-5 integer
   relatedOpportunityIds: string[] // Array of opportunity IDs or indexes
   sourcesCount: number // Derived from citations count
+  test?: string // How to validate/falsify (what evidence would prove/disprove)
+  decision_impact?: string // What decision changes if wrong
+  needs_generation?: boolean // True if assumption is fluffy and needs LLM refinement
 }
 
 /**
@@ -329,7 +333,89 @@ export function deriveAssumptionsFromOpportunities(
     })
   }
 
+  // Mark fluffy assumptions and improve specificity where possible
+  const refinedAssumptions = assumptions.map(assumption => {
+    // Check if statement is fluffy
+    const fluffy = isFluffy(assumption.statement)
+    
+    // Try to improve specificity for evidence assumptions
+    if (assumption.category === 'Evidence' && fluffy) {
+      const totalCitations = assumption.sourcesCount
+      if (totalCitations === 0) {
+        assumption.statement = `No evidence sources found; need ≥2 review or pricing sources to validate opportunities`
+        assumption.test = 'Check evidence bundle for review/pricing sources; if <2 found, mark opportunities as Low confidence'
+        assumption.decision_impact = 'If no evidence, defer top opportunities until validation'
+      } else if (totalCitations < 5) {
+        assumption.statement = `Only ${totalCitations} evidence source${totalCitations !== 1 ? 's' : ''} found; need ≥5 to move from Low→Medium confidence`
+        assumption.test = `Count evidence sources in bundle; if <5, mark as Low confidence`
+        assumption.decision_impact = 'Low evidence count reduces confidence in opportunity prioritization'
+      } else {
+        assumption.statement = `${totalCitations} evidence sources support opportunities; ≥10 would increase confidence`
+        assumption.test = `Count evidence sources; if ≥10, mark as High confidence`
+        assumption.decision_impact = 'Evidence count directly affects opportunity confidence scores'
+      }
+      // Re-check if still fluffy after improvement
+      assumption.needs_generation = isFluffy(assumption.statement)
+    } else if (fluffy) {
+      // Mark as needing refinement
+      assumption.needs_generation = true
+    } else {
+      assumption.needs_generation = false
+    }
+    
+    return assumption
+  })
+
   // Limit to 8-15 assumptions
-  return assumptions.slice(0, 15)
+  return refinedAssumptions.slice(0, 15)
+}
+
+/**
+ * Refine assumptions that need generation (fluffy ones).
+ * This is an async function that can be called after derivation to improve quality.
+ * 
+ * @param assumptions - Assumptions that may need refinement
+ * @param projectContext - Project context for LLM refinement
+ * @param competitorNames - Optional list of competitor names
+ * @returns Refined assumptions with test and decision_impact fields populated
+ */
+export async function refineAssumptions(
+  assumptions: Assumption[],
+  projectContext: {
+    your_product?: string
+    business_goal?: string
+    market: string
+    target_customer?: string
+  },
+  competitorNames?: string[]
+): Promise<Assumption[]> {
+  // Only refine assumptions that need generation
+  const needsRefinement = assumptions.filter(a => a.needs_generation)
+  
+  if (needsRefinement.length === 0) {
+    return assumptions
+  }
+
+  // Import refinement utility (dynamic import to avoid circular deps)
+  const { refineFluffyAssumptions } = await import('@/lib/assumptions/refineAssumption')
+  
+  const refined = await refineFluffyAssumptions(
+    needsRefinement,
+    {
+      project: projectContext,
+      competitorNames,
+    }
+  )
+
+  // Map refined assumptions back to original array
+  const refinedMap = new Map(refined.map(a => [a.id, a]))
+  
+  return assumptions.map(assumption => {
+    const refined = refinedMap.get(assumption.id)
+    if (refined) {
+      return refined
+    }
+    return assumption
+  })
 }
 

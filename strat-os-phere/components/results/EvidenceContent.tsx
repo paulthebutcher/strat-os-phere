@@ -2,7 +2,9 @@
 
 import { EvidenceConfidencePanel } from '@/components/results/EvidenceConfidencePanel'
 import { EvidenceCoveragePanel } from '@/components/results/EvidenceCoveragePanel'
+import { EvidenceTable } from '@/components/evidence/EvidenceTable'
 import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
+import { useProjectEvidence } from '@/lib/hooks/useProjectEvidence'
 import { isFlagEnabled } from '@/lib/flags'
 import { EvidenceConfidenceIllustration, Backdrop } from '@/components/graphics'
 import type { OpportunityV3ArtifactContent } from '@/lib/schemas/opportunityV3'
@@ -42,6 +44,12 @@ export function EvidenceContent({
     jtbd
   )
   
+  // Get opportunities array for linking evidence
+  const opportunitiesArray = opportunitiesV3?.opportunities || opportunitiesV2?.opportunities || []
+  
+  // Normalize evidence for table display
+  const evidenceItems = useProjectEvidence(bundle, opportunitiesArray)
+  
   // Feature flag check
   const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')
 
@@ -72,11 +80,8 @@ export function EvidenceContent({
         <EvidenceCoveragePanel artifact={opportunities} />
       )}
 
-      {citations.length === 0 && (
-        <div className="text-sm text-muted-foreground">
-          No evidence available yet. Evidence will appear after analysis is generated.
-        </div>
-      )}
+      {/* Evidence Table - replaces empty state */}
+      <EvidenceTable items={evidenceItems} density="full" projectId={projectId} />
     </section>
   )
 }

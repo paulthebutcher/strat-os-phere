@@ -1,18 +1,17 @@
 /**
  * Hero With Preview Section
  * 
- * Product-led hero with large product screenshot on right side.
- * Shows opportunities list + Decision Brief visible with light annotations.
+ * Product-led hero with Decision Brief preview on right side.
+ * Shows the output artifact with subtle callouts.
  */
 "use client"
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { HeroPreview } from "./previews/HeroPreview"
+import { DecisionBriefPreview } from "./previews/DecisionBriefPreview"
 import { Reveal, HoverLift } from "./motion"
 import { MarketingContainer } from "./MarketingContainer"
-import { Badge } from "@/components/ui/badge"
 
 export function HeroWithPreview() {
   return (
@@ -37,7 +36,7 @@ export function HeroWithPreview() {
                 <h1 className={cn(
                   "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-text-primary"
                 )}>
-                  Make decisions you can defend.
+                  Make decisions you can defend
                 </h1>
               </Reveal>
               
@@ -45,7 +44,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary"
                 )}>
-                  Ranked opportunities, real evidence, and explicit confidence boundaries.
+                  Plinth turns public market evidence into ranked opportunities with explicit confidence boundaries.
                 </p>
               </Reveal>
 
@@ -60,7 +59,7 @@ export function HeroWithPreview() {
                         HoverLift.className
                       )}
                     >
-                      Try it on your idea
+                      Try Plinth
                     </Button>
                   </Link>
                   <Link href="/example" className="w-full sm:w-auto">
@@ -72,39 +71,35 @@ export function HeroWithPreview() {
                         HoverLift.subtle
                       )}
                     >
-                      See a real decision
+                      See a sample brief
                     </Button>
                   </Link>
                 </div>
               </Reveal>
             </div>
 
-            {/* Right: Product Preview with Annotations */}
+            {/* Right: Decision Brief Preview with callouts */}
             <Reveal delay={120}>
               <div className="relative">
                 {/* Product Screenshot */}
                 <div className="relative rounded-xl border-2 border-border-subtle shadow-2xl overflow-hidden bg-white">
-                  <HeroPreview />
-                  
-                  {/* Light annotations overlay */}
-                  <div className="absolute top-4 right-4 flex flex-col gap-2">
-                    <Badge variant="secondary" className="text-xs bg-white/90 backdrop-blur-sm">
-                      Ranked by evidence strength
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-4 left-4">
-                    <Badge variant="secondary" className="text-xs bg-white/90 backdrop-blur-sm">
-                      Sources attached
-                    </Badge>
-                  </div>
+                  <DecisionBriefPreview />
                 </div>
                 
-                {/* Floating annotation */}
-                <div className="absolute -bottom-4 -right-4 bg-white rounded-lg border border-border-subtle shadow-lg p-3 max-w-[200px] hidden lg:block">
-                  <p className="text-xs text-text-secondary">
+                {/* Subtle callouts */}
+                <div className="absolute top-4 right-4">
+                  <span className="text-[10px] font-medium text-text-primary bg-white/90 backdrop-blur-sm px-2 py-1 rounded border border-border-subtle">
+                    Evidence attached
+                  </span>
+                </div>
+                <div className="absolute bottom-16 left-4">
+                  <span className="text-[10px] font-medium text-text-primary bg-white/90 backdrop-blur-sm px-2 py-1 rounded border border-border-subtle">
+                    Confidence boundaries
+                  </span>
+                </div>
+                <div className="absolute -bottom-4 -right-4 bg-white rounded-lg border border-border-subtle shadow-lg p-2.5 max-w-[180px] hidden lg:block">
+                  <p className="text-[10px] text-text-secondary leading-relaxed">
                     <span className="font-semibold text-text-primary">What would change this call?</span>
-                    <br />
-                    Confidence boundaries are explicit
                   </p>
                 </div>
               </div>

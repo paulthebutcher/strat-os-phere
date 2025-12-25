@@ -20,6 +20,7 @@ import {
   type AssumptionUserStance,
 } from '@/lib/results/assumptionsClientState'
 import type { Assumption, AssumptionCategory } from '@/lib/results/assumptions'
+import { isFluffy } from '@/lib/assumptions/isFluffy'
 import { CopySectionButton } from './CopySectionButton'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
@@ -413,7 +414,24 @@ export function AssumptionsLedger({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium text-sm">{assumption.statement}</div>
+                      <div className="space-y-1">
+                        <div className="font-medium text-sm">{assumption.statement}</div>
+                        {assumption.test && (
+                          <div className="text-xs text-muted-foreground">
+                            <span className="font-medium">Validate by:</span> {assumption.test}
+                          </div>
+                        )}
+                        {assumption.decision_impact && (
+                          <div className="text-xs text-muted-foreground">
+                            <span className="font-medium">If wrong:</span> {assumption.decision_impact}
+                          </div>
+                        )}
+                        {(assumption.needs_generation || isFluffy(assumption.statement)) && (
+                          <Badge variant="warning" className="text-xs mt-1">
+                            Needs specificity
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -579,6 +597,28 @@ export function AssumptionsLedger({
                   <h4 className="text-sm font-semibold text-foreground mb-2">Why it matters</h4>
                   <p className="text-sm text-muted-foreground">{selectedAssumption.whyItMatters}</p>
                 </div>
+
+                {selectedAssumption.test && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Validate by</h4>
+                    <p className="text-sm text-muted-foreground">{selectedAssumption.test}</p>
+                  </div>
+                )}
+
+                {selectedAssumption.decision_impact && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-2">If wrong</h4>
+                    <p className="text-sm text-muted-foreground">{selectedAssumption.decision_impact}</p>
+                  </div>
+                )}
+
+                {(selectedAssumption.needs_generation || isFluffy(selectedAssumption.statement)) && (
+                  <div>
+                    <Badge variant="warning" className="text-xs">
+                      Needs specificity
+                    </Badge>
+                  </div>
+                )}
 
                 {selectedAssumption.sourcesCount > 0 && (
                   <div>
