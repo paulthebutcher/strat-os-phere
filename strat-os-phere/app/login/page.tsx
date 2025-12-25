@@ -13,7 +13,7 @@ interface LoginPageProps {
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Sign in — Plinth",
+    title: "Sign in",
     description: "Sign in to your Plinth workspace. A quiet workspace for serious strategy work.",
     path: "/login",
     ogVariant: "default",

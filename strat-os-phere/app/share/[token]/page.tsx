@@ -28,7 +28,7 @@ export async function generateMetadata(props: SharePageProps): Promise<Metadata>
 
   if (!sharedData) {
     return createPageMetadata({
-      title: 'Share not found — Plinth',
+      title: 'Share not found',
       description: 'This share link is invalid or has been revoked.',
       path: `/share/${token}`,
       ogVariant: 'default',
@@ -44,12 +44,14 @@ export async function generateMetadata(props: SharePageProps): Promise<Metadata>
   const projectName = sharedData.project.name
   const market = sharedData.project.market || 'this market'
   const description = `Top opportunities and evidence-backed signals for ${market}.`
+  const titleText = `Decision brief: ${projectName}`
+  const fullTitle = `Plinth – ${titleText}`
 
   return {
-    title: `Plinth Readout — ${projectName}`,
+    title: titleText,
     description,
     openGraph: {
-      title: `Plinth Readout — ${projectName}`,
+      title: fullTitle,
       description,
       url: `${origin}/share/${token}`,
       type: 'article',
@@ -64,7 +66,7 @@ export async function generateMetadata(props: SharePageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Plinth Readout — ${projectName}`,
+      title: fullTitle,
       description,
       images: [`${origin}/share/${token}/opengraph-image`],
     },

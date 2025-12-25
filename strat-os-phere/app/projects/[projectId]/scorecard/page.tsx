@@ -20,11 +20,25 @@ interface ScorecardPageProps {
 
 export async function generateMetadata(props: ScorecardPageProps): Promise<Metadata> {
   const params = await props.params
+  const projectId = params.projectId
+  
+  // Load project name for title
+  let projectName = "this project"
+  try {
+    const supabase = await createClient()
+    const projectResult = await loadProject(supabase, projectId)
+    if (projectResult.ok) {
+      projectName = projectResult.project.name
+    }
+  } catch (error) {
+    // Fallback to generic title if project load fails
+  }
+  
   return createPageMetadata({
-    title: "Scorecard — Plinth",
+    title: `Opportunity scorecard for ${projectName}`,
     description:
       "Competitive scorecard evaluating competitors on key criteria weighted by importance.",
-    path: `/projects/${params.projectId}/scorecard`,
+    path: `/projects/${projectId}/scorecard`,
     ogVariant: "default",
     robots: {
       index: false,

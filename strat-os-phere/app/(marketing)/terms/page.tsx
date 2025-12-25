@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Terms of Service — Plinth",
+    title: "Terms of service",
     description: "Terms of Service for Plinth.",
     path: "/terms",
     robots: {

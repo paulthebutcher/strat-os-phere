@@ -62,18 +62,13 @@ export function MarketingPageShell({
                   Ready to get started?
                 </h2>
                 <p className="text-base text-text-secondary max-w-xl mx-auto">
-                  Start a new analysis or explore how it works.
+                  Start a new analysis and see what Plinth can do.
                 </p>
               </div>
               <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 sm:flex-row pt-2">
                 <Link href="/new" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full sm:w-auto min-h-[44px]">
                     Try Plinth
-                  </Button>
-                </Link>
-                <Link href="/how-it-works" className="w-full sm:w-auto">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto min-h-[44px]">
-                    See how it works
                   </Button>
                 </Link>
               </div>

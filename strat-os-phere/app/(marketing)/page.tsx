@@ -4,15 +4,17 @@
  * Pure marketing page with NO auth dependencies, NO Supabase, NO server actions.
  * All previews are static "blue sky" components using sample data.
  * 
- * Single-lens positioning: confidence boundaries, not persona forks.
+ * Product-led, visually diverse SaaS layout inspired by ClickUp, Notion, Linear, and Fullstory.
+ * Every section features real product screenshots, storyboard-style flows, and full-width previews.
  */
 import type { Metadata } from "next"
-import { Hero } from "@/components/marketing/Hero"
+import { HeroWithPreview } from "@/components/marketing/HeroWithPreview"
 import { WhoIsThisFor } from "@/components/marketing/sections/WhoIsThisFor"
-import { DecisionsYouCanDefend } from "@/components/marketing/HowItWorksStepper"
-import { ProofWithoutHype } from "@/components/marketing/ProofWithoutHype"
-import { WhatYouGet } from "@/components/marketing/sections/WhatYouGet"
-import { ExampleOutput } from "@/components/marketing/ExampleOutput"
+import { DecisionStoryboard } from "@/components/marketing/DecisionStoryboard"
+import { FullWidthProductPreview } from "@/components/marketing/FullWidthProductPreview"
+import { EvidencePreviewGrid } from "@/components/marketing/EvidencePreviewGrid"
+import { RankedOpportunitiesPreview } from "@/components/marketing/RankedOpportunitiesPreview"
+import { ClearNextMoves } from "@/components/marketing/ClearNextMoves"
 import { EnterpriseCredibility } from "@/components/marketing/SocialProofPreview"
 import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
@@ -22,7 +24,7 @@ import { microcopy } from "@/lib/copy/microcopy"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Find your unfair advantage — Plinth",
+    title: "Find your unfair advantage",
     description: microcopy.marketing.heroSubhead,
     path: "/",
     ogVariant: "default",
@@ -34,28 +36,31 @@ export default function MarketingHome() {
   return (
     <MarketingShell>
       <main className="marketing-landing min-h-screen">
-        {/* 1. Hero */}
-        <Hero />
+        {/* 1. Hero with Product Preview */}
+        <HeroWithPreview />
         
         {/* 2. Who is this for? */}
         <WhoIsThisFor />
         
-        {/* 3. Decisions you can defend */}
-        <DecisionsYouCanDefend />
+        {/* 3. How a decision takes shape (Storyboard) */}
+        <DecisionStoryboard />
         
-        {/* 4. Proof without hype */}
-        <ProofWithoutHype />
+        {/* 4. Full-width Decision Brief Preview */}
+        <FullWidthProductPreview />
         
-        {/* 5. What you get */}
-        <WhatYouGet />
+        {/* 5. Evidence as First-Class Artifact (Grid) */}
+        <EvidencePreviewGrid />
         
-        {/* 6. Example snippet */}
-        <ExampleOutput />
+        {/* 6. Ranked Opportunities Preview */}
+        <RankedOpportunitiesPreview />
         
-        {/* 7. Enterprise credibility */}
+        {/* 7. Clear Next Moves */}
+        <ClearNextMoves />
+        
+        {/* 8. Enterprise credibility */}
         <EnterpriseCredibility />
         
-        {/* 8. Final CTA */}
+        {/* 9. Final CTA */}
         <FinalCTABand />
         
         <Footer />

@@ -18,11 +18,25 @@ interface SettingsPageProps {
 
 export async function generateMetadata(props: SettingsPageProps): Promise<Metadata> {
   const params = await props.params
+  const projectId = params.projectId
+  
+  // Load project name for title
+  let projectName = "this project"
+  try {
+    const supabase = await createClient()
+    const projectResult = await loadProject(supabase, projectId)
+    if (projectResult.ok) {
+      projectName = projectResult.project.name
+    }
+  } catch (error) {
+    // Fallback to generic title if project load fails
+  }
+  
   return createPageMetadata({
-    title: "Settings — Plinth",
+    title: `Settings for ${projectName}`,
     description:
       "Project settings and configuration.",
-    path: `/projects/${params.projectId}/settings`,
+    path: `/projects/${projectId}/settings`,
     ogVariant: "default",
     robots: {
       index: false,

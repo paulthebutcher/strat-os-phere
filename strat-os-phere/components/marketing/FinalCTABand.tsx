@@ -22,10 +22,10 @@ export function FinalCTABand() {
           )}>
             <div className="space-y-6">
               <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-                Get a defensible readout
+                Start with a rough idea.
               </h2>
               <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
-                Bring a hunch. We'll bring the evidence.
+                Leave with a decision you can defend.
               </p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
                 <Link href="/new">
@@ -37,7 +37,7 @@ export function FinalCTABand() {
                       HoverLift.className
                     )}
                   >
-                    Get a defensible readout
+                    Try it on your idea
                   </Button>
                 </Link>
                 <Link href="/example">
@@ -49,7 +49,7 @@ export function FinalCTABand() {
                       HoverLift.subtle
                     )}
                   >
-                    See a real example
+                    See a sample decision
                   </Button>
                 </Link>
               </div>

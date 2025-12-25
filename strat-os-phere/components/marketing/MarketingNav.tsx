@@ -34,29 +34,24 @@ export function MarketingNav() {
         />
 
         {/* Desktop Navigation */}
-        <div className="hidden items-center gap-6 md:flex">
-          <Link href="/example">
+        <div className="hidden items-center gap-4 md:flex">
+          <Link href="/login">
             <Button
               variant="ghost"
               size="sm"
               className="text-sm font-medium text-text-secondary transition-all duration-200 hover:text-text-primary"
             >
-              See an example
+              Sign in
             </Button>
           </Link>
           <Link href="/new">
-            <div className="flex flex-col items-end gap-0.5">
-              <Button
-                size="sm"
-                variant="brand"
-                className="shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                Get a defensible readout
-              </Button>
-              <span className="text-[10px] text-text-muted hidden lg:block">
-                ~2 minutes · citations included
-              </span>
-            </div>
+            <Button
+              size="sm"
+              variant="brand"
+              className="shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              Try Plinth
+            </Button>
           </Link>
         </div>
 
@@ -80,15 +75,15 @@ export function MarketingNav() {
         <div className="mt-2 md:hidden bg-white/95 backdrop-blur-sm border border-border-subtle rounded-xl shadow-sm overflow-hidden">
           <div className="flex flex-col gap-1 px-3 py-2">
             <Link
-              href="/example"
+              href="/login"
               className="px-3 py-3 min-h-[44px] flex items-center text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-muted transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={() => setMobileMenuOpen(false)}
             >
-              See an example
+              Sign in
             </Link>
             <Link href="/new" className="px-3 py-2" onClick={() => setMobileMenuOpen(false)}>
               <Button size="sm" variant="brand" className="w-full min-h-[44px] shadow-sm hover:shadow-md transition-all">
-                Get a defensible readout
+                Try Plinth
               </Button>
             </Link>
           </div>

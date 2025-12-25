@@ -24,7 +24,7 @@ type PageProps = {
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Create a new analysis — Plinth",
+    title: "Create a new analysis",
     description: "Start a new competitive analysis. Tell us what to analyze and we'll discover sources, recommend competitors, and generate strategic opportunities.",
     path: "/new",
     ogVariant: "default",

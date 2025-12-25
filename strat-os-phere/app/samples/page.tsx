@@ -7,7 +7,7 @@ import { getAllSampleSlugs, getSampleBySlug } from '@/lib/samples/adapter'
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: 'Sample Analyses — Plinth',
+    title: 'Sample Analyses',
     description: 'Explore sample competitive analysis results to see what Plinth can generate.',
     path: '/samples',
     ogVariant: 'default',

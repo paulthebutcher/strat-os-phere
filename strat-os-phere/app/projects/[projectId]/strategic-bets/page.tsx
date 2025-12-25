@@ -12,7 +12,7 @@ interface StrategicBetsPageProps {
 export async function generateMetadata(props: StrategicBetsPageProps): Promise<Metadata> {
   const params = await props.params
   return createPageMetadata({
-    title: "Strategic Bets — Plinth",
+    title: "Strategic Bets",
     description:
       "Strategic bets synthesizing analysis into commitment-ready decisions with falsifiable experiments.",
     path: `/projects/${params.projectId}/strategic-bets`,

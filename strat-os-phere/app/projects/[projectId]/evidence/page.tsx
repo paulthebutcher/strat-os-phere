@@ -21,11 +21,25 @@ interface EvidencePageProps {
 
 export async function generateMetadata(props: EvidencePageProps): Promise<Metadata> {
   const params = await props.params
+  const projectId = params.projectId
+  
+  // Load project name for title
+  let projectName = "this project"
+  try {
+    const supabase = await createClient()
+    const projectResult = await loadProject(supabase, projectId)
+    if (projectResult.ok) {
+      projectName = projectResult.project.name
+    }
+  } catch (error) {
+    // Fallback to generic title if project load fails
+  }
+  
   return createPageMetadata({
-    title: "Evidence — Plinth",
+    title: `Supporting evidence for ${projectName}`,
     description:
       "Evidence and citations supporting the competitive analysis.",
-    path: `/projects/${params.projectId}/evidence`,
+    path: `/projects/${projectId}/evidence`,
     ogVariant: "default",
     robots: {
       index: false,

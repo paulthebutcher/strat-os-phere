@@ -5,7 +5,7 @@ import { createPageMetadata } from '@/lib/seo/metadata'
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Help — Plinth",
+    title: "Help",
     description: "Get help with Plinth: getting started, how evidence works, common issues, and debug utilities.",
     path: "/help",
     ogVariant: "default",

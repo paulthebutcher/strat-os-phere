@@ -21,7 +21,7 @@ const exampleOpportunity = EXAMPLE_OPPORTUNITIES.find(
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "A real example — Plinth",
+    title: "A real example",
     description:
       "Read a sample opportunity with evidence, confidence boundaries, and \"what would increase confidence.\"",
     path: "/example",

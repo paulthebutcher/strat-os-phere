@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "How Plinth thinks — Plinth",
+    title: "How Plinth thinks",
     description:
       "How Plinth turns public signals into defensible calls—with citations and confidence boundaries.",
     path: "/how-plinth-thinks",

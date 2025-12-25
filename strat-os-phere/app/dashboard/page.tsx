@@ -26,8 +26,8 @@ import { microcopy } from '@/lib/copy/microcopy'
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Dashboard — Plinth",
-    description: "Your Plinth workspace. Manage your competitive analysis projects.",
+    title: "Your strategy projects",
+    description: "Your active strategy analyses, including competitors, evidence, and ranked opportunities.",
     path: "/dashboard",
     ogVariant: "default",
     robots: {

@@ -12,7 +12,7 @@ interface JobsPageProps {
 export async function generateMetadata(props: JobsPageProps): Promise<Metadata> {
   const params = await props.params
   return createPageMetadata({
-    title: "Jobs — Plinth",
+    title: "Jobs",
     description:
       "Jobs To Be Done analysis showing customer tasks, outcomes, and opportunity scores.",
     path: `/projects/${params.projectId}/jobs`,

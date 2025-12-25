@@ -42,11 +42,25 @@ interface OpportunitiesPageProps {
 
 export async function generateMetadata(props: OpportunitiesPageProps): Promise<Metadata> {
   const params = await props.params
+  const projectId = params.projectId
+  
+  // Load project name for title
+  let projectName = "this project"
+  try {
+    const supabase = await createClient()
+    const projectResult = await loadProject(supabase, projectId)
+    if (projectResult.ok) {
+      projectName = projectResult.project.name
+    }
+  } catch (error) {
+    // Fallback to generic title if project load fails
+  }
+  
   return createPageMetadata({
-    title: "Opportunities — Plinth",
+    title: `Ranked opportunities for ${projectName}`,
     description:
-      "Strategic opportunities ranked by score with actionable experiments and proof points.",
-    path: `/projects/${params.projectId}/opportunities`,
+      "Strategic opportunities ranked by evidence strength, confidence boundaries, and competitive signals.",
+    path: `/projects/${projectId}/opportunities`,
     ogVariant: "default",
     robots: {
       index: false,

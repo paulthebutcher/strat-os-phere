@@ -12,7 +12,7 @@ import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Deterministic Scoring — Trust — Plinth",
+    title: "Deterministic Scoring",
     description:
       "Plinth uses transparent, deterministic scoring inputs—not black-box models—so you can explain how rankings were calculated.",
     path: "/trust/deterministic-scoring",

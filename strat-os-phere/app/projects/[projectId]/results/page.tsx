@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 
 import { createPageMetadata } from '@/lib/seo/metadata'
 import { createClient } from '@/lib/supabase/server'
+import { loadProject } from '@/lib/projects/loadProject'
 import { getProjectResults } from '@/lib/results/getProjectResults'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeResults'
 import { normalizeResultsArtifacts as normalizeArtifactsInternal } from '@/lib/results/normalizeArtifacts'
@@ -57,10 +58,24 @@ interface ResultsPageProps {
 
 export async function generateMetadata(props: ResultsPageProps): Promise<Metadata> {
   const params = await props.params
+  const projectId = params.projectId
+  
+  // Load project name for title
+  let projectName = "this project"
+  try {
+    const supabase = await createClient()
+    const projectResult = await loadProject(supabase, projectId)
+    if (projectResult.ok) {
+      projectName = projectResult.project.name
+    }
+  } catch (error) {
+    // Fallback to generic title if project load fails
+  }
+  
   return createPageMetadata({
-    title: "Results — Plinth",
-    description: "Competitive analysis results and insights.",
-    path: `/projects/${params.projectId}/results`,
+    title: `${projectName} strategy`,
+    description: "Competitive strategy analysis, including evidence and ranked opportunities.",
+    path: `/projects/${projectId}/results`,
     ogVariant: "default",
     robots: {
       index: false,

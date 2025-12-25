@@ -12,7 +12,7 @@ import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Security & Privacy — Trust — Plinth",
+    title: "Security & Privacy",
     description:
       "Plinth collects only from public pages, preserves your privacy, and handles data responsibly.",
     path: "/trust/security-privacy",

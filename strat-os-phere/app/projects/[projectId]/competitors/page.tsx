@@ -30,12 +30,26 @@ interface CompetitorsPageProps {
 }
 
 export async function generateMetadata(props: CompetitorsPageProps): Promise<Metadata> {
-  const params = await props.params;
+  const params = await props.params
+  const projectId = params.projectId
+  
+  // Load project name for title
+  let projectName = "this project"
+  try {
+    const supabase = await createClient()
+    const projectResult = await loadProject(supabase, projectId)
+    if (projectResult.ok) {
+      projectName = projectResult.project.name
+    }
+  } catch (error) {
+    // Fallback to generic title if project load fails
+  }
+  
   return createPageMetadata({
-    title: "Competitors — Plinth",
+    title: `Competitors for ${projectName}`,
     description:
       "Manage competitors for your competitive analysis. Add and configure competitors to build a comprehensive competitive landscape.",
-    path: `/projects/${params.projectId}/competitors`,
+    path: `/projects/${projectId}/competitors`,
     ogVariant: "competitors",
     robots: {
       index: false,

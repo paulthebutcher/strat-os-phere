@@ -23,7 +23,7 @@ export async function generateMetadata(props: SamplePageProps): Promise<Metadata
 
   if (!meta) {
     return createPageMetadata({
-      title: 'Sample Not Found — Plinth',
+      title: 'Sample Not Found',
       description: 'Sample analysis not found.',
       path: `/samples/${params.slug}`,
       ogVariant: 'default',
@@ -36,7 +36,7 @@ export async function generateMetadata(props: SamplePageProps): Promise<Metadata
   }
 
   return createPageMetadata({
-    title: `${meta.title} — Sample — Plinth`,
+    title: `Sample: ${meta.title}`,
     description: meta.subtitle || 'Sample competitive analysis results.',
     path: `/samples/${params.slug}`,
     ogVariant: 'default',

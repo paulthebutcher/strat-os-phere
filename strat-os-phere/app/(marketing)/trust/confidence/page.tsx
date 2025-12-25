@@ -12,7 +12,7 @@ import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Confidence — Trust — Plinth",
+    title: "Confidence",
     description:
       "Every recommendation in Plinth includes confidence indicators and coverage metrics, so you understand the strength of the evidence.",
     path: "/trust/confidence",

@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { getOrigin } from "@/lib/server/origin";
 
 const SITE_NAME = "Plinth";
-const DEFAULT_TITLE = "Plinth — Decisions you can defend";
+const DEFAULT_TITLE = "Plinth – Decisions you can defend";
 const DEFAULT_DESCRIPTION =
-  "Plinth turns public market evidence into ranked opportunities with explicit confidence boundaries—so you know what's safe to act on now, what isn't yet, and what would increase certainty.";
+  "Plinth turns public market evidence into ranked, defensible strategic decisions with explicit confidence boundaries.";
 
 /**
  * Generates the base URL for metadata.
@@ -58,7 +58,7 @@ export async function createBaseMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(metadataBase),
     title: {
-      template: `%s — ${SITE_NAME}`,
+      template: `${SITE_NAME} – %s`,
       default: DEFAULT_TITLE,
     },
     description: DEFAULT_DESCRIPTION,
@@ -118,11 +118,14 @@ export async function createPageMetadata({
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const url = `${metadataBase}${normalizedPath}`;
 
+  // OpenGraph and Twitter titles should include brand prefix to match tab titles
+  const fullTitle = `${SITE_NAME} – ${title}`;
+
   const metadata: Metadata = {
     title,
     description,
     openGraph: {
-      title,
+      title: fullTitle,
       description,
       url,
       images: [
@@ -130,13 +133,13 @@ export async function createPageMetadata({
           url: getOGImageUrl(ogVariant, metadataBase),
           width: 1200,
           height: 630,
-          alt: title,
+          alt: fullTitle,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: fullTitle,
       description,
       images: [getOGImageUrl(ogVariant, metadataBase)],
     },

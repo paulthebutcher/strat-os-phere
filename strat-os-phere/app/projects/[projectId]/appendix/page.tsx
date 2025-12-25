@@ -20,11 +20,25 @@ interface AppendixPageProps {
 
 export async function generateMetadata(props: AppendixPageProps): Promise<Metadata> {
   const params = await props.params
+  const projectId = params.projectId
+  
+  // Load project name for title
+  let projectName = "this project"
+  try {
+    const supabase = await createClient()
+    const projectResult = await loadProject(supabase, projectId)
+    if (projectResult.ok) {
+      projectName = projectResult.project.name
+    }
+  } catch (error) {
+    // Fallback to generic title if project load fails
+  }
+  
   return createPageMetadata({
-    title: "Appendix — Plinth",
+    title: `Assumptions and risks for ${projectName}`,
     description:
       "Additional analysis artifacts including jobs, themes, profiles, and positioning.",
-    path: `/projects/${params.projectId}/appendix`,
+    path: `/projects/${projectId}/appendix`,
     ogVariant: "default",
     robots: {
       index: false,
