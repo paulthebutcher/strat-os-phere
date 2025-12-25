@@ -11,10 +11,10 @@ import { Reveal } from "./motion"
 export function ProblemPromiseSection() {
   return (
     <MarketingSection variant="default">
-      <MarketingContainer maxWidth="4xl">
+      <MarketingContainer maxWidth="5xl">
         <Reveal>
           <div className="text-center space-y-3 sm:space-y-4">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight lg:whitespace-nowrap">
               Decisions that matter shouldn't feel like guesswork.
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed text-text-secondary max-w-3xl mx-auto line-clamp-3 sm:line-clamp-none">

@@ -34,7 +34,8 @@ export function Hero() {
             <div className="text-center space-y-4">
               <Reveal delay={0}>
                 <h2 className={cn(
-                  "text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight leading-tight text-text-primary"
+                  "text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight leading-tight text-text-primary",
+                  "lg:whitespace-nowrap"
                 )}>
                   A decision you can defend.
                 </h2>

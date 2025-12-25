@@ -34,11 +34,11 @@ export function BuiltForDecisionMakersSection() {
 
   return (
     <MarketingSection variant="muted">
-      <MarketingContainer maxWidth="4xl">
+      <MarketingContainer maxWidth="5xl">
         <Reveal>
           <div className="space-y-8 sm:space-y-12">
             <div className="text-center space-y-4 sm:space-y-6">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight lg:whitespace-nowrap">
                 Built for decisions that will be challenged
               </h2>
             </div>

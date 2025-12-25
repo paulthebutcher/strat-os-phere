@@ -57,7 +57,7 @@ export function OutcomeExampleSection() {
           <div className="flex flex-col gap-6 sm:gap-8">
             {/* Section headline + subhead */}
             <div className="text-center space-y-2 sm:space-y-3">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight lg:whitespace-nowrap">
                 What you get back — no dashboards, no fluff
               </h2>
               <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
