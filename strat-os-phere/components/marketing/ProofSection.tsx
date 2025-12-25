@@ -68,7 +68,7 @@ export function ProofSection() {
         <Reveal>
           <div className="text-center mb-8 sm:mb-12 space-y-2 sm:space-y-3">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight lg:whitespace-nowrap">
-              Why Plinth decisions hold up under scrutiny
+              Why decisions hold up
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-text-secondary max-w-2xl mx-auto line-clamp-2 sm:line-clamp-none">
               Not dashboards. Not summaries. Decisions built from inspectable evidence.

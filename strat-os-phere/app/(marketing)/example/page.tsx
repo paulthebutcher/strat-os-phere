@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function ExamplePage() {
   return (
     <MarketingPageShell
-      title="One opportunity, clearly bounded"
+      title="One clear opportunity"
       eyebrow="Example"
       lead="An example of how Plinth ties recommendations to evidence — and calls out what would increase confidence."
     >

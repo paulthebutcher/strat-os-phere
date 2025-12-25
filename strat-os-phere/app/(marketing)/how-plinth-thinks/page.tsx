@@ -158,10 +158,10 @@ export default function HowPlinthThinksPage() {
           <div className="space-y-6 sm:space-y-8">
             <div>
               <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-text-primary mb-4 sm:mb-6">
-                Confidence boundaries (the organizing principle)
+                Confidence boundaries
               </h2>
               <p className="text-sm sm:text-base text-text-secondary leading-relaxed mb-6 sm:mb-8 px-4 sm:px-0">
-                Three states as states, not modes:
+                The organizing principle. Three states as states, not modes:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <GlassPanel className="p-4 sm:p-6">
