@@ -22,13 +22,13 @@ export function FinalCTABand() {
           )}>
             <div className="space-y-6">
               <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
-                Try it on a real idea
+                Get a defensible readout
               </h2>
               <p className="text-base md:text-lg leading-relaxed text-text-secondary max-w-prose mx-auto">
-                Bring your hunch. Plinth will bring the evidence.
+                Bring a hunch. We'll bring the evidence.
               </p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
-                <Link href="/example">
+                <Link href="/new">
                   <Button 
                     size="lg" 
                     variant="brand"
@@ -37,10 +37,10 @@ export function FinalCTABand() {
                       HoverLift.className
                     )}
                   >
-                    {microcopy.marketing.primaryCTA}
+                    Get a defensible readout
                   </Button>
                 </Link>
-                <Link href="/new">
+                <Link href="/example">
                   <Button 
                     size="lg" 
                     variant="outline" 
@@ -49,7 +49,7 @@ export function FinalCTABand() {
                       HoverLift.subtle
                     )}
                   >
-                    {microcopy.marketing.secondaryCTA}
+                    See a real example
                   </Button>
                 </Link>
               </div>

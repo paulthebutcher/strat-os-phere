@@ -10,6 +10,7 @@ import type { Metadata } from "next"
 import { Hero } from "@/components/marketing/Hero"
 import { WhoIsThisFor } from "@/components/marketing/sections/WhoIsThisFor"
 import { DecisionsYouCanDefend } from "@/components/marketing/HowItWorksStepper"
+import { ProofWithoutHype } from "@/components/marketing/ProofWithoutHype"
 import { WhatYouGet } from "@/components/marketing/sections/WhatYouGet"
 import { ExampleOutput } from "@/components/marketing/ExampleOutput"
 import { EnterpriseCredibility } from "@/components/marketing/SocialProofPreview"
@@ -42,16 +43,19 @@ export default function MarketingHome() {
         {/* 3. Decisions you can defend */}
         <DecisionsYouCanDefend />
         
-        {/* 4. What you get */}
+        {/* 4. Proof without hype */}
+        <ProofWithoutHype />
+        
+        {/* 5. What you get */}
         <WhatYouGet />
         
-        {/* 5. Example snippet */}
+        {/* 6. Example snippet */}
         <ExampleOutput />
         
-        {/* 6. Enterprise credibility */}
+        {/* 7. Enterprise credibility */}
         <EnterpriseCredibility />
         
-        {/* 7. Final CTA */}
+        {/* 8. Final CTA */}
         <FinalCTABand />
         
         <Footer />

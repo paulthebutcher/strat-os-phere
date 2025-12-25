@@ -10,6 +10,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { HeroArtifactBand } from "./HeroArtifactBand"
+import { ArtifactPreviewRow } from "./ArtifactPreviewRow"
 import { microcopy } from "@/lib/copy/microcopy"
 import { Reveal, HoverLift } from "./motion"
 import { MarketingContainer } from "./MarketingContainer"
@@ -98,12 +99,10 @@ export function Hero() {
             </Reveal>
           </div>
 
-          {/* Artifact preview band */}
-          <Reveal delay={180} y={12}>
-            <div className="mt-8 sm:mt-12 md:mt-16 px-4 sm:px-0">
-              <HeroArtifactBand />
-            </div>
-          </Reveal>
+          {/* Visual proof row: Idea → Evidence → Call */}
+          <div className="mt-8 sm:mt-12 md:mt-16 px-4 sm:px-0">
+            <ArtifactPreviewRow />
+          </div>
         </MarketingContainer>
       </div>
     </section>
