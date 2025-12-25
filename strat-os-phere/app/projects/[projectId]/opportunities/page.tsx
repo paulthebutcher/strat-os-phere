@@ -23,6 +23,16 @@ import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
+import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
+import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
+import { EvidenceReadinessChecklist } from '@/components/projects/ReadinessChecklist'
+import { getLatestRunningRunForProject } from '@/lib/data/runs'
+import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
+import { computeEvidenceCoverageLite } from '@/lib/evidence/coverageLite'
+import { EMPTY_EVIDENCE_COVERAGE_LITE } from '@/lib/evidence/coverageTypes'
+import { GenerateAnalysisButton } from '@/components/projects/GenerateAnalysisButton'
+import { getNextBestAction } from '@/lib/projects/nextBestAction'
+import Link from 'next/link'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -118,9 +128,10 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
     let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
     let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
     let evidenceBundle: Awaited<ReturnType<typeof readLatestEvidenceBundle>> = null
+    let runningRun: Awaited<ReturnType<typeof getLatestRunningRunForProject>> = null
 
     try {
-      const [competitorsResult, artifactsResult, evidenceBundleResult] = await Promise.all([
+      const [competitorsResult, artifactsResult, evidenceBundleResult, runningRunResult] = await Promise.all([
         listCompetitorsForProject(supabase, projectId).catch((error) => {
           logProjectError({
             route,
@@ -148,11 +159,21 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
           })
           return null
         }),
+        getLatestRunningRunForProject(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'getLatestRunningRunForProject',
+            error,
+          })
+          return null
+        }),
       ])
       
       competitors = competitorsResult ?? []
       artifacts = artifactsResult ?? []
       evidenceBundle = evidenceBundleResult ?? null
+      runningRun = runningRunResult ?? null
     } catch (error) {
       // Log but continue - we'll show empty states
       logProjectError({
@@ -166,6 +187,47 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
   // Normalize artifacts once using the canonical normalization function
   const normalized = normalizeResultsArtifacts(artifacts, projectId)
   const { opportunities, strategicBets, profiles, jtbd } = normalized
+  
+  // Check for opportunities artifacts (v3 or v2)
+  const hasOpportunitiesArtifact = Boolean(opportunities.v3 || opportunities.v2)
+  
+  // Compute evidence coverage using coverageLite (schema-free, fail-safe)
+  let coverageLite = EMPTY_EVIDENCE_COVERAGE_LITE
+  try {
+    coverageLite = await computeEvidenceCoverageLite(supabase, projectId)
+  } catch (error) {
+    // Log but don't fail - coverageLite already has safe defaults
+    logProjectError({
+      route,
+      projectId,
+      queryName: 'computeEvidenceCoverageLite',
+      error: error instanceof Error ? error : new Error(String(error)),
+    })
+  }
+
+  // Derive view model for state and coverage
+  const hasAnyArtifacts = Boolean(
+    normalized.profiles ||
+    normalized.jtbd ||
+    opportunities.v3 ||
+    opportunities.v2 ||
+    normalized.strategicBets
+  )
+  const competitorCount = competitors.length
+  const viewModel = deriveAnalysisViewModel({
+    activeRunStatus: runningRun?.status ?? null,
+    hasArtifacts: hasAnyArtifacts,
+    artifactCount: artifacts.length,
+    competitorCount: competitorCount,
+  })
+
+  // Determine next best action
+  const nextAction = getNextBestAction({
+    projectId,
+    competitorCount,
+    coverage: coverageLite,
+    hasOpportunitiesArtifact,
+  })
   
   // Load and process claims if trust layer is enabled
   const competitorDomains = competitors
@@ -190,6 +252,40 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
           }
         />
 
+        {/* System State Banner - shows empty/running/partial/complete states */}
+        {viewModel.systemState !== 'complete' && (
+          <Section>
+            <SystemStateBanner
+              state={viewModel.systemState}
+              actions={
+                nextAction.onClickIntent === 'generate' ? (
+                  <GenerateAnalysisButton
+                    projectId={projectId}
+                    label={nextAction.label}
+                    canGenerate={coverageLite.isEvidenceSufficient}
+                    missingReasons={coverageLite.isEvidenceSufficient ? [] : coverageLite.reasonsMissing}
+                  />
+                ) : nextAction.href ? (
+                  <Link href={nextAction.href} className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+                    {nextAction.label}
+                  </Link>
+                ) : undefined
+              }
+            />
+          </Section>
+        )}
+
+        {/* Coverage Indicator - Show when we have results */}
+        {viewModel.systemState !== 'empty' && viewModel.systemState !== 'running' && (
+          <Section>
+            <CoverageIndicator
+              level={viewModel.coverageLevel}
+              sourceCount={viewModel.sourceCount}
+              competitorCount={viewModel.competitorCount}
+            />
+          </Section>
+        )}
+
         {/* Evidence Trust Panel (if enabled) */}
         {FLAGS.evidenceTrustLayerEnabled && processedClaims && (
           <Section>
@@ -198,6 +294,18 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
               claimsByType={processedClaims.claimsByType}
               bundle={evidenceBundle}
               lastUpdated={evidenceBundle?.createdAt || null}
+            />
+          </Section>
+        )}
+
+        {/* Readiness Checklist - Show when empty or not ready */}
+        {(!hasOpportunitiesArtifact || !coverageLite.isEvidenceSufficient) && (
+          <Section>
+            <EvidenceReadinessChecklist
+              competitorCount={competitorCount}
+              coverage={coverageLite}
+              hasOpportunitiesArtifact={hasOpportunitiesArtifact}
+              projectId={projectId}
             />
           </Section>
         )}

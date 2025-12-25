@@ -10,7 +10,6 @@ import { projectRoutes } from '@/lib/routing/projectRoutes'
 import { cn } from '@/lib/utils'
 
 type ProjectShellActive = 
-  | 'overview'
   | 'opportunities'
   | 'competitors'
   | 'evidence'
@@ -29,11 +28,6 @@ const NAV_ITEMS: Array<{
   label: string
   href: (id: string) => string
 }> = [
-  {
-    id: 'overview',
-    label: 'Overview',
-    href: (id) => `/projects/${id}/overview`,
-  },
   {
     id: 'opportunities',
     label: 'Opportunities',

@@ -117,7 +117,7 @@ export function getProjectReadiness(
     nextAction = {
       type: 'generate_analysis',
       label: 'Generate analysis',
-      href: '/overview',
+      href: '/opportunities',
       disabled: !allComplete,
       disabledReason: !allComplete ? 'Complete all requirements first' : undefined,
     }

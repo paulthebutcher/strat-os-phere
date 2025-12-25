@@ -123,7 +123,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
     // Handle legacy tab redirects (only for routes that need to redirect away)
     if (tab) {
       const tabToRoute: Record<string, string> = {
-        overview: `/projects/${projectId}/overview`,
+        overview: `/projects/${projectId}/opportunities`,
         competitors: `/projects/${projectId}/competitors`,
         settings: `/projects/${projectId}/settings`,
       }

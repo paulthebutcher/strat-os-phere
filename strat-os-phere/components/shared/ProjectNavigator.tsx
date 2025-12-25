@@ -45,22 +45,16 @@ export function ProjectNavigator({
 
   const navItems = [
     {
-      id: 'overview',
-      label: 'Overview',
-      icon: LayoutDashboard,
-      href: `/projects/${projectId}/overview`,
+      id: 'opportunities',
+      label: 'Opportunities',
+      icon: Target,
+      href: `/projects/${projectId}/opportunities`,
     },
     {
       id: 'competitors',
       label: 'Competitors',
       icon: Users,
       href: `/projects/${projectId}/competitors`,
-    },
-    {
-      id: 'opportunities',
-      label: 'Opportunities',
-      icon: Target,
-      href: `/projects/${projectId}/opportunities`,
     },
     {
       id: 'strategic_bets',

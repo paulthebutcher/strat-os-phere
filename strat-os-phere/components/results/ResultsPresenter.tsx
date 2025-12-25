@@ -180,7 +180,7 @@ export function ResultsPresenter({
                   </Link>
                 </Button>
                 <Button asChild variant="outline" type="button">
-                  <Link href={`/projects/${projectId}/overview`}>
+                  <Link href={`/projects/${projectId}/competitors`}>
                     Edit inputs
                   </Link>
                 </Button>
@@ -501,7 +501,7 @@ function OpportunitiesV2Presenter({
                   </Link>
                 </Button>
                 <Button asChild variant="outline" type="button">
-                  <Link href={`/projects/${projectId}/overview`}>
+                  <Link href={`/projects/${projectId}/competitors`}>
                     Edit inputs
                   </Link>
                 </Button>

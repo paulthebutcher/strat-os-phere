@@ -29,12 +29,12 @@ export function toProjectCardModel(project: Project): ProjectCardModel {
   // For now, default to 'draft' - status can be enhanced later with artifact checks
   const status: ProjectCardModel['status'] = 'draft'
 
-  // Primary action: route to overview (can be enhanced later with artifact checks)
+  // Primary action: route to opportunities (can be enhanced later with artifact checks)
   // Note: "Generating..." status would require checking analysis_runs table for running status
   // For now, we conservatively show "Generate results"
   const primaryAction: ProjectCardModel['primaryAction'] = {
     label: 'Generate results',
-    href: `/projects/${project.id}/overview`,
+    href: `/projects/${project.id}/opportunities`,
   }
 
   // Secondary action: link to competitors page for editing inputs

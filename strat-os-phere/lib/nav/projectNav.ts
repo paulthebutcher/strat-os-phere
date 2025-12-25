@@ -4,7 +4,6 @@
  */
 
 import {
-  LayoutDashboard,
   Target,
   ClipboardList,
   Users,
@@ -16,7 +15,6 @@ import type { LucideIcon } from 'lucide-react'
 import { projectRoutes } from '@/lib/routing/projectRoutes'
 
 export type ProjectNavItemId =
-  | 'overview'
   | 'opportunities'
   | 'competitors'
   | 'scorecard'
@@ -40,21 +38,12 @@ export interface ProjectNavItem {
  */
 export const PROJECT_NAV_ITEMS: ProjectNavItem[] = [
   {
-    id: 'overview',
-    label: 'Overview',
-    href: projectRoutes.overview,
-    icon: LayoutDashboard,
-    matchers: (id) => [
-      `/projects/${id}`,
-      `/projects/${id}/overview`,
-    ],
-  },
-  {
     id: 'opportunities',
     label: 'Opportunities',
     href: projectRoutes.opportunities,
     icon: Target,
     matchers: (id) => [
+      `/projects/${id}`,
       `/projects/${id}/opportunities`,
       `/projects/${id}/results`, // Legacy results route
     ],

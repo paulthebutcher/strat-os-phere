@@ -1,22 +1,22 @@
 /**
  * Hero Section
  * 
- * Redesigned hero with centered text/CTAs on top, large preview below that overlaps next section.
- * Visual-first design with prominent preview and animation-ready structure.
+ * Single-column narrative stack: headline + subhead, CTA row, artifact preview band.
+ * Artifact-first design with compact, scannable preview.
  */
 "use client"
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { HeroPreview } from "./previews/HeroPreview"
+import { HeroArtifactBand } from "./HeroArtifactBand"
 import { microcopy } from "@/lib/copy/microcopy"
-import { Reveal, Stagger, HoverLift } from "./motion"
+import { Reveal, HoverLift } from "./motion"
+import { MarketingContainer } from "./MarketingContainer"
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden min-h-[85vh] pt-32 md:pt-40 lg:pt-48">
+    <section className="relative overflow-hidden pt-32 md:pt-40 lg:pt-48 pb-16 md:pb-24">
       {/* Subtle radial gradient background */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div 
@@ -27,46 +27,31 @@ export function Hero() {
         />
       </div>
 
-      {/* Main content: two-column on desktop, stacked on mobile */}
-      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left: Copy + CTAs */}
-          <div className="space-y-8 text-center lg:text-left">
+      {/* Main content: single-column narrative stack */}
+      <div className="relative z-10">
+        <MarketingContainer maxWidth="4xl">
+          <div className="space-y-8 md:space-y-10 text-center">
             {/* Hero headline */}
             <Reveal delay={0}>
               <h1 className={cn(
                 "text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight"
               )}>
-                {microcopy.marketing.heroHeadline.split('\n').map((line, idx) => (
-                  <span key={idx}>
-                    {line}
-                    {idx === 0 && <br />}
-                  </span>
-                ))}
+                {microcopy.marketing.heroHeadline}
               </h1>
             </Reveal>
             
             {/* Subhead */}
             <Reveal delay={60}>
               <p className={cn(
-                "text-base md:text-lg leading-relaxed text-text-secondary max-w-xl lg:max-w-none"
+                "text-base md:text-lg leading-relaxed text-text-secondary max-w-2xl mx-auto"
               )}>
                 {microcopy.marketing.heroSubhead}
               </p>
             </Reveal>
             
-            {/* Proof line */}
-            <Reveal delay={90}>
-              <p className={cn(
-                "text-sm text-text-muted"
-              )}>
-                {microcopy.marketing.proofLine}
-              </p>
-            </Reveal>
-            
             {/* CTAs */}
-            <Reveal delay={120}>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4 lg:justify-start justify-center">
+            <Reveal delay={90}>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/new">
                   <Button 
                     size="lg" 
@@ -94,7 +79,16 @@ export function Hero() {
               </div>
             </Reveal>
             
-            {/* Tagline */}
+            {/* Proof line */}
+            <Reveal delay={120}>
+              <p className={cn(
+                "text-sm text-text-muted"
+              )}>
+                {microcopy.marketing.proofLine}
+              </p>
+            </Reveal>
+            
+            {/* Helper line */}
             <Reveal delay={150}>
               <p className={cn(
                 "text-xs md:text-sm text-text-muted"
@@ -104,22 +98,13 @@ export function Hero() {
             </Reveal>
           </div>
 
-          {/* Right: Preview artifact */}
-          <div className="relative">
-            <Reveal delay={180} y={12}>
-              <div className="relative">
-                {/* Label */}
-                <div className="absolute -top-6 left-0 text-xs text-text-muted font-medium">
-                  Example output (static)
-                </div>
-                {/* Preview */}
-                <div className="bg-white rounded-xl border border-border-subtle shadow-xl overflow-hidden">
-                  <HeroPreview />
-                </div>
-              </div>
-            </Reveal>
-          </div>
-        </div>
+          {/* Artifact preview band */}
+          <Reveal delay={180} y={12}>
+            <div className="mt-12 md:mt-16">
+              <HeroArtifactBand />
+            </div>
+          </Reveal>
+        </MarketingContainer>
       </div>
     </section>
   )

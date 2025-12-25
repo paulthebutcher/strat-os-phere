@@ -69,9 +69,9 @@ export function ContinuePanel({ row }: ContinuePanelProps) {
 
   return (
     <div className={cn(
-      "border rounded-lg p-6",
-      brand.surface.tint,
-      brand.surface.border
+      "border rounded-lg p-6 shadow-sm",
+      "bg-card border-border-subtle",
+      "transition-all duration-[175ms] ease-out hover:shadow-md hover:border-border-strong"
     )}>
       <div className="flex items-start justify-between gap-6">
         <div className="flex-1 min-w-0 space-y-3">
@@ -141,7 +141,7 @@ export function ContinuePanel({ row }: ContinuePanelProps) {
         
         <div className="flex-shrink-0">
           <Button asChild size="lg" variant="brand">
-            <Link href={row.primaryHref || `/projects/${row.projectId}/overview`}>
+            <Link href={row.primaryHref || `/projects/${row.projectId}/opportunities`}>
               {getCtaLabel()}
             </Link>
           </Button>

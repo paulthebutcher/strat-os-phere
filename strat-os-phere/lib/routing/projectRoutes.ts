@@ -10,6 +10,5 @@ export const projectRoutes = {
   evidence: (id: string) => `/projects/${id}/evidence`,
   settings: (id: string) => `/projects/${id}/settings`,
   appendix: (id: string) => `/projects/${id}/appendix`,
-  overview: (id: string) => `/projects/${id}/overview`,
 } as const
 

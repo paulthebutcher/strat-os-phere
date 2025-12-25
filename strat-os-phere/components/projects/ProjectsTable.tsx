@@ -177,13 +177,13 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border border-border-subtle rounded-lg overflow-hidden shadow-sm bg-card">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-muted/30 border-b">
+          <thead className="bg-muted/20 border-b border-border-subtle">
             <tr>
               <th
-                className="text-left px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer hover:bg-muted/50 transition-colors"
+                className="text-left px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer hover:bg-muted/30 transition-colors duration-[175ms] ease-out"
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-1">
@@ -192,7 +192,7 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
                 </div>
               </th>
               <th
-                className="text-left px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer hover:bg-muted/50 transition-colors"
+                className="text-left px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer hover:bg-muted/30 transition-colors duration-[175ms] ease-out"
                 onClick={() => handleSort('lastTouched')}
               >
                 <div className="flex items-center gap-1">
@@ -201,7 +201,7 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
                 </div>
               </th>
               <th
-                className="text-left px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer hover:bg-muted/50 transition-colors"
+                className="text-left px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer hover:bg-muted/30 transition-colors duration-[175ms] ease-out"
                 onClick={() => handleSort('evidenceScore')}
               >
                 <div className="flex items-center gap-1">
@@ -214,14 +214,14 @@ export function ProjectsTable({ rows, searchQuery = '' }: ProjectsTableProps) {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-border-subtle">
             {sortedRows.map((row) => (
               <tr
                 key={row.projectId}
-                className="hover:bg-muted/20 transition-colors cursor-pointer group"
+                className="hover:bg-muted/20 transition-colors duration-[175ms] ease-out cursor-pointer group border-b border-border-subtle"
                 onClick={() => {
-                  // Navigate to project overview if row is clicked (but not on button)
-                  window.location.href = `/projects/${row.projectId}/overview`
+                  // Navigate to project opportunities if row is clicked (but not on button)
+                  window.location.href = `/projects/${row.projectId}/opportunities`
                 }}
               >
                 <td className="px-4 py-4">

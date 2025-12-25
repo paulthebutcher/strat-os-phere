@@ -221,7 +221,7 @@ export function OpportunityCardV1({
         {/* Header row */}
         <header className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg sm:text-xl font-semibold text-foreground leading-tight">
+            <h3 className="text-heading-m font-semibold text-foreground leading-tight">
               {title}
             </h3>
           </div>
@@ -266,7 +266,7 @@ export function OpportunityCardV1({
             )}
             {/* Weak evidence callout */}
             {evidenceStrength.isWeak && (
-              <div className="rounded-lg bg-muted/30 border border-border p-3 space-y-2">
+              <div className="rounded-lg bg-muted/30 border border-border-subtle p-3 space-y-2">
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Evidence is thin — treat as directional.
                 </p>
@@ -340,7 +340,7 @@ export function OpportunityCardV1({
             </span>
           </button>
           {isRisksExpanded && (
-            <div className="mt-3 space-y-4 pt-3 border-t border-border">
+            <div className="mt-3 space-y-4 pt-3 border-t border-border-subtle">
               {risks.length > 0 && (
                 <div>
                   <h5 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
@@ -382,7 +382,7 @@ export function OpportunityCardV1({
 
       {/* What could change this recommendation - collapsible */}
       {hasConfidenceItems && (
-        <section className="pt-4 border-t border-border">
+        <section className="pt-4 border-t border-border-subtle">
           <button
             onClick={() => setIsConfidenceExpanded(!isConfidenceExpanded)}
             className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-foreground/80 transition-colors w-full text-left"

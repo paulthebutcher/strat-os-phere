@@ -70,13 +70,13 @@ export function getNextBestAction({
   // Rule 3: Ready to generate
   if (coverage.isEvidenceSufficient && !hasOpportunitiesArtifact) {
     // Use onClickIntent for generation - caller should handle with GenerateAnalysisButton
-    // Or fallback to overview page where generation can be triggered
+    // Or fallback to opportunities page where generation can be triggered
     return {
       label: 'Generate opportunities',
       onClickIntent: 'generate',
-      // Fallback href to overview page where generation can be triggered
+      // Fallback href to opportunities page where generation can be triggered
       // Callers should prefer using GenerateAnalysisButton with onClickIntent
-      href: `/projects/${projectId}/overview`,
+      href: `/projects/${projectId}/opportunities`,
     }
   }
 

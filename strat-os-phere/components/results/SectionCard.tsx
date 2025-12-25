@@ -23,11 +23,12 @@ export function SectionCard({
   return (
     <article
       className={cn(
-        'rounded-[var(--plinth-radius-md)] border bg-white',
-        'border-[color:rgba(var(--plinth-border))]',
-        'shadow-[var(--plinth-shadow-1)]',
+        'rounded-lg border bg-card',
+        'border-border-subtle',
+        'shadow-sm',
         'p-6',
-        elevated && 'shadow-[var(--plinth-shadow-2)]',
+        'transition-all duration-[175ms] ease-out',
+        elevated && 'shadow-md',
         className
       )}
     >

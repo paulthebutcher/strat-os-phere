@@ -1,5 +1,4 @@
 import {
-  LayoutDashboard,
   Target,
   TrendingUp,
   Briefcase,
@@ -11,7 +10,6 @@ import {
 import type { LucideIcon } from 'lucide-react'
 
 export type NavItemId =
-  | 'overview'
   | 'opportunities'
   | 'strategic_bets'
   | 'jobs'
@@ -30,12 +28,6 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  {
-    id: 'overview',
-    label: 'Overview',
-    icon: LayoutDashboard,
-    href: (projectId) => `/projects/${projectId}/overview`,
-  },
   {
     id: 'opportunities',
     label: 'Opportunities',

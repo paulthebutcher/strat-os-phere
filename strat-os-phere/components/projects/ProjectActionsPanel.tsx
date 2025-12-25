@@ -61,8 +61,8 @@ export function ProjectActionsPanel({
                       ? `/projects/${projectId}/competitors`
                       : readiness.nextAction.href === '/projects'
                       ? `/dashboard`
-                      : readiness.nextAction.href === '/overview'
-                      ? `/projects/${projectId}/overview`
+                      : readiness.nextAction.href === '/overview' || readiness.nextAction.href === '/opportunities'
+                      ? `/projects/${projectId}/opportunities`
                       : readiness.nextAction.href.startsWith('/')
                       ? `/projects/${projectId}${readiness.nextAction.href}`
                       : readiness.nextAction.href

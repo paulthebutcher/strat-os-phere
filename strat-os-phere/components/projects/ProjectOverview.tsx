@@ -172,7 +172,7 @@ function RecentOutputsPreview({
           )}
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/projects/${projectId}/overview`}>
+          <Link href={`/projects/${projectId}/opportunities`}>
             View full results
           </Link>
         </Button>
