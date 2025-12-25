@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 
 /**
- * Root project route redirects to canonical opportunities route
- * This ensures /projects/[projectId] → /projects/[projectId]/opportunities
+ * Root project route redirects to canonical decision route
+ * This ensures /projects/[projectId] → /projects/[projectId]/decision
  */
 interface ProjectPageProps {
   params: Promise<{
@@ -14,7 +14,7 @@ export default async function ProjectPage(props: ProjectPageProps) {
   const params = await props.params
   const projectId = params.projectId
   
-  // Redirect to canonical opportunities route
-  redirect(`/projects/${projectId}/opportunities`)
+  // Redirect to canonical decision route
+  redirect(`/projects/${projectId}/decision`)
 }
 

@@ -28,6 +28,15 @@ export function routeToPageId(pathname: string): PageId {
     return 'competitors'
   }
 
+  // Decision page (primary entry point)
+  if (
+    normalized.match(/^projects\/[^/]+\/decision$/) ||
+    normalized.match(/^projects\/[^/]+\/decision\?/) ||
+    normalized.match(/^projects\/[^/]+$/) // Root project route now redirects to decision
+  ) {
+    return 'decision'
+  }
+
   // Results/Opportunities page
   if (
     normalized.match(/^projects\/[^/]+\/(results|opportunities)$/) ||

@@ -1,4 +1,4 @@
-export type PageId = 'landing' | 'dashboard' | 'new_project' | 'competitors' | 'results'
+export type PageId = 'landing' | 'dashboard' | 'new_project' | 'competitors' | 'decision' | 'results'
 
 export interface GuidanceLink {
   label: string
@@ -104,6 +104,31 @@ export const guidanceContent: Record<PageId, PageGuidance> = {
     links: [
       { label: 'How to add competitors', href: '/help#competitors' },
       { label: 'Back to project', href: '/dashboard' },
+    ],
+  },
+  decision: {
+    title: 'Decision Summary',
+    intro: 'Primary recommendation, confidence assessment, and key insights from your competitive analysis. This is your decision-oriented synthesis surface.',
+    nextSteps: [
+      'Review the primary recommendation and confidence level',
+      'Understand why this matters and what evidence supports it',
+      'Check the guardrails to understand what would change this call',
+      'Explore deep dives (opportunities, competitors, evidence) for more detail',
+    ],
+    glossary: {
+      'Primary recommendation': 'The top-ranked opportunity based on evidence strength, confidence, and strategic fit.',
+      Confidence: 'How certain we are about the recommendation: Investment-ready (high), Directional (moderate), or Exploratory (lower).',
+      'Evidence snapshot': 'Overview of evidence sources by category (pricing, reviews, docs, changelogs) that support the recommendation.',
+      Guardrails: 'Conditions or new evidence that would weaken or reverse the recommendation.',
+    },
+    commonMistakes: [
+      'Not reviewing the guardrails section which explains what would change the call',
+      'Ignoring confidence levels when making strategic decisions',
+      'Not diving deeper into evidence when confidence is lower',
+    ],
+    links: [
+      { label: 'View all opportunities', href: '/help#opportunities' },
+      { label: 'Understanding confidence', href: '/help#results' },
     ],
   },
   results: {

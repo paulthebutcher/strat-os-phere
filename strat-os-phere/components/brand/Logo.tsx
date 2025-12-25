@@ -39,6 +39,16 @@ export interface LogoProps {
    * @default false
    */
   priority?: boolean;
+  /**
+   * Gap between mark and text (Tailwind gap class)
+   * @default "gap-2"
+   */
+  gap?: string;
+  /**
+   * Font weight for wordmark text
+   * @default "font-semibold"
+   */
+  fontWeight?: "font-semibold" | "font-bold";
 }
 
 const sizeMap = {
@@ -55,6 +65,8 @@ export function Logo({
   showText,
   className,
   priority = false,
+  gap = "gap-2",
+  fontWeight = "font-semibold",
 }: LogoProps) {
   const isLockup = variant === "lockup";
   const shouldShowText = showText !== undefined ? showText : isLockup;
@@ -64,7 +76,8 @@ export function Logo({
   const content = (
     <div
       className={cn(
-        "flex items-center gap-2",
+        "flex items-center",
+        gap,
         className
       )}
     >
@@ -97,7 +110,8 @@ export function Logo({
       {shouldShowText && (
         <span
           className={cn(
-            "font-semibold text-foreground",
+            fontWeight,
+            "text-foreground",
             textSize
           )}
         >

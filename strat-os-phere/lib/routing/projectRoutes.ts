@@ -4,6 +4,7 @@
  */
 
 export const projectRoutes = {
+  decision: (id: string) => `/projects/${id}/decision`,
   opportunities: (id: string) => `/projects/${id}/opportunities`,
   competitors: (id: string) => `/projects/${id}/competitors`,
   scorecard: (id: string) => `/projects/${id}/scorecard`,
