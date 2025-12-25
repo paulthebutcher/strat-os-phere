@@ -327,21 +327,20 @@ export function OpportunityDetail({
                   {signal.citations.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {signal.citations.slice(0, 3).map((cit, citIdx) => (
-                        <Badge
+                        <a
                           key={citIdx}
-                          variant="outline"
-                          className="text-xs"
-                          asChild
+                          href={cit.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="cursor-pointer"
                         >
-                          <a
-                            href={cit.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="cursor-pointer"
+                          <Badge
+                            variant="secondary"
+                            className="text-xs border border-slate-200 bg-transparent text-slate-700 hover:bg-slate-50"
                           >
                             {formatSourceType(cit.sourceType)}
-                          </a>
-                        </Badge>
+                          </Badge>
+                        </a>
                       ))}
                     </div>
                   )}
@@ -390,7 +389,7 @@ export function OpportunityDetail({
                       </p>
                     )}
                   </div>
-                  <Badge variant="outline" className="ml-3 shrink-0">
+                  <Badge variant="secondary" className="ml-3 shrink-0 border border-slate-200 bg-transparent text-slate-700">
                     {formatSourceType(citation.sourceType)}
                   </Badge>
                 </div>

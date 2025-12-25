@@ -35,5 +35,47 @@ function Badge({ className, variant, ...props }: BadgeProps) {
   )
 }
 
-export { Badge, badgeVariants }
+/**
+ * Semantic badge kinds that map to valid design system variants.
+ * Use this to prevent accidentally passing invalid variants (e.g., "outline" from shadcn).
+ */
+export type BadgeKind = 
+  | "chip"      // Neutral, subtle badge (maps to "secondary")
+  | "status"    // Informational status badge (maps to "info")
+  | "tag"       // Default tag style (maps to "default")
+  | "primary"    // Primary emphasis (maps to "primary")
+  | "success"   // Success state (maps to "success")
+  | "warning"   // Warning state (maps to "warning")
+  | "danger"    // Danger/destructive state (maps to "danger")
+  | "muted"     // Muted/subtle (maps to "muted")
+
+const badgeVariantByKind: Record<BadgeKind, BadgeProps["variant"]> = {
+  chip: "secondary",
+  status: "info",
+  tag: "default",
+  primary: "primary",
+  success: "success",
+  warning: "warning",
+  danger: "danger",
+  muted: "muted",
+} as const
+
+/**
+ * SafeBadge ensures only valid design system variants are used.
+ * Prevents common mistakes like using "outline" (which is a Button variant, not Badge).
+ * 
+ * @example
+ * <SafeBadge kind="chip">Citation</SafeBadge>
+ * <SafeBadge kind="status">Active</SafeBadge>
+ */
+export interface SafeBadgeProps extends Omit<BadgeProps, "variant"> {
+  kind: BadgeKind
+}
+
+function SafeBadge({ kind, ...props }: SafeBadgeProps) {
+  const variant = badgeVariantByKind[kind]
+  return <Badge variant={variant} {...props} />
+}
+
+export { Badge, badgeVariants, SafeBadge }
 

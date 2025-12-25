@@ -24,6 +24,7 @@ import {
   mapBackendPhaseToStage,
   getStageProgress,
 } from '@/lib/ui/thinkingStages'
+import { paths } from '@/lib/routes'
 
 interface AnalysisRunExperienceProps {
   projectId: string
