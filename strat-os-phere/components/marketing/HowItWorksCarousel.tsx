@@ -11,60 +11,12 @@ import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FramePreview } from './previews/FramePreview'
-import { ScanPreview } from './previews/ScanPreview'
-import { WeighPreview } from './previews/WeighPreview'
-import { DecidePreview } from './previews/DecidePreview'
+import { HOW_IT_WORKS_SLIDES, type HowItWorksSlide } from './howItWorksSlides'
 
-export type SlideData = {
-  id: string
-  headline: string
-  copy: string[]
-  preview: React.ComponentType
-}
+// Re-export type for backwards compatibility
+export type SlideData = HowItWorksSlide
 
-const slides: SlideData[] = [
-  {
-    id: 'frame',
-    headline: 'Frame',
-    copy: [
-      'Start with a real decision — not a prompt.',
-      'Plinth works best when the question is explicit. You can start with a hunch, a competitor set, or a market tension you're trying to resolve.',
-      'We infer what to research from how you frame the decision — just like a strategy team would.',
-    ],
-    preview: FramePreview,
-  },
-  {
-    id: 'scan',
-    headline: 'Scan',
-    copy: [
-      'Plinth gathers public market signals continuously.',
-      'We analyze pricing pages, documentation, reviews, changelogs, and positioning across competitors — focusing only on primary sources.',
-      'Every claim is grounded in something you can open and inspect.',
-    ],
-    preview: ScanPreview,
-  },
-  {
-    id: 'weigh',
-    headline: 'Weigh',
-    copy: [
-      'Not all signals matter equally.',
-      'Plinth scores evidence based on consistency, coverage, and relevance — separating directional ideas from investment-ready calls.',
-      'Confidence is explicit, and uncertainty is surfaced instead of hidden.',
-    ],
-    preview: WeighPreview,
-  },
-  {
-    id: 'decide',
-    headline: 'Decide',
-    copy: [
-      'The output is a decision you can defend.',
-      'You get a single, prioritized recommendation when confidence is high — with clear boundaries on what would change the call.',
-      'No dashboards. No guesswork. Just clarity.',
-    ],
-    preview: DecidePreview,
-  },
-]
+const slides = HOW_IT_WORKS_SLIDES
 
 export function HowItWorksCarousel() {
   const [activeIndex, setActiveIndex] = useState(0)

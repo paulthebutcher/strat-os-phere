@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 
 import { GenerateAnalysisButton } from '@/components/competitors/GenerateAnalysisButton'
 import { CompetitorsPageClient } from '@/components/competitors/CompetitorsPageClient'
+import { EvidencePreviewPanel } from '@/components/competitors/EvidencePreviewPanel'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { loadProject } from '@/lib/projects/loadProject'
 import {
@@ -13,6 +14,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createPageMetadata } from '@/lib/seo/metadata'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { normalizeResultsArtifacts } from '@/lib/results/normalizeArtifacts'
+import { getEvidenceSourcesForProject } from '@/lib/data/evidenceSources'
 import { DataRecencyNote } from '@/components/shared/DataRecencyNote'
 import Link from 'next/link'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
@@ -124,9 +126,10 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
     // Load related data with error handling - default to empty arrays on failure
     let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
     let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
+    let evidenceSources: Awaited<ReturnType<typeof getEvidenceSourcesForProject>> = []
 
     try {
-      const [competitorsResult, artifactsResult] = await Promise.all([
+      const [competitorsResult, artifactsResult, evidenceResult] = await Promise.all([
         listCompetitorsForProject(supabase, projectId).catch((error) => {
           logProjectError({
             route,
@@ -145,10 +148,20 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
           })
           return []
         }),
+        getEvidenceSourcesForProject(supabase, projectId).catch((error) => {
+          logProjectError({
+            route,
+            projectId,
+            queryName: 'getEvidenceSourcesForProject',
+            error,
+          })
+          return []
+        }),
       ])
       
       competitors = competitorsResult ?? []
       artifacts = artifactsResult ?? []
+      evidenceSources = evidenceResult ?? []
     } catch (error) {
       // Log but continue - we'll show empty states
       logProjectError({
@@ -170,6 +183,16 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
     0,
     MIN_COMPETITORS_FOR_ANALYSIS - competitorCount
   )
+  
+  // Check evidence sufficiency (at least 5 sources and 2 competitors covered)
+  const evidenceCount = evidenceSources.length
+  const competitorsWithEvidence = new Set(
+    evidenceSources
+      .map((s) => s.competitor_id)
+      .filter((id): id is string => Boolean(id))
+  ).size
+  const hasSufficientEvidence = evidenceCount >= 5 && competitorsWithEvidence >= 2
+  const canGenerate = readyForAnalysis && hasSufficientEvidence
 
   const normalized = normalizeResultsArtifacts(safeArtifacts)
   const hasAnyArtifacts = Boolean(
@@ -190,14 +213,13 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
           <header className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Step 2 · Competitors
+                Step 2 · Evidence Base
               </p>
               <div className="flex items-center gap-2">
                 <h1>{project.name}</h1>
               </div>
               <p className="text-sm text-text-secondary">
-                Add real alternatives so Plinth can generate a sharp,
-                exec-ready landscape summary.
+                Plinth scans real competitor signals to ground recommendations before ranking anything.
               </p>
               <TourLink />
               <DataRecencyNote />
@@ -209,14 +231,18 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
                   Competitors: {competitorCount} / {MAX_COMPETITORS_PER_PROJECT}
                 </p>
                 <p>
-                  {readyForAnalysis
+                  {canGenerate
                     ? 'Ready to generate'
-                    : `Add ${remainingToReady} more to generate`}
+                    : !readyForAnalysis
+                      ? `Add ${remainingToReady} more to generate`
+                      : !hasSufficientEvidence
+                        ? 'Collecting evidence…'
+                        : 'Ready to generate'}
                 </p>
               </div>
               <GenerateAnalysisButton
                 projectId={project.id}
-                disabled={!readyForAnalysis}
+                disabled={!canGenerate}
                 competitorCount={competitorCount}
               />
             </div>
@@ -229,13 +255,27 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
           hasResults={hasAnyArtifacts}
         />
 
-        <CompetitorsPageClient
-          projectId={projectId}
-          competitors={safeCompetitors}
-          competitorCount={competitorCount}
-          readyForAnalysis={readyForAnalysis}
-          remainingToReady={remainingToReady}
-        />
+        <div className="space-y-6">
+          <CompetitorsPageClient
+            projectId={projectId}
+            competitors={safeCompetitors}
+            competitorCount={competitorCount}
+            readyForAnalysis={readyForAnalysis}
+            remainingToReady={remainingToReady}
+          />
+          
+          {competitorCount > 0 && (
+            <EvidencePreviewPanel
+              projectId={projectId}
+              competitorCount={competitorCount}
+              competitors={safeCompetitors.map((c) => ({
+                id: c.id,
+                name: c.name,
+                url: c.url,
+              }))}
+            />
+          )}
+        </div>
       </main>
     </div>
     </PageGuidanceWrapper>

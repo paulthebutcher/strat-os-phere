@@ -97,6 +97,11 @@ export function CompetitorCard({
             <span className="text-muted-foreground">
               Added {createdLabel}
             </span>
+            {competitor.url && (
+              <span className="text-muted-foreground">
+                · Queued for scanning
+              </span>
+            )}
           </div>
         </div>
 
