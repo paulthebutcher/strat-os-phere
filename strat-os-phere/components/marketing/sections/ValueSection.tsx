@@ -71,19 +71,19 @@ export function ValueSection() {
     <MarketingSection variant="default" id="value">
       <MarketingContainer maxWidth="6xl">
         {/* Desktop: Left header + Right horizontal progression */}
-        <div className="hidden md:block mb-16 md:mb-20">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-8 lg:gap-12 items-start">
+        <div className="hidden md:block mb-12 sm:mb-16 md:mb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-6 sm:gap-8 lg:gap-12 items-start">
             {/* Left: Section header (narrow) */}
             <Reveal>
               <div className="lg:sticky lg:top-24">
-                <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-3 sm:mb-4">
                   Decisions you can defend.
                 </h2>
-                <p className="text-lg md:text-xl text-text-secondary mb-2">
+                <p className="text-base sm:text-lg md:text-xl text-text-secondary mb-2">
                   When the room goes quiet and someone asks:
                   <br />"Why this—and why now?"
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Plinth makes evidence, confidence, and action explicit.
                 </p>
               </div>
@@ -162,18 +162,18 @@ export function ValueSection() {
         </div>
 
         {/* Mobile: Stacked layout */}
-        <div className="md:hidden mb-16">
+        <div className="md:hidden mb-12 sm:mb-16">
           {/* Header */}
           <Reveal>
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-semibold tracking-tight text-text-primary mb-4">
+            <div className="text-center mb-8 sm:mb-12 px-4 sm:px-0">
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary mb-3 sm:mb-4">
                 Decisions you can defend.
               </h2>
-              <p className="text-lg text-text-secondary mb-2">
+              <p className="text-base sm:text-lg text-text-secondary mb-2">
                 When the room goes quiet and someone asks:
                 <br />"Why this—and why now?"
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Plinth makes evidence, confidence, and action explicit.
               </p>
             </div>

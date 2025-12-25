@@ -61,8 +61,8 @@ export function HeroArtifactBand() {
       "overflow-hidden"
     )}>
       {/* Header */}
-      <div className="px-4 md:px-6 py-3 border-b border-border-subtle">
-        <h3 className="text-sm font-semibold text-text-primary">
+      <div className="px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 border-b border-border-subtle">
+        <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
           Top opportunities (example)
         </h3>
       </div>
@@ -70,7 +70,7 @@ export function HeroArtifactBand() {
       {/* Content: Opportunities + Citations */}
       <div className="flex flex-col md:flex-row">
         {/* Left: Opportunities list */}
-        <div className="flex-1 p-4 md:p-6 space-y-3">
+        <div className="flex-1 p-3 sm:p-4 md:p-6 space-y-2 sm:space-y-3">
           {opportunities.map((opp, idx) => (
             <div
               key={idx}
@@ -81,22 +81,22 @@ export function HeroArtifactBand() {
             >
               {/* Title */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary truncate">
+                <p className="text-xs sm:text-sm font-medium text-text-primary">
                   {opp.title}
                 </p>
               </div>
 
               {/* Confidence + Evidence summary */}
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 shrink-0">
                 <span
                   className={cn(
-                    "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border",
+                    "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border",
                     confidenceColors[opp.confidence]
                   )}
                 >
                   {confidenceLabels[opp.confidence]}
                 </span>
-                <span className="text-xs text-text-muted whitespace-nowrap">
+                <span className="text-[10px] sm:text-xs text-text-muted">
                   {opp.citationsCount} citations · {opp.evidenceTypes} types
                 </span>
               </div>
@@ -105,11 +105,11 @@ export function HeroArtifactBand() {
         </div>
 
         {/* Right: Citations column */}
-        <div className="w-full md:w-48 border-t md:border-t-0 md:border-l border-border-subtle bg-surface-muted/30 p-4 md:p-5">
-          <div className="space-y-2">
+        <div className="w-full md:w-48 border-t md:border-t-0 md:border-l border-border-subtle bg-surface-muted/30 p-3 sm:p-4 md:p-5">
+          <div className="space-y-1.5 sm:space-y-2">
             {citations.map((citation, idx) => (
               <div key={idx} className="flex items-center">
-                <span className="text-xs font-medium text-text-primary truncate">
+                <span className="text-[10px] sm:text-xs font-medium text-text-primary truncate">
                   {citation.domain}
                 </span>
               </div>

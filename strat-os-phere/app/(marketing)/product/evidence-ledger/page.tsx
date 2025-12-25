@@ -32,42 +32,42 @@ export default function EvidenceLedgerPage() {
     >
       <MarketingSection>
         <MarketingContainer maxWidth="4xl">
-          <div className="space-y-12">
+          <div className="space-y-8 sm:space-y-12">
             {/* What it gives you */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-text-primary mb-6">
+              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-text-primary mb-4 sm:mb-6">
                 What it gives you
               </h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                <GlassPanel className="p-6">
-                  <h3 className="text-lg font-semibold text-text-primary mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <GlassPanel className="p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-text-primary mb-2 sm:mb-3">
                     Traceable sources
                   </h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
+                  <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
                     Every piece of evidence links back to its source, so you can verify claims and understand context.
                   </p>
                 </GlassPanel>
-                <GlassPanel className="p-6">
-                  <h3 className="text-lg font-semibold text-text-primary mb-3">
+                <GlassPanel className="p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-text-primary mb-2 sm:mb-3">
                     Recency indicators
                   </h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
+                  <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
                     Evidence includes timestamps and freshness markers, helping you understand how current the signals are.
                   </p>
                 </GlassPanel>
-                <GlassPanel className="p-6">
-                  <h3 className="text-lg font-semibold text-text-primary mb-3">
+                <GlassPanel className="p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-text-primary mb-2 sm:mb-3">
                     Structured organization
                   </h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
+                  <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
                     Evidence is normalized across competitors, making patterns and gaps visible in a consistent format.
                   </p>
                 </GlassPanel>
-                <GlassPanel className="p-6">
-                  <h3 className="text-lg font-semibold text-text-primary mb-3">
+                <GlassPanel className="p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-text-primary mb-2 sm:mb-3">
                     Coverage visibility
                   </h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
+                  <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
                     See what's been collected, what's missing, and where evidence is strongest or weakest.
                   </p>
                 </GlassPanel>
@@ -76,36 +76,36 @@ export default function EvidenceLedgerPage() {
 
             {/* How it works */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-text-primary mb-6">
+              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-text-primary mb-4 sm:mb-6">
                 How it works
               </h2>
-              <div className="space-y-4">
-                <GlassPanel className="p-6">
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-text-primary">
+              <div className="space-y-3 sm:space-y-4">
+                <GlassPanel className="p-4 sm:p-6">
+                  <div className="space-y-2 sm:space-y-3">
+                    <h3 className="text-base sm:text-lg font-semibold text-text-primary">
                       Public pages only
                     </h3>
-                    <p className="text-sm text-text-secondary leading-relaxed">
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
                       We collect evidence from publicly accessible pages: marketing sites, help docs, blog posts, and public announcements. No private data, no speculation.
                     </p>
                   </div>
                 </GlassPanel>
-                <GlassPanel className="p-6">
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-text-primary">
+                <GlassPanel className="p-4 sm:p-6">
+                  <div className="space-y-2 sm:space-y-3">
+                    <h3 className="text-base sm:text-lg font-semibold text-text-primary">
                       Structured extraction
                     </h3>
-                    <p className="text-sm text-text-secondary leading-relaxed">
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
                       Evidence is extracted and organized into a consistent format, making it easy to compare across competitors and identify patterns.
                     </p>
                   </div>
                 </GlassPanel>
-                <GlassPanel className="p-6">
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-text-primary">
+                <GlassPanel className="p-4 sm:p-6">
+                  <div className="space-y-2 sm:space-y-3">
+                    <h3 className="text-base sm:text-lg font-semibold text-text-primary">
                       Citation preservation
                     </h3>
-                    <p className="text-sm text-text-secondary leading-relaxed">
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
                       Every claim in the ledger preserves its source URL and context, so you can trace back to the original evidence whenever needed.
                     </p>
                   </div>

@@ -32,36 +32,36 @@ export default function ContactPage() {
     >
       <MarketingSection>
         <MarketingContainer maxWidth="2xl">
-          <div className="space-y-8">
-            <GlassPanel className="p-8 md:p-12">
-              <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
+            <GlassPanel className="p-4 sm:p-6 md:p-8 lg:p-12">
+              <div className="space-y-6 sm:space-y-8">
                 <div>
-                  <h2 className="text-xl font-semibold text-text-primary mb-4">
+                  <h2 className="text-lg sm:text-xl font-semibold text-text-primary mb-3 sm:mb-4">
                     Email us
                   </h2>
-                  <p className="text-base text-text-secondary leading-relaxed mb-4">
+                  <p className="text-sm sm:text-base text-text-secondary leading-relaxed mb-3 sm:mb-4">
                     Reach us at{" "}
                     <a
                       href="mailto:hello@myplinth.com"
-                      className="text-primary hover:underline font-medium"
+                      className="text-primary hover:underline font-medium break-all"
                     >
                       hello@myplinth.com
                     </a>
                     .
                   </p>
-                  <p className="text-base text-text-secondary leading-relaxed">
+                  <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
                     <strong className="font-semibold text-text-primary">We'll respond with a clear next step—not a sales script.</strong>
                   </p>
                 </div>
 
-                <div className="pt-8 border-t border-border-subtle">
-                  <h2 className="text-xl font-semibold text-text-primary mb-4">
+                <div className="pt-6 sm:pt-8 border-t border-border-subtle">
+                  <h2 className="text-lg sm:text-xl font-semibold text-text-primary mb-3 sm:mb-4">
                     What should I include?
                   </h2>
-                  <p className="text-base text-text-secondary leading-relaxed mb-4">
+                  <p className="text-sm sm:text-base text-text-secondary leading-relaxed mb-3 sm:mb-4">
                     To help us respond quickly and usefully, include:
                   </p>
-                  <ul className="space-y-2 text-base text-text-secondary list-disc list-inside">
+                  <ul className="space-y-1.5 sm:space-y-2 text-sm sm:text-base text-text-secondary list-disc list-inside">
                     <li>Decision type (e.g., "Should we build X?", "How do we position against Y?")</li>
                     <li>Market or industry context</li>
                     <li>Competitors you're analyzing (if known)</li>

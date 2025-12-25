@@ -32,15 +32,15 @@ export default function TermsPage() {
     >
       <MarketingSection>
         <MarketingContainer maxWidth="4xl">
-          <div className="space-y-8">
-            <GlassPanel className="p-8 md:p-12">
-              <div className="space-y-8 text-text-secondary">
-                <div className={cn("p-6 rounded-lg", "bg-surface-muted border border-border-subtle")}>
-                  <p className="text-base leading-relaxed">
+          <div className="space-y-6 sm:space-y-8">
+            <GlassPanel className="p-4 sm:p-6 md:p-8 lg:p-12">
+              <div className="space-y-6 sm:space-y-8 text-text-secondary">
+                <div className={cn("p-4 sm:p-6 rounded-lg", "bg-surface-muted border border-border-subtle")}>
+                  <p className="text-sm sm:text-base leading-relaxed">
                     This is an early version of our Terms of Service. If you're evaluating Plinth for enterprise use, contact us at{" "}
                     <a
                       href="mailto:hello@myplinth.com"
-                      className="text-primary hover:underline"
+                      className="text-primary hover:underline break-all"
                     >
                       hello@myplinth.com
                     </a>
@@ -49,13 +49,13 @@ export default function TermsPage() {
                 </div>
 
                 <div>
-                  <p className="text-base leading-relaxed">
+                  <p className="text-sm sm:text-base leading-relaxed">
                     Plinth is designed to help strategy professionals conduct competitive analysis and generate strategic insights. By using Plinth, you agree to use the service for lawful business purposes and to maintain the confidentiality of your account credentials.
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-base leading-relaxed">
+                  <p className="text-sm sm:text-base leading-relaxed">
                     Your use of Plinth is also governed by our{" "}
                     <a
                       href="/privacy"

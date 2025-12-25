@@ -16,7 +16,7 @@ import { MarketingContainer } from "./MarketingContainer"
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden pt-32 md:pt-40 lg:pt-48 pb-16 md:pb-24">
+    <section className="relative overflow-hidden pt-24 sm:pt-32 md:pt-40 lg:pt-48 pb-12 sm:pb-16 md:pb-24">
       {/* Subtle radial gradient background */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div 
@@ -30,11 +30,11 @@ export function Hero() {
       {/* Main content: single-column narrative stack */}
       <div className="relative z-10">
         <MarketingContainer maxWidth="4xl">
-          <div className="space-y-8 md:space-y-10 text-center">
+          <div className="space-y-6 sm:space-y-8 md:space-y-10 text-center px-4 sm:px-0">
             {/* Hero headline */}
             <Reveal delay={0}>
               <h1 className={cn(
-                "text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight"
+                "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight"
               )}>
                 {microcopy.marketing.heroHeadline}
               </h1>
@@ -43,7 +43,7 @@ export function Hero() {
             {/* Subhead */}
             <Reveal delay={60}>
               <p className={cn(
-                "text-base md:text-lg leading-relaxed text-text-secondary max-w-2xl mx-auto"
+                "text-sm sm:text-base md:text-lg leading-relaxed text-text-secondary max-w-2xl mx-auto"
               )}>
                 {microcopy.marketing.heroSubhead}
               </p>
@@ -51,25 +51,25 @@ export function Hero() {
             
             {/* CTAs */}
             <Reveal delay={90}>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/new">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                <Link href="/new" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
                     variant="brand"
                     className={cn(
-                      "w-full sm:w-auto text-base px-8 py-6",
+                      "w-full sm:w-auto text-base px-6 sm:px-8 py-5 sm:py-6 min-h-[44px]",
                       HoverLift.className
                     )}
                   >
                     {microcopy.marketing.primaryCTA}
                   </Button>
                 </Link>
-                <Link href="/example">
+                <Link href="/example" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
                     variant="outline" 
                     className={cn(
-                      "w-full sm:w-auto border-2 hover:bg-accent-primary/5",
+                      "w-full sm:w-auto border-2 hover:bg-accent-primary/5 min-h-[44px]",
                       HoverLift.subtle
                     )}
                   >
@@ -100,7 +100,7 @@ export function Hero() {
 
           {/* Artifact preview band */}
           <Reveal delay={180} y={12}>
-            <div className="mt-12 md:mt-16">
+            <div className="mt-8 sm:mt-12 md:mt-16 px-4 sm:px-0">
               <HeroArtifactBand />
             </div>
           </Reveal>

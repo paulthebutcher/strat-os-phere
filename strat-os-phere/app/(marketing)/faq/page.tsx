@@ -34,16 +34,16 @@ export default function FAQPage() {
     >
       <MarketingSection>
         <MarketingContainer maxWidth="4xl">
-          <div className="space-y-8">
-            <GlassPanel className="p-8 md:p-12">
-              <div className="space-y-12">
+          <div className="space-y-6 sm:space-y-8">
+            <GlassPanel className="p-4 sm:p-6 md:p-8 lg:p-12">
+              <div className="space-y-8 sm:space-y-12">
                 {/* FAQ Items */}
-                <div className="space-y-10">
+                <div className="space-y-8 sm:space-y-10">
                   <div>
-                    <h2 className="text-xl font-semibold text-text-primary mb-4">
+                    <h2 className="text-lg sm:text-xl font-semibold text-text-primary mb-3 sm:mb-4">
                       What does Plinth actually do?
                     </h2>
-                    <p className="text-base text-text-secondary leading-relaxed">
+                    <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
                       Plinth helps strategy teams turn competitive research into decision-ready outputs. You provide a decision question and competitors, and Plinth collects evidence from public sources, normalizes it, and ranks strategic opportunities—with full citations and confidence indicators. It's designed for VP+ Product, UX, and Strategy teams who need to defend recommendations with evidence.
                     </p>
                   </div>
@@ -131,9 +131,9 @@ export default function FAQPage() {
                 </div>
 
                 {/* Callout */}
-                <div className={cn("pt-8 border-t border-border-subtle")}>
-                  <div className={cn("p-6 rounded-lg", "bg-surface-muted border border-border-subtle")}>
-                    <p className="text-sm text-text-secondary leading-relaxed">
+                <div className={cn("pt-6 sm:pt-8 border-t border-border-subtle")}>
+                  <div className={cn("p-4 sm:p-6 rounded-lg", "bg-surface-muted border border-border-subtle")}>
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
                       <strong className="font-semibold text-text-primary">Important:</strong> If Plinth can't support a recommendation with sufficient evidence, it returns fewer (or no) opportunities. We prioritize honesty over completeness.
                     </p>
                   </div>
@@ -142,14 +142,14 @@ export default function FAQPage() {
             </GlassPanel>
 
             {/* CTA Section */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link href="/trust">
-                <Button size="lg" variant="outline">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4">
+              <Link href="/trust" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto min-h-[44px]">
                   See how Plinth thinks
                 </Button>
               </Link>
-              <Link href="/samples">
-                <Button size="lg" variant="outline">
+              <Link href="/example" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto min-h-[44px]">
                   View an example
                 </Button>
               </Link>

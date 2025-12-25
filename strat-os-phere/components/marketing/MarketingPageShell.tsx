@@ -32,18 +32,18 @@ export function MarketingPageShell({
     <MarketingShell>
       <main className={cn("min-h-screen", className)}>
         {/* Header */}
-        <MarketingSection variant="gradient" className="pb-12 md:pb-16">
+        <MarketingSection variant="gradient" className="pb-8 sm:pb-12 md:pb-16">
           <MarketingContainer maxWidth="4xl">
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-3 sm:space-y-4">
               {eyebrow && (
                 <p className={cn("text-sm font-medium", "text-text-secondary uppercase tracking-wide")}>
                   {eyebrow}
                 </p>
               )}
-              <h1 className="text-3xl md:text-5xl font-semibold tracking-tight text-text-primary">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary">
                 {title}
               </h1>
-              <p className="text-lg md:text-xl leading-relaxed text-text-secondary max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-2xl mx-auto px-4 sm:px-0">
                 {lead}
               </p>
             </div>
@@ -65,14 +65,14 @@ export function MarketingPageShell({
                   Start a new analysis or explore how it works.
                 </p>
               </div>
-              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
-                <Link href="/new">
-                  <Button size="lg" className="w-full sm:w-auto">
+              <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 sm:flex-row pt-2">
+                <Link href="/new" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto min-h-[44px]">
                     Try Plinth
                   </Button>
                 </Link>
-                <Link href="/how-it-works">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                <Link href="/how-it-works" className="w-full sm:w-auto">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto min-h-[44px]">
                     See how it works
                   </Button>
                 </Link>

@@ -43,7 +43,7 @@ export default function ExamplePage() {
     >
       <MarketingSection>
         <MarketingContainer maxWidth="4xl">
-          <div className="bg-white border border-border-subtle rounded-2xl p-8 md:p-12">
+          <div className="bg-white border border-border-subtle rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 lg:p-12 overflow-hidden">
             <ExampleOpportunityArtifact opportunity={exampleOpportunity} />
           </div>
         </MarketingContainer>
@@ -52,15 +52,15 @@ export default function ExamplePage() {
       {/* Custom CTA */}
       <MarketingSection variant="muted">
         <MarketingContainer maxWidth="4xl">
-          <div className="text-center space-y-6">
-            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
-              <Link href="/how-plinth-thinks">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+          <div className="text-center space-y-4 sm:space-y-6">
+            <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 sm:flex-row pt-2">
+              <Link href="/how-plinth-thinks" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto min-h-[44px]">
                   How Plinth thinks
                 </Button>
               </Link>
-              <Link href="/new">
-                <Button size="lg" className="w-full sm:w-auto">
+              <Link href="/new" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto min-h-[44px]">
                   Get started
                 </Button>
               </Link>
