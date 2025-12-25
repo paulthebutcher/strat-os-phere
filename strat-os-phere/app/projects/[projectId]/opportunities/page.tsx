@@ -39,6 +39,7 @@ import { OpportunitiesEntryState } from '@/components/results/OpportunitiesEntry
 import { getDecisionRunState } from '@/lib/decisionRun/getDecisionRunState'
 import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunStatusBanner'
 import { DecisionReceipt } from '@/components/results/DecisionReceipt'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -272,19 +273,38 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
     ? await getProcessedClaims(supabase, projectId, competitorDomains)
     : null
 
-  return (
-    <PageGuidanceWrapper pageId="results">
-      <PageShell size="wide">
-        <PageHeader
-          title="Opportunities"
-          subtitle="Strategic opportunities ranked by score with actionable experiments and proof points."
-          secondaryActions={
-            <>
-              <TourLink />
-              <ShareButton projectId={projectId} />
-            </>
-          }
-        />
+    return (
+      <PageGuidanceWrapper pageId="results">
+        <PageShell size="wide">
+          {/* Breadcrumb Navigation */}
+          <Section>
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href={`/projects/${projectId}/decision`}>
+                      {project?.name || 'Project'}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Opportunities</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </Section>
+
+          <PageHeader
+            title="Opportunities"
+            subtitle="Candidate opportunities ranked by score. Click any opportunity to explore in detail."
+            secondaryActions={
+              <>
+                <TourLink />
+                <ShareButton projectId={projectId} />
+              </>
+            }
+          />
 
         {/* DecisionRun Status Banner - persistent run/evidence status */}
         {decisionRunState && (

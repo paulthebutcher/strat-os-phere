@@ -38,9 +38,9 @@ export function HowItWorksCarousel() {
 
   return (
     <div className="w-full">
-      <div className="rounded-2xl border border-border-subtle bg-surface-muted/30 p-6 md:p-8 lg:p-12 shadow-sm">
+      <div className="rounded-2xl border border-border-subtle bg-surface-muted/30 p-4 sm:p-6 md:p-8 lg:p-12 shadow-sm">
         {/* Persistent step list - always visible */}
-        <div className="mb-8 md:mb-12">
+        <div className="mb-6 sm:mb-8 md:mb-12">
           <div className="flex gap-2 md:gap-3 justify-center md:justify-start overflow-x-auto scrollbar-hide pb-2 -mx-2 px-2 md:mx-0 md:px-0">
             {slides.map((slide, index) => {
               const isActive = index === activeIndex
@@ -106,18 +106,18 @@ export function HowItWorksCarousel() {
 
         {/* Content area - stacked layout */}
         <div className="max-w-4xl mx-auto">
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Headline and copy */}
-            <div className="space-y-4">
-              <h3 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-text-primary">
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-text-primary leading-tight">
                 {activeSlide.headline}
               </h3>
 
-              <div className="space-y-3 max-w-2xl">
+              <div className="space-y-2 sm:space-y-3 max-w-2xl">
                 {activeSlide.copy.map((paragraph, pIndex) => (
                   <p
                     key={pIndex}
-                    className="text-base md:text-lg leading-relaxed text-text-secondary"
+                    className="text-sm sm:text-base md:text-lg leading-relaxed text-text-secondary line-clamp-3 sm:line-clamp-none"
                   >
                     {paragraph}
                   </p>
@@ -129,11 +129,11 @@ export function HowItWorksCarousel() {
             <div className="relative">
               <div className="rounded-xl border border-border-subtle bg-white shadow-lg overflow-hidden max-w-[760px] mx-auto">
                 {/* Window chrome */}
-                <div className="h-10 bg-surface-muted border-b border-border-subtle flex items-center px-4 gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-400/60" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
-                    <div className="w-3 h-3 rounded-full bg-green-400/60" />
+                <div className="h-8 sm:h-10 bg-surface-muted border-b border-border-subtle flex items-center px-3 sm:px-4 gap-2">
+                  <div className="flex gap-1 sm:gap-1.5">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-400/60" />
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400/60" />
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400/60" />
                   </div>
                   <div className="flex-1 text-center">
                     <span className="text-xs text-text-muted font-medium">
@@ -143,7 +143,7 @@ export function HowItWorksCarousel() {
                 </div>
 
                 {/* Preview content */}
-                <div className="relative bg-background min-h-[400px] md:min-h-[500px]">
+                <div className="relative bg-background min-h-[300px] sm:min-h-[400px] md:min-h-[500px]">
                   <div className="absolute inset-0 animate-fade-in">
                     <ActivePreview />
                   </div>
@@ -152,7 +152,7 @@ export function HowItWorksCarousel() {
 
               {/* Proof line - optional micro-proof caption */}
               {activeSlide.proofLine && (
-                <p className="text-sm text-text-muted text-center mt-4 max-w-2xl mx-auto">
+                <p className="text-xs sm:text-sm text-text-muted text-center mt-3 sm:mt-4 max-w-2xl mx-auto">
                   {activeSlide.proofLine}
                 </p>
               )}

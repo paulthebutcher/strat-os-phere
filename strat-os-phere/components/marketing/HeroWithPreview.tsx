@@ -17,7 +17,7 @@ import { MarketingContainer } from "./MarketingContainer"
 
 export function HeroWithPreview() {
   return (
-    <section className="relative overflow-hidden pt-24 sm:pt-32 md:pt-40 lg:pt-48 pb-12 sm:pb-16 md:pb-24">
+    <section className="relative overflow-hidden pt-16 sm:pt-24 md:pt-32 lg:pt-40 pb-8 sm:pb-12 md:pb-16">
       {/* Subtle radial gradient background */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div 
@@ -31,9 +31,9 @@ export function HeroWithPreview() {
       {/* Main content: stacked layout */}
       <div className="relative z-10">
         <MarketingContainer maxWidth="6xl">
-          <div className="flex flex-col gap-6 sm:gap-8 md:gap-10">
+          <div className="flex flex-col gap-4 sm:gap-6 md:gap-8">
             {/* Top: Copy and CTAs */}
-            <div className="max-w-3xl mx-auto text-center space-y-6 sm:space-y-8">
+            <div className="max-w-3xl mx-auto text-center space-y-4 sm:space-y-6">
               <Reveal delay={0}>
                 <h1 className={cn(
                   "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-text-primary"
@@ -44,7 +44,7 @@ export function HeroWithPreview() {
               
               <Reveal delay={60}>
                 <p className={cn(
-                  "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary"
+                  "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
                 )}>
                   Ranked opportunities, backed by real evidence and explicit confidence boundaries.
                 </p>
@@ -83,33 +83,19 @@ export function HeroWithPreview() {
               </Reveal>
             </div>
 
-            {/* Below: Decision Brief Preview */}
+            {/* Below: Decision Brief Preview - immediately after CTAs */}
             <Reveal delay={120}>
               <div className="max-w-6xl mx-auto w-full">
-                {/* Proof header */}
-                <div className="mb-4 px-1">
-                  <h3 className="text-base sm:text-lg font-semibold text-text-primary mb-1">
-                    Proof: a decision you can defend
-                  </h3>
-                  <p className="text-sm text-text-secondary">
-                    One recommendation. Confidence labeled. Sources attached.
-                  </p>
-                </div>
-                
                 <PreviewArtifact
-                  title="Decision Receipt"
+                  title=""
                   subtitle=""
-                  callouts={[
-                    { label: "Confidence is explicit" },
-                    { label: "Every claim is sourced" },
-                    { label: "What changes the call" }
-                  ]}
+                  callouts={[]}
                 >
                   <DecisionBriefPreview />
                 </PreviewArtifact>
                 
                 {/* Interactive affordance */}
-                <div className="mt-3 px-1">
+                <div className="mt-3 px-1 text-center sm:text-left">
                   <Link 
                     href="/example" 
                     className="text-sm text-accent-primary hover:text-accent-primary/80 font-medium inline-flex items-center gap-1 transition-colors"

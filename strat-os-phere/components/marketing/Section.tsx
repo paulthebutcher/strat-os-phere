@@ -44,7 +44,7 @@ export function Section({
     <section
       id={id}
       className={cn(
-        "w-full py-16 md:py-24 lg:py-32",
+        "w-full py-12 sm:py-16 md:py-24 lg:py-32",
         toneClasses[tone],
         className?.includes("border-t-0") ? "" : "border-t border-border-subtle",
         className
@@ -53,20 +53,20 @@ export function Section({
       <div className={cn("mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-7xl")}>
         {/* Header section */}
         {(eyebrow || title || description) && (
-          <div className={cn("mb-12 md:mb-16", alignClasses[align])}>
+          <div className={cn("mb-8 sm:mb-12 md:mb-16", alignClasses[align])}>
             {eyebrow && (
-              <p className="text-sm font-semibold uppercase tracking-wider text-accent-primary mb-3">
+              <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-accent-primary mb-2 sm:mb-3">
                 {eyebrow}
               </p>
             )}
             {title && (
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary mb-4 leading-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary mb-3 sm:mb-4 leading-tight">
                 {title}
               </h2>
             )}
             {description && (
               <p className={cn(
-                "text-base md:text-lg leading-relaxed text-text-secondary",
+                "text-sm sm:text-base md:text-lg leading-relaxed text-text-secondary line-clamp-3 sm:line-clamp-none",
                 align === "center" ? "max-w-3xl mx-auto" : "max-w-3xl"
               )}>
                 {description}

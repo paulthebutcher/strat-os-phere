@@ -6,7 +6,9 @@
  */
 "use client"
 
+import Link from "next/link"
 import { FileText, CheckCircle2, ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal, Stagger } from "./motion"
@@ -64,20 +66,32 @@ export function ProofSection() {
     <MarketingSection variant="muted">
       <MarketingContainer maxWidth="6xl">
         <Reveal>
-          <div className="text-center mb-12 space-y-3">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary">
+          <div className="text-center mb-8 sm:mb-12 space-y-2 sm:space-y-3">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
               Why Plinth decisions hold up under scrutiny
             </h2>
-            <p className="text-base md:text-lg text-text-secondary max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg text-text-secondary max-w-2xl mx-auto line-clamp-2 sm:line-clamp-none">
               Not dashboards. Not summaries. Decisions built from inspectable evidence.
             </p>
           </div>
         </Reveal>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start">
+          {/* Mobile: Visual first, then pillars */}
+          {/* Right Column: Concrete Visual Proof */}
+          <Reveal delay={60} className="order-2 lg:order-1">
+            <PreviewArtifact
+              title=""
+              subtitle=""
+              callouts={[]}
+            >
+              <DecidePreview />
+            </PreviewArtifact>
+          </Reveal>
+
           {/* Left Column: Compact Proof Pillars */}
-          <Reveal delay={60}>
-            <div className="panel p-6 md:p-8 rounded-2xl border border-border-subtle bg-surface">
+          <Reveal delay={120} className="order-1 lg:order-2">
+            <div className="panel p-4 sm:p-6 md:p-8 rounded-2xl border border-border-subtle bg-surface">
               <Stagger>
                 {proofPillars.map((pillar, index) => (
                   <ProofRow
@@ -90,22 +104,22 @@ export function ProofSection() {
               </Stagger>
             </div>
           </Reveal>
-
-          {/* Right Column: Concrete Visual Proof */}
-          <Reveal delay={120}>
-            <PreviewArtifact
-              title="Decision Receipt"
-              subtitle="One page. Defensible call. Sources included."
-              callouts={[
-                { label: "Evidence-backed" },
-                { label: "Confidence shown" },
-                { label: "Boundaries defined" },
-              ]}
-            >
-              <DecidePreview />
-            </PreviewArtifact>
-          </Reveal>
         </div>
+
+        {/* Mobile CTA */}
+        <Reveal delay={180}>
+          <div className="mt-8 sm:mt-12 text-center lg:hidden">
+            <Link href="/new" className="inline-block">
+              <Button 
+                size="lg" 
+                variant="brand"
+                className="w-full sm:w-auto"
+              >
+                Try Plinth
+              </Button>
+            </Link>
+          </div>
+        </Reveal>
       </MarketingContainer>
     </MarketingSection>
   )

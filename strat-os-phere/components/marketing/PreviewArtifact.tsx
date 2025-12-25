@@ -41,7 +41,7 @@ export function PreviewArtifact({
   const displayCallouts = callouts.slice(0, 3)
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn(title ? "space-y-3" : "", className)}>
       {/* Artifact header with chips inline */}
       {title && (
         <div className="px-1">
