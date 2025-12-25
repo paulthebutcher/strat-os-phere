@@ -369,12 +369,12 @@ export default async function DecisionPage(props: DecisionPageProps) {
 
           {/* Decision Quality Indicators - Collapsed by default, always accessible */}
           <PageSection>
-            <DecisionQualityIndicators>
+            <DecisionQualityIndicators
               competitorCount={competitorCount}
               coverage={coverageLite}
               hasOpportunitiesArtifact={hasOpportunitiesArtifact}
               projectId={projectId}
-              defaultCollapsed={true}
+              defaultCollapsed
             />
           </PageSection>
 

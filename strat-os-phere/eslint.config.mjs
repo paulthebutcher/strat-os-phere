@@ -21,6 +21,11 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-shadow": "error",
       // Disable base no-shadow rule in favor of TypeScript version
       "no-shadow": "off",
+      // Help catch half-removed components and unused variables
+      "@typescript-eslint/no-unused-vars": ["warn", { 
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_" 
+      }],
     },
   },
 ]);
