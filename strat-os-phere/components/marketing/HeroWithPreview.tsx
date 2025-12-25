@@ -31,7 +31,7 @@ export function HeroWithPreview() {
       {/* Main content: stacked layout */}
       <div className="relative z-10">
         <MarketingContainer maxWidth="6xl">
-          <div className="flex flex-col gap-10 sm:gap-12 md:gap-16">
+          <div className="flex flex-col gap-6 sm:gap-8 md:gap-10">
             {/* Top: Copy and CTAs */}
             <div className="max-w-3xl mx-auto text-center space-y-6 sm:space-y-8">
               <Reveal delay={0}>
@@ -74,21 +74,31 @@ export function HeroWithPreview() {
                           HoverLift.subtle
                         )}
                       >
-                        See a real decision
+                        See the full receipt
                       </Button>
                     </Link>
                   </div>
-                  <p className="text-xs text-text-muted">No login required to start</p>
+                  <p className="text-xs text-text-muted">Takes ~2 minutes. No login required.</p>
                 </div>
               </Reveal>
             </div>
 
             {/* Below: Decision Brief Preview */}
             <Reveal delay={120}>
-              <div className="max-w-5xl mx-auto w-full">
+              <div className="max-w-6xl mx-auto w-full">
+                {/* Proof header */}
+                <div className="mb-4 px-1">
+                  <h3 className="text-base sm:text-lg font-semibold text-text-primary mb-1">
+                    Proof: a decision you can defend
+                  </h3>
+                  <p className="text-sm text-text-secondary">
+                    One recommendation. Confidence labeled. Sources attached.
+                  </p>
+                </div>
+                
                 <PreviewArtifact
                   title="Decision Receipt"
-                  subtitle="One page. Defensible call. Sources included."
+                  subtitle=""
                   callouts={[
                     { label: "Confidence is explicit" },
                     { label: "Evidence attached" },
@@ -97,6 +107,16 @@ export function HeroWithPreview() {
                 >
                   <DecisionBriefPreview />
                 </PreviewArtifact>
+                
+                {/* Interactive affordance */}
+                <div className="mt-3 px-1">
+                  <Link 
+                    href="/example" 
+                    className="text-sm text-accent-primary hover:text-accent-primary/80 font-medium inline-flex items-center gap-1 transition-colors"
+                  >
+                    Click to see a real decision →
+                  </Link>
+                </div>
               </div>
             </Reveal>
           </div>

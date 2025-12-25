@@ -17,11 +17,16 @@ import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunSta
 import { PageShell } from '@/components/layout/PageShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Section } from '@/components/layout/Section'
+import { resolveActiveRunId } from '@/lib/runs/activeRun'
+import { getEvidenceSourcesForRun } from '@/lib/data/evidenceSources'
+import { getParam } from '@/lib/routing/searchParams'
+import type { SearchParams } from '@/lib/routing/searchParams'
 
 interface EvidencePageProps {
   params: Promise<{
     projectId: string
   }>
+  searchParams?: SearchParams
 }
 
 export async function generateMetadata(props: EvidencePageProps): Promise<Metadata> {
@@ -58,9 +63,18 @@ export default async function EvidencePage(props: EvidencePageProps) {
   const params = await props.params
   const projectId = params.projectId
   const route = `/projects/${projectId}/evidence`
+  const runIdParam = getParam(props.searchParams, 'runId')
 
   try {
     const supabase = await createClient()
+    
+    // Resolve active run ID (prefer query param, else latest, don't create)
+    const runResolution = await resolveActiveRunId(supabase, projectId, {
+      runIdOverride: runIdParam ?? null,
+      allowCreate: false,
+    })
+
+    const activeRunId = runResolution.runId
     
     // Use unified project loader with structured error handling
     // (loadProject handles user authentication internally)
@@ -120,9 +134,10 @@ export default async function EvidencePage(props: EvidencePageProps) {
     let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
     let evidenceBundle: Awaited<ReturnType<typeof readLatestEvidenceBundle>> = null
     let decisionRunState: Awaited<ReturnType<typeof getDecisionRunState>> | null = null
+    let evidenceSourcesForRun: Awaited<ReturnType<typeof getEvidenceSourcesForRun>> = []
 
     try {
-      const [artifactsResult, evidenceBundleResult, decisionRunStateResult] = await Promise.all([
+      const loadPromises: Promise<unknown>[] = [
         listArtifacts(supabase, { projectId }).catch((error) => {
           logProjectError({
             route,
@@ -150,11 +165,31 @@ export default async function EvidencePage(props: EvidencePageProps) {
           })
           return null
         }),
-      ])
+      ]
+
+      // Only query evidence sources if we have an active run
+      if (activeRunId) {
+        loadPromises.push(
+          getEvidenceSourcesForRun(supabase, activeRunId).catch((error) => {
+            logProjectError({
+              route,
+              projectId,
+              queryName: 'getEvidenceSourcesForRun',
+              error,
+            })
+            return []
+          })
+        )
+      }
+
+      const results = await Promise.all(loadPromises)
       
-      artifacts = artifactsResult ?? []
-      evidenceBundle = evidenceBundleResult ?? null
-      decisionRunState = decisionRunStateResult
+      artifacts = (results[0] ?? []) as typeof artifacts
+      evidenceBundle = (results[1] ?? null) as typeof evidenceBundle
+      decisionRunState = (results[2] ?? null) as Awaited<ReturnType<typeof getDecisionRunState>> | null
+      if (activeRunId && results[3]) {
+        evidenceSourcesForRun = results[3] as typeof evidenceSourcesForRun
+      }
     } catch (error) {
       // Log but continue - we'll show empty states
       logProjectError({
@@ -166,35 +201,70 @@ export default async function EvidencePage(props: EvidencePageProps) {
     }
     
     const normalized = normalizeResultsArtifacts(artifacts)
-  const { opportunitiesV3, opportunitiesV2, profiles, strategicBets, jtbd } = normalized
+    const { opportunitiesV3, opportunitiesV2, profiles, strategicBets, jtbd } = normalized
 
-  return (
-    <PageShell size="wide">
-      <PageHeader
-        title="Evidence"
-        subtitle="Supporting evidence and citations for the competitive analysis."
-      />
+    // Show empty state if no run exists
+    if (!activeRunId) {
+      return (
+        <PageShell size="wide">
+          <PageHeader
+            title="Evidence"
+            subtitle="Supporting evidence and citations for the competitive analysis."
+          />
+          <Section>
+            <div className="rounded-lg border border-border bg-card p-8 text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No analysis run yet
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Generate an analysis to start collecting evidence.
+              </p>
+              <div className="text-xs text-muted-foreground mt-4">
+                Run: none • Source: {runResolution.source}
+              </div>
+            </div>
+          </Section>
+        </PageShell>
+      )
+    }
 
-      {/* DecisionRun Status Banner - persistent run/evidence status */}
-      {decisionRunState && (
-        <Section>
-          <DecisionRunStatusBanner state={decisionRunState} />
-        </Section>
-      )}
+    // Check if evidence exists for this run
+    const hasEvidenceForRun = evidenceSourcesForRun.length > 0
 
-      <Section>
-        <EvidenceContent
-          projectId={projectId}
-          opportunitiesV3={opportunitiesV3?.content}
-          opportunitiesV2={opportunitiesV2?.content}
-          profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
-          strategicBets={strategicBets?.content}
-          jtbd={jtbd?.content}
-          bundle={evidenceBundle}
-          evidenceStatus={decisionRunState?.evidenceStatus}
+    return (
+      <PageShell size="wide">
+        <PageHeader
+          title="Evidence"
+          subtitle="Supporting evidence and citations for the competitive analysis."
         />
-      </Section>
-    </PageShell>
+
+        {/* DecisionRun Status Banner - persistent run/evidence status */}
+        {decisionRunState && (
+          <Section>
+            <DecisionRunStatusBanner state={decisionRunState} />
+          </Section>
+        )}
+
+        <Section>
+          <EvidenceContent
+            projectId={projectId}
+            opportunitiesV3={opportunitiesV3?.content}
+            opportunitiesV2={opportunitiesV2?.content}
+            profiles={profiles?.snapshots ? { snapshots: profiles.snapshots } : null}
+            strategicBets={strategicBets?.content}
+            jtbd={jtbd?.content}
+            bundle={hasEvidenceForRun ? evidenceBundle : null}
+            evidenceStatus={decisionRunState?.evidenceStatus ?? undefined}
+            hasRun={!!activeRunId && !hasEvidenceForRun}
+          />
+          {/* Show debug info in dev mode */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="text-xs text-muted-foreground mt-4">
+              Run: {activeRunId} • Source: {runResolution.source} • Evidence sources: {evidenceSourcesForRun.length}
+            </div>
+          )}
+        </Section>
+      </PageShell>
     )
   } catch (error) {
     // Log any unexpected errors

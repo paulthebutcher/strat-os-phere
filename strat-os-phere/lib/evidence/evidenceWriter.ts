@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger'
 
 export interface UpsertEvidenceSourceInput {
   projectId: string
+  runId?: string | null
   competitorId?: string | null
   url: string
   sourceType: string
@@ -94,8 +95,9 @@ export async function upsertEvidenceSource(
   const domain = deriveDomain(normalizedUrl)
 
   // Prepare insert payload
-  const payload: NewEvidenceSource = {
+  const payload: NewEvidenceSource & { run_id?: string | null } = {
     project_id: input.projectId,
+    run_id: input.runId ?? null,
     competitor_id: input.competitorId ?? null,
     url: normalizedUrl,
     domain,
@@ -166,6 +168,7 @@ export async function upsertEvidenceSource(
 
     logger.debug('[evidenceWriter] Successfully upserted evidence source', {
       projectId: input.projectId,
+      runId: input.runId,
       competitorId: input.competitorId,
       url: normalizedUrl,
       sourceType: input.sourceType,

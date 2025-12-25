@@ -39,41 +39,45 @@ export function PreviewArtifact({
 
   return (
     <div className={cn("space-y-3", className)}>
-      {/* Artifact header */}
-      <div className="px-1">
-        <h3 className="text-sm font-semibold text-text-primary mb-0.5">
-          {title}
-        </h3>
-        <p className="text-xs text-text-muted">
-          {subtitle}
-        </p>
-      </div>
+      {/* Artifact header with chips inline */}
+      {title && (
+        <div className="px-1">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h3 className="text-sm font-semibold text-text-primary">
+              {title}
+            </h3>
+            {displayCallouts.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {displayCallouts.map((callout, idx) => (
+                  <Badge
+                    key={idx}
+                    variant="secondary"
+                    className="text-xs px-2 py-0.5 bg-surface-muted/50 border-border-subtle"
+                  >
+                    {callout.label}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+          {subtitle && (
+            <p className="text-xs text-text-muted mt-0.5">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Preview container with enhanced visual treatment */}
-      <div className="relative rounded-xl border-2 border-border-subtle shadow-xl overflow-hidden bg-white">
-        {/* Subtle background gradient/tint */}
-        <div className="absolute inset-0 bg-gradient-to-br from-surface-muted/20 via-transparent to-transparent pointer-events-none" />
+      <div className="relative rounded-xl border-2 border-border-subtle/80 shadow-2xl overflow-hidden bg-white">
+        {/* Reduced background gradient/tint for better contrast */}
+        <div className="absolute inset-0 bg-gradient-to-br from-surface-muted/10 via-transparent to-transparent pointer-events-none" />
         
         {/* Preview content */}
         <div className="relative">
           {children}
         </div>
       </div>
-
-      {/* Receipt callouts - chips outside the preview */}
-      {displayCallouts.length > 0 && (
-        <div className="flex flex-wrap gap-2 px-1">
-          {displayCallouts.map((callout, idx) => (
-            <Badge
-              key={idx}
-              variant="secondary"
-              className="text-xs px-2.5 py-1 bg-surface-muted/50 border-border-subtle"
-            >
-              {callout.label}
-            </Badge>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

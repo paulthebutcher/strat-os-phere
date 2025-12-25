@@ -95,3 +95,25 @@ export async function getEvidenceSourcesForProject(
   return data ?? []
 }
 
+/**
+ * Get evidence sources for a specific run
+ * This is the preferred way to query evidence as it ensures evidence is scoped to a specific analysis run
+ */
+export async function getEvidenceSourcesForRun(
+  client: Client,
+  runId: string
+): Promise<EvidenceSource[]> {
+  const typedClient = getTypedClient(client)
+  const { data, error } = await typedClient
+    .from('evidence_sources')
+    .select('*')
+    .eq('run_id', runId)
+    .order('extracted_at', { ascending: false })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data ?? []
+}
+

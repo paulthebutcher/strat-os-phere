@@ -27,6 +27,11 @@ interface EvidenceContentProps {
   jtbd: JtbdArtifactContent | null | undefined
   bundle?: NormalizedEvidenceBundle | null
   evidenceStatus?: DecisionRunState['evidenceStatus']
+  /**
+   * If true, indicates a run exists but no evidence has been collected for it yet
+   * Used to show appropriate empty state messaging
+   */
+  hasRun?: boolean
 }
 
 export function EvidenceContent({
@@ -38,6 +43,7 @@ export function EvidenceContent({
   jtbd,
   bundle,
   evidenceStatus,
+  hasRun = false,
 }: EvidenceContentProps) {
   // Prefer v3, fallback to v2
   const opportunities = opportunitiesV3 ?? opportunitiesV2 ?? null
@@ -114,7 +120,7 @@ export function EvidenceContent({
         <EvidencePartialPanel projectId={projectId} />
       ) : (
         // Not started: Show not started panel
-        <EvidenceNotStartedPanel projectId={projectId} />
+        <EvidenceNotStartedPanel projectId={projectId} hasRun={hasRun} />
       )}
     </section>
   )

@@ -8,19 +8,23 @@ import { upsertEvidenceSource } from '@/lib/evidence/evidenceWriter'
 import { getSearchProvider } from '@/lib/search'
 import { MAX_PAGES_PER_COMPETITOR } from '@/lib/constants'
 import { logger } from '@/lib/logger'
-import { fetchUrlsParallel, TOTAL_FETCH_BUDGET_MS_PER_COMPETITOR } from '@/lib/evidence/parallelFetch'
+import { fetchUrlsParallel, TOTAL_FETCH_BUDGET_MS_PER_COMPETITOR, type FetchedPage } from '@/lib/evidence/parallelFetch'
 import { performShortlist, DEFAULT_SHORTLIST_QUOTA } from '@/lib/evidence/shortlist'
+import { toFetchedPage } from '@/lib/evidence/normalizeToFetchedPage'
 import { FLAGS } from '@/lib/flags'
+import { resolveActiveRunId } from '@/lib/runs/activeRun'
 
 /**
  * POST /api/projects/[projectId]/collect-evidence
  * Collects evidence for all competitors in a project (evidence-only, no analysis)
  * This is a "soft start" that runs in the background
+ * 
+ * Requires runId (via body or resolved from active run)
  */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ projectId: string }> }
-): Promise<NextResponse<{ ok: boolean; message?: string }>> {
+): Promise<NextResponse<{ ok: boolean; message?: string; error?: string }>> {
   const { projectId } = await params
 
   try {
@@ -36,6 +40,40 @@ export async function POST(
       )
     }
 
+    // Parse request body to get optional runId
+    let body: { runId?: string } | null = null
+    try {
+      const rawBody = await request.text()
+      if (rawBody) {
+        body = JSON.parse(rawBody)
+      }
+    } catch {
+      // Body is optional, so ignore parse errors
+    }
+
+    // Resolve active run ID (prefer explicit runId from body, else latest, don't create)
+    const runResolution = await resolveActiveRunId(supabase, projectId, {
+      runIdOverride: body?.runId ?? null,
+      allowCreate: false,
+    })
+
+    if (!runResolution.runId) {
+      logger.error('[collect-evidence] No run found and cannot create', {
+        projectId,
+        userId: user.id,
+      })
+      return NextResponse.json(
+        {
+          ok: false,
+          message: 'No analysis run found. Please generate an analysis first.',
+          error: 'NO_RUN',
+        },
+        { status: 400 }
+      )
+    }
+
+    const runId = runResolution.runId
+
     // Get all competitors for the project
     const competitors = await listCompetitorsForProject(supabase, projectId)
 
@@ -48,7 +86,10 @@ export async function POST(
 
     logger.info('[collect-evidence] Starting evidence collection', {
       projectId,
+      runId,
+      userId: user.id,
       competitorCount: competitors.length,
+      runSource: runResolution.source,
     })
 
     // Collect evidence for each competitor (non-blocking, fire and forget)
@@ -117,7 +158,7 @@ export async function POST(
               DEFAULT_SHORTLIST_QUOTA
             )
 
-            sources = shortlisted
+            sources = shortlisted.map(toFetchedPage)
           } else {
             // Legacy path
             const targetUrls = buildTargetUrls(domain)
@@ -145,17 +186,22 @@ export async function POST(
 
           // Store evidence sources
           await Promise.all(
-            sources.map(async (page) => {
-              const result = await upsertEvidenceSource(supabase, {
-                projectId,
-                competitorId: competitor.id,
-                url: page.url,
-                sourceType: page.extracted.sourceType,
-                pageTitle: page.title || page.extracted.title || null,
-                extractedText: page.extracted.text,
-                extractedAt: new Date().toISOString(),
-                sourceConfidence: page.extracted.confidence || null,
-              })
+            sources
+              .filter((page): page is FetchedPage & { extracted: NonNullable<FetchedPage['extracted']> } => 
+                page.extracted !== undefined
+              )
+              .map(async (page) => {
+                const result = await upsertEvidenceSource(supabase, {
+                  projectId,
+                  runId,
+                  competitorId: competitor.id,
+                  url: page.url,
+                  sourceType: page.extracted.sourceType,
+                  pageTitle: page.title || page.extracted.title || null,
+                  extractedText: page.extracted.text,
+                  extractedAt: new Date().toISOString(),
+                  sourceConfidence: page.extracted.confidence || null,
+                })
 
               if (!result.ok) {
                 logger.error(`[collect-evidence] Failed to store evidence source`, {
@@ -169,6 +215,8 @@ export async function POST(
           )
 
           logger.info('[collect-evidence] Completed for competitor', {
+            projectId,
+            runId,
             competitorId: competitor.id,
             sourcesCount: sources.length,
           })
@@ -184,6 +232,14 @@ export async function POST(
     })
 
     // Return immediately - collection runs in background
+    logger.info('[collect-evidence] Evidence collection initiated', {
+      projectId,
+      runId,
+      userId: user.id,
+      competitorCount: competitors.length,
+      runSource: runResolution.source,
+    })
+
     return NextResponse.json({
       ok: true,
       message: 'Evidence collection started',

@@ -8,6 +8,11 @@ import { cn } from '@/lib/utils'
 interface EvidenceNotStartedPanelProps {
   className?: string
   projectId?: string
+  /**
+   * If true, indicates a run exists but no evidence has been collected for it yet
+   * Shows different messaging in this case
+   */
+  hasRun?: boolean
 }
 
 /**
@@ -19,15 +24,20 @@ interface EvidenceNotStartedPanelProps {
 export function EvidenceNotStartedPanel({
   className,
   projectId,
+  hasRun = false,
 }: EvidenceNotStartedPanelProps) {
   return (
     <SectionCard className={cn('space-y-4', className)}>
       <div>
         <h3 className="text-base font-semibold text-foreground mb-2">
-          This decision isn't grounded in evidence yet
+          {hasRun
+            ? "No evidence collected for this run yet"
+            : "This decision isn't grounded in evidence yet"}
         </h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Until evidence is collected, opportunities are treated as directional.
+          {hasRun
+            ? "Evidence collection hasn't run for this analysis run yet."
+            : "Until evidence is collected, opportunities are treated as directional."}
         </p>
       </div>
 
@@ -39,7 +49,9 @@ export function EvidenceNotStartedPanel({
             </Link>
           </Button>
           <p className="text-xs text-muted-foreground">
-            Decisions without evidence remain intentionally conservative.
+            {hasRun
+              ? "Click to start collecting evidence for this analysis run."
+              : "Decisions without evidence remain intentionally conservative."}
           </p>
         </div>
       )}
