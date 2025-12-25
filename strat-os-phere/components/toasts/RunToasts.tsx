@@ -84,6 +84,10 @@ export function RunToasts() {
         if (previousStatus !== newStatus) {
           if (newStatus === 'completed') {
             toastSuccess('Analysis complete', 'Your analysis is ready to view.')
+            // Auto-redirect to opportunities page with justGenerated flag
+            if (run.projectId) {
+              router.push(`/projects/${run.projectId}/opportunities?justGenerated=true`)
+            }
           } else if (newStatus === 'failed') {
             toastError(
               'Analysis failed',
@@ -170,7 +174,7 @@ export function RunToasts() {
 
   const handleViewResults = useCallback(
     (projectId: string, runId: string) => {
-      router.push(`/projects/${projectId}/results?runId=${runId}`)
+      router.push(`/projects/${projectId}/opportunities?justGenerated=true`)
     },
     [router]
   )

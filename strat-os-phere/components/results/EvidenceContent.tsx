@@ -3,6 +3,8 @@
 import { EvidenceConfidencePanel } from '@/components/results/EvidenceConfidencePanel'
 import { EvidenceCoveragePanel } from '@/components/results/EvidenceCoveragePanel'
 import { EvidenceTable } from '@/components/evidence/EvidenceTable'
+import { EvidenceProgressPanel } from '@/components/results/EvidenceProgressPanel'
+import { EvidenceNotStartedPanel } from '@/components/results/EvidenceNotStartedPanel'
 import { extractCitationsFromAllArtifacts } from '@/lib/results/evidence'
 import { useProjectEvidence } from '@/lib/hooks/useProjectEvidence'
 import { isFlagEnabled } from '@/lib/flags'
@@ -54,6 +56,15 @@ export function EvidenceContent({
   // Feature flag check
   const qualityPackEnabled = isFlagEnabled('resultsQualityPackV1')
 
+  // Determine evidence state
+  const hasEvidence = evidenceItems.length > 0
+  const evidenceCollectionStarted = bundle !== null && bundle !== undefined
+
+  // Determine subhead based on state
+  const subhead = hasEvidence
+    ? 'Sources grounding this recommendation'
+    : 'Evidence will appear here as sources are collected'
+
   return (
     <section className="space-y-6">
       <div className="relative">
@@ -61,9 +72,9 @@ export function EvidenceContent({
         <div className="relative z-10 p-6 rounded-lg">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold text-foreground mb-2">Evidence</h1>
+              <h1 className="text-2xl font-semibold text-foreground mb-2">Decision Evidence</h1>
               <p className="text-sm text-muted-foreground">
-                Evidence and citations supporting the competitive analysis.
+                {subhead}
               </p>
             </div>
             <div className="hidden md:block w-32 h-24 opacity-30">
@@ -81,8 +92,17 @@ export function EvidenceContent({
         <EvidenceCoveragePanel artifact={opportunities} />
       )}
 
-      {/* Evidence Table - replaces empty state */}
-      <EvidenceTable items={evidenceItems} density="full" projectId={projectId} />
+      {/* Three-state evidence display */}
+      {hasEvidence ? (
+        // State A: Evidence Available
+        <EvidenceTable items={evidenceItems} density="full" projectId={projectId} />
+      ) : evidenceCollectionStarted ? (
+        // State B: Evidence In Progress
+        <EvidenceProgressPanel projectId={projectId} />
+      ) : (
+        // State C: Evidence Not Started
+        <EvidenceNotStartedPanel projectId={projectId} />
+      )}
     </section>
   )
 }

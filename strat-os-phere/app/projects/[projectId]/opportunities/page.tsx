@@ -33,11 +33,14 @@ import { EMPTY_EVIDENCE_COVERAGE_LITE } from '@/lib/evidence/coverageTypes'
 import { GenerateAnalysisButton } from '@/components/projects/GenerateAnalysisButton'
 import { getNextBestAction } from '@/lib/projects/nextBestAction'
 import Link from 'next/link'
+import type { SearchParams } from '@/lib/routing/searchParams'
+import { OpportunitiesEntryState } from '@/components/results/OpportunitiesEntryState'
 
 interface OpportunitiesPageProps {
   params: Promise<{
     projectId: string
   }>
+  searchParams?: SearchParams
 }
 
 export async function generateMetadata(props: OpportunitiesPageProps): Promise<Metadata> {
@@ -78,8 +81,10 @@ export async function generateMetadata(props: OpportunitiesPageProps): Promise<M
  */
 export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
   const params = await props.params
+  const searchParams = props.searchParams
   const projectId = params.projectId
   const route = `/projects/${projectId}/opportunities`
+  const justGenerated = searchParams?.justGenerated === 'true' || searchParams?.justGenerated === true
 
   try {
     const supabase = await createClient()
@@ -314,7 +319,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
 
         {/* Decision Brief - Primary post-run experience (shown first when results exist) */}
         {hasOpportunitiesArtifact && (
-          <Section>
+          <Section id="decision-brief">
             <ResultsReadout
               projectId={projectId}
               opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
@@ -324,6 +329,14 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
               competitorCount={competitorCount}
             />
           </Section>
+        )}
+
+        {/* Entry state handler for just-generated state */}
+        {justGenerated && hasOpportunitiesArtifact && (
+          <OpportunitiesEntryState
+            opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
+            opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
+          />
         )}
 
         {/* Decision Quality Indicators - Collapsed by default, always accessible */}

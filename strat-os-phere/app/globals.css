@@ -894,3 +894,19 @@
     background-position: 1000px 0;
   }
 }
+
+@keyframes pulse-once {
+  0% {
+    background-color: hsl(var(--surface-raised-bg));
+  }
+  50% {
+    background-color: hsl(var(--bg-surface-tint) / 0.3);
+  }
+  100% {
+    background-color: hsl(var(--surface-raised-bg));
+  }
+}
+
+.animate-pulse-once {
+  animation: pulse-once 2s ease-in-out;
+}

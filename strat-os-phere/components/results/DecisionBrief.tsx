@@ -334,7 +334,7 @@ export function DecisionBrief({
         {/* Left Column - The Call */}
         <div className="space-y-6">
           {/* A) Recommended Move */}
-          <div className="panel p-4 bg-background border-l-4 border-primary">
+          <div className="panel p-4 bg-background border-l-4 border-primary" data-recommended-move>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
               Recommended move
             </p>

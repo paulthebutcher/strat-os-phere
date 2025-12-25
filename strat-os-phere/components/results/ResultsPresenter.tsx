@@ -26,8 +26,6 @@ import { OpportunityPlaybook } from '@/components/results/OpportunityPlaybook'
 import { OpportunityExperiments } from '@/components/results/OpportunityExperiments'
 import { OpportunityCardV1 } from '@/components/opportunities/OpportunityCardV1'
 import type { CompetitorSnapshot } from '@/lib/schemas/competitorSnapshot'
-import { InlineCallout } from '@/components/ui/InlineCallout'
-import { computeEvidenceStrength } from '@/lib/ux/evidenceStrength'
 
 /**
  * Presenter input shape - simple DTO that doesn't depend on internal schemas
@@ -343,26 +341,10 @@ function OpportunitiesV3Presenter({
   const panelContent = panelContentLines.join('\n')
   const copyContent = formatOpportunitiesV3ToMarkdown(opportunitiesV3)
 
-  // Check if evidence is thin/limited across all opportunities
-  const allCitationsForStrength = citations.map((c) => ({
-    url: c.url,
-    sourceType: c.sourceType || 'unknown',
-    excerpt: c.url, // Use URL as excerpt since NormalizedCitation doesn't have excerpt
-  }))
-  const overallEvidenceStrength = computeEvidenceStrength(allCitationsForStrength as any)
-  const isEvidenceThin = overallEvidenceStrength.strength === 'Limited' || overallEvidenceStrength.isWeak
-
   return (
     <section className="space-y-6">
       {/* Evidence & Confidence Panel */}
       <EvidenceConfidencePanel citations={citations} />
-      
-      {/* Thin evidence callout - show when opportunities exist but evidence is limited */}
-      {sortedOpportunities.length > 0 && isEvidenceThin && (
-        <InlineCallout>
-          Evidence is limited. Treat these as directional. Add coverage to strengthen confidence boundaries.
-        </InlineCallout>
-      )}
       
       {qualityPackEnabled && (
         <EvidenceCoveragePanel artifact={opportunitiesV3} />
@@ -544,19 +526,10 @@ function OpportunitiesV2Presenter({
     sourceType: c.sourceType || 'unknown',
     excerpt: c.url, // Use URL as excerpt since NormalizedCitation doesn't have excerpt
   }))
-  const overallEvidenceStrength = computeEvidenceStrength(allCitationsForStrength as any)
-  const isEvidenceThin = overallEvidenceStrength.strength === 'Limited' || overallEvidenceStrength.isWeak
 
   return (
     <section className="space-y-6">
       <EvidenceConfidencePanel citations={citations} />
-      
-      {/* Thin evidence callout - show when opportunities exist but evidence is limited */}
-      {sortedOpportunities.length > 0 && isEvidenceThin && (
-        <InlineCallout>
-          Evidence is limited. Treat these as directional. Add coverage to strengthen confidence boundaries.
-        </InlineCallout>
-      )}
       
       {qualityPackEnabled && (
         <EvidenceCoveragePanel artifact={opportunitiesV2} />

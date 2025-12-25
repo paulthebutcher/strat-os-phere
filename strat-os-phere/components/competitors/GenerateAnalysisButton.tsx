@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { startEvidenceRun } from '@/lib/runs/startEvidenceRun'
 import { addActiveRun } from '@/lib/runs/runToastStore'
@@ -21,6 +22,7 @@ export function GenerateAnalysisButton({
   disabled,
   competitorCount = 0,
 }: GenerateAnalysisButtonProps) {
+  const router = useRouter()
   const [isStarting, setIsStarting] = useState(false)
 
   const handleClick = async () => {
@@ -49,6 +51,9 @@ export function GenerateAnalysisButton({
           analysisId: projectId,
           createdAt: new Date().toISOString(),
         })
+
+        // Redirect to opportunities page with justGenerated flag
+        router.push(`/projects/${projectId}/opportunities?justGenerated=true`)
 
         // Toast will appear automatically via RunToasts component
         // User can continue navigating - toast persists
@@ -81,7 +86,7 @@ export function GenerateAnalysisButton({
         className="mt-1"
         onClick={handleClick}
       >
-        {isStarting ? 'Starting...' : 'Generate analysis'}
+        {isStarting ? 'Starting...' : 'Generate ranked opportunities'}
       </Button>
     </div>
   )
