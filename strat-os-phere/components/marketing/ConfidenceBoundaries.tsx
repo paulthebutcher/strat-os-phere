@@ -7,6 +7,7 @@
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { cn } from "@/lib/utils"
+import { Reveal, Stagger, HoverLift } from "./motion"
 
 const confidenceStates = [
   {
@@ -30,20 +31,23 @@ export function ConfidenceBoundaries() {
   return (
     <MarketingSection variant="default" id="confidence">
       <MarketingContainer maxWidth="6xl">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
-            Confidence boundaries, not false precision.
-          </h2>
-        </div>
+        <Reveal>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
+              Confidence boundaries, not false precision.
+            </h2>
+          </div>
+        </Reveal>
 
         {/* Confidence states - horizontal row on desktop, stacked on mobile */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <Stagger stagger={60} className="grid md:grid-cols-3 gap-6 mb-8">
           {confidenceStates.map((state, index) => (
             <div
               key={index}
               className={cn(
                 "bg-white rounded-xl border border-border-subtle p-6 shadow-sm",
-                "flex flex-col"
+                "flex flex-col",
+                HoverLift.subtle
               )}
             >
               <div className="mb-4">
@@ -59,14 +63,16 @@ export function ConfidenceBoundaries() {
               </p>
             </div>
           ))}
-        </div>
+        </Stagger>
 
         {/* Closing line */}
-        <div className="text-center max-w-2xl mx-auto">
-          <p className="text-base text-text-secondary">
-            Plinth tells you what the evidence supports now — and what would change the recommendation.
-          </p>
-        </div>
+        <Reveal delay={120}>
+          <div className="text-center max-w-2xl mx-auto">
+            <p className="text-base text-text-secondary">
+              Plinth tells you what the evidence supports now — and what would change the recommendation.
+            </p>
+          </div>
+        </Reveal>
       </MarketingContainer>
     </MarketingSection>
   )

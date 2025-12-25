@@ -20,7 +20,7 @@ import { microcopy } from "@/lib/copy/microcopy"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Plinth — Find your unfair advantage",
+    title: "Find your unfair advantage — Plinth",
     description: microcopy.marketing.heroSubhead,
     path: "/",
     ogVariant: "default",

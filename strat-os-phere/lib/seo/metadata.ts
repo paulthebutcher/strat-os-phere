@@ -3,23 +3,30 @@ import type { Metadata } from "next";
 import { getOrigin } from "@/lib/server/origin";
 
 const SITE_NAME = "Plinth";
-const DEFAULT_TITLE = "Plinth — Competitive analysis that ends in a decision";
+const DEFAULT_TITLE = "Plinth — Decisions you can defend";
 const DEFAULT_DESCRIPTION =
-  "Turn competitor signals into decision-ready outputs: Jobs-to-be-Done, scorecards, opportunities, and Strategic Bets—backed by live evidence and citations.";
+  "Plinth turns public market evidence into ranked opportunities with explicit confidence boundaries—so you know what's safe to act on now, what isn't yet, and what would increase certainty.";
 
 /**
  * Generates the base URL for metadata.
  * Uses request headers to determine origin dynamically.
- * Falls back to a default for static contexts.
+ * Falls back to NEXT_PUBLIC_SITE_URL or a safe default for static contexts.
  */
 export async function getMetadataBase(): Promise<string> {
   try {
     return await getOrigin();
   } catch {
     // Fallback for static contexts (shouldn't happen in normal usage)
-    // This will be overridden by generateMetadata functions that need dynamic URLs
-    return process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
+    // Prefer NEXT_PUBLIC_SITE_URL if available, then VERCEL_URL, then localhost
+    if (process.env.NEXT_PUBLIC_SITE_URL) {
+      return process.env.NEXT_PUBLIC_SITE_URL;
+    }
+    if (process.env.VERCEL_URL) {
+      return `https://${process.env.VERCEL_URL}`;
+    }
+    // Safe fallback for local development
+    return process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
       : "https://plinth.com";
   }
 }

@@ -11,6 +11,7 @@ import { MarketingContainer } from "../MarketingContainer"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
+import { Reveal, Stagger, HoverLift } from "../motion"
 
 const narrativePanels = [
   {
@@ -51,31 +52,37 @@ export function ValueSection() {
     <MarketingSection variant="default" id="value">
       <MarketingContainer maxWidth="6xl">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
-            Decisions you can defend.
-          </h2>
-          <p className="text-lg md:text-xl text-text-secondary mb-2">
-            When the room goes quiet and someone asks:
-            <br className="hidden sm:inline" /> "Why this—and why now?"
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Plinth turns public market noise into evidence-bound calls—with explicit confidence boundaries.
-          </p>
-        </div>
+        <Reveal>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
+              Decisions you can defend.
+            </h2>
+            <p className="text-lg md:text-xl text-text-secondary mb-2">
+              When the room goes quiet and someone asks:
+              <br className="hidden sm:inline" /> "Why this—and why now?"
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Plinth turns public market noise into evidence-bound calls—with explicit confidence boundaries.
+            </p>
+          </div>
+        </Reveal>
 
         {/* Narrative progression - horizontal on desktop, vertical on mobile */}
         <div className="relative mb-16">
           {/* Connecting thread - desktop: horizontal, mobile: vertical */}
-          {/* Desktop horizontal thread */}
-          <div className="hidden md:block absolute top-1/2 left-0 right-0 h-px -translate-y-1/2 z-0">
-            <div className="h-full bg-gradient-to-r from-transparent via-accent-primary/10 via-accent-primary/20 to-accent-primary/30" />
-          </div>
+          {/* Desktop horizontal thread - fade in only, no translate */}
+          <Reveal y={0} delay={60}>
+            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-px -translate-y-1/2 z-0">
+              <div className="h-full bg-gradient-to-r from-transparent via-accent-primary/10 via-accent-primary/20 to-accent-primary/30" />
+            </div>
+          </Reveal>
           
-          {/* Mobile vertical thread */}
-          <div className="md:hidden absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 z-0">
-            <div className="h-full bg-gradient-to-b from-transparent via-accent-primary/10 via-accent-primary/20 to-accent-primary/30" />
-          </div>
+          {/* Mobile vertical thread - fade in only, no translate */}
+          <Reveal y={0} delay={60}>
+            <div className="md:hidden absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 z-0">
+              <div className="h-full bg-gradient-to-b from-transparent via-accent-primary/10 via-accent-primary/20 to-accent-primary/30" />
+            </div>
+          </Reveal>
 
           {/* Milestone dots - desktop */}
           <div className="hidden md:block absolute top-1/2 left-0 right-0 -translate-y-1/2 z-10">
@@ -158,7 +165,7 @@ export function ValueSection() {
           )}
 
           {/* Panels container */}
-          <div className="relative grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-4">
+          <Stagger stagger={60} className="relative grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-4">
             {narrativePanels.map((panel, index) => {
               const isHovered = hoveredIndex === index
               
@@ -174,9 +181,9 @@ export function ValueSection() {
                     "group",
                     // Reduced padding for tighter layout
                     "p-5",
-                    // Hover effects
+                    // Hover effects - using HoverLift for consistent motion
+                    HoverLift.subtle,
                     isHovered && [
-                      "md:-translate-y-1 md:shadow-lg",
                       "border-accent-primary/20",
                     ],
                     // Visual treatment based on panel type
@@ -314,14 +321,16 @@ export function ValueSection() {
                 </div>
               )
             })}
-          </div>
+          </Stagger>
         </div>
         
         {/* Closing line */}
-        <p className="text-sm text-muted-foreground text-center">
-          Most tools optimize for insight.{" "}
-          <span className="font-semibold text-text-secondary">Plinth optimizes for decision credibility.</span>
-        </p>
+        <Reveal delay={120}>
+          <p className="text-sm text-muted-foreground text-center">
+            Most tools optimize for insight.{" "}
+            <span className="font-semibold text-text-secondary">Plinth optimizes for decision credibility.</span>
+          </p>
+        </Reveal>
       </MarketingContainer>
     </MarketingSection>
   )

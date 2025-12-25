@@ -87,6 +87,27 @@
   --shadow-xl: 0 8px 16px 0 rgba(0, 0, 0, 0.08);
   --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
   --shadow-elevated: 0 2px 6px 0 rgba(0, 0, 0, 0.06);
+  
+  /* Surface + Depth System - 3 levels for clear structure */
+  /* SurfaceBase - Page background */
+  --surface-base-bg: var(--background); /* Pure white */
+  --surface-base-border: transparent;
+  --surface-base-shadow: none;
+  
+  /* SurfaceRaised - Cards, panels */
+  --surface-raised-bg: var(--surface); /* Pure white */
+  --surface-raised-border: var(--border-subtle); /* Very light gray */
+  --surface-raised-shadow: var(--shadow-sm); /* Subtle shadow */
+  
+  /* SurfaceOverlay - Nav, modals */
+  --surface-overlay-bg: var(--surface); /* Pure white */
+  --surface-overlay-border: var(--border-subtle); /* Very light gray */
+  --surface-overlay-shadow: var(--shadow-md); /* More defined shadow */
+  
+  /* Standardized transition timing - Consistent across all interactions */
+  --transition-base: 175ms ease-out; /* 150-200ms range, centered */
+  --transition-fast: 150ms ease-out;
+  --transition-slow: 200ms ease-out;
 
   /* States - Color only for meaning */
   --success: 142 60% 40%; /* Success - muted, not celebratory */
@@ -139,6 +160,45 @@
   --line-height-tight: 1.2;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.65;
+  
+  /* Canonical Typography Hierarchy - Clear, opinionated text styles */
+  /* HeadingXL - Hero / page titles */
+  --text-heading-xl-size: var(--font-size-3xl); /* 36px */
+  --text-heading-xl-weight: 600;
+  --text-heading-xl-line-height: var(--line-height-tight);
+  --text-heading-xl-letter-spacing: -0.025em;
+  
+  /* HeadingL - Section headers */
+  --text-heading-l-size: var(--font-size-2xl); /* 28px */
+  --text-heading-l-weight: 600;
+  --text-heading-l-line-height: var(--line-height-tight);
+  --text-heading-l-letter-spacing: -0.02em;
+  
+  /* HeadingM - Card titles */
+  --text-heading-m-size: var(--font-size-xl); /* 22px */
+  --text-heading-m-weight: 600;
+  --text-heading-m-line-height: var(--line-height-tight);
+  --text-heading-m-letter-spacing: -0.01em;
+  
+  /* Body - Default text */
+  --text-body-size: var(--font-size-base); /* 15px */
+  --text-body-weight: 400;
+  --text-body-line-height: var(--line-height-relaxed);
+  --text-body-letter-spacing: 0;
+  
+  /* BodyMuted - Supporting/explanatory text */
+  --text-body-muted-size: var(--font-size-base); /* 15px */
+  --text-body-muted-weight: 400;
+  --text-body-muted-line-height: var(--line-height-relaxed);
+  --text-body-muted-letter-spacing: 0;
+  --text-body-muted-color: var(--text-secondary);
+  
+  /* Label - Eyebrow text, metadata */
+  --text-label-size: var(--font-size-sm); /* 13px */
+  --text-label-weight: 400;
+  --text-label-line-height: var(--line-height-normal);
+  --text-label-letter-spacing: 0;
+  --text-label-color: var(--text-secondary);
   
   /* Spacing - Intentional whitespace */
   --spacing-xs: 0.25rem; /* 4px */
@@ -303,6 +363,11 @@
   --animate-slide-up: slideUp 0.4s ease-out;
   --animate-pulse-soft: pulseSoft 2s ease-in-out infinite;
   --animate-shimmer: shimmer 2s linear infinite;
+  
+  /* Transition timing - Standardized for all interactions */
+  --transition-base: 175ms ease-out;
+  --transition-fast: 150ms ease-out;
+  --transition-slow: 200ms ease-out;
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -354,73 +419,128 @@
   }
 
   /* Typography hierarchy - Clear, authoritative, deliberate */
+  /* Applied using canonical text styles for consistency */
   
-  /* Page titles - Largest, calm, confident */
+  /* HeadingXL - Hero / page titles */
   h1 {
-    font-size: var(--font-size-2xl);
-    font-weight: 600;
-    line-height: var(--line-height-tight);
+    font-size: var(--text-heading-xl-size);
+    font-weight: var(--text-heading-xl-weight);
+    line-height: var(--text-heading-xl-line-height);
+    letter-spacing: var(--text-heading-xl-letter-spacing);
     color: hsl(var(--foreground));
-    letter-spacing: -0.02em;
     margin: 0;
   }
   
-  /* Premium page title variant */
+  /* Premium page title variant - uses HeadingXL */
   h1.premium-title {
-    font-size: 2.25rem; /* 36px */
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.025em;
+    font-size: var(--text-heading-xl-size);
+    font-weight: var(--text-heading-xl-weight);
+    line-height: var(--text-heading-xl-line-height);
+    letter-spacing: var(--text-heading-xl-letter-spacing);
   }
 
-  /* Section titles - Clear hierarchy */
+  /* HeadingL - Section headers */
   h2 {
-    font-size: var(--font-size-xl);
-    font-weight: 600;
-    line-height: var(--line-height-tight);
+    font-size: var(--text-heading-l-size);
+    font-weight: var(--text-heading-l-weight);
+    line-height: var(--text-heading-l-line-height);
+    letter-spacing: var(--text-heading-l-letter-spacing);
     color: hsl(var(--foreground));
-    letter-spacing: -0.01em;
     margin: 0;
   }
 
-  /* Subsection labels - Supporting structure */
+  /* HeadingM - Card titles */
   h3 {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    line-height: var(--line-height-normal);
+    font-size: var(--text-heading-m-size);
+    font-weight: var(--text-heading-m-weight);
+    line-height: var(--text-heading-m-line-height);
+    letter-spacing: var(--text-heading-m-letter-spacing);
     color: hsl(var(--foreground));
     margin: 0;
   }
 
-  /* Tertiary labels - Metadata hierarchy */
+  /* Tertiary labels - Use HeadingM size but can be lighter weight */
   h4 {
-    font-size: var(--font-size-base);
-    font-weight: 600;
-    line-height: var(--line-height-normal);
+    font-size: var(--text-heading-m-size);
+    font-weight: var(--text-heading-m-weight);
+    line-height: var(--text-heading-m-line-height);
     color: hsl(var(--foreground));
     margin: 0;
   }
 
-  /* Body text - Readable, authoritative */
+  /* Body - Default text */
   p {
-    font-size: var(--font-size-base);
-    line-height: var(--line-height-relaxed);
+    font-size: var(--text-body-size);
+    font-weight: var(--text-body-weight);
+    line-height: var(--text-body-line-height);
+    letter-spacing: var(--text-body-letter-spacing);
     color: hsl(var(--foreground));
     margin: 0;
   }
 
-  /* Metadata / Supporting text */
+  /* Label - Metadata / Supporting text */
   small {
-    font-size: var(--font-size-sm);
-    line-height: var(--line-height-normal);
-    color: hsl(var(--text-secondary));
+    font-size: var(--text-label-size);
+    font-weight: var(--text-label-weight);
+    line-height: var(--text-label-line-height);
+    letter-spacing: var(--text-label-letter-spacing);
+    color: hsl(var(--text-label-color));
+  }
+  
+  /* Utility classes for canonical text styles */
+  .text-heading-xl {
+    font-size: var(--text-heading-xl-size);
+    font-weight: var(--text-heading-xl-weight);
+    line-height: var(--text-heading-xl-line-height);
+    letter-spacing: var(--text-heading-xl-letter-spacing);
+    color: hsl(var(--foreground));
+  }
+  
+  .text-heading-l {
+    font-size: var(--text-heading-l-size);
+    font-weight: var(--text-heading-l-weight);
+    line-height: var(--text-heading-l-line-height);
+    letter-spacing: var(--text-heading-l-letter-spacing);
+    color: hsl(var(--foreground));
+  }
+  
+  .text-heading-m {
+    font-size: var(--text-heading-m-size);
+    font-weight: var(--text-heading-m-weight);
+    line-height: var(--text-heading-m-line-height);
+    letter-spacing: var(--text-heading-m-letter-spacing);
+    color: hsl(var(--foreground));
+  }
+  
+  .text-body {
+    font-size: var(--text-body-size);
+    font-weight: var(--text-body-weight);
+    line-height: var(--text-body-line-height);
+    letter-spacing: var(--text-body-letter-spacing);
+    color: hsl(var(--foreground));
+  }
+  
+  .text-body-muted {
+    font-size: var(--text-body-muted-size);
+    font-weight: var(--text-body-muted-weight);
+    line-height: var(--text-body-muted-line-height);
+    letter-spacing: var(--text-body-muted-letter-spacing);
+    color: hsl(var(--text-body-muted-color));
+  }
+  
+  .text-label {
+    font-size: var(--text-label-size);
+    font-weight: var(--text-label-weight);
+    line-height: var(--text-label-line-height);
+    letter-spacing: var(--text-label-letter-spacing);
+    color: hsl(var(--text-label-color));
   }
   
   /* Links - Brand color on hover */
   a:not([class]) {
     color: hsl(var(--accent-primary));
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color var(--transition-base);
   }
   
   a:not([class]):hover {
@@ -438,18 +558,36 @@
 }
 
 @layer components {
-  /* Card / Panel surfaces - Minimal, finished, no decoration */
+  /* Surface + Depth System - Standardized 3-level system */
+  /* SurfaceBase - Page background (default, no class needed) */
+  
+  /* SurfaceRaised - Cards, panels */
   .panel {
-    @apply border bg-card;
-    border-color: hsl(var(--border));
+    background-color: hsl(var(--surface-raised-bg));
+    border: 1px solid hsl(var(--surface-raised-border));
     border-radius: var(--radius-md);
-    /* No shadow by default - borders provide structure */
+    box-shadow: var(--surface-raised-shadow);
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  }
+  
+  .panel:hover {
+    border-color: hsl(var(--border-strong));
+    box-shadow: var(--shadow);
   }
 
   .panel-muted {
-    @apply border bg-muted;
-    border-color: hsl(var(--border));
+    background-color: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
     border-radius: var(--radius-md);
+    box-shadow: var(--surface-raised-shadow);
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  }
+  
+  /* SurfaceOverlay - Nav, modals */
+  .surface-overlay {
+    background-color: hsl(var(--surface-overlay-bg));
+    border: 1px solid hsl(var(--surface-overlay-border));
+    box-shadow: var(--surface-overlay-shadow);
   }
 
   /* Text inside panels automatically uses card-foreground via base styles */
@@ -463,11 +601,12 @@
   }
 
   .tabs-trigger {
-    @apply inline-flex items-center px-3 py-1.5 text-sm font-medium transition-colors;
+    @apply inline-flex items-center px-3 py-1.5 text-sm font-medium;
     @apply text-muted-foreground hover:text-foreground;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1;
     @apply data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:font-medium;
     border-radius: calc(var(--radius-md) - 2px);
+    transition: color var(--transition-base), background-color var(--transition-base);
   }
 
   /* Table styles - Minimal, restrained */
@@ -492,7 +631,9 @@
   }
 
   .table tbody tr {
-    @apply hover:bg-muted/50 transition-colors;
+    @apply hover:bg-muted/50;
+    transition: background-color var(--transition-base);
+    cursor: pointer;
   }
 
   .table tbody tr:last-child td {
@@ -571,8 +712,9 @@
   .plinth-card {
     background: rgb(var(--bg-page));
     border: 1px solid rgb(var(--border-subtle-rgb));
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--surface-raised-shadow);
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+    cursor: pointer;
   }
   
   .plinth-card:hover {
@@ -584,8 +726,9 @@
   .plinth-card-elevated {
     background: rgb(var(--bg-page));
     border: 1px solid rgb(var(--border-subtle-rgb));
-    box-shadow: var(--shadow-md);
-    transition: all 0.2s ease;
+    box-shadow: var(--surface-overlay-shadow);
+    transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
+    cursor: pointer;
   }
   
   .plinth-card-elevated:hover {
@@ -674,6 +817,34 @@
     --spacing-lg: 1.25rem; /* 20px */
     --spacing-xl: 1.5rem; /* 24px */
     --spacing-2xl: 2rem; /* 32px */
+  }
+  
+  /* Clickable card/row utility - Standardized interactive states */
+  .clickable-card {
+    cursor: pointer;
+    transition: background-color var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
+  }
+  
+  .clickable-card:hover {
+    background-color: hsl(var(--muted) / 0.3);
+  }
+  
+  .clickable-card:active {
+    transform: scale(0.99);
+  }
+  
+  /* Clickable row utility - For table rows and list items */
+  .clickable-row {
+    cursor: pointer;
+    transition: background-color var(--transition-base);
+  }
+  
+  .clickable-row:hover {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+  
+  .clickable-row:active {
+    background-color: hsl(var(--muted) / 0.7);
   }
 }
 

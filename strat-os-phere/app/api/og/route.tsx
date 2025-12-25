@@ -17,15 +17,18 @@ export async function GET(request: NextRequest) {
   // Variant-specific content
   const variantConfig = {
     default: {
-      headline: "Competitive analysis that ends in a decision",
+      headline: "Decisions you can defend.",
+      subtitle: "Evidence-bound opportunities with confidence boundaries.",
       badge: null,
     },
     results: {
       headline: "Results — Plinth",
+      subtitle: null,
       badge: "Results",
     },
     competitors: {
       headline: "Competitors — Plinth",
+      subtitle: null,
       badge: "Competitors",
     },
   };
@@ -113,31 +116,35 @@ export async function GET(request: NextRequest) {
           {/* Headline */}
           <div
             style={{
-              fontSize: "42px",
-              fontWeight: 400,
-              color: "rgba(255, 255, 255, 0.85)",
+              fontSize: "48px",
+              fontWeight: 600,
+              color: "#ffffff",
               textAlign: "center",
               maxWidth: "900px",
               lineHeight: 1.2,
               fontFamily: "system-ui, -apple-system, sans-serif",
+              marginBottom: "16px",
             }}
           >
             {config.headline}
           </div>
 
-          {/* Tagline */}
-          <div
-            style={{
-              fontSize: "24px",
-              fontWeight: 300,
-              color: "rgba(255, 255, 255, 0.6)",
-              textAlign: "center",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              marginTop: "16px",
-            }}
-          >
-            Strategy, grounded.
-          </div>
+          {/* Subtitle (only for default variant) */}
+          {config.subtitle && (
+            <div
+              style={{
+                fontSize: "28px",
+                fontWeight: 300,
+                color: "rgba(255, 255, 255, 0.75)",
+                textAlign: "center",
+                maxWidth: "800px",
+                lineHeight: 1.3,
+                fontFamily: "system-ui, -apple-system, sans-serif",
+              }}
+            >
+              {config.subtitle}
+            </div>
+          )}
         </div>
       </div>
     ),

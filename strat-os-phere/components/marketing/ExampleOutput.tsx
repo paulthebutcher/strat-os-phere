@@ -10,18 +10,22 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
+import { Reveal } from "./motion"
 
 export function ExampleOutput() {
   return (
     <MarketingSection variant="muted" id="example">
       <MarketingContainer maxWidth="6xl">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
-            One opportunity. Clear boundaries.
-          </h2>
-        </div>
+        <Reveal>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
+              One opportunity. Clear boundaries.
+            </h2>
+          </div>
+        </Reveal>
         
-        <div className="max-w-3xl mx-auto">
+        <Reveal delay={60}>
+          <div className="max-w-3xl mx-auto">
           {/* Example opportunity card */}
           <div className="rounded-xl border-2 border-border-subtle shadow-lg bg-surface overflow-hidden">
             {/* Card header with confidence level */}
@@ -108,7 +112,8 @@ export function ExampleOutput() {
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </Reveal>
       </MarketingContainer>
     </MarketingSection>
   )

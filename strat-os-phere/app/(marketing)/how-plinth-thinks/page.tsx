@@ -16,10 +16,12 @@ import { cn } from "@/lib/utils"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "How Plinth Thinks — Plinth",
+    title: "How Plinth thinks — Plinth",
     description:
-      "A decision system designed to make confidence boundaries explicit — what the evidence supports now, what it doesn't yet, and what would increase certainty.",
+      "How Plinth turns public signals into defensible calls—with citations and confidence boundaries.",
     path: "/how-plinth-thinks",
+    ogVariant: "default",
+    canonical: true,
     robots: {
       index: true,
       follow: true,

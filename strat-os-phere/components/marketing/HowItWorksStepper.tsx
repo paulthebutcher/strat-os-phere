@@ -8,6 +8,7 @@
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { StepsCarousel, type StepItem } from "./StepsCarousel"
+import { Reveal } from "./motion"
 
 const steps: StepItem[] = [
   {
@@ -37,20 +38,26 @@ export function HowItWorksStepper() {
   return (
     <MarketingSection variant="muted" id="how">
       <MarketingContainer maxWidth="6xl">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
-            How Plinth works
-          </h2>
-        </div>
+        <Reveal>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-text-primary mb-4">
+              How Plinth works
+            </h2>
+          </div>
+        </Reveal>
         
-        <StepsCarousel steps={steps} />
+        <Reveal delay={60}>
+          <StepsCarousel steps={steps} />
+        </Reveal>
         
         {/* Optional note */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-text-muted italic max-w-xl mx-auto">
-            Plinth won't pretend the evidence is stronger than it is.
-          </p>
-        </div>
+        <Reveal delay={120}>
+          <div className="mt-8 text-center">
+            <p className="text-sm text-text-muted italic max-w-xl mx-auto">
+              Plinth won't pretend the evidence is stronger than it is.
+            </p>
+          </div>
+        </Reveal>
       </MarketingContainer>
     </MarketingSection>
   )
