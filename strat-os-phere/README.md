@@ -133,6 +133,48 @@ pnpm build
 
 The full build includes the guard script to prevent stuck builds from stale `.next` lock files.
 
+## Cursor-Safe Commands
+
+These commands are optimized for Cursor's automatic command execution and won't hang indefinitely:
+
+### When editing one file
+```bash
+# Lint a specific file
+pnpm lint:file app/projects/[projectId]/page.tsx
+
+# Type check with timeout (auto-exits after 45s)
+pnpm typecheck:safe
+
+# Build with timeout (auto-exits after 90s)
+pnpm build:safe
+```
+
+### When refactoring multiple files
+```bash
+# Lint only changed files (fastest)
+pnpm lint:changed
+
+# Full build (primary check)
+pnpm build
+
+# Lint changed files (secondary check)
+pnpm lint:changed
+```
+
+### Full CI pipeline
+```bash
+# Run complete CI checks (lint + typecheck + test + build)
+pnpm ci
+```
+
+### Time-boxed safe variants
+All safe variants automatically exit with a clear timeout message if they take too long:
+- `pnpm lint:safe` - stops after 30s
+- `pnpm typecheck:safe` - stops after 45s
+- `pnpm build:safe` - stops after 90s
+
+**Note**: The `build` command now only compiles (no lint/typecheck). Use `pnpm ci` for the full quality gate.
+
 ## Testing
 
 ### Unit & Integration Tests
