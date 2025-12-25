@@ -2,7 +2,8 @@
  * DecisionBriefPreview
  * 
  * Hero preview showing the Decision Brief (the output artifact).
- * Shows evidence attached, confidence boundaries, and "what would change this call".
+ * Full-width "Decision Canvas" that shows recommendation, evidence categories,
+ * scoring breakdown, and confidence logic - all inline. No sidebar.
  */
 "use client"
 
@@ -15,18 +16,54 @@ import { ConfidencePill } from "@/components/marketing/ConfidencePill"
 const primaryOpportunity = {
   title: "Introduce a constrained free tier to unlock mid-market adoption",
   confidence: "investment_ready" as const,
+  overallScore: 82,
   citationsCount: 8,
-  bullets: [
-    "4/5 competitors offer free tiers capped at usage",
-    "Reviews cite 'trial friction' as a blocker to adoption"
-  ]
+  evidenceTypes: ["pricing", "docs", "reviews"]
 }
 
-const citations = [
-  { domain: "competitor-a.com", type: "Pricing" },
-  { domain: "competitor-b.com", type: "Docs" },
-  { domain: "reviews-site.com", type: "Reviews" },
-  { domain: "competitor-c.com", type: "Pricing" },
+// Evidence categories with scores and sources
+const evidenceCategories = [
+  {
+    category: "Competitive Norms",
+    insight: "4 / 5 competitors offer capped free tiers",
+    score: 9,
+    maxScore: 10,
+    sourceTypes: ["Pricing"]
+  },
+  {
+    category: "Customer Friction",
+    insight: "Reviews cite trial friction as adoption blocker",
+    score: 8,
+    maxScore: 10,
+    sourceTypes: ["Reviews", "G2"]
+  },
+  {
+    category: "Market Maturity",
+    insight: "Incident management buyers expect hands-on evaluation",
+    score: 7,
+    maxScore: 10,
+    sourceTypes: ["Docs", "Positioning"]
+  },
+  {
+    category: "Business Risk",
+    insight: "Cannibalization risk limited by usage caps",
+    score: 6,
+    maxScore: 10,
+    sourceTypes: ["Pricing"]
+  }
+]
+
+// Scoring weights
+const scoringWeights = [
+  { factor: "Market Norms", weight: "30%" },
+  { factor: "Customer Signals", weight: "30%" },
+  { factor: "Risk", weight: "20%" },
+  { factor: "Strategic Fit", weight: "20%" }
+]
+
+const guardrails = [
+  "Two competitors launch equivalent free tiers",
+  "Trial-to-paid conversion improves materially without pricing changes"
 ]
 
 function prefersReducedMotion(): boolean {
@@ -49,79 +86,118 @@ export function DecisionBriefPreview() {
   return (
     <div 
       className={cn(
-        "flex flex-col bg-white min-h-[450px] md:min-h-[520px] rounded-lg shadow-lg border border-border-subtle",
+        "flex flex-col bg-white min-h-[600px] md:min-h-[680px] rounded-lg shadow-lg border border-border-subtle",
         "transition-opacity duration-500 ease-out",
         isVisible ? "opacity-100" : "opacity-0"
       )}
     >
-      {/* Proof-first: Single investment-ready recommendation only */}
-      {/* Main content: two-column layout */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* Left: Primary recommendation (single call) */}
-        <div className="flex-1 p-6 md:p-8 space-y-4 overflow-y-auto">
-          {/* Primary recommendation - prominent and clear */}
-          <div className="p-5 md:p-6 rounded-lg border-2 border-accent-primary/50 bg-accent-primary/8 shadow-sm">
-            {/* Title and confidence */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
-              <h3 className="text-base md:text-lg font-semibold text-text-primary leading-snug flex-1">
-                {primaryOpportunity.title}
-              </h3>
-              <ConfidencePill level={primaryOpportunity.confidence} className="text-xs shrink-0 self-start" />
-            </div>
-
-            {/* Evidence strength */}
-            <div className="mb-4">
-              <p className="text-sm font-medium text-text-primary">
-                {primaryOpportunity.citationsCount} sources attached
-              </p>
-            </div>
-
-            {/* Why this ranks bullets */}
-            <div className="space-y-2">
-              {primaryOpportunity.bullets.map((bullet, bulletIdx) => (
-                <div key={bulletIdx} className="flex items-start gap-2.5">
-                  <span className="text-accent-primary mt-0.5 shrink-0 font-semibold">•</span>
-                  <p className="text-sm text-text-primary leading-relaxed">
-                    {bullet}
-                  </p>
-                </div>
+      {/* Decision Header */}
+      <div className="p-6 md:p-8 border-b border-border-subtle">
+        <h3 className="text-lg md:text-xl font-semibold text-text-primary leading-snug mb-4">
+          {primaryOpportunity.title}
+        </h3>
+        
+        {/* Meta row */}
+        <div className="flex flex-wrap items-center gap-4 text-sm">
+          <ConfidencePill level={primaryOpportunity.confidence} className="text-xs" />
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-text-primary">
+              {primaryOpportunity.overallScore} / 100
+            </span>
+            <span className="text-text-secondary">Overall score</span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-text-secondary">
+              {primaryOpportunity.citationsCount} sources
+            </span>
+            <span className="text-text-muted">·</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {primaryOpportunity.evidenceTypes.map((type, idx) => (
+                <span key={idx} className="text-text-secondary capitalize">
+                  {type}
+                  {idx < primaryOpportunity.evidenceTypes.length - 1 && (
+                    <span className="text-text-muted ml-1.5">·</span>
+                  )}
+                </span>
               ))}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Right: Evidence snippet panel */}
-        <div className="w-full md:w-64 border-t md:border-t-0 md:border-l border-border-subtle bg-surface-muted/30 p-5 md:p-6 flex flex-col">
-          <div className="mb-4">
-            <p className="text-sm font-semibold text-text-primary mb-3">
-              Every claim is sourced
-            </p>
-          </div>
+      {/* Evidence Grid */}
+      <div className="p-6 md:p-8 flex-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {evidenceCategories.map((category, idx) => (
+            <div 
+              key={idx}
+              className="p-4 rounded-lg border border-border-subtle bg-surface-muted/30 space-y-3"
+            >
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-text-primary">
+                  {category.category}
+                </h4>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  {category.insight}
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-text-primary">
+                    {category.score} / {category.maxScore}
+                  </span>
+                  <span className="text-xs text-text-secondary">Score</span>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-1.5">
+                {category.sourceTypes.map((type, typeIdx) => (
+                  <Badge 
+                    key={typeIdx} 
+                    variant="secondary" 
+                    className="text-xs px-2 py-0.5"
+                  >
+                    {type}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
 
-          {/* Citation list with improved spacing */}
-          <div className="space-y-3">
-            {citations.map((citation, idx) => (
-              <div key={idx} className="flex items-center justify-between gap-3">
-                <span className="text-sm font-medium text-text-primary truncate">
-                  {citation.domain}
-                </span>
-                <Badge variant="secondary" className="text-xs px-2 py-1 shrink-0">
-                  {citation.type}
-                </Badge>
+        {/* Scoring & Confidence Logic */}
+        <div className="mt-6 p-4 rounded-lg bg-surface-muted/20 border border-border-subtle">
+          <h4 className="text-sm font-semibold text-text-primary mb-3">
+            How this was scored
+          </h4>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 mb-3 text-xs">
+            {scoringWeights.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <span className="text-text-secondary">{item.factor}</span>
+                <span className="text-text-muted">{item.weight}</span>
               </div>
             ))}
           </div>
-
-          {/* What would change this call section */}
-          <div className="mt-auto pt-4 border-t border-border-subtle">
-            <p className="text-sm font-semibold text-text-primary mb-2">
-              What would change this call?
-            </p>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              This changes if two competitors launch comparable free tiers with similar limits.
-            </p>
-          </div>
+          <p className="text-xs text-text-secondary leading-relaxed">
+            This recommendation exceeds the investment threshold due to strong competitive norms and consistent customer friction signals.
+          </p>
         </div>
+      </div>
+
+      {/* What would change this call - Inline callout bar */}
+      <div className="p-6 md:p-8 border-t border-border-subtle bg-surface-muted/30">
+        <p className="text-sm font-semibold text-text-primary mb-3">
+          What would change this decision?
+        </p>
+        <ul className="space-y-1.5">
+          {guardrails.map((guardrail, idx) => (
+            <li key={idx} className="flex items-start gap-2 text-xs text-text-secondary">
+              <span className="text-text-muted mt-0.5">•</span>
+              <span>{guardrail}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )
