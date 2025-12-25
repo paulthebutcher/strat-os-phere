@@ -33,58 +33,53 @@ const opportunities = [
 
 export function OpportunitiesRankedPreview() {
   return (
-    <div className="bg-white p-6 md:p-8 min-h-[350px] flex flex-col">
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold text-text-primary mb-2">
-            Opportunities, ranked
-          </h3>
-          <p className="text-xs text-text-secondary mb-4">
-            Not a list of ideas — a prioritized shortlist based on signal strength
-          </p>
+    <div className="bg-white p-5 md:p-6 min-h-[320px] flex flex-col">
+      {/* Proof-first: Focus on ranking and why */}
+      <div className="space-y-3">
+        {/* Top opportunity - most prominent */}
+        <div
+          className={cn(
+            "p-4 rounded-lg border-2 transition-all",
+            "border-accent-primary/50 bg-accent-primary/8"
+          )}
+        >
+          <div className="flex items-start gap-3 mb-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold shrink-0 bg-accent-primary text-white">
+              {opportunities[0].rank}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-text-primary mb-2 leading-snug">
+                {opportunities[0].title}
+              </h4>
+              <div className="flex items-center gap-3 flex-wrap">
+                <ConfidencePill level={opportunities[0].confidence} className="text-xs" />
+                <span className="text-xs font-medium text-text-secondary">
+                  {opportunities[0].citations} sources
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Ranking drivers legend */}
-        <div className="flex flex-wrap gap-3 text-xs text-text-secondary mb-4 pb-3 border-b border-border-subtle">
-          <span className="font-medium">Ranking drivers:</span>
-          <span>Evidence strength</span>
-          <span>•</span>
-          <span>Competitive gap</span>
-          <span>•</span>
-          <span>Market signals</span>
-        </div>
-
-        {/* Opportunities list */}
-        <div className="space-y-3">
-          {opportunities.map((opp, idx) => (
+        {/* Other opportunities - compact */}
+        <div className="space-y-2">
+          {opportunities.slice(1).map((opp, idx) => (
             <div
               key={idx}
-              className={cn(
-                "p-4 rounded-lg border transition-all",
-                idx === 0
-                  ? "border-accent-primary/40 bg-accent-primary/5"
-                  : "border-border-subtle bg-white"
-              )}
+              className="p-3 rounded-lg border border-border-subtle bg-white"
             >
-              <div className="flex items-start gap-3 mb-2">
-                <div
-                  className={cn(
-                    "flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0",
-                    idx === 0
-                      ? "bg-accent-primary text-white"
-                      : "bg-surface-muted text-text-secondary"
-                  )}
-                >
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 bg-surface-muted text-text-secondary">
                   {opp.rank}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-text-primary mb-2">
+                  <h4 className="text-xs font-semibold text-text-primary mb-1.5 leading-snug">
                     {opp.title}
                   </h4>
-                  <div className="flex items-center gap-3">
-                    <ConfidencePill level={opp.confidence} className="text-xs" />
-                    <span className="text-xs text-text-secondary">
-                      {opp.citations} citations
+                  <div className="flex items-center gap-2">
+                    <ConfidencePill level={opp.confidence} className="text-[10px]" />
+                    <span className="text-[10px] text-text-secondary">
+                      {opp.citations} sources
                     </span>
                   </div>
                 </div>

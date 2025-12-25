@@ -205,8 +205,15 @@ export async function getDecisionRunState(
   // Normalize run data (handle undefined)
   const normalizedRun = normalizeValue(run)
 
-  // Derive run status
-  const runStatus = deriveRunStatus(normalizedRun)
+  // Derive run status (adapt run type to match expected interface)
+  const runForStatus = normalizedRun
+    ? {
+        status: normalizedRun.status,
+        completed_at: normalizedRun.completed_at ?? null,
+        finished_at: ('finished_at' in normalizedRun && typeof normalizedRun.finished_at === 'string' ? normalizedRun.finished_at : null),
+      }
+    : null
+  const runStatus = deriveRunStatus(runForStatus)
 
   // Count evidence items
   const evidenceCount = evidenceBundle?.items?.length ?? 0

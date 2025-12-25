@@ -34,9 +34,11 @@ import { GenerateAnalysisButton } from '@/components/projects/GenerateAnalysisBu
 import { getNextBestAction } from '@/lib/projects/nextBestAction'
 import Link from 'next/link'
 import type { SearchParams } from '@/lib/routing/searchParams'
+import { getBool } from '@/lib/url/searchParams'
 import { OpportunitiesEntryState } from '@/components/results/OpportunitiesEntryState'
 import { getDecisionRunState } from '@/lib/decisionRun/getDecisionRunState'
 import { DecisionRunStatusBanner } from '@/components/decisionRun/DecisionRunStatusBanner'
+import { DecisionReceipt } from '@/components/results/DecisionReceipt'
 
 interface OpportunitiesPageProps {
   params: Promise<{
@@ -86,7 +88,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
   const searchParams = props.searchParams
   const projectId = params.projectId
   const route = `/projects/${projectId}/opportunities`
-  const justGenerated = searchParams?.justGenerated === 'true' || searchParams?.justGenerated === '1' || searchParams?.justGenerated === true
+  const justGenerated = getBool(searchParams?.justGenerated)
 
   try {
     const supabase = await createClient()
@@ -336,6 +338,18 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
             />
           </Section>
         )}
+
+        {/* Decision Receipt - Above-the-fold decision artifact (Phase 2) */}
+        <Section>
+          <DecisionReceipt
+            projectId={projectId}
+            opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
+            opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
+            coverage={coverageLite}
+            competitorCount={competitorCount}
+            justGenerated={justGenerated}
+          />
+        </Section>
 
         {/* Decision Brief - Primary post-run experience (shown first when results exist) */}
         {hasOpportunitiesArtifact && (

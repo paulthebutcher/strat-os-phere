@@ -29,17 +29,9 @@ const nextSteps = [
 
 export function NextStepsPreview() {
   return (
-    <div className="bg-white p-6 md:p-8 min-h-[300px] flex flex-col">
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold text-text-primary mb-2">
-            Next moves
-          </h3>
-          <p className="text-xs text-text-secondary mb-4">
-            Clear actions to increase confidence — customer checks, competitive scans, and tests
-          </p>
-        </div>
-
+    <div className="bg-white p-5 md:p-6 min-h-[280px] flex flex-col">
+      {/* Proof-first: Focus on actionable next steps */}
+      <div className="space-y-3">
         {/* Next steps list */}
         <div className="space-y-2">
           {nextSteps.map((step, idx) => (

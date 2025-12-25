@@ -57,88 +57,90 @@ export function DecisionBriefPreview() {
   return (
     <div 
       className={cn(
-        "flex flex-col bg-white min-h-[500px] md:min-h-[600px]",
+        "flex flex-col bg-white min-h-[450px] md:min-h-[520px]",
         "transition-opacity duration-500 ease-out",
         isVisible ? "opacity-100" : "opacity-0"
       )}
     >
-      {/* Header */}
-      <div className="px-4 md:px-6 py-4 border-b border-border-subtle">
-        <h2 className="text-sm md:text-base font-semibold text-text-primary">
-          Decision Brief
-        </h2>
-      </div>
-
+      {/* Proof-first: Remove header chrome, focus on content */}
       {/* Main content: two-column layout */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* Left: Opportunities list */}
-        <div className="flex-1 p-4 md:p-6 space-y-4 overflow-y-auto">
-          {opportunities.map((opp, idx) => (
+        {/* Left: Top opportunity (most prominent) */}
+        <div className="flex-1 p-5 md:p-6 space-y-3 overflow-y-auto">
+          {/* Top recommendation - highlighted */}
+          <div className="p-4 rounded-lg border-2 border-accent-primary/50 bg-accent-primary/8">
+            {/* Title and confidence */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+              <h3 className="text-sm font-semibold text-text-primary leading-snug flex-1">
+                {opportunities[0].title}
+              </h3>
+              <ConfidencePill level={opportunities[0].confidence} className="text-xs shrink-0 self-start" />
+            </div>
+
+            {/* Evidence strength */}
+            <div className="mb-3">
+              <p className="text-xs font-medium text-text-muted">
+                {opportunities[0].citationsCount} sources attached
+              </p>
+            </div>
+
+            {/* Why this ranks bullets */}
+            <div className="space-y-1.5">
+              {opportunities[0].bullets.map((bullet, bulletIdx) => (
+                <div key={bulletIdx} className="flex items-start gap-2">
+                  <span className="text-accent-primary mt-0.5 shrink-0">•</span>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {bullet}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Other opportunities - compact */}
+          {opportunities.slice(1).map((opp, idx) => (
             <div
               key={idx}
-              className={cn(
-                "p-4 rounded-lg border transition-all",
-                "border-border-subtle bg-white"
-              )}
+              className="p-3 rounded-lg border border-border-subtle bg-white"
             >
-              {/* Title and confidence */}
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3 mb-2">
-                <h3 className="text-sm font-semibold text-text-primary leading-snug flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                <h3 className="text-xs font-semibold text-text-primary leading-snug flex-1">
                   {opp.title}
                 </h3>
-                <ConfidencePill level={opp.confidence} className="text-xs shrink-0 self-start" />
+                <ConfidencePill level={opp.confidence} className="text-[10px] shrink-0 self-start" />
               </div>
-
-              {/* Evidence strength */}
-              <div className="mb-3">
-                <p className="text-xs text-text-muted">
-                  {opp.citationsCount} citations
-                </p>
-              </div>
-
-              {/* Why this ranks bullets */}
-              <div className="space-y-1.5">
-                {opp.bullets.map((bullet, bulletIdx) => (
-                  <div key={bulletIdx} className="flex items-start gap-2">
-                    <span className="text-accent-primary mt-0.5 shrink-0">•</span>
-                    <p className="text-xs text-text-secondary leading-relaxed">
-                      {bullet}
-                    </p>
-                  </div>
-                ))}
-              </div>
+              <p className="text-[10px] text-text-muted">
+                {opp.citationsCount} sources
+              </p>
             </div>
           ))}
         </div>
 
         {/* Right: Evidence snippet panel */}
-        <div className="w-full md:w-64 border-t md:border-t-0 md:border-l border-border-subtle bg-surface-muted/30 p-4 md:p-5 flex flex-col">
-          <div className="mb-4">
+        <div className="w-full md:w-56 border-t md:border-t-0 md:border-l border-border-subtle bg-surface-muted/30 p-4 md:p-5 flex flex-col">
+          <div className="mb-3">
             <p className="text-xs font-semibold text-text-primary mb-2">
               Evidence attached
             </p>
           </div>
 
           {/* Citation list */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {citations.map((citation, idx) => (
-              <div key={idx} className="flex flex-col gap-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-text-primary truncate">
-                    {citation.domain}
-                  </span>
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 shrink-0 ml-2">
-                    {citation.type}
-                  </Badge>
-                </div>
-                <div className="h-px bg-border-subtle" />
+              <div key={idx} className="flex items-center justify-between gap-2">
+                <span className="text-xs font-medium text-text-primary truncate">
+                  {citation.domain}
+                </span>
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 shrink-0">
+                  {citation.type}
+                </Badge>
               </div>
             ))}
           </div>
 
           {/* What would change this call section */}
-          <div className="mt-auto pt-4 border-t border-border-subtle">
-            <p className="text-xs font-semibold text-text-primary mb-2">
+          <div className="mt-auto pt-3 border-t border-border-subtle">
+            <p className="text-xs font-semibold text-text-primary mb-1.5">
               What would change this call?
             </p>
             <p className="text-[11px] text-text-secondary">

@@ -24,38 +24,17 @@ const sourcePills = [
 
 export function EvidenceTablePreview() {
   return (
-    <div className="bg-white p-6 md:p-8 min-h-[300px] flex flex-col">
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold text-text-primary mb-2">
-            Evidence
-          </h3>
-          <p className="text-xs text-text-secondary mb-4">
-            Every claim has a source you can open and share
-          </p>
-        </div>
-
-        {/* Source pills */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {sourcePills.map((pill, idx) => (
-            <Badge
-              key={idx}
-              variant="secondary"
-              className="text-xs px-2.5 py-1 bg-surface-muted/50"
-            >
-              {pill.label}
-            </Badge>
-          ))}
-        </div>
-
-        {/* Evidence table */}
+    <div className="bg-white p-5 md:p-6 min-h-[280px] flex flex-col">
+      {/* Proof-first: Focus on sources being inspectable */}
+      <div className="space-y-3">
+        {/* Evidence sources list - the proof */}
         <div className="space-y-2">
           {evidence.map((item, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between p-3 rounded-lg border border-border-subtle bg-surface-muted/30 hover:bg-surface-muted/50 transition-colors"
+              className="flex items-center justify-between p-3 rounded-lg border border-border-subtle bg-surface-muted/30"
             >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
                 <span className="text-sm font-medium text-text-primary truncate">
                   {item.domain}
                 </span>
@@ -63,16 +42,22 @@ export function EvidenceTablePreview() {
                   {item.type}
                 </Badge>
               </div>
-              <ExternalLink className="w-4 h-4 text-text-muted shrink-0" />
+              <ExternalLink className="w-4 h-4 text-accent-primary shrink-0" />
             </div>
           ))}
         </div>
         
-        {/* Affordance text */}
-        <div className="mt-4 pt-4 border-t border-border-subtle">
-          <p className="text-xs text-text-secondary">
-            Open source →
-          </p>
+        {/* Compact source type indicators */}
+        <div className="flex flex-wrap gap-2 pt-2">
+          {sourcePills.map((pill, idx) => (
+            <Badge
+              key={idx}
+              variant="secondary"
+              className="text-[10px] px-2 py-0.5 bg-surface-muted/50"
+            >
+              {pill.label}
+            </Badge>
+          ))}
         </div>
       </div>
     </div>

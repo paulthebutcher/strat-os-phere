@@ -7,6 +7,7 @@ export interface SectionProps {
   children: React.ReactNode
   divider?: boolean
   className?: string
+  id?: string
 }
 
 /**
@@ -25,13 +26,17 @@ export function Section({
   children,
   divider = false,
   className,
+  id,
 }: SectionProps) {
   return (
-    <section className={cn(
-      "space-y-4",
-      divider && "border-t border-border pt-6",
-      className
-    )}>
+    <section 
+      id={id}
+      className={cn(
+        "space-y-4",
+        divider && "border-t border-border pt-6",
+        className
+      )}
+    >
       {(title || description) && (
         <div className="space-y-1">
           {title && (

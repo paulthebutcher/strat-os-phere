@@ -47,6 +47,12 @@ export default function MarketingHome() {
           copy="Start with an idea, a competitor set, or a market question."
           image={<ProjectSetupPreview />}
           alignment="right"
+          artifactTitle="Project Input"
+          artifactSubtitle="One page. Defensible call. Sources included."
+          receiptCallouts={[
+            { label: "Decision question is explicit" },
+            { label: "Market context included" }
+          ]}
         />
         
         {/* 3. Evidence section */}
@@ -55,6 +61,13 @@ export default function MarketingHome() {
           copy="Every claim has a source you can open and share."
           image={<EvidenceTablePreview />}
           alignment="left"
+          artifactTitle="Evidence Attached"
+          artifactSubtitle="One page. Defensible call. Sources included."
+          receiptCallouts={[
+            { label: "Evidence attached" },
+            { label: "Sources are inspectable" },
+            { label: "Citations included" }
+          ]}
         />
         
         {/* 4. Opportunities section */}
@@ -63,6 +76,13 @@ export default function MarketingHome() {
           copy="Not a list of ideas — a prioritized shortlist based on signal strength."
           image={<OpportunitiesRankedPreview />}
           alignment="right"
+          artifactTitle="Ranked Opportunities"
+          artifactSubtitle="One page. Defensible call. Sources included."
+          receiptCallouts={[
+            { label: "Ranking is explicit" },
+            { label: "Why it ranks" },
+            { label: "Evidence strength shown" }
+          ]}
         />
         
         {/* Mid-page soft CTA */}
@@ -88,6 +108,12 @@ export default function MarketingHome() {
           image={<ConfidenceBoundariesPreview />}
           alignment="left"
           framingLine="Most tools give you ideas. Plinth shows what's safe to act on."
+          artifactTitle="Decision Receipt"
+          artifactSubtitle="One page. Defensible call. Sources included."
+          receiptCallouts={[
+            { label: "Confidence is explicit" },
+            { label: "What changes the call" }
+          ]}
         />
         
         {/* 6. Next moves section */}
@@ -96,6 +122,12 @@ export default function MarketingHome() {
           copy="Clear actions to increase confidence — customer checks, competitive scans, and tests."
           image={<NextStepsPreview />}
           alignment="right"
+          artifactTitle="Next Steps"
+          artifactSubtitle="One page. Defensible call. Sources included."
+          receiptCallouts={[
+            { label: "Action, not analysis" },
+            { label: "Clear validation steps" }
+          ]}
         />
         
         {/* 7. Final CTA */}

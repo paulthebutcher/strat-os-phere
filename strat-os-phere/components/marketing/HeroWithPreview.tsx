@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { DecisionBriefPreview } from "./previews/DecisionBriefPreview"
+import { PreviewArtifact } from "./PreviewArtifact"
 import { Reveal, HoverLift } from "./motion"
 import { MarketingContainer } from "./MarketingContainer"
 
@@ -85,38 +86,17 @@ export function HeroWithPreview() {
             {/* Below: Decision Brief Preview */}
             <Reveal delay={120}>
               <div className="max-w-5xl mx-auto w-full">
-                {/* Artifact header */}
-                <div className="flex items-center justify-between mb-3 px-1">
-                  <div>
-                    <h2 className="text-sm font-semibold text-text-primary mb-0.5">
-                      Top Opportunities (Example)
-                    </h2>
-                    <p className="text-xs text-text-muted">
-                      Ranked by evidence strength • Sources attached
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    Example
-                  </Badge>
-                </div>
-
-                {/* Preview container with background tint */}
-                <div className="relative rounded-xl border-2 border-border-subtle shadow-2xl overflow-hidden bg-white">
-                  {/* Subtle background tint */}
-                  <div className="absolute inset-0 bg-surface-muted/30 pointer-events-none" />
-                  <div className="relative">
-                    <DecisionBriefPreview />
-                  </div>
-                </div>
-                
-                {/* Trust cues */}
-                <div className="mt-6 flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-xs text-text-muted">
-                  <span>Citations included</span>
-                  <span className="hidden sm:inline">•</span>
-                  <span>Confidence is explicit</span>
-                  <span className="hidden sm:inline">•</span>
-                  <span>Sources are inspectable</span>
-                </div>
+                <PreviewArtifact
+                  title="Decision Receipt"
+                  subtitle="One page. Defensible call. Sources included."
+                  callouts={[
+                    { label: "Confidence is explicit" },
+                    { label: "Evidence attached" },
+                    { label: "What changes the call" }
+                  ]}
+                >
+                  <DecisionBriefPreview />
+                </PreviewArtifact>
               </div>
             </Reveal>
           </div>
