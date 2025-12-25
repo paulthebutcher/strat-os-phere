@@ -13,7 +13,7 @@ import { ConfidencePill } from "@/components/marketing/ConfidencePill"
 const opportunities = [
   {
     rank: 1,
-    title: "Launch enterprise SSO to match competitor positioning",
+    title: "Introduce a constrained free tier to unlock mid-market adoption",
     confidence: "investment_ready" as const,
     citations: 8,
   },

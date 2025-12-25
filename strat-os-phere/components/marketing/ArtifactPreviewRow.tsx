@@ -67,7 +67,7 @@ export function ArtifactPreviewRow() {
         {/* Left: Early exploration */}
         <ArtifactPreview
           title="Exploring an idea"
-          opportunityTitle="Launch enterprise SSO to match competitor positioning"
+          opportunityTitle="Introduce a constrained free tier to unlock mid-market adoption"
           confidence="exploratory"
           citationsCount={3}
           evidenceTypes={2}
@@ -77,7 +77,7 @@ export function ArtifactPreviewRow() {
         {/* Right: Investment-ready */}
         <ArtifactPreview
           title="Making a call"
-          opportunityTitle="Launch enterprise SSO to match competitor positioning"
+          opportunityTitle="Introduce a constrained free tier to unlock mid-market adoption"
           confidence="investment_ready"
           citationsCount={8}
           evidenceTypes={4}

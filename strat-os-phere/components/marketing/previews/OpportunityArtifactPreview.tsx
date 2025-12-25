@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils"
 
 // Static sample data for the preview
 const sampleOpportunity = {
-  title: "Launch enterprise SSO to match competitor positioning",
-  oneLiner: "Three competitors now offer SSO in their enterprise tiers. This is a table-stakes feature for B2B positioning.",
-  customer: "Enterprise customers evaluating security and compliance requirements",
-  whyNow: "Three major competitors added SSO to enterprise tiers in the last 6 months. Customer support requests for SSO increased 40% in Q4.",
+  title: "Introduce a constrained free tier to unlock mid-market adoption",
+  oneLiner: "4/5 competitors offer free tiers capped at usage. Reviews cite 'trial friction' as a blocker to adoption.",
+  customer: "Mid-market buyers comparing tools before procurement",
+  whyNow: "No competitor pairs free tier with guided upgrade paths. Free tiers with caps convert without cannibalizing revenue.",
   evidenceSummary: "Strong evidence from pricing pages, documentation, and feature requests. All sources are recent (within last 90 days).",
   citations: [
     {

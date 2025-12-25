@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
 import { createPageMetadata } from '@/lib/seo/metadata'
 import type { SearchParams } from '@/lib/routing/searchParams'
-import { isParamTruthy } from '@/lib/routing/searchParams'
+import { isParamTruthy, getParam } from '@/lib/routing/searchParams'
 import { NewAnalysisPageClient } from './NewAnalysisPageClient'
 
 /**
@@ -44,12 +44,16 @@ export default async function NewAnalysisPage(props: PageProps) {
 
   const isGuidedMode = isParamTruthy(props.searchParams, 'onboarding')
   const isAuthenticated = !!user
+  
+  // Get example parameter for pre-filling
+  const example = getParam(props.searchParams, 'example')
 
   return (
     <PageGuidanceWrapper pageId="new_project">
       <NewAnalysisPageClient 
         isGuidedMode={isGuidedMode}
         isAuthenticated={isAuthenticated}
+        example={example}
       />
     </PageGuidanceWrapper>
   )

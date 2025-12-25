@@ -13,12 +13,12 @@ import { ConfidencePill } from "@/components/marketing/ConfidencePill"
 
 const opportunities = [
   {
-    title: "Launch enterprise SSO to match competitor positioning",
+    title: "Introduce a constrained free tier to unlock mid-market adoption",
     confidence: "investment_ready" as const,
     citationsCount: 8,
     bullets: [
-      "3 competitors offer SSO in their enterprise tiers",
-      "Customer reviews consistently mention SSO as requirement"
+      "4/5 competitors offer free tiers capped at usage",
+      "Reviews cite 'trial friction' as a blocker to adoption"
     ]
   },
   {

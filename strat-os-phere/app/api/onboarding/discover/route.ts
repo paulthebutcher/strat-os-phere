@@ -27,7 +27,7 @@ const DiscoverRequestSchema = z.object({
  */
 export async function POST(request: Request): Promise<NextResponse<DiscoveryResponse | { error: string }>> {
   try {
-    // Check authentication
+    // Check authentication (including anonymous sessions)
     const supabase = await createClient()
     const {
       data: { user },
@@ -36,6 +36,9 @@ export async function POST(request: Request): Promise<NextResponse<DiscoveryResp
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
+
+    // Anonymous users are valid - they have a session and user ID
+    // No additional check needed beyond verifying user exists
 
     // Check if Tavily is configured
     const tavilyApiKey = process.env.TAVILY_API_KEY

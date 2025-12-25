@@ -9,11 +9,13 @@ import { loadWizardDraft, saveWizardDraft } from '@/lib/onboarding/wizardDraft'
 interface NewAnalysisPageClientProps {
   isGuidedMode: boolean
   isAuthenticated: boolean
+  example?: string
 }
 
 export function NewAnalysisPageClient({ 
   isGuidedMode, 
-  isAuthenticated 
+  isAuthenticated,
+  example,
 }: NewAnalysisPageClientProps) {
   const router = useRouter()
   const [wizardState, setWizardState] = useState<WizardState | null>(null)
@@ -70,14 +72,41 @@ export function NewAnalysisPageClient({
     return null
   }
 
+  // Pre-fill example data if example parameter is provided and no saved draft exists
+  const initialState = wizardState || (example ? getExampleState(example) : undefined)
+
   return (
     <AnalysisWizard 
       isGuidedMode={isGuidedMode}
       isAuthenticated={isAuthenticated}
-      initialState={wizardState || undefined}
+      initialState={initialState}
       onComplete={handleWizardComplete}
       onStateChange={handleWizardStateChange}
     />
   )
+}
+
+/**
+ * Get example wizard state based on example parameter
+ */
+function getExampleState(example: string): WizardState | undefined {
+  // Default example (same as "Try example" button)
+  if (example === 'midmarket-itops' || !example) {
+    return {
+      primaryCompanyName: 'PagerDuty',
+      decisionFraming: {
+        decision: 'Where should we differentiate to win mid-market IT ops?',
+      },
+      marketCategory: 'Incident management & on-call',
+      contextText: "Assume we're a small team; looking for wedge features.",
+      resolvedSources: [],
+      suggestedCompetitors: [],
+      selectedCompetitors: [],
+      evidenceWindowDays: 90,
+    }
+  }
+  
+  // Add more examples as needed
+  return undefined
 }
 

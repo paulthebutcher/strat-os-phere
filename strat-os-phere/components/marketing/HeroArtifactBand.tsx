@@ -19,7 +19,7 @@ interface Opportunity {
 
 const opportunities: Opportunity[] = [
   {
-    title: "Launch enterprise SSO to match competitor positioning",
+    title: "Introduce a constrained free tier to unlock mid-market adoption",
     confidence: "investment_ready",
     citationsCount: 5,
     evidenceTypes: 2,

@@ -104,6 +104,9 @@ export async function POST(request: Request) {
       )
     }
 
+    // Anonymous users are valid - they have a session and user ID
+    // No additional check needed beyond verifying user exists
+
     // Extract domain
     const domain = extractDomain(domainOrUrl)
 

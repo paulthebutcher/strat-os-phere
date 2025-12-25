@@ -22,9 +22,9 @@ export function ProjectSetupPreview() {
             </label>
             <Input
               id="name"
-              placeholder="e.g., Enterprise SSO features"
+              placeholder="e.g., Free tier strategy"
               className="text-sm"
-              defaultValue="Enterprise SSO features"
+              defaultValue="Free tier strategy"
             />
           </div>
 
@@ -48,7 +48,7 @@ export function ProjectSetupPreview() {
               id="decision"
               placeholder="What decision are you trying to make?"
               className="text-sm min-h-[70px]"
-              defaultValue="Should we prioritize enterprise SSO in Q2?"
+              defaultValue="Should we introduce a free tier to unlock mid-market adoption?"
             />
           </div>
         </div>

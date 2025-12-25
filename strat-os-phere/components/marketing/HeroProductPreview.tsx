@@ -14,8 +14,8 @@ import { FileText, TrendingUp, Shield } from "lucide-react"
 
 // Sample opportunity data for the preview
 const sampleOpportunity = {
-  title: "Launch enterprise SSO to match competitor positioning",
-  oneLiner: "Three competitors now offer SSO in their enterprise tiers. This is a table-stakes feature for B2B positioning.",
+  title: "Introduce a constrained free tier to unlock mid-market adoption",
+  oneLiner: "4/5 competitors offer free tiers capped at usage. Reviews cite 'trial friction' as a blocker to adoption.",
   confidence: "directional" as const,
   score: 8.7,
   evidenceCount: 14,

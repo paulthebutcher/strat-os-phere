@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Loader2, Search } from 'lucide-react'
 
 import { CheckCircle2 } from 'lucide-react'
@@ -17,6 +17,7 @@ import type {
   SuggestedCompetitor,
 } from '@/lib/onboarding/types'
 import { microcopy } from '@/lib/copy/microcopy'
+import { ensureAnonSession } from '@/lib/auth/ensureAnonSession'
 
 interface WizardStep1DescribeProps {
   initialState: WizardState
@@ -55,6 +56,49 @@ export function WizardStep1Describe({
     sources: ResolvedSource[]
     competitors: SuggestedCompetitor[]
   } | null>(null)
+  const [sessionReady, setSessionReady] = useState(false)
+  const [sessionError, setSessionError] = useState<string | null>(null)
+
+  // Ensure anonymous session exists on mount
+  useEffect(() => {
+    let isMounted = true
+
+    async function setupSession() {
+      setSessionError(null)
+      const result = await ensureAnonSession()
+      
+      if (!isMounted) return
+
+      if (result.ok) {
+        setSessionReady(true)
+      } else {
+        setSessionError(result.error)
+        setSessionReady(false)
+      }
+    }
+
+    setupSession()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  // Pre-fill example data from initialState if provided (e.g., from URL parameter)
+  useEffect(() => {
+    if (initialState?.primaryCompanyName && !companyName) {
+      setCompanyName(initialState.primaryCompanyName)
+    }
+    if (initialState?.decisionFraming?.decision && !decision) {
+      setDecision(initialState.decisionFraming.decision)
+    }
+    if (initialState?.marketCategory && !market) {
+      setMarket(initialState.marketCategory)
+    }
+    if (initialState?.contextText && !notes) {
+      setNotes(initialState.contextText)
+    }
+  }, [initialState, companyName, decision, market, notes])
 
   const handleTryExample = () => {
     setCompanyName('PagerDuty')
@@ -183,6 +227,45 @@ export function WizardStep1Describe({
   // Allow proceeding with just company + decision (market is soft requirement)
   const canContinue = companyName.trim().length > 0 && decision.trim().length > 0
 
+  // Show session setup state
+  if (!sessionReady) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-muted/30">
+          <Loader2 className="h-5 w-5 animate-spin text-indigo-600 dark:text-indigo-400" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">
+              Setting up your workspace...
+            </p>
+          </div>
+        </div>
+        {sessionError && (
+          <div className="rounded-lg border border-border bg-surface-muted/50 px-4 py-3">
+            <p className="text-sm text-muted-foreground mb-3">
+              Couldn't start a session. Please try again.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                setSessionError(null)
+                const result = await ensureAnonSession()
+                if (result.ok) {
+                  setSessionReady(true)
+                } else {
+                  setSessionError(result.error)
+                }
+              }}
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {isGuidedMode && (
@@ -292,7 +375,7 @@ export function WizardStep1Describe({
             <Button
               type="button"
               onClick={handleDiscover}
-              disabled={isLoading || !canContinue}
+              disabled={isLoading || !canContinue || !sessionReady}
               className="flex-1"
               size="lg"
               variant="brand"
