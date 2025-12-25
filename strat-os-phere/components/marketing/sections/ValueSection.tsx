@@ -71,18 +71,18 @@ export function ValueSection() {
         <div className="relative mb-16">
           {/* Connecting thread - desktop: horizontal, mobile: vertical */}
           {/* Desktop horizontal thread - fade in only, no translate */}
-          <Reveal y={0} delay={60}>
-            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-px -translate-y-1/2 z-0">
+          <div className="hidden md:block absolute top-1/2 left-0 right-0 h-px -translate-y-1/2 z-0">
+            <Reveal y={0} delay={60} as="div">
               <div className="h-full bg-gradient-to-r from-transparent via-accent-primary/10 via-accent-primary/20 to-accent-primary/30" />
-            </div>
-          </Reveal>
+            </Reveal>
+          </div>
           
           {/* Mobile vertical thread - fade in only, no translate */}
-          <Reveal y={0} delay={60}>
-            <div className="md:hidden absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 z-0">
+          <div className="md:hidden absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 z-0">
+            <Reveal y={0} delay={60} as="div">
               <div className="h-full bg-gradient-to-b from-transparent via-accent-primary/10 via-accent-primary/20 to-accent-primary/30" />
-            </div>
-          </Reveal>
+            </Reveal>
+          </div>
 
           {/* Milestone dots - desktop */}
           <div className="hidden md:block absolute top-1/2 left-0 right-0 -translate-y-1/2 z-10">

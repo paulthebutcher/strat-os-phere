@@ -20,7 +20,7 @@ export interface RevealProps {
   delay?: number // Delay in milliseconds before animation starts
   y?: number // TranslateY distance (defaults to distances.revealY)
   once?: boolean // Only animate once (default: true)
-  as?: keyof JSX.IntrinsicElements // Element type (default: "div")
+  as?: keyof React.JSX.IntrinsicElements // Element type (default: "div")
   className?: string
   threshold?: number // IntersectionObserver threshold (0-1, default: 0.1)
 }
@@ -36,7 +36,7 @@ export function Reveal({
 }: RevealProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [hasAnimated, setHasAnimated] = useState(false)
-  const ref = useRef<HTMLElement>(null)
+  const ref = useRef<HTMLElement | null>(null)
   const reduceMotion = useRef(false)
 
   useEffect(() => {
@@ -85,19 +85,23 @@ export function Reveal({
   const shouldAnimate = reduceMotion.current ? false : (isVisible || hasAnimated)
   const transitionDelay = reduceMotion.current ? "0ms" : `${delay}ms`
 
+  // Type-safe component rendering with ref
+  // Using type assertion for dynamic component ref typing
+  const componentProps: any = {
+    ref,
+    className: cn(className),
+    style: {
+      opacity: shouldAnimate ? opacity.final : opacity.initial,
+      transform: shouldAnimate ? "translateY(0)" : `translateY(${y}px)`,
+      transition: reduceMotion.current
+        ? "none"
+        : `opacity ${durations.base}ms ${easing.enter} ${transitionDelay}, transform ${durations.base}ms ${easing.enter} ${transitionDelay}`,
+      willChange: shouldAnimate ? "auto" : "opacity, transform",
+    } as React.CSSProperties,
+  }
+
   return (
-    <Component
-      ref={ref as any}
-      className={cn(className)}
-      style={{
-        opacity: shouldAnimate ? opacity.final : opacity.initial,
-        transform: shouldAnimate ? "translateY(0)" : `translateY(${y}px)`,
-        transition: reduceMotion.current
-          ? "none"
-          : `opacity ${durations.base}ms ${easing.enter} ${transitionDelay}, transform ${durations.base}ms ${easing.enter} ${transitionDelay}`,
-        willChange: shouldAnimate ? "auto" : "opacity, transform",
-      }}
-    >
+    <Component {...componentProps}>
       {children}
     </Component>
   )

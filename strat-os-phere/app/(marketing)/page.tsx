@@ -12,6 +12,7 @@ import { ValueSection } from "@/components/marketing/sections/ValueSection"
 import { HowItWorksStepper } from "@/components/marketing/HowItWorksStepper"
 import { ConfidenceBoundaries } from "@/components/marketing/ConfidenceBoundaries"
 import { ExampleOutput } from "@/components/marketing/ExampleOutput"
+import { SocialProofPreview } from "@/components/marketing/SocialProofPreview"
 import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
@@ -47,7 +48,10 @@ export default function MarketingHome() {
         {/* 5. Example output */}
         <ExampleOutput />
         
-        {/* 6. Final CTA */}
+        {/* 6. Social proof preview */}
+        <SocialProofPreview />
+        
+        {/* 7. Final CTA */}
         <FinalCTABand />
         
         <Footer />

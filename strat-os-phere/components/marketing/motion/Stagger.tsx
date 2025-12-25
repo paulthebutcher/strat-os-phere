@@ -56,7 +56,7 @@ export function Stagger({
             className: childClassName
               ? `${revealProps.className || ""} ${childClassName}`.trim()
               : revealProps.className,
-          })
+          } as any)
         }
 
         // Otherwise wrap in Reveal
