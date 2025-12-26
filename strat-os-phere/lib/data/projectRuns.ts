@@ -416,7 +416,47 @@ export async function setRunSucceeded(
 }
 
 /**
+ * Sanitize error message for storage (remove secrets, truncate long messages)
+ */
+function sanitizeErrorMessage(message: string, maxLength: number = 1000): string {
+  // Remove common secret patterns (API keys, tokens, etc.)
+  let sanitized = message
+    .replace(/api[_-]?key[\s:=]+['"]?[a-zA-Z0-9_\-]{20,}['"]?/gi, '[REDACTED]')
+    .replace(/token[\s:=]+['"]?[a-zA-Z0-9_\-]{20,}['"]?/gi, '[REDACTED]')
+    .replace(/secret[\s:=]+['"]?[a-zA-Z0-9_\-]{20,}['"]?/gi, '[REDACTED]')
+    .replace(/password[\s:=]+['"]?[a-zA-Z0-9_\-]{20,}['"]?/gi, '[REDACTED]')
+    .replace(/auth[\s:=]+['"]?[a-zA-Z0-9_\-]{20,}['"]?/gi, '[REDACTED]')
+    .replace(/(bearer|basic)\s+[a-zA-Z0-9_\-]{20,}/gi, '[REDACTED]')
+  
+  // Remove stack traces (keep only first line if it's an error message)
+  const lines = sanitized.split('\n')
+  if (lines.length > 1) {
+    // Keep first line (usually the error message), remove stack trace
+    sanitized = lines[0]
+  }
+
+  // Truncate if too long
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength - 3) + '...'
+  }
+
+  return sanitized
+}
+
+/**
+ * Sanitize error code (ensure it's safe for storage)
+ */
+function sanitizeErrorCode(code: string, maxLength: number = 100): string {
+  // Truncate if too long
+  if (code.length > maxLength) {
+    return code.substring(0, maxLength - 3) + '...'
+  }
+  return code
+}
+
+/**
  * Set run status to 'failed' with error details and metrics
+ * Errors are sanitized before storage (secrets removed, messages truncated)
  */
 export async function setRunFailed(
   client: Client,
@@ -455,6 +495,13 @@ export async function setRunFailed(
       ? { ...currentMetrics, ...params.metricsPatch }
       : currentMetrics
 
+    // Sanitize error fields
+    const sanitizedCode = sanitizeErrorCode(params.error_code)
+    const sanitizedMessage = sanitizeErrorMessage(params.error_message)
+    const sanitizedDetail = params.error_detail
+      ? sanitizeErrorMessage(params.error_detail, 500) // Shorter limit for detail
+      : undefined
+
     const updatePayload: {
       status: 'failed'
       finished_at: string
@@ -465,13 +512,13 @@ export async function setRunFailed(
     } = {
       status: 'failed',
       finished_at: new Date().toISOString(),
-      error_code: params.error_code,
-      error_message: params.error_message,
+      error_code: sanitizedCode,
+      error_message: sanitizedMessage,
       metrics: mergedMetrics,
     }
 
-    if (params.error_detail !== undefined) {
-      updatePayload.error_detail = params.error_detail
+    if (sanitizedDetail !== undefined) {
+      updatePayload.error_detail = sanitizedDetail
     }
 
     const { data, error } = await (typedClient
@@ -547,6 +594,46 @@ export async function getLatestRunForProject(
     return { ok: true, data: data ? (data as ProjectRun) : null }
   } catch (error) {
     logServerError('getLatestRunForProject', error, { projectId })
+    return {
+      ok: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      },
+    }
+  }
+}
+
+/**
+ * Get a project run by ID
+ */
+export async function getProjectRunById(
+  client: Client,
+  runId: string
+): Promise<ProjectRunResult<ProjectRun | null>> {
+  try {
+    const typedClient = getTypedClient(client)
+    
+    const { data, error } = await typedClient
+      .from('project_runs')
+      .select('*')
+      .eq('id', runId)
+      .maybeSingle()
+
+    if (error && error.code !== 'PGRST116') {
+      logServerError('getProjectRunById', error, { runId })
+      return {
+        ok: false,
+        error: {
+          code: error.code || 'UNKNOWN',
+          message: error.message || 'Failed to fetch project run',
+        },
+      }
+    }
+
+    return { ok: true, data: data ? (data as ProjectRun) : null }
+  } catch (error) {
+    logServerError('getProjectRunById', error, { runId })
     return {
       ok: false,
       error: {

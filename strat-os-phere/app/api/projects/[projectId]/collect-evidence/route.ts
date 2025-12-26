@@ -16,6 +16,9 @@ import {
   advanceRun,
   markStepCompleted,
   markStepFailed,
+  recordStepComplete,
+  recordStepFailure,
+  incrementCounters,
   getStepStatus,
   type StepName,
 } from '@/lib/runs/orchestrator'
@@ -184,8 +187,14 @@ export async function POST(
 
     // Collect evidence for each competitor (non-blocking, fire and forget)
     // We don't await this - it runs in the background
+    // Track counters in shared array for aggregation
+    const counterUpdates: Array<{ found: number; fetched: number; saved: number }> = []
+
     Promise.all(
       competitors.map(async (competitor) => {
+        let competitorFound = 0
+        let competitorFetched = 0
+        let competitorSaved = 0
         try {
           if (!competitor.url) {
             logger.warn('[collect-evidence] Competitor has no URL', {
@@ -274,8 +283,12 @@ export async function POST(
             sources = extractionResults.filter((s) => s !== null) as typeof sources
           }
 
+          // Track sources found
+          competitorFound = sources.length
+          competitorFetched = sources.filter((s) => s.extracted !== undefined).length
+
           // Store evidence sources (idempotent via upsertEvidenceSource)
-          await Promise.all(
+          const savedResults = await Promise.all(
             sources
               .filter((page): page is FetchedPage & { extracted: NonNullable<FetchedPage['extracted']> } => 
                 page.extracted !== undefined
@@ -300,9 +313,21 @@ export async function POST(
                   competitorId: competitor.id,
                   url: page.url,
                 })
+                return false
               }
+              return true
             })
           )
+
+          // Track sources saved
+          competitorSaved = savedResults.filter((r) => r === true).length
+
+          // Record counters for this competitor
+          counterUpdates.push({
+            found: competitorFound,
+            fetched: competitorFetched,
+            saved: competitorSaved,
+          })
 
           logger.info('[collect-evidence] Completed for competitor', {
             projectId,
@@ -319,21 +344,70 @@ export async function POST(
       })
     )
       .then(async () => {
-        // Mark evidence step as completed
-        await markStepCompleted(ctx.supabase, runId, 'evidence')
+        // Aggregate counters
+        const totalSourcesFound = counterUpdates.reduce((sum, c) => sum + c.found, 0)
+        const totalSourcesFetched = counterUpdates.reduce((sum, c) => sum + c.fetched, 0)
+        const totalSourcesSaved = counterUpdates.reduce((sum, c) => sum + c.saved, 0)
+
+        // Record counters and mark step as completed with telemetry
+        await incrementCounters(ctx.supabase, runId, {
+          evidence: {
+            sourcesFound: totalSourcesFound,
+            sourcesFetched: totalSourcesFetched,
+            sourcesSaved: totalSourcesSaved,
+          },
+        }).catch((err) => {
+          // Log but don't fail - counter updates are best-effort
+          logger.warn('[collect-evidence] Failed to increment counters', {
+            runId,
+            error: err instanceof Error ? err.message : String(err),
+          })
+        })
+
+        // Mark evidence step as completed with telemetry
+        await recordStepComplete(ctx.supabase, runId, 'evidence', requestId, {
+          evidence: {
+            sourcesFound: totalSourcesFound,
+            sourcesFetched: totalSourcesFetched,
+            sourcesSaved: totalSourcesSaved,
+          },
+        }).catch((err) => {
+          // Fallback to old method if telemetry fails
+          logger.warn('[collect-evidence] Failed to record step complete telemetry, falling back', {
+            runId,
+            error: err instanceof Error ? err.message : String(err),
+          })
+          return markStepCompleted(ctx.supabase, runId, 'evidence')
+        })
+
         logger.info('[collect-evidence] Evidence collection completed', {
           requestId,
           projectId,
           runId,
+          sourcesFound: totalSourcesFound,
+          sourcesFetched: totalSourcesFetched,
+          sourcesSaved: totalSourcesSaved,
         })
       })
       .catch(async (error) => {
-        // Mark evidence step as failed
-        await markStepFailed(ctx.supabase, runId, 'evidence', {
+        // Mark evidence step as failed with telemetry
+        await recordStepFailure(ctx.supabase, runId, 'evidence', {
           code: 'COLLECTION_ERROR',
           message: 'Failed to collect evidence',
           detail: error instanceof Error ? error.message : String(error),
+        }, requestId).catch((err) => {
+          // Fallback to old method if telemetry fails
+          logger.warn('[collect-evidence] Failed to record step failure telemetry, falling back', {
+            runId,
+            error: err instanceof Error ? err.message : String(err),
+          })
+          return markStepFailed(ctx.supabase, runId, 'evidence', {
+            code: 'COLLECTION_ERROR',
+            message: 'Failed to collect evidence',
+            detail: error instanceof Error ? error.message : String(error),
+          })
         })
+
         logger.error('[collect-evidence] Background collection error', {
           requestId,
           error,

@@ -37,6 +37,15 @@ import {
   type StepStatusEntry,
 } from '@/lib/runs/stepStatusSchema'
 import { tryMarkStepRunning } from '@/lib/runs/runPersistence'
+import {
+  parseTelemetry,
+  mergeTelemetry,
+  serializeTelemetry,
+  sanitizeTelemetryError,
+  type RunTelemetry,
+  type Counters,
+  type Upstreams,
+} from '@/lib/runs/telemetrySchema'
 
 // Re-export StepName for backward compatibility
 export type { StepName } from '@/lib/runs/stepStatusSchema'
@@ -92,6 +101,85 @@ export function getStepStatus(run: ProjectRun, stepName: StepName): StepStatusDe
       message: validated.error.message,
       detail: validated.error.detail,
     } : undefined,
+  }
+}
+
+/**
+ * Get telemetry from run metrics
+ */
+export function getTelemetry(run: ProjectRun): RunTelemetry {
+  const metrics = (run.metrics as Record<string, any>) || {}
+  return parseTelemetry(metrics.telemetry, run.created_at)
+}
+
+/**
+ * Update telemetry in run metrics
+ */
+async function updateTelemetry(
+  supabase: TypedSupabaseClient,
+  runId: string,
+  updater: (currentTelemetry: RunTelemetry) => RunTelemetry
+): Promise<{ ok: boolean; error?: { code: string; message: string } }> {
+  try {
+    // Get current metrics
+    const { data: currentRunData, error: fetchRunError } = await supabase
+      .from('project_runs')
+      .select('metrics, created_at')
+      .eq('id', runId)
+      .single()
+
+    if (fetchRunError) {
+      logger.error('[orchestrator] Failed to fetch run for telemetry update', {
+        runId,
+        error: fetchRunError.message,
+      })
+      return {
+        ok: false,
+        error: {
+          code: fetchRunError.code || 'UNKNOWN',
+          message: fetchRunError.message || 'Failed to fetch run',
+        },
+      }
+    }
+
+    type RunWithMetrics = { metrics: Record<string, any>; created_at: string }
+    const currentRunTyped = currentRunData as RunWithMetrics | null
+    const currentMetrics = currentRunTyped?.metrics || {}
+    const createdAt = currentRunTyped?.created_at || new Date().toISOString()
+    
+    // Parse current telemetry
+    const currentTelemetry = parseTelemetry(currentMetrics.telemetry, createdAt)
+    
+    // Apply update
+    const updatedTelemetry = updater(currentTelemetry)
+    
+    // Validate and serialize
+    const serialized = serializeTelemetry(updatedTelemetry)
+
+    // Write back
+    const updatedMetrics = {
+      ...currentMetrics,
+      telemetry: serialized,
+    }
+
+    const result = await updateRunMetrics(supabase, runId, updatedMetrics)
+    if (!result.ok) {
+      return result
+    }
+
+    return { ok: true }
+  } catch (error) {
+    logger.error('[orchestrator] Exception updating telemetry', {
+      runId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return {
+      ok: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      },
+    }
   }
 }
 
@@ -323,10 +411,22 @@ export async function getOrCreateActiveRun(
       }
     }
 
-    logger.info('[orchestrator] Created new run', {
+    // Initialize telemetry for new run
+    const createdAt = createResult.data.created_at
+    const initialTelemetry = {
+      timeline: {
+        createdAt,
+      },
+    }
+    await updateTelemetry(supabase, createResult.data.id, () => initialTelemetry as RunTelemetry)
+
+    logger.info('[orchestrator] run.created', {
+      event: 'run.created',
       runId: createResult.data.id,
       projectId,
       inputVersion,
+      requestId: options?.runId,
+      createdAt: createResult.data.created_at,
     })
 
     return { ok: true, run: createResult.data, created: true }
@@ -453,6 +553,18 @@ export async function advanceRun(
       }
     }
 
+    // Record telemetry for step start (after step status is successfully updated)
+    // Use a synthetic requestId if none provided (advanceRun doesn't take requestId)
+    // This is ok - the telemetry will still track the step start
+    await recordStepStart(supabase, runId, targetStep, undefined).catch((err) => {
+      // Log but don't fail - telemetry recording is best-effort
+      logger.warn('[orchestrator] Failed to record step start telemetry', {
+        runId,
+        step: targetStep,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    })
+
     // If run is not yet running, transition it
     if (currentRun.status === 'queued') {
       const runningResult = await setRunRunning(supabase, runId)
@@ -541,10 +653,35 @@ export async function markRunCompleted(
   | { ok: true; run: ProjectRun }
   | { ok: false; error: { code: string; message: string } }
 > {
+  // Get run to compute duration
+  const { data: runData } = await supabase
+    .from('project_runs')
+    .select('created_at, started_at')
+    .eq('id', runId)
+    .single()
+
   const result = await setRunSucceeded(supabase, runId, { output })
   if (!result.ok) {
     return result
   }
+
+  type RunData = { created_at: string; started_at: string | null } | null
+  const typedRunData = runData as RunData
+  const createdAt = typedRunData?.created_at ? new Date(typedRunData.created_at) : new Date()
+  const startedAt = typedRunData?.started_at ? new Date(typedRunData.started_at) : new Date()
+  const finishedAt = new Date()
+  const totalDurationMs = finishedAt.getTime() - createdAt.getTime()
+
+  // Log run completion
+  logger.info('[orchestrator] run.completed', {
+    event: 'run.completed',
+    runId,
+    createdAt: typedRunData?.created_at,
+    startedAt: typedRunData?.started_at,
+    finishedAt: finishedAt.toISOString(),
+    totalDurationMs,
+  })
+
   return { ok: true, run: result.data }
 }
 
@@ -568,5 +705,330 @@ export async function markRunFailed(
     return result
   }
   return { ok: true, run: result.data }
+}
+
+/**
+ * Record step start - updates both step_status and telemetry
+ */
+export async function recordStepStart(
+  supabase: TypedSupabaseClient,
+  runId: string,
+  step: StepName,
+  requestId?: string
+): Promise<{ ok: boolean; error?: { code: string; message: string } }> {
+  const now = new Date().toISOString()
+  
+  // Update step status (this also increments attempts via setStepStatus logic)
+  const stepResult = await setStepStatus(supabase, runId, step, 'running')
+  if (!stepResult.ok) {
+    return stepResult
+  }
+
+  // Log step start
+  logger.info('[orchestrator] run.step.start', {
+    event: 'run.step.start',
+    runId,
+    step,
+    requestId,
+    startedAt: now,
+  })
+
+  // Update telemetry
+  const telemetryResult = await updateTelemetry(supabase, runId, (current) => {
+    const stepTimeline = current.timeline.steps || {}
+    const currentStepEntry = stepTimeline[step]
+    
+    const updatedStepEntry = {
+      status: 'running' as const,
+      startedAt: now,
+      attempts: (currentStepEntry?.attempts || 0) + 1,
+    }
+
+    return mergeTelemetry(current, {
+      timeline: {
+        createdAt: current.timeline.createdAt,
+        startedAt: current.timeline.startedAt || now,
+        steps: {
+          ...stepTimeline,
+          [step]: updatedStepEntry,
+        },
+      },
+      lastEvent: {
+        at: now,
+        name: 'step.start',
+        step,
+        requestId,
+      },
+    })
+  })
+
+  return telemetryResult
+}
+
+/**
+ * Record step completion - updates both step_status and telemetry
+ */
+export async function recordStepComplete(
+  supabase: TypedSupabaseClient,
+  runId: string,
+  step: StepName,
+  requestId?: string,
+  counters?: Partial<Counters>
+): Promise<{ ok: boolean; error?: { code: string; message: string } }> {
+  const now = new Date().toISOString()
+  
+  // Update step status
+  const stepResult = await setStepStatus(supabase, runId, step, 'completed')
+  if (!stepResult.ok) {
+    return stepResult
+  }
+
+  // Get current run to compute duration
+  const { data: currentRunData } = await supabase
+    .from('project_runs')
+    .select('metrics, created_at')
+    .eq('id', runId)
+    .single()
+
+  type RunDataWithMetrics = { metrics: Record<string, any>; created_at: string } | null
+  const typedRunData = currentRunData as RunDataWithMetrics
+  const currentMetrics = typedRunData?.metrics || {}
+  const telemetry = parseTelemetry(currentMetrics.telemetry, typedRunData?.created_at)
+  const stepTimeline = telemetry.timeline.steps || {}
+  const stepEntry = stepTimeline[step]
+  
+  const startedAt = stepEntry?.startedAt ? new Date(stepEntry.startedAt) : new Date(now)
+  const finishedAt = new Date(now)
+  const durationMs = finishedAt.getTime() - startedAt.getTime()
+
+  // Log step completion
+  logger.info('[orchestrator] run.step.complete', {
+    event: 'run.step.complete',
+    runId,
+    step,
+    requestId,
+    startedAt: stepEntry?.startedAt,
+    finishedAt: now,
+    durationMs,
+  })
+
+  // Update telemetry
+  const telemetryResult = await updateTelemetry(supabase, runId, (current) => {
+    const updatedStepTimeline = current.timeline.steps || {}
+    updatedStepTimeline[step] = {
+      status: 'completed' as const,
+      startedAt: stepEntry?.startedAt || now,
+      finishedAt: now,
+      durationMs,
+      attempts: stepEntry?.attempts || 0,
+    }
+
+    return mergeTelemetry(current, {
+      timeline: {
+        createdAt: current.timeline.createdAt,
+        steps: updatedStepTimeline,
+      },
+      counters: counters ? {
+        evidence: {
+          ...current.counters?.evidence,
+          ...(counters.evidence || {}),
+        },
+        llm: {
+          ...current.counters?.llm,
+          ...(counters.llm || {}),
+        },
+      } : current.counters,
+      lastEvent: {
+        at: now,
+        name: 'step.complete',
+        step,
+        requestId,
+      },
+    })
+  })
+
+  return telemetryResult
+}
+
+/**
+ * Record step failure - updates both step_status and telemetry
+ */
+export async function recordStepFailure(
+  supabase: TypedSupabaseClient,
+  runId: string,
+  step: StepName,
+  error: { code: string; message: string; detail?: string; upstream?: string },
+  requestId?: string
+): Promise<{ ok: boolean; error?: { code: string; message: string } }> {
+  const now = new Date().toISOString()
+  
+  // Update step status
+  const stepResult = await setStepStatus(supabase, runId, step, 'failed', {
+    code: error.code,
+    message: error.message,
+    detail: error.detail,
+  })
+  if (!stepResult.ok) {
+    return stepResult
+  }
+
+  // Get current run to compute duration
+  const { data: currentRunData } = await supabase
+    .from('project_runs')
+    .select('metrics, created_at')
+    .eq('id', runId)
+    .single()
+
+  type RunDataWithMetrics = { metrics: Record<string, any>; created_at: string } | null
+  const typedRunData = currentRunData as RunDataWithMetrics
+  const currentMetrics = typedRunData?.metrics || {}
+  const telemetry = parseTelemetry(currentMetrics.telemetry, typedRunData?.created_at)
+  const stepTimeline = telemetry.timeline.steps || {}
+  const stepEntry = stepTimeline[step]
+  
+  const startedAt = stepEntry?.startedAt ? new Date(stepEntry.startedAt) : new Date(now)
+  const finishedAt = new Date(now)
+  const durationMs = finishedAt.getTime() - startedAt.getTime()
+
+  // Log step failure
+  logger.error('[orchestrator] run.step.fail', {
+    event: 'run.step.fail',
+    runId,
+    step,
+    requestId,
+    errorCode: error.code,
+    errorMessage: error.message,
+    startedAt: stepEntry?.startedAt,
+    finishedAt: now,
+    durationMs,
+    upstream: error.upstream,
+  })
+
+  // Sanitize error for telemetry
+  const sanitizedError = sanitizeTelemetryError({
+    code: error.code,
+    message: error.message,
+    requestId,
+    step,
+    upstream: error.upstream,
+    details: error.detail ? { detail: error.detail } : undefined,
+  })
+
+  // Update telemetry
+  const telemetryResult = await updateTelemetry(supabase, runId, (current) => {
+    const updatedStepTimeline = current.timeline.steps || {}
+    updatedStepTimeline[step] = {
+      status: 'failed' as const,
+      startedAt: stepEntry?.startedAt || now,
+      finishedAt: now,
+      durationMs,
+      attempts: stepEntry?.attempts || 0,
+    }
+
+    return mergeTelemetry(current, {
+      timeline: {
+        createdAt: current.timeline.createdAt,
+        steps: updatedStepTimeline,
+      },
+      debug: {
+        lastError: sanitizedError,
+      },
+      lastEvent: {
+        at: now,
+        name: 'step.fail',
+        step,
+        requestId,
+      },
+    })
+  })
+
+  return telemetryResult
+}
+
+/**
+ * Increment counters (evidence, llm, upstream)
+ * Only increments values that are provided in patch
+ */
+export async function incrementCounters(
+  supabase: TypedSupabaseClient,
+  runId: string,
+  patch: {
+    evidence?: Partial<Counters['evidence']>
+    llm?: Partial<Counters['llm']>
+    upstreams?: Partial<Upstreams>
+  }
+): Promise<{ ok: boolean; error?: { code: string; message: string } }> {
+  return updateTelemetry(supabase, runId, (current) => {
+    const evidencePatch: Partial<Counters['evidence']> = {}
+    if (patch.evidence?.sourcesFound !== undefined) {
+      evidencePatch.sourcesFound = (current.counters?.evidence?.sourcesFound || 0) + patch.evidence.sourcesFound
+    }
+    if (patch.evidence?.sourcesFetched !== undefined) {
+      evidencePatch.sourcesFetched = (current.counters?.evidence?.sourcesFetched || 0) + patch.evidence.sourcesFetched
+    }
+    if (patch.evidence?.sourcesSaved !== undefined) {
+      evidencePatch.sourcesSaved = (current.counters?.evidence?.sourcesSaved || 0) + patch.evidence.sourcesSaved
+    }
+
+    const llmPatch: Partial<Counters['llm']> = {}
+    if (patch.llm?.calls !== undefined) {
+      llmPatch.calls = (current.counters?.llm?.calls || 0) + patch.llm.calls
+    }
+    if (patch.llm?.tokensIn !== undefined) {
+      llmPatch.tokensIn = (current.counters?.llm?.tokensIn || 0) + patch.llm.tokensIn
+    }
+    if (patch.llm?.tokensOut !== undefined) {
+      llmPatch.tokensOut = (current.counters?.llm?.tokensOut || 0) + patch.llm.tokensOut
+    }
+    if (patch.llm?.repairs !== undefined) {
+      llmPatch.repairs = (current.counters?.llm?.repairs || 0) + patch.llm.repairs
+    }
+    if (patch.llm?.retries !== undefined) {
+      llmPatch.retries = (current.counters?.llm?.retries || 0) + patch.llm.retries
+    }
+
+    const upstreamsPatch: Partial<Upstreams> = {}
+    if (patch.upstreams?.tavily) {
+      upstreamsPatch.tavily = {}
+      if (patch.upstreams.tavily.requests !== undefined) {
+        upstreamsPatch.tavily.requests = (current.upstreams?.tavily?.requests || 0) + patch.upstreams.tavily.requests
+      }
+      if (patch.upstreams.tavily.timeouts !== undefined) {
+        upstreamsPatch.tavily.timeouts = (current.upstreams?.tavily?.timeouts || 0) + patch.upstreams.tavily.timeouts
+      }
+      if (patch.upstreams.tavily.rateLimits !== undefined) {
+        upstreamsPatch.tavily.rateLimits = (current.upstreams?.tavily?.rateLimits || 0) + patch.upstreams.tavily.rateLimits
+      }
+    }
+    if (patch.upstreams?.openai) {
+      upstreamsPatch.openai = {}
+      if (patch.upstreams.openai.requests !== undefined) {
+        upstreamsPatch.openai.requests = (current.upstreams?.openai?.requests || 0) + patch.upstreams.openai.requests
+      }
+      if (patch.upstreams.openai.timeouts !== undefined) {
+        upstreamsPatch.openai.timeouts = (current.upstreams?.openai?.timeouts || 0) + patch.upstreams.openai.timeouts
+      }
+      if (patch.upstreams.openai.rateLimits !== undefined) {
+        upstreamsPatch.openai.rateLimits = (current.upstreams?.openai?.rateLimits || 0) + patch.upstreams.openai.rateLimits
+      }
+    }
+
+    return mergeTelemetry(current, {
+      counters: Object.keys(evidencePatch).length > 0 || Object.keys(llmPatch).length > 0 ? {
+        evidence: Object.keys(evidencePatch).length > 0 ? {
+          ...current.counters?.evidence,
+          ...evidencePatch,
+        } : current.counters?.evidence,
+        llm: Object.keys(llmPatch).length > 0 ? {
+          ...current.counters?.llm,
+          ...llmPatch,
+        } : current.counters?.llm,
+      } : current.counters,
+      upstreams: Object.keys(upstreamsPatch).length > 0 ? {
+        ...current.upstreams,
+        ...upstreamsPatch,
+      } : current.upstreams,
+    })
+  })
 }
 
