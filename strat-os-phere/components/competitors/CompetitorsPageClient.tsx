@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Plus, CheckCircle2, Circle, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -63,7 +63,21 @@ export function CompetitorsPageClient({
   const [manualUrl, setManualUrl] = useState('')
   const [manualError, setManualError] = useState<string | null>(null)
 
+  // Ref for search input to enable auto-focus
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
   const isAtMax = competitorCount >= MAX_COMPETITORS_PER_PROJECT
+
+  // Auto-focus search input when competitorCount < 3
+  useEffect(() => {
+    if (competitorCount < MIN_COMPETITORS_FOR_ANALYSIS && searchInputRef.current) {
+      // Small delay to ensure the component is fully rendered
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [competitorCount])
 
   // Track which domains are already added
   const existingDomains = new Set(
@@ -257,7 +271,7 @@ export function CompetitorsPageClient({
           />
 
           {/* Search section */}
-          <div className="panel px-6 py-5 space-y-4">
+          <div id="add-competitors-search" className="panel px-6 py-5 space-y-4">
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-text-secondary">
                 Search for competitors
@@ -269,6 +283,7 @@ export function CompetitorsPageClient({
 
             <div className="flex gap-2">
               <Input
+                ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -450,16 +465,9 @@ export function CompetitorsPageClient({
     <>
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.2fr)]">
         <div className="space-y-6">
-          {competitorCount > 0 && competitorCount < MIN_COMPETITORS_FOR_ANALYSIS && (
-            <div className="panel px-4 py-3">
-              <p className="text-sm text-muted-foreground">
-                Add {remainingToReady} more to generate
-              </p>
-            </div>
-          )}
 
           {/* Search section */}
-          <div className="panel px-6 py-5 space-y-4">
+          <div id="add-competitors-search" className="panel px-6 py-5 space-y-4">
             <div className="space-y-2">
               <h2 className="text-sm font-medium text-text-secondary">
                 Search for competitors
@@ -471,6 +479,7 @@ export function CompetitorsPageClient({
 
             <div className="flex gap-2">
               <Input
+                ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

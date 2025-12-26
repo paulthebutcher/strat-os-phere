@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
-import { GenerateAnalysisButton } from '@/components/competitors/GenerateAnalysisButton'
 import { CompetitorsPageClient } from '@/components/competitors/CompetitorsPageClient'
 import { EvidencePreviewPanel } from '@/components/competitors/EvidencePreviewPanel'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
@@ -18,6 +17,7 @@ import { getEvidenceSourcesForProject } from '@/lib/data/evidenceSources'
 import { DataRecencyNote } from '@/components/shared/DataRecencyNote'
 import Link from 'next/link'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
+import { AddCompetitorsButton } from '@/components/competitors/AddCompetitorsButton'
 import { PAGE_IDS } from '@/lib/guidance/content'
 import { TourLink } from '@/components/guidance/TourLink'
 import { FirstWinChecklistWrapper } from '@/components/onboarding/FirstWinChecklistWrapper'
@@ -209,16 +209,6 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
     0,
     MIN_COMPETITORS_FOR_ANALYSIS - competitorCount
   )
-  
-  // Check evidence sufficiency (at least 5 sources and 2 competitors covered)
-  const evidenceCount = evidenceSources.length
-  const competitorsWithEvidence = new Set(
-    evidenceSources
-      .map((s) => s.competitor_id)
-      .filter((id): id is string => Boolean(id))
-  ).size
-  const hasSufficientEvidence = evidenceCount >= 5 && competitorsWithEvidence >= 2
-  const canGenerate = readyForAnalysis && hasSufficientEvidence
 
   const normalized = normalizeResultsArtifacts(safeArtifacts)
   const hasAnyArtifacts = Boolean(
@@ -251,26 +241,23 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
               <DataRecencyNote />
             </div>
 
-          <div className="flex flex-col items-start gap-2 text-left md:items-end md:text-right">
+          <div className="flex flex-col items-start gap-3 text-left md:items-end md:text-right">
               <div className="text-xs text-muted-foreground">
-                <p>
+                <p className="font-medium">
                   Competitors: {competitorCount} / {MAX_COMPETITORS_PER_PROJECT}
                 </p>
-                <p>
-                  {canGenerate
-                    ? 'Ready to generate'
-                    : !readyForAnalysis
-                      ? `Add ${remainingToReady} more to generate`
-                      : !hasSufficientEvidence
-                        ? 'Collecting evidence…'
-                        : 'Ready to generate'}
-                </p>
               </div>
-              <GenerateAnalysisButton
-                projectId={project.id}
-                disabled={!canGenerate}
-                competitorCount={competitorCount}
-              />
+              {competitorCount < MIN_COMPETITORS_FOR_ANALYSIS && (
+                <>
+                  <p className="text-sm text-text-secondary">
+                    Add at least {MIN_COMPETITORS_FOR_ANALYSIS} competitors to continue.
+                  </p>
+                  <AddCompetitorsButton
+                    competitorCount={competitorCount}
+                    minCompetitors={MIN_COMPETITORS_FOR_ANALYSIS}
+                  />
+                </>
+              )}
             </div>
         </header>
 

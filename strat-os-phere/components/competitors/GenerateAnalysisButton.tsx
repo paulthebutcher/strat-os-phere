@@ -12,6 +12,7 @@ interface GenerateAnalysisButtonProps {
   projectId: string
   disabled?: boolean
   competitorCount?: number
+  compact?: boolean // If true, uses compact styling for status bar
 }
 
 /**
@@ -22,6 +23,7 @@ export function GenerateAnalysisButton({
   projectId,
   disabled,
   competitorCount = 0,
+  compact = false,
 }: GenerateAnalysisButtonProps) {
   const router = useRouter()
   const [isStarting, setIsStarting] = useState(false)
@@ -78,17 +80,26 @@ export function GenerateAnalysisButton({
     }
   }
 
+  const buttonContent = (
+    <Button
+      type="button"
+      size={compact ? "sm" : "sm"}
+      disabled={disabled || isStarting}
+      className={compact ? "" : "mt-1"}
+      onClick={handleClick}
+      title={disabled && competitorCount < 3 ? "Add 3+ competitors to generate" : undefined}
+    >
+      {isStarting ? 'Starting...' : compact ? 'Generate' : 'Generate ranked opportunities'}
+    </Button>
+  )
+
+  if (compact) {
+    return buttonContent
+  }
+
   return (
     <div className="flex flex-col items-end gap-2">
-      <Button
-        type="button"
-        size="sm"
-        disabled={disabled || isStarting}
-        className="mt-1"
-        onClick={handleClick}
-      >
-        {isStarting ? 'Starting...' : 'Generate ranked opportunities'}
-      </Button>
+      {buttonContent}
     </div>
   )
 }

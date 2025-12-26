@@ -85,6 +85,7 @@ export async function ProjectStatusBarWrapper({
 
   return (
     <ProjectStatusBar
+      projectId={projectId}
       competitorCount={competitorCount}
       coverage={coverage}
       hasOpportunitiesArtifact={hasOpportunitiesArtifact}

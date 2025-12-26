@@ -4,8 +4,10 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 import type { EvidenceCoverageLite } from '@/lib/evidence/coverageLite'
 import { MIN_COMPETITORS } from '@/lib/evidence/coverageLite'
+import { GenerateAnalysisButton } from '@/components/competitors/GenerateAnalysisButton'
 
 interface ProjectStatusBarProps {
+  projectId: string
   competitorCount: number
   coverage: EvidenceCoverageLite
   hasOpportunitiesArtifact: boolean
@@ -23,10 +25,14 @@ type ProjectStatus = 'Not ready' | 'Collecting evidence' | 'Ready to generate' |
  * - Else if hasOpportunitiesArtifact: "Opportunities ready"
  */
 export function ProjectStatusBar({
+  projectId,
   competitorCount,
   coverage,
   hasOpportunitiesArtifact,
 }: ProjectStatusBarProps) {
+  // Determine if Generate button should be enabled
+  // Enabled when: competitorCount >= 3 AND evidence is sufficient
+  const canGenerate = competitorCount >= MIN_COMPETITORS && coverage.isEvidenceSufficient
   // Determine status and detail
   const statusInfo = React.useMemo((): { status: ProjectStatus; detail: string } => {
     if (competitorCount < MIN_COMPETITORS) {
@@ -91,28 +97,41 @@ export function ProjectStatusBar({
           </p>
         </div>
 
-        {/* Metrics (show if available) */}
-        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-shrink-0">
-          <div className="flex items-center gap-1">
-            <span className="font-medium">Competitors:</span>
-            <span>{competitorCount}</span>
+        {/* Metrics and Generate button */}
+        <div className="flex items-center gap-4 flex-shrink-0">
+          {/* Metrics (show if available) */}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <span className="font-medium">Competitors:</span>
+              <span>{competitorCount}</span>
+            </div>
+            {coverage.totalSources > 0 && (
+              <>
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">Evidence sources:</span>
+                  <span>{coverage.totalSources}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">Evidence types:</span>
+                  <span>{coverage.evidenceTypesPresent.length}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">Competitors covered:</span>
+                  <span>{coverage.competitorIdsWithEvidence.length}</span>
+                </div>
+              </>
+            )}
           </div>
-          {coverage.totalSources > 0 && (
-            <>
-              <div className="flex items-center gap-1">
-                <span className="font-medium">Evidence sources:</span>
-                <span>{coverage.totalSources}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="font-medium">Evidence types:</span>
-                <span>{coverage.evidenceTypesPresent.length}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="font-medium">Competitors covered:</span>
-                <span>{coverage.competitorIdsWithEvidence.length}</span>
-              </div>
-            </>
-          )}
+          
+          {/* Generate button */}
+          <div className="flex items-center">
+            <GenerateAnalysisButton
+              projectId={projectId}
+              disabled={!canGenerate}
+              competitorCount={competitorCount}
+              compact={true}
+            />
+          </div>
         </div>
       </div>
     </div>
