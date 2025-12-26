@@ -1,10 +1,10 @@
 /**
- * The Flow (Clean 3-Step Timeline)
+ * The Flow - Guided reveal animation
  * 
- * Weighted layout showing:
- * 1. Input (small) - tiny input card mock
- * 2. Evidence (medium) - compact chaos thumbnail
- * 3. Output (large, dominant) - full Plinth readout with proof strip
+ * Animated left → right progression:
+ * 1. Blur + fade chaos inputs
+ * 2. Snap into fully rendered Plinth readout
+ * 3. Emphasis pulse on recommendation, confidence, evidence count
  */
 "use client"
 
@@ -17,11 +17,19 @@ import { cn } from "@/lib/utils"
 import { ArrowRight, ChevronDown } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ConfidencePill } from "./ConfidencePill"
+import { useEffect, useState, useRef } from "react"
+import { prefersReducedMotion } from "@/lib/motion/tokens"
 
-// Tiny input card mock (small, muted)
-function InputCardVisual() {
+// Tiny input card mock (small, muted) - animated to fade/blur
+function InputCardVisual({ phase }: { phase: number }) {
+  const shouldBlur = phase >= 2
   return (
-    <div className="p-3 rounded-lg bg-white/80 border border-border-subtle/60 shadow-sm space-y-2 opacity-75 blur-[0.5px]">
+    <div 
+      className={cn(
+        "p-3 rounded-lg bg-white/80 border border-border-subtle/60 shadow-sm space-y-2 transition-all duration-700",
+        shouldBlur ? "opacity-40 blur-[2px]" : "opacity-75 blur-[0.5px]"
+      )}
+    >
       <div className="space-y-1.5">
         <h4 className="text-xs font-semibold text-text-primary">
           Should we introduce a free tier?
@@ -42,19 +50,40 @@ function InputCardVisual() {
   )
 }
 
-// Compact chaos thumbnail (medium, muted)
-function EvidenceChaosThumbnail() {
+// Compact chaos thumbnail (medium, muted) - animated to blur/fade
+function EvidenceChaosThumbnail({ phase }: { phase: number }) {
+  const shouldBlur = phase >= 2
   return (
-    <div className="relative rounded-lg overflow-hidden border border-border-subtle/60 shadow-sm opacity-70 blur-[1px]">
+    <div 
+      className={cn(
+        "relative rounded-lg overflow-hidden border border-border-subtle/60 shadow-sm transition-all duration-700",
+        shouldBlur ? "opacity-30 blur-[3px]" : "opacity-70 blur-[1px]"
+      )}
+    >
       <ProblemEvidenceCollage className="aspect-[4/3] scale-75 origin-center" />
     </div>
   )
 }
 
-// Full Plinth readout with proof strip (large, dominant)
-function ReadoutHeroVisual() {
+// Full Plinth readout with proof strip (large, dominant) - animated snap-in with pulse
+function ReadoutHeroVisual({ phase }: { phase: number }) {
+  const [pulseKey, setPulseKey] = useState(0)
+  const isVisible = phase >= 2
+  const shouldPulse = phase >= 3
+
+  useEffect(() => {
+    if (!shouldPulse) return
+    const timer = setTimeout(() => setPulseKey(k => k + 1), 500)
+    return () => clearTimeout(timer)
+  }, [shouldPulse, pulseKey])
+
   return (
-    <div className="relative rounded-xl overflow-hidden shadow-2xl border-2 border-border-subtle bg-white">
+    <div 
+      className={cn(
+        "relative rounded-xl overflow-hidden shadow-2xl border-2 border-border-subtle bg-white transition-all duration-500",
+        isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+      )}
+    >
       {/* Plinth Readout tag */}
       <div className="absolute top-3 right-3 z-10 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
         Plinth Readout
@@ -65,8 +94,14 @@ function ReadoutHeroVisual() {
         <HeroMoment variant="full" className="min-h-[500px]" />
       </div>
       
-      {/* Proof strip at bottom */}
-      <div className="px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-border-subtle bg-surface-muted/20">
+      {/* Proof strip at bottom with emphasis pulse */}
+      <div 
+        className={cn(
+          "px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-border-subtle bg-surface-muted/20 transition-all duration-500",
+          shouldPulse && "bg-accent-primary/5"
+        )}
+        key={pulseKey}
+      >
         <div className="flex flex-wrap items-center gap-3 text-xs">
           <div className="flex items-center gap-2">
             <ConfidencePill level="investment_ready" className="text-[10px]" />
@@ -110,7 +145,7 @@ export function TheFlowSection() {
               {/* Step 1: You bring (small, ~25%) */}
               <div className="flex flex-col items-center text-center space-y-3 lg:space-y-4 flex-1 lg:flex-[0.25] w-full">
                 <div className="w-full">
-                  <InputCardVisual />
+                  <InputCardVisual phase={1} />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
@@ -135,7 +170,7 @@ export function TheFlowSection() {
               {/* Step 2: Plinth does (medium, ~30%) */}
               <div className="flex flex-col items-center text-center space-y-3 lg:space-y-4 flex-1 lg:flex-[0.3] w-full">
                 <div className="w-full">
-                  <EvidenceChaosThumbnail />
+                  <EvidenceChaosThumbnail phase={1} />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
@@ -160,7 +195,7 @@ export function TheFlowSection() {
               {/* Step 3: You get (large, dominant, ~45%) */}
               <div className="flex flex-col items-center text-center space-y-3 lg:space-y-4 flex-1 lg:flex-[0.45] w-full">
                 <div className="w-full">
-                  <ReadoutHeroVisual />
+                  <ReadoutHeroVisual phase={2} />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xs sm:text-sm font-semibold text-text-primary">

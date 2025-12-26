@@ -12,24 +12,28 @@ export function DeepDiveLinks({ projectId }: DeepDiveLinksProps) {
       <div className="flex flex-wrap gap-3">
         <Link
           href={paths.opportunities(projectId)}
+          prefetch
           className="text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           All opportunities →
         </Link>
         <Link
           href={paths.competitors(projectId)}
+          prefetch
           className="text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           Competitors →
         </Link>
         <Link
           href={paths.scorecard(projectId)}
+          prefetch
           className="text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           Scorecard →
         </Link>
         <Link
           href={paths.evidence(projectId)}
+          prefetch
           className="text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           Evidence →

@@ -24,11 +24,11 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
       "relative w-full rounded-2xl border-2 border-border-subtle overflow-hidden bg-white shadow-xl",
       className
     )}>
-      {/* Weighted split container: Before ~30%, After ~70% */}
-      <div className="grid grid-cols-1 md:grid-cols-[0.3fr_0.7fr] divide-y md:divide-y-0 md:divide-x divide-border-subtle">
+      {/* Weighted split container: Before ~25%, After ~75% */}
+      <div className="grid grid-cols-1 md:grid-cols-[0.25fr_0.75fr] divide-y md:divide-y-0 md:divide-x divide-border-subtle">
         
-        {/* LEFT: "Before" - Opinion Chaos (muted, supporting) */}
-        <div className="relative bg-gradient-to-br from-slate-50 via-white to-slate-50/50 p-4 sm:p-6 md:p-6 opacity-70 blur-[1px]">
+        {/* LEFT: "Before" - Opinion Chaos (muted, cropped, supporting) */}
+        <div className="relative bg-gradient-to-br from-slate-50 via-white to-slate-50/50 p-4 sm:p-6 md:p-6 opacity-60 blur-[1.5px] overflow-hidden">
           {/* Overlay label */}
           <div className="absolute top-3 left-3 z-10">
             <div className="bg-amber-50/80 border border-amber-200/60 rounded-md px-2 py-1">
@@ -38,8 +38,8 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
             </div>
           </div>
 
-          {/* Chaos collage - overlapping, tilted layers (muted) */}
-          <div className="relative h-full min-h-[300px] md:min-h-[400px]">
+          {/* Chaos collage - overlapping, tilted layers (muted, cropped) */}
+          <div className="relative h-full min-h-[300px] md:min-h-[400px] scale-90 origin-center">
             
             {/* Layer 1: Slack thread (back, tilted, more muted) */}
             <div className={cn(
@@ -144,46 +144,46 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
           </div>
         </div>
 
-        {/* RIGHT: "After" - Plinth Clarity (dominant, crisp) */}
-        <div className="relative bg-white p-6 sm:p-8 md:p-10 shadow-inner">
-          {/* Overlay label */}
+        {/* RIGHT: "After" - Plinth Clarity (dominant, crisp, larger footprint) */}
+        <div className="relative bg-white p-6 sm:p-8 md:p-10 shadow-xl">
+          {/* Plinth Readout label - explicit and prominent */}
           <div className="absolute top-4 right-4 z-10">
-            <div className="bg-green-50 border-2 border-green-300 rounded-md px-3 py-1.5 shadow-md">
-              <span className="text-xs font-semibold text-green-900 uppercase tracking-wide">
-                After
+            <div className="bg-accent-primary text-white border-2 border-accent-primary rounded-md px-3 py-1.5 shadow-lg">
+              <span className="text-xs font-semibold uppercase tracking-wide">
+                Plinth Readout
               </span>
             </div>
           </div>
           
-          {/* After callout pills */}
+          {/* After callout pills - explicit labels */}
           <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
-            <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
-              One recommendation
+            <div className="bg-accent-primary text-white text-[11px] px-3 py-1.5 rounded-full font-semibold shadow-lg">
+              Recommendation
             </div>
-            <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
-              Evidence attached
+            <div className="bg-accent-primary text-white text-[11px] px-3 py-1.5 rounded-full font-semibold shadow-lg">
+              {sampleAnalysis.evidence.totalSources - 7} sources
             </div>
           </div>
           <div className="absolute top-16 left-4 z-10">
-            <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
-              Confidence shown
+            <div className="bg-accent-primary text-white text-[11px] px-3 py-1.5 rounded-full font-semibold shadow-lg">
+              Confidence: Investment-ready
             </div>
           </div>
 
-          {/* Clean Plinth Decision Readout (larger, sharper) */}
-          <div className="h-full min-h-[500px] md:min-h-[600px] flex items-center justify-center">
-            <div className="w-full max-w-[600px] scale-100 md:scale-105">
+          {/* Clean Plinth Decision Readout (larger, sharper, full opacity) */}
+          <div className="h-full min-h-[550px] md:min-h-[650px] flex items-center justify-center">
+            <div className="w-full max-w-[700px] scale-100 md:scale-110">
               <DecisionCredibilityVisual />
             </div>
           </div>
           
-          {/* Subtle glow effect */}
-          <div className="absolute inset-0 rounded-xl ring-2 ring-accent-primary/20 pointer-events-none" />
+          {/* Stronger glow effect */}
+          <div className="absolute inset-0 rounded-xl ring-2 ring-accent-primary/30 pointer-events-none" />
         </div>
       </div>
 
-      {/* Divider line with arrow (positioned at ~30% mark) */}
-      <div className="absolute top-1/2 left-[30%] -translate-x-1/2 -translate-y-1/2 z-50 hidden md:block">
+      {/* Divider line with arrow (positioned at ~25% mark) */}
+      <div className="absolute top-1/2 left-[25%] -translate-x-1/2 -translate-y-1/2 z-50 hidden md:block">
         <div className="bg-white border-2 border-accent-primary rounded-full p-2 shadow-lg">
           <svg 
             className="w-6 h-6 text-accent-primary" 

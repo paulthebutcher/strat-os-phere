@@ -141,7 +141,7 @@ export function ContinuePanel({ row }: ContinuePanelProps) {
         
         <div className="flex-shrink-0">
           <Button asChild size="lg" variant="brand">
-            <Link href={row.primaryHref || `/projects/${row.projectId}/opportunities`}>
+            <Link href={row.primaryHref || `/projects/${row.projectId}/opportunities`} prefetch>
               {getCtaLabel()}
             </Link>
           </Button>

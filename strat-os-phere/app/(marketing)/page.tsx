@@ -1,13 +1,14 @@
 /**
  * Marketing Homepage
  * 
- * Image-first storytelling with clever, memorable copy that sticks.
- * Narrative arc: Hero → Problem → Turn → Flow → What You Get → Why It Holds Up → CTA
+ * 4-act visual narrative:
+ * 1. The mess — what decision-making looks like today
+ * 2. The turning point — what Plinth changes
+ * 3. The receipt — what you actually get out
+ * 4. The advantage — why this compounds over time
  * 
- * Goal: More "oh, I get it" moments. Fewer explanations. Plinth should feel obvious, not argued.
- * 
- * Pure marketing page with NO auth dependencies, NO Supabase, NO server actions.
- * All previews are static "blue sky" components using sample data.
+ * Each section earns its vertical space and advances the story.
+ * Background surfaces group narrative beats.
  */
 import type { Metadata } from "next"
 import { HeroWithPreview } from "@/components/marketing/HeroWithPreview"
@@ -17,7 +18,6 @@ import { Footer } from "@/components/marketing/Footer"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
 import { ProblemSection } from "@/components/marketing/ProblemSection"
 import { TheTurnSection } from "@/components/marketing/TheTurnSection"
-import { WhatPlinthDoesSection } from "@/components/marketing/WhatPlinthDoesSection"
 import { TheFlowSection } from "@/components/marketing/TheFlowSection"
 import { OutcomeExampleSection } from "@/components/marketing/OutcomeExampleSection"
 import { WhyItHoldsUpSection } from "@/components/marketing/WhyItHoldsUpSection"
@@ -37,31 +37,28 @@ export default function MarketingHome() {
   return (
     <MarketingShell>
       <main className="marketing-landing min-h-screen">
-        {/* 1. Hero: The Moment Before the Meeting */}
+        {/* Hero: The Moment Before the Meeting */}
         <HeroWithPreview />
         
-        {/* 1a. Credibility Bar: Quiet enterprise signal */}
+        {/* Credibility Bar: Quiet enterprise signal */}
         <CredibilityBar />
         
-        {/* 2. "This Is the Problem" (Image-Led, Minimal Text) */}
+        {/* Act 1: The Mess — What decision-making looks like today */}
         <ProblemSection />
         
-        {/* 3. The Turn: What Changes with Plinth */}
+        {/* Act 2: The Turning Point — What Plinth changes */}
         <TheTurnSection />
         
-        {/* 3a. What Plinth Does — and Doesn't Do: Explicit guardrails */}
-        <WhatPlinthDoesSection />
-        
-        {/* 4. The Flow (Keep It Fast, Visual, Punny) */}
+        {/* The Flow: Guided reveal from hunch to proof */}
         <TheFlowSection />
         
-        {/* 5. What You Actually Get (No Dashboards Section) */}
+        {/* Act 3: The Receipt — What you actually get out */}
         <OutcomeExampleSection />
         
-        {/* 6. Why It Holds Up (Credibility Without Chest-Thumping) */}
+        {/* Act 4: The Advantage — Why this compounds over time */}
         <WhyItHoldsUpSection />
         
-        {/* 7. Final CTA: Invite, Don't Sell */}
+        {/* Final CTA: Invite, Don't Sell */}
         <FinalCTABand />
         
         <Footer />

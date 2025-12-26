@@ -51,21 +51,52 @@ export default async function DashboardPage() {
   console.log('[dashboard] loading projects for user', user.id)
 
   // Fetch projects with safe error handling using contract
+  // Parallelize both fetches - use counts if available, fallback to basic list
   let projectsWithCounts
   let projects: SafeProject[] = []
   let tableRows: ReturnType<typeof toProjectsListRow>[] = []
   let projectCards: ReturnType<typeof toProjectCardModel>[] = []
   let appError: ReturnType<typeof toAppError> | null = null
 
-  // Fetch projects with counts for table view (may fail, but we'll degrade gracefully)
-  try {
-    projectsWithCounts = await listProjectsWithCounts(supabase, user.id)
-    tableRows = projectsWithCounts.map(toProjectsListRow)
-  } catch (e) {
-    const error = toAppError(e, { projectId: null, userId: user.id })
+  // Fetch both in parallel - counts may fail, basic list is fallback
+  const [countsResult, projectsResult] = await Promise.allSettled([
+    listProjectsWithCounts(supabase, user.id),
+    listProjectsForOwnerSafe(supabase, user.id),
+  ])
+
+  // Process counts result (optional - used for table view)
+  if (countsResult.status === 'fulfilled') {
+    try {
+      projectsWithCounts = countsResult.value
+      tableRows = projectsWithCounts.map(toProjectsListRow)
+    } catch (e) {
+      const error = toAppError(e, { projectId: null, userId: user.id })
+      logAppError('dashboard.loadProjects', error, { step: 'listProjectsWithCounts' })
+      
+      // INV-5: Check for schema mismatch (missing column error)
+      if (error.code === 'SCHEMA_MISMATCH') {
+        invariant(
+          false,
+          {
+            invariantId: 'INV-5',
+            route: '/dashboard',
+            context: 'project_query',
+            details: {
+              message: 'Project query references non-existent column',
+              query: 'listProjectsWithCounts',
+              errorMessage: error.message,
+            },
+          }
+        )
+      }
+      
+      appError = error
+    }
+  } else {
+    // Counts fetch failed - log but continue
+    const error = toAppError(countsResult.reason, { projectId: null, userId: user.id })
     logAppError('dashboard.loadProjects', error, { step: 'listProjectsWithCounts' })
     
-    // INV-5: Check for schema mismatch (missing column error)
     if (error.code === 'SCHEMA_MISMATCH') {
       invariant(
         false,
@@ -83,44 +114,51 @@ export default async function DashboardPage() {
     }
     
     appError = error
-    // Continue - we'll try to load basic projects
   }
 
-  // Fetch basic projects using safe contract
-  const projectsResult = await listProjectsForOwnerSafe(supabase, user.id)
-  if (projectsResult.ok) {
-    projects = projectsResult.data
-    projectCards = projects.map(toProjectCardModel)
-  } else {
-    // INV-5: Check for schema mismatch (missing column error)
-    const isMissingColumn = projectsResult.error.isMissingColumn ?? false
-    if (isMissingColumn) {
-      invariant(
-        false,
-        {
-          invariantId: 'INV-5',
-          route: '/dashboard',
-          context: 'project_query',
-          details: {
-            message: 'Project query references non-existent column',
-            query: 'listProjectsForOwnerSafe',
-            errorMessage: projectsResult.error.message,
-            errorCode: projectsResult.error.code,
-          },
-        }
+  // Process basic projects result (required - fallback)
+  if (projectsResult.status === 'fulfilled') {
+    if (projectsResult.value.ok) {
+      projects = projectsResult.value.data
+      projectCards = projects.map(toProjectCardModel)
+    } else {
+      // INV-5: Check for schema mismatch (missing column error)
+      const isMissingColumn = projectsResult.value.error.isMissingColumn ?? false
+      if (isMissingColumn) {
+        invariant(
+          false,
+          {
+            invariantId: 'INV-5',
+            route: '/dashboard',
+            context: 'project_query',
+            details: {
+              message: 'Project query references non-existent column',
+              query: 'listProjectsForOwnerSafe',
+              errorMessage: projectsResult.value.error.message,
+              errorCode: projectsResult.value.error.code,
+            },
+          }
+        )
+      }
+      
+      // Convert to AppError (toAppError will detect schema mismatch from error message if needed)
+      const error = toAppError(
+        new Error(projectsResult.value.error.message),
+        { projectId: null, userId: user.id, isMissingColumn: projectsResult.value.error.isMissingColumn }
       )
+      logAppError('dashboard.loadProjects', error, { step: 'listProjectsForOwnerSafe' })
+      if (!appError) {
+        appError = error
+      }
+      // Continue with empty arrays - page will show empty state
     }
-    
-    // Convert to AppError (toAppError will detect schema mismatch from error message if needed)
-    const error = toAppError(
-      new Error(projectsResult.error.message),
-      { projectId: null, userId: user.id, isMissingColumn: projectsResult.error.isMissingColumn }
-    )
+  } else {
+    // Basic projects fetch failed - log error
+    const error = toAppError(projectsResult.reason, { projectId: null, userId: user.id })
     logAppError('dashboard.loadProjects', error, { step: 'listProjectsForOwnerSafe' })
     if (!appError) {
       appError = error
     }
-    // Continue with empty arrays - page will show empty state
   }
 
   // If we have errors but no projects, show recoverable error state
@@ -173,7 +211,7 @@ export default async function DashboardPage() {
             }
             secondaryActions={
               hasProjects ? (
-                <Link href="/samples">
+                <Link href="/samples" prefetch>
                   <Button variant="ghost" size="lg">
                     {microcopy.actions.tryExample}
                   </Button>
@@ -208,10 +246,10 @@ export default async function DashboardPage() {
             action={
               <>
                 <Button asChild size="lg" variant="brand" className="w-full sm:w-auto">
-                  <Link href="/new?onboarding=1">{microcopy.emptyStates.noProjects.cta}</Link>
+                  <Link href="/new?onboarding=1" prefetch>{microcopy.emptyStates.noProjects.cta}</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                  <Link href="/samples">{microcopy.emptyStates.noProjects.ctaSecondary}</Link>
+                  <Link href="/samples" prefetch>{microcopy.emptyStates.noProjects.ctaSecondary}</Link>
                 </Button>
               </>
             }

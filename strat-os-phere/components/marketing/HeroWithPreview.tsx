@@ -44,7 +44,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
                 )}>
-                  Plinth helps you see where you're ahead—and why it holds up.
+                  Plinth helps you see where you're ahead and why it holds up.
                 </p>
               </Reveal>
 
