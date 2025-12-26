@@ -3,10 +3,9 @@ import type { Metadata } from 'next'
 
 import { paths } from '@/lib/routes'
 import { createPageMetadata } from '@/lib/seo/metadata'
-import { listArtifacts } from '@/lib/data/artifacts'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { loadProject } from '@/lib/projects/loadProject'
-import { normalizeResultsArtifacts } from '@/lib/results/normalizeResults'
+import { getDecisionModel } from '@/lib/results/getDecisionModel'
 import { createClient } from '@/lib/supabase/server'
 import { ShareButton } from '@/components/results/ShareButton'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
@@ -161,13 +160,13 @@ export default async function DecisionPage(props: DecisionPageProps) {
 
     // Load related data with error handling - default to empty arrays on failure
     let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
-    let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
+    let decisionModel: Awaited<ReturnType<typeof getDecisionModel>> | null = null
     let evidenceBundle: Awaited<ReturnType<typeof readLatestEvidenceBundle>> = null
     let runningRun: Awaited<ReturnType<typeof getLatestRunningRunForProject>> = null
     let decisionRunState: Awaited<ReturnType<typeof getDecisionRunState>> | null = null
 
     try {
-      const [competitorsResult, artifactsResult, evidenceBundleResult, runningRunResult, decisionRunStateResult] = await Promise.all([
+      const [competitorsResult, decisionModelResult, evidenceBundleResult, runningRunResult, decisionRunStateResult] = await Promise.all([
         listCompetitorsForProject(supabase, projectId).catch((error) => {
           logProjectError({
             route,
@@ -177,14 +176,14 @@ export default async function DecisionPage(props: DecisionPageProps) {
           })
           return []
         }),
-        listArtifacts(supabase, { projectId }).catch((error) => {
+        getDecisionModel(supabase, { projectId }).catch((error) => {
           logProjectError({
             route,
             projectId,
-            queryName: 'listArtifacts',
+            queryName: 'getDecisionModel',
             error,
           })
-          return []
+          return null
         }),
         readLatestEvidenceBundle(supabase, projectId).catch((error) => {
           logProjectError({
@@ -216,7 +215,7 @@ export default async function DecisionPage(props: DecisionPageProps) {
       ])
       
       competitors = competitorsResult ?? []
-      artifacts = artifactsResult ?? []
+      decisionModel = decisionModelResult
       evidenceBundle = evidenceBundleResult ?? null
       runningRun = runningRunResult ?? null
       decisionRunState = decisionRunStateResult
@@ -230,12 +229,8 @@ export default async function DecisionPage(props: DecisionPageProps) {
       })
     }
 
-    // Normalize artifacts once using the canonical normalization function
-    const normalized = normalizeResultsArtifacts(artifacts, projectId)
-    const { opportunities } = normalized
-    
-    // Check for opportunities artifacts (v3 or v2)
-    const hasOpportunitiesArtifact = Boolean(opportunities.v3 || opportunities.v2)
+    // Use DecisionModel - no version checks needed
+    const hasOpportunitiesArtifact = Boolean(decisionModel?.opportunities?.length && decisionModel.opportunities.length > 0)
     
     // Compute evidence coverage using coverageLite (schema-free, fail-safe)
     let coverageLite = EMPTY_EVIDENCE_COVERAGE_LITE
@@ -253,17 +248,15 @@ export default async function DecisionPage(props: DecisionPageProps) {
 
     // Derive view model for state and coverage
     const hasAnyArtifacts = Boolean(
-      normalized.profiles ||
-      normalized.jtbd ||
-      opportunities.v3 ||
-      opportunities.v2 ||
-      normalized.strategicBets
+      decisionModel?.competitors ||
+      (decisionModel?.opportunities && decisionModel.opportunities.length > 0) ||
+      decisionModel?.scorecard
     )
     const competitorCount = competitors.length
     const viewModel = deriveAnalysisViewModel({
       activeRunStatus: runningRun?.status ?? null,
       hasArtifacts: hasAnyArtifacts,
-      artifactCount: artifacts.length,
+      artifactCount: decisionModel ? 1 : 0, // DecisionModel represents one logical artifact
       competitorCount: competitorCount,
     })
 
@@ -309,8 +302,8 @@ export default async function DecisionPage(props: DecisionPageProps) {
           {/* Readout Hero - Primary recommendation and confidence */}
           <PageSection>
             <ReadoutHero
-              opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
-              opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
+              opportunitiesV3={decisionModel?._rawOpportunitiesV3 || null}
+              opportunitiesV2={decisionModel?._rawOpportunitiesV2 || null}
               coverage={coverageLite}
               competitorCount={competitorCount}
               projectName={project?.name || undefined}
@@ -362,8 +355,8 @@ export default async function DecisionPage(props: DecisionPageProps) {
           <PageSection>
             <DecisionSummary
               projectId={projectId}
-              opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
-              opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
+              opportunitiesV3={decisionModel?._rawOpportunitiesV3 || null}
+              opportunitiesV2={decisionModel?._rawOpportunitiesV2 || null}
               coverage={coverageLite}
               competitorCount={competitorCount}
               projectName={project?.name || undefined}

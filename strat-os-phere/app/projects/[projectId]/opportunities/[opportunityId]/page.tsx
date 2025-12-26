@@ -2,9 +2,8 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { createPageMetadata } from '@/lib/seo/metadata'
-import { listArtifacts } from '@/lib/data/artifacts'
 import { loadProject } from '@/lib/projects/loadProject'
-import { normalizeResultsArtifacts } from '@/lib/results/normalizeResults'
+import { getDecisionModel } from '@/lib/results/getDecisionModel'
 import { createClient } from '@/lib/supabase/server'
 import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
 import { PAGE_IDS } from '@/lib/guidance/content'
@@ -128,39 +127,37 @@ export default async function OpportunityDetailPage(props: OpportunityDetailPage
 
     const { project } = projectResult
 
-    // Load artifacts
-    let artifacts: Awaited<ReturnType<typeof listArtifacts>> = []
+    // Load decision model
+    let decisionModel: Awaited<ReturnType<typeof getDecisionModel>> | null = null
 
     try {
-      artifacts = await listArtifacts(supabase, { projectId }).catch((error) => {
+      decisionModel = await getDecisionModel(supabase, { projectId }).catch((error) => {
         logProjectError({
           route,
           projectId,
-          queryName: 'listArtifacts',
+          queryName: 'getDecisionModel',
           error,
         })
-        return []
+        return null
       })
     } catch (error) {
       logProjectError({
         route,
         projectId,
-        queryName: 'loadArtifacts',
+        queryName: 'loadDecisionModel',
         error,
       })
     }
 
-    // Normalize artifacts
-    const normalized = normalizeResultsArtifacts(artifacts, projectId)
-    const { opportunities } = normalized
-    
-    // Find the specific opportunity
-    const allOpportunities = [
-      ...(opportunities.v3?.content?.opportunities || []),
-      ...(opportunities.v2?.content?.opportunities || []),
+    // Find the specific opportunity from raw artifact content (for backward compatibility with OpportunityDetail component)
+    // TODO: Update OpportunityDetail to accept canonical Opportunity type
+    const rawV3 = decisionModel?._rawOpportunitiesV3
+    const rawV2 = decisionModel?._rawOpportunitiesV2
+    const allRawOpportunities = [
+      ...(rawV3?.opportunities || []),
+      ...(rawV2?.opportunities || []),
     ]
-    
-    const opportunity = allOpportunities.find((opp) => {
+    const opportunity = allRawOpportunities.find((opp: any) => {
       const oppId = 'id' in opp ? opp.id : opp.title
       return oppId === opportunityId
     })
@@ -200,8 +197,8 @@ export default async function OpportunityDetailPage(props: OpportunityDetailPage
             <OpportunityDetail
               opportunity={opportunity}
               projectId={projectId}
-              opportunitiesV3={opportunities.v3?.content || null}
-              opportunitiesV2={opportunities.v2?.content || null}
+              opportunitiesV3={decisionModel?._rawOpportunitiesV3 || null}
+              opportunitiesV2={decisionModel?._rawOpportunitiesV2 || null}
             />
           </PageSection>
         </PageShell>
