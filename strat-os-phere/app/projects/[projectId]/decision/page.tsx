@@ -25,8 +25,7 @@ import { logAppError } from '@/lib/errors/log'
 import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
 import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
 import { DecisionQualityIndicators } from '@/components/projects/DecisionQualityIndicators'
-import { getLatestRunningRunForProject } from '@/lib/data/projectRuns'
-import { getLatestCommittedRunForProject } from '@/lib/data/projectRuns'
+import { getLatestRunningRunForProject, getLatestCommittedRunForProject, type ProjectRun } from '@/lib/data/projectRuns'
 import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 import { computeEvidenceCoverageLite } from '@/lib/evidence/coverageLite'
 import { EMPTY_EVIDENCE_COVERAGE_LITE } from '@/lib/evidence/coverageTypes'
@@ -163,7 +162,7 @@ export default async function DecisionPage(props: DecisionPageProps) {
     let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
     let decisionModel: Awaited<ReturnType<typeof getDecisionModel>> | null = null
     let evidenceBundle: Awaited<ReturnType<typeof readLatestEvidenceBundle>> = null
-    let runningRun: Awaited<ReturnType<typeof getLatestRunningRunForProject>>['data'] = null
+    let runningRun: ProjectRun | null = null
     let decisionRunState: Awaited<ReturnType<typeof getDecisionRunState>> | null = null
 
     // Get committed run to use for loading decision model
@@ -242,7 +241,7 @@ export default async function DecisionPage(props: DecisionPageProps) {
       competitors = competitorsResult ?? []
       decisionModel = decisionModelResult
       evidenceBundle = evidenceBundleResult ?? null
-      runningRun = runningRunResult?.ok ? runningRunResult.data : null
+      runningRun = runningRunResult && runningRunResult.ok ? runningRunResult.data : null
       decisionRunState = decisionRunStateResult
     } catch (error) {
       // Log but continue - we'll show empty states

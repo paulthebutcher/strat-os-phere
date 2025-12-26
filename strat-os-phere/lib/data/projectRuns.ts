@@ -30,6 +30,12 @@ export type ProjectRunResult<T> =
   | { ok: false; error: { code: string; message: string } }
 
 /**
+ * Helper type to extract the value type from a ProjectRunResult
+ * Returns T if ok: true, otherwise null
+ */
+export type UnwrapProjectRunResult<R> = R extends ProjectRunResult<infer T> ? T : never
+
+/**
  * Project run row type
  */
 export type ProjectRun = {
