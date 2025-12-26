@@ -23,12 +23,9 @@ export function SectionCard({
   return (
     <article
       className={cn(
-        'rounded-lg border bg-card',
-        'border-border-subtle',
-        'shadow-sm',
+        'readout-card', // Evidence material styling
         'p-6',
         'transition-all duration-[175ms] ease-out',
-        elevated && 'shadow-md',
         className
       )}
     >

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <!-- Directional icon: Arrow indicating direction but not certainty -->
+  <path d="M3 8h10M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="3" cy="8" r="1" fill="currentColor"/>
+</svg>
+

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { RerunAnalysisButton } from '@/components/results/RerunAnalysisButton'
+import { PlinthIconDirect } from '@/components/ui/PlinthIcon'
 
 interface ReadoutHeaderProps {
   projectName: string
@@ -32,9 +33,12 @@ export function ReadoutHeader({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold text-foreground tracking-tight">
-            Results readout
-          </h1>
+          <div className="flex items-center gap-2">
+            <PlinthIconDirect name="readout" size={20} className="text-foreground/70" />
+            <h1 className="text-3xl font-semibold text-foreground tracking-tight">
+              Results readout
+            </h1>
+          </div>
           <p className="text-base text-muted-foreground">
             A decision-ready synthesis of your competitive landscape
           </p>

@@ -236,6 +236,13 @@
   --readout-evidence-reviews: 180 35% 90%; /* Soft teal for Reviews */
   --readout-evidence-changelog: 0 0% 94%; /* Soft gray for Changelog */
   --readout-uncertainty-bg: 38 50% 96%; /* Soft amber background for uncertainty section */
+
+  /* Evidence Material System - Bound artifact visual language */
+  --plinth-surface-primary: 255 255 255; /* Pure white primary surface */
+  --plinth-surface-evidence: 255 255 255; /* White for evidence cards with subtle texture */
+  --plinth-border-evidence: 0 0% 75%; /* Darker border for weight and permanence */
+  --plinth-border-evidence-inner: 0 0% 95%; /* Inner highlight for depth */
+  --plinth-evidence-noise: 0 0% 50%; /* Noise texture color (applied at 1-2% opacity) */
 }
 
 .dark {
@@ -363,6 +370,12 @@
   --color-readout-evidence-reviews: hsl(var(--readout-evidence-reviews));
   --color-readout-evidence-changelog: hsl(var(--readout-evidence-changelog));
   --color-readout-uncertainty-bg: hsl(var(--readout-uncertainty-bg));
+
+  /* Evidence Material System */
+  --color-plinth-surface-primary: hsl(var(--plinth-surface-primary));
+  --color-plinth-surface-evidence: hsl(var(--plinth-surface-evidence));
+  --color-plinth-border-evidence: hsl(var(--plinth-border-evidence));
+  --color-plinth-border-evidence-inner: hsl(var(--plinth-border-evidence-inner));
   
   /* Border radius */
   --radius-sm: var(--radius-sm);
@@ -867,6 +880,65 @@
   
   .clickable-row:active {
     background-color: hsl(var(--muted) / 0.7);
+  }
+
+  /* Evidence Material System - Bound artifact visual language */
+  /* Cards feel like bound artifacts, not UI tiles */
+  .evidence-material {
+    background: hsl(var(--plinth-surface-evidence));
+    border: 1px solid hsl(var(--plinth-border-evidence));
+    border-radius: calc(var(--radius-md) - 2px); /* Harder edges - less rounded */
+    position: relative;
+    /* Subtle paper-like texture via noise */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        hsl(var(--plinth-evidence-noise) / 0.01) 2px,
+        hsl(var(--plinth-evidence-noise) / 0.01) 4px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        hsl(var(--plinth-evidence-noise) / 0.015) 2px,
+        hsl(var(--plinth-evidence-noise) / 0.015) 4px
+      );
+  }
+
+  /* Inner highlight for depth - creates bound artifact feel */
+  .evidence-material::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: calc(var(--radius-md) - 2px);
+    border: 1px solid hsl(var(--plinth-border-evidence-inner));
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Ensure content sits above the inner border */
+  /* Note: Direct children will naturally stack above ::before pseudo-element */
+  /* Only add relative positioning if needed for specific components */
+
+  /* Readout cards - same treatment but slightly elevated */
+  .readout-card {
+    @apply evidence-material;
+    box-shadow: none; /* No drop shadows - borders do the work */
+  }
+
+  /* Score summaries - evidence material treatment */
+  .score-summary {
+    @apply evidence-material;
+  }
+
+  /* Evidence blocks - primary usage */
+  .evidence-block {
+    @apply evidence-material;
   }
 }
 

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <!-- Score icon: Bar chart with marker -->
+  <path d="M3 12v-4M6 12V7M9 12V5M12 12V8" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M2 13h12" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/>
+</svg>
+

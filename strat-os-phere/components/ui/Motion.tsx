@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
  */
 
 // Helper to check for reduced motion preference (must be called at runtime)
-function useReducedMotion(): boolean {
+export function useReducedMotion(): boolean {
   const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false)
   
   React.useEffect(() => {
@@ -53,6 +53,32 @@ export const scaleIn: Variants = {
   visible: { opacity: 1, scale: 1 },
 }
 
+// Editorial motion - slow, intentional, reinforces clarity and confidence
+export const editorialReveal: Variants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.25,
+      ease: [0.16, 1, 0.3, 1], // Custom easing for professional feel
+    },
+  },
+}
+
+// Vertical settle - for readout cards
+export const verticalSettle: Variants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+}
+
 // Stagger container for list items
 export const staggerContainer: Variants = {
   hidden: { opacity: 0 },
@@ -67,7 +93,7 @@ export const staggerContainer: Variants = {
 export interface MotionDivProps extends MotionProps {
   children: React.ReactNode
   className?: string
-  variant?: "fadeInUp" | "fadeIn" | "slideInFromBottom" | "scaleIn"
+  variant?: "fadeInUp" | "fadeIn" | "slideInFromBottom" | "scaleIn" | "editorialReveal" | "verticalSettle"
   delay?: number
   duration?: number
 }
@@ -94,6 +120,8 @@ export function MotionDiv({
     fadeIn,
     slideInFromBottom,
     scaleIn,
+    editorialReveal,
+    verticalSettle,
   }[variant]
 
   if (prefersReducedMotion) {
@@ -105,11 +133,15 @@ export function MotionDiv({
       initial="hidden"
       animate="visible"
       variants={variants}
-      transition={{
-        duration,
-        delay,
-        ease: [0.16, 1, 0.3, 1], // Custom easing for professional feel
-      }}
+      transition={
+        variant === 'editorialReveal' || variant === 'verticalSettle'
+          ? undefined // Use transition from variant
+          : {
+              duration,
+              delay,
+              ease: [0.16, 1, 0.3, 1], // Custom easing for professional feel
+            }
+      }
       className={cn(className)}
       {...props}
     >

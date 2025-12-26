@@ -9,6 +9,7 @@ import { paths } from '@/lib/routes'
 import { cn } from '@/lib/utils'
 import type { NormalizedEvidenceBundle } from '@/lib/evidence/types'
 import { ExternalLink } from 'lucide-react'
+import { PlinthIconDirect } from '@/components/ui/PlinthIcon'
 
 interface EvidencePreviewProps {
   evidenceBundle?: NormalizedEvidenceBundle | null
@@ -37,9 +38,12 @@ export function EvidencePreview({
   const hasAnySources = coverage?.totalSources ? coverage.totalSources > 0 : false
 
   return (
-    <Card className={cn('border-border-subtle', className)}>
+    <Card className={cn('evidence-block', className)}>
       <CardHeader>
-        <CardTitle className="text-base font-semibold">Evidence Preview</CardTitle>
+        <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <PlinthIconDirect name="evidence" size={16} className="text-foreground/70" />
+          Evidence Preview
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {hasSources ? (

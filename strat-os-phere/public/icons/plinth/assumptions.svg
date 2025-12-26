@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <!-- Assumptions icon: Question mark in brackets -->
+  <path d="M3 4c0-1 1-2 2-2s2 1 2 2c0 1-1 2-1 2v2M8 12h.01" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M2 2v12M14 2v12" stroke="currentColor" stroke-width="0.8" fill="none"/>
+</svg>
+

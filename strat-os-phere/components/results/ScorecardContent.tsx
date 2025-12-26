@@ -15,6 +15,7 @@ import { extractCitationsFromArtifact, normalizeCitation, type NormalizedCitatio
 import type { CitationInput } from '@/lib/scoring/extractEvidenceFromArtifacts'
 import { CoverageScoreBadge } from '@/components/trust/CoverageScoreBadge'
 import type { NormalizedEvidenceBundle } from '@/lib/evidence/types'
+import { PlinthIconDirect } from '@/components/ui/PlinthIcon'
 
 interface ScorecardContentProps {
   projectId: string
@@ -70,7 +71,10 @@ export function ScorecardContent({
     <section className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Scorecard</h1>
+          <h1 className="text-2xl font-semibold text-foreground mb-2 flex items-center gap-2">
+            <PlinthIconDirect name="score" size={22} className="text-foreground/70" />
+            Scorecard
+          </h1>
           <p className="text-sm text-muted-foreground">
             Competitive evaluation on key criteria weighted by importance.
           </p>
@@ -80,10 +84,13 @@ export function ScorecardContent({
 
       {/* Evidence Coverage Score */}
       {evidenceBundle !== undefined && (
-        <SectionCard>
+        <SectionCard className="score-summary">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-foreground mb-1">Evidence Coverage</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
+                <PlinthIconDirect name="coverage" size={18} className="text-foreground/70" />
+                Evidence Coverage
+              </h2>
               <p className="text-sm text-muted-foreground">
                 Overall quality and completeness of evidence used for scoring
               </p>

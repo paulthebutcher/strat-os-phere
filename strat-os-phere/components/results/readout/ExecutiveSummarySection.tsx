@@ -1,6 +1,8 @@
 'use client'
 
 import { SectionCard } from '@/components/results/SectionCard'
+import { EditorialReveal } from '@/components/ui/EditorialReveal'
+import { PlinthIconDirect } from '@/components/ui/PlinthIcon'
 
 interface ExecutiveSummarySectionProps {
   bullets: string[]
@@ -30,12 +32,16 @@ export function ExecutiveSummarySection({
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground">Executive Summary</h2>
+        <h2 className="text-2xl font-semibold text-foreground flex items-center gap-2">
+          <PlinthIconDirect name="readout" size={22} className="text-foreground/70" />
+          Executive Summary
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Key insights from the competitive analysis
         </p>
       </div>
-      <SectionCard>
+      <EditorialReveal>
+        <SectionCard>
         <ul className="space-y-3">
           {bullets.map((bullet, index) => (
             <li key={index} className="flex items-start gap-3">
@@ -45,6 +51,7 @@ export function ExecutiveSummarySection({
           ))}
         </ul>
       </SectionCard>
+      </EditorialReveal>
     </section>
   )
 }

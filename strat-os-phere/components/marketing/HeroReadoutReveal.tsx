@@ -18,6 +18,8 @@ import { useEffect, useRef, useState } from "react"
 import { prefersReducedMotion } from "@/lib/motion/tokens"
 import { sampleAnalysis } from "./sampleReadoutData"
 import { AlertTriangle } from "lucide-react"
+import { EditorialReveal } from "@/components/ui/EditorialReveal"
+import { PlinthIconDirect } from "@/components/ui/PlinthIcon"
 
 // Helper to get score color based on confidence range
 function getScoreColor(score: number): string {
@@ -191,16 +193,16 @@ export function HeroReadoutReveal({
     <div 
       ref={containerRef}
       className={cn(
-        "flex flex-col bg-white rounded-lg shadow-lg border border-border-subtle",
+        "flex flex-col bg-white rounded-lg readout-card", // Evidence material styling, no shadow
         isCropped ? "min-h-[200px]" : "min-h-[600px] md:min-h-[680px]",
         className
       )}
       style={{
         opacity: frameVisible ? 1 : 0,
-        transform: frameVisible ? "translateY(0)" : "translateY(6px)",
+        transform: frameVisible ? "translateY(0)" : "translateY(8px)", // Editorial vertical settle
         transition: reduceMotion.current 
           ? "none" 
-          : "opacity 300ms cubic-bezier(0, 0, 0.2, 1), transform 300ms cubic-bezier(0, 0, 0.2, 1)",
+          : "opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), transform 250ms cubic-bezier(0.16, 1, 0.3, 1)", // Editorial easing
       }}
     >
       {/* Decision Header */}

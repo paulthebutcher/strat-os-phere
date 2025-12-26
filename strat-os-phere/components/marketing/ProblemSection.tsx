@@ -1,20 +1,16 @@
 /**
  * Act 1: The Mess — What decision-making looks like today
  * 
- * Tight narrative with visual contrast.
- * Left: Chaos Grid (Before)
- * Right: Decision Card + Confidence Boundary Bar (After)
- * 
- * No screenshots. Pure contrast.
+ * Abstract signal collage showing raw, unstructured inputs.
+ * No product UI, no "before/after" labels.
+ * Pure visual communication of ambiguity and overload.
  */
 "use client"
 
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { ChaosGrid } from "./ChaosGrid"
-import { DecisionCard } from "./DecisionCard"
-import { ConfidenceBoundaryBar } from "./ConfidenceBoundaryBar"
+import { SignalChaosPanel } from "./SignalChaosPanel"
 
 export function ProblemSection() {
   return (
@@ -32,24 +28,7 @@ export function ProblemSection() {
         </Reveal>
         
         <Reveal delay={60}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
-            {/* Left: Before - Chaos Grid */}
-            <div className="space-y-3">
-              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">
-                Before
-              </div>
-              <ChaosGrid className="min-h-[200px]" />
-            </div>
-
-            {/* Right: After - Decision Card + Confidence Bar */}
-            <div className="space-y-4">
-              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">
-                After
-              </div>
-              <DecisionCard />
-              <ConfidenceBoundaryBar />
-            </div>
-          </div>
+          <SignalChaosPanel className="rounded-xl border border-border-subtle/40" />
         </Reveal>
       </MarketingContainer>
     </MarketingSection>
