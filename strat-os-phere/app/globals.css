@@ -927,18 +927,114 @@
 
   /* Readout cards - same treatment but slightly elevated */
   .readout-card {
-    @apply evidence-material;
+    background: hsl(var(--plinth-surface-evidence));
+    border: 1px solid hsl(var(--plinth-border-evidence));
+    border-radius: calc(var(--radius-md) - 2px); /* Harder edges - less rounded */
+    position: relative;
+    /* Subtle paper-like texture via noise */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        hsl(var(--plinth-evidence-noise) / 0.01) 2px,
+        hsl(var(--plinth-evidence-noise) / 0.01) 4px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        hsl(var(--plinth-evidence-noise) / 0.015) 2px,
+        hsl(var(--plinth-evidence-noise) / 0.015) 4px
+      );
     box-shadow: none; /* No drop shadows - borders do the work */
+  }
+
+  .readout-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: calc(var(--radius-md) - 2px);
+    border: 1px solid hsl(var(--plinth-border-evidence-inner));
+    pointer-events: none;
+    z-index: 1;
   }
 
   /* Score summaries - evidence material treatment */
   .score-summary {
-    @apply evidence-material;
+    background: hsl(var(--plinth-surface-evidence));
+    border: 1px solid hsl(var(--plinth-border-evidence));
+    border-radius: calc(var(--radius-md) - 2px); /* Harder edges - less rounded */
+    position: relative;
+    /* Subtle paper-like texture via noise */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        hsl(var(--plinth-evidence-noise) / 0.01) 2px,
+        hsl(var(--plinth-evidence-noise) / 0.01) 4px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        hsl(var(--plinth-evidence-noise) / 0.015) 2px,
+        hsl(var(--plinth-evidence-noise) / 0.015) 4px
+      );
+  }
+
+  .score-summary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: calc(var(--radius-md) - 2px);
+    border: 1px solid hsl(var(--plinth-border-evidence-inner));
+    pointer-events: none;
+    z-index: 1;
   }
 
   /* Evidence blocks - primary usage */
   .evidence-block {
-    @apply evidence-material;
+    background: hsl(var(--plinth-surface-evidence));
+    border: 1px solid hsl(var(--plinth-border-evidence));
+    border-radius: calc(var(--radius-md) - 2px); /* Harder edges - less rounded */
+    position: relative;
+    /* Subtle paper-like texture via noise */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        hsl(var(--plinth-evidence-noise) / 0.01) 2px,
+        hsl(var(--plinth-evidence-noise) / 0.01) 4px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        hsl(var(--plinth-evidence-noise) / 0.015) 2px,
+        hsl(var(--plinth-evidence-noise) / 0.015) 4px
+      );
+  }
+
+  .evidence-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: calc(var(--radius-md) - 2px);
+    border: 1px solid hsl(var(--plinth-border-evidence-inner));
+    pointer-events: none;
+    z-index: 1;
   }
 }
 

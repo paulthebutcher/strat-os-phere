@@ -15,12 +15,12 @@ import { OutcomeArtifact } from "./OutcomeArtifact"
 export function OutcomeExampleSection() {
   return (
     <MarketingSection variant="muted">
-      <MarketingContainer maxWidth="5xl">
+      <MarketingContainer maxWidth="6xl">
         <Reveal>
-          <div className="flex flex-col gap-6 sm:gap-8">
-            {/* Section headline - tighter */}
-            <div className="text-center space-y-2 sm:space-y-3 max-w-3xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-semibold tracking-tight text-text-primary leading-tight">
+          <div className="flex flex-col gap-8 sm:gap-12">
+            {/* Section headline - centered, compact */}
+            <div className="text-center space-y-3 sm:space-y-4 max-w-2xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
                 No dashboards. No rabbit holes.
               </h2>
               <p className="text-sm sm:text-base text-text-secondary">
@@ -28,9 +28,11 @@ export function OutcomeExampleSection() {
               </p>
             </div>
 
-            {/* Hero Outcome Artifact */}
+            {/* Hero Outcome Artifact - centered, heroic */}
             <Reveal delay={60}>
-              <OutcomeArtifact />
+              <div className="flex justify-center">
+                <OutcomeArtifact className="w-full max-w-5xl" />
+              </div>
             </Reveal>
           </div>
         </Reveal>
