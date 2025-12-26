@@ -1,3 +1,13 @@
+-- REFERENCE ONLY — schema is defined in supabase/migrations. Do not apply manually.
+-- 
+-- This file is kept for historical reference only. The authoritative source of truth
+-- for the project_runs table schema is:
+--   strat-os-phere/supabase/migrations/20250114000000_create_project_runs.sql
+--
+-- DO NOT run this SQL manually. Always use the formal migration system:
+--   1. supabase db push (remote) / supabase db reset (local)
+--   2. Regenerate types: supabase gen types typescript --local > lib/supabase/database.types.ts
+--
 -- Migration: Create project_runs table for append-only run records
 -- Run this in your Supabase SQL editor or via migration tool
 -- 

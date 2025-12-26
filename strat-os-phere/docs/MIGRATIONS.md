@@ -13,24 +13,38 @@ This document describes the database migration workflow and contains reference S
    supabase/migrations/YYYYMMDDHHMMSS_description.sql
    ```
 
-2. **Apply locally**: Run the migration against your local/dev database:
-   - Via Supabase CLI: `supabase db reset` (if using local Supabase)
+2. **Apply migrations**: Run the migration against your database:
+   - **Remote (production/staging)**: `supabase db push`
+   - **Local/Dev**: `supabase db reset` (if using local Supabase)
    - Or manually via Supabase SQL editor
 
 3. **Regenerate types**: Update TypeScript types to match the new schema:
    ```bash
-   # If using Supabase CLI:
+   # For local Supabase:
    supabase gen types typescript --local > lib/supabase/database.types.ts
    
-   # Or manually update lib/supabase/database.types.ts to match the new schema
+   # For remote Supabase (production/staging):
+   supabase gen types typescript --project-id <your-project-id> > lib/supabase/database.types.ts
    ```
+   
+   **Output path**: `strat-os-phere/lib/supabase/database.types.ts`
 
 4. **Commit everything**: Commit the migration file + regenerated types together
+
+### Authoritative Workflow
+
+The authoritative workflow for schema changes is:
+
+1. **Create migration file** in `supabase/migrations/` with timestamp prefix
+2. **Apply to database** using `supabase db push` (remote) or `supabase db reset` (local)
+3. **Regenerate types** using `supabase gen types typescript` with appropriate flags
+4. **Verify** by running `pnpm run build` to ensure types compile
+5. **Commit** migration file + regenerated types together
 
 ### Rules
 
 - ✅ **Always** put schema-changing SQL in `supabase/migrations/`
-- ❌ **Never** put migrations only in `/docs/sql` (those are reference docs only)
+- ❌ **Never** put migrations only in `/docs/sql` (those are reference docs only and marked as such)
 - ✅ **Always** regenerate types after applying migrations
 - ✅ **Always** run `pnpm check:schema` before committing to catch drift
 
@@ -41,6 +55,28 @@ The `pnpm check:schema` script enforces that:
 - Types stay in sync with actual database schema
 
 Run it as part of your pre-commit checks or CI pipeline.
+
+### Quick Verification
+
+To verify that core tables exist in your database, run this SQL:
+
+```sql
+SELECT
+  to_regclass('public.projects') IS NOT NULL AS has_projects,
+  to_regclass('public.project_runs') IS NOT NULL AS has_project_runs,
+  to_regclass('public.competitors') IS NOT NULL AS has_competitors,
+  to_regclass('public.evidence_sources') IS NOT NULL AS has_evidence_sources,
+  to_regclass('public.artifacts') IS NOT NULL AS has_artifacts;
+```
+
+To verify that `project_runs` has the expected columns (including `committed_at`):
+
+```sql
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'project_runs'
+ORDER BY ordinal_position;
+```
 
 ---
 
