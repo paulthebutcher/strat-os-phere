@@ -9,3 +9,4 @@ export * from "./Backdrop";
 export * from "./Illustrations";
 export * from "./Badges";
 export * from "./Logos";
+export * from "./SignalMotifs";

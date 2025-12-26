@@ -20,9 +20,9 @@ const confidenceLabels: Record<ConfidenceLevel, string> = {
 }
 
 const confidenceColors: Record<ConfidenceLevel, string> = {
-  exploratory: "bg-amber-50 text-amber-700 border-amber-200",
-  directional: "bg-blue-50 text-blue-700 border-blue-200",
-  investment_ready: "bg-green-50 text-green-700 border-green-200",
+  exploratory: "confidence-badge-directional",
+  directional: "confidence-badge-directional",
+  investment_ready: "confidence-badge-investment-ready",
 }
 
 export function ConfidencePill({ level, className }: ConfidencePillProps) {

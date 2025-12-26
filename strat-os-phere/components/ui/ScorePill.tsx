@@ -119,7 +119,7 @@ export function ScorePill({ score, citations = [], className, showTooltip = fals
     }
 
     const badgeContent = (
-      <Badge variant={variant} className="text-xs">
+      <Badge variant={variant} className="text-xs plinth-tick pl-2.5 relative">
         {value.toFixed(1)}/10
       </Badge>
     )
@@ -162,7 +162,7 @@ export function ScorePill({ score, citations = [], className, showTooltip = fals
   const tooltipText = `${directionalLabel} signal. ${coverageMessage}. ${score.evidenceCount > 0 ? `Based on ${score.evidenceCount} evidence source${score.evidenceCount !== 1 ? 's' : ''}.` : 'More evidence needed for numeric scoring.'}`
 
   const badgeContent = (
-    <Badge variant={directionalVariant} className="text-xs">
+    <Badge variant={directionalVariant} className="text-xs plinth-tick pl-2.5 relative">
       {directionalLabel}
     </Badge>
   )

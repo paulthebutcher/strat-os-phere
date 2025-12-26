@@ -81,10 +81,10 @@ export function ExecutiveSummary({
         <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:pb-8 border-b border-border">
           <div className="space-y-3">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+              <h1 className="readout-h1">
                 Executive Summary
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="readout-label">
                 High-level overview of key insights and strategic opportunities
               </p>
             </div>
@@ -118,10 +118,10 @@ export function ExecutiveSummary({
             {topOpportunities.length > 0 ? (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground mb-2">
+                  <h2 className="readout-h2 mb-2">
                     Top Opportunities
                   </h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="readout-label">
                     Highest-scoring strategic opportunities to prioritize
                   </p>
                 </div>
@@ -130,7 +130,7 @@ export function ExecutiveSummary({
                     <Link
                       key={index}
                       href={opp.href}
-                      className="panel p-5 hover:border-primary/50 transition-colors block"
+                      className="panel p-5 card-hover block"
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <h3 className="text-base font-semibold text-foreground leading-tight">
@@ -166,11 +166,11 @@ export function ExecutiveSummary({
 
             {/* Quick Links */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground">Quick Links</h2>
+              <h2 className="readout-h2">Quick Links</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Link
                   href={paths.opportunities(projectId)}
-                  className="panel p-4 hover:border-primary/50 transition-colors block"
+                  className="panel p-4 card-hover block"
                 >
                   <h3 className="text-sm font-semibold text-foreground mb-1">
                     Opportunities
@@ -181,7 +181,7 @@ export function ExecutiveSummary({
                 </Link>
                 <Link
                   href={`/projects/${projectId}/jobs`}
-                  className="panel p-4 hover:border-primary/50 transition-colors block"
+                  className="panel p-4 card-hover block"
                 >
                   <h3 className="text-sm font-semibold text-foreground mb-1">
                     Jobs
@@ -192,7 +192,7 @@ export function ExecutiveSummary({
                 </Link>
                 <Link
                   href={paths.scorecard(projectId)}
-                  className="panel p-4 hover:border-primary/50 transition-colors block"
+                  className="panel p-4 card-hover block"
                 >
                   <h3 className="text-sm font-semibold text-foreground mb-1">
                     Scorecard
@@ -203,7 +203,7 @@ export function ExecutiveSummary({
                 </Link>
                 <Link
                   href={paths.competitors(projectId)}
-                  className="panel p-4 hover:border-primary/50 transition-colors block"
+                  className="panel p-4 card-hover block"
                 >
                   <h3 className="text-sm font-semibold text-foreground mb-1">
                     Competitors

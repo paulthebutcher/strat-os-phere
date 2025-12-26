@@ -17,6 +17,16 @@ const badgeVariants = cva(
           info: "bg-info/10 text-info border-info/20",
           muted: "bg-muted text-muted-foreground border-border",
           neutral: "bg-muted text-muted-foreground border-border",
+          // Confidence spectrum variants
+          "confidence-directional": "confidence-badge-directional",
+          "confidence-supported": "confidence-badge-supported",
+          "confidence-investment-ready": "confidence-badge-investment-ready",
+          // Evidence type accents
+          "evidence-pricing": "evidence-accent-pricing border-border",
+          "evidence-docs": "evidence-accent-docs border-border",
+          "evidence-reviews": "evidence-accent-reviews border-border",
+          "evidence-changelog": "evidence-accent-changelog border-border",
+          "evidence-community": "evidence-accent-community border-border",
         },
       },
     defaultVariants: {
@@ -48,6 +58,14 @@ export type BadgeKind =
   | "warning"   // Warning state (maps to "warning")
   | "danger"    // Danger/destructive state (maps to "danger")
   | "muted"     // Muted/subtle (maps to "muted")
+  | "confidence-directional"      // Confidence spectrum: directional
+  | "confidence-supported"        // Confidence spectrum: supported
+  | "confidence-investment-ready"  // Confidence spectrum: investment-ready
+  | "evidence-pricing"             // Evidence type: pricing
+  | "evidence-docs"                // Evidence type: docs
+  | "evidence-reviews"             // Evidence type: reviews
+  | "evidence-changelog"           // Evidence type: changelog
+  | "evidence-community"           // Evidence type: community
 
 const badgeVariantByKind: Record<BadgeKind, BadgeProps["variant"]> = {
   chip: "secondary",
@@ -58,6 +76,14 @@ const badgeVariantByKind: Record<BadgeKind, BadgeProps["variant"]> = {
   warning: "warning",
   danger: "danger",
   muted: "muted",
+  "confidence-directional": "confidence-directional",
+  "confidence-supported": "confidence-supported",
+  "confidence-investment-ready": "confidence-investment-ready",
+  "evidence-pricing": "evidence-pricing",
+  "evidence-docs": "evidence-docs",
+  "evidence-reviews": "evidence-reviews",
+  "evidence-changelog": "evidence-changelog",
+  "evidence-community": "evidence-community",
 } as const
 
 /**

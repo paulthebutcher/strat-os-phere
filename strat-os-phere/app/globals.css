@@ -161,6 +161,25 @@
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.65;
   
+  /* Readout Typography System - Executive brief styling */
+  /* Font families (using existing fonts) */
+  --plinth-font-display: var(--font-geist-sans);
+  --plinth-font-body: var(--font-geist-sans);
+  
+  /* Letter spacing - Tighter tracking for executive readout */
+  --plinth-tracking-tight: -0.015em;
+  --plinth-tracking-normal: 0;
+  --plinth-tracking-wide: 0.01em;
+  
+  /* Line heights - Smarter, tighter for readout */
+  --plinth-leading-tight: 1.25;
+  --plinth-leading-normal: 1.5;
+  --plinth-leading-relaxed: 1.65;
+  
+  /* Text colors - Stronger contrast for readout */
+  --plinth-text-muted: 0 0% 45%;
+  --plinth-text-strong: 0 0% 8%;
+  
   /* Canonical Typography Hierarchy - Clear, opinionated text styles */
   /* HeadingXL - Hero / page titles */
   --text-heading-xl-size: var(--font-size-3xl); /* 36px */
@@ -243,6 +262,68 @@
   --plinth-border-evidence: 0 0% 75%; /* Darker border for weight and permanence */
   --plinth-border-evidence-inner: 0 0% 95%; /* Inner highlight for depth */
   --plinth-evidence-noise: 0 0% 50%; /* Noise texture color (applied at 1-2% opacity) */
+  
+  /* Plinth Glass Surface System - Layered surfaces with depth hierarchy */
+  /* Surface 0 - Base/page background */
+  --plinth-surface-0-bg: 255 255 255; /* Pure white */
+  --plinth-surface-0-border: transparent;
+  --plinth-surface-0-shadow: none;
+  
+  /* Surface 1 - Cards, panels (elevated) */
+  --plinth-surface-1-bg: 255 255 255; /* Pure white with subtle glass effect */
+  --plinth-surface-1-border: 226 232 240; /* slate-200, subtle edge */
+  --plinth-surface-1-shadow: 0 1px 2px rgba(2, 6, 23, 0.04), 0 4px 12px rgba(2, 6, 23, 0.06);
+  --plinth-surface-1-blur: 8px; /* Subtle backdrop blur for glass effect */
+  
+  /* Surface 2 - Nav, modals, overlays (highest elevation) */
+  --plinth-surface-2-bg: 255 255 255; /* Pure white with stronger glass */
+  --plinth-surface-2-border: 203 213 225; /* slate-300, more defined edge */
+  --plinth-surface-2-shadow: 0 2px 8px rgba(2, 6, 23, 0.08), 0 12px 24px rgba(2, 6, 23, 0.10);
+  --plinth-surface-2-blur: 12px; /* More pronounced blur */
+  
+  /* Glass effect properties */
+  --plinth-glass-edge-highlight: rgba(255, 255, 255, 0.8); /* Top edge highlight */
+  --plinth-noise-opacity: 0.015; /* Very light noise texture */
+  
+  /* Confidence Spectrum - Evidence-first color language */
+  /* Directional (lowest confidence) */
+  --confidence-directional-bg: 217 50% 96%; /* Soft blue background */
+  --confidence-directional-text: 217 50% 35%; /* Deeper blue text */
+  --confidence-directional-border: 217 50% 85%; /* Blue border */
+  --confidence-directional-accent: 217 91% 60%; /* Info blue accent */
+  
+  /* Supported (medium confidence) */
+  --confidence-supported-bg: 262 30% 96%; /* Soft violet background */
+  --confidence-supported-text: 262 50% 40%; /* Deeper violet text */
+  --confidence-supported-border: 262 30% 85%; /* Violet border */
+  --confidence-supported-accent: 262 83% 58%; /* Violet accent */
+  
+  /* Investment-ready (highest confidence) */
+  --confidence-investment-ready-bg: 142 40% 96%; /* Soft green background */
+  --confidence-investment-ready-text: 142 50% 30%; /* Deeper green text */
+  --confidence-investment-ready-border: 142 40% 85%; /* Green border */
+  --confidence-investment-ready-accent: 142 60% 40%; /* Success green accent */
+  
+  /* Evidence Type Accents - Consistent icon + color pairs */
+  --evidence-pricing-bg: 217 40% 96%; /* Soft blue */
+  --evidence-pricing-text: 217 50% 40%; /* Blue text */
+  --evidence-pricing-accent: 217 91% 60%; /* Info blue */
+  
+  --evidence-docs-bg: 262 30% 96%; /* Soft violet */
+  --evidence-docs-text: 262 50% 40%; /* Violet text */
+  --evidence-docs-accent: 262 83% 58%; /* Violet accent */
+  
+  --evidence-reviews-bg: 180 35% 95%; /* Soft teal */
+  --evidence-reviews-text: 180 50% 35%; /* Teal text */
+  --evidence-reviews-accent: 180 60% 45%; /* Teal accent */
+  
+  --evidence-changelog-bg: 0 0% 96%; /* Soft gray */
+  --evidence-changelog-text: 0 0% 40%; /* Gray text */
+  --evidence-changelog-accent: 0 0% 50%; /* Gray accent */
+  
+  --evidence-community-bg: 34 80% 96%; /* Soft cyan */
+  --evidence-community-text: 34 80% 35%; /* Cyan text */
+  --evidence-community-accent: 34 211 238; /* Cyan accent (RGB) */
 }
 
 .dark {
@@ -376,6 +457,50 @@
   --color-plinth-surface-evidence: hsl(var(--plinth-surface-evidence));
   --color-plinth-border-evidence: hsl(var(--plinth-border-evidence));
   --color-plinth-border-evidence-inner: hsl(var(--plinth-border-evidence-inner));
+  
+  /* Plinth Glass Surface System */
+  --color-plinth-surface-0-bg: rgb(var(--plinth-surface-0-bg));
+  --color-plinth-surface-1-bg: rgb(var(--plinth-surface-1-bg));
+  --color-plinth-surface-2-bg: rgb(var(--plinth-surface-2-bg));
+  --color-plinth-surface-1-border: rgb(var(--plinth-surface-1-border));
+  --color-plinth-surface-2-border: rgb(var(--plinth-surface-2-border));
+  
+  /* Confidence Spectrum */
+  --color-confidence-directional-bg: hsl(var(--confidence-directional-bg));
+  --color-confidence-directional-text: hsl(var(--confidence-directional-text));
+  --color-confidence-directional-border: hsl(var(--confidence-directional-border));
+  --color-confidence-directional-accent: hsl(var(--confidence-directional-accent));
+  
+  --color-confidence-supported-bg: hsl(var(--confidence-supported-bg));
+  --color-confidence-supported-text: hsl(var(--confidence-supported-text));
+  --color-confidence-supported-border: hsl(var(--confidence-supported-border));
+  --color-confidence-supported-accent: hsl(var(--confidence-supported-accent));
+  
+  --color-confidence-investment-ready-bg: hsl(var(--confidence-investment-ready-bg));
+  --color-confidence-investment-ready-text: hsl(var(--confidence-investment-ready-text));
+  --color-confidence-investment-ready-border: hsl(var(--confidence-investment-ready-border));
+  --color-confidence-investment-ready-accent: hsl(var(--confidence-investment-ready-accent));
+  
+  /* Evidence Type Accents */
+  --color-evidence-pricing-bg: hsl(var(--evidence-pricing-bg));
+  --color-evidence-pricing-text: hsl(var(--evidence-pricing-text));
+  --color-evidence-pricing-accent: hsl(var(--evidence-pricing-accent));
+  
+  --color-evidence-docs-bg: hsl(var(--evidence-docs-bg));
+  --color-evidence-docs-text: hsl(var(--evidence-docs-text));
+  --color-evidence-docs-accent: hsl(var(--evidence-docs-accent));
+  
+  --color-evidence-reviews-bg: hsl(var(--evidence-reviews-bg));
+  --color-evidence-reviews-text: hsl(var(--evidence-reviews-text));
+  --color-evidence-reviews-accent: hsl(var(--evidence-reviews-accent));
+  
+  --color-evidence-changelog-bg: hsl(var(--evidence-changelog-bg));
+  --color-evidence-changelog-text: hsl(var(--evidence-changelog-text));
+  --color-evidence-changelog-accent: hsl(var(--evidence-changelog-accent));
+  
+  --color-evidence-community-bg: hsl(var(--evidence-community-bg));
+  --color-evidence-community-text: hsl(var(--evidence-community-text));
+  --color-evidence-community-accent: rgb(var(--evidence-community-accent));
   
   /* Border radius */
   --radius-sm: var(--radius-sm);
@@ -744,20 +869,7 @@
     background: rgb(var(--bg-surface));
   }
   
-  .plinth-card {
-    background: rgb(var(--bg-page));
-    border: 1px solid rgb(var(--border-subtle-rgb));
-    box-shadow: var(--surface-raised-shadow);
-    transition: border-color var(--transition-base), box-shadow var(--transition-base);
-    cursor: pointer;
-  }
-  
-  .plinth-card:hover {
-    border-color: rgb(var(--border-strong-rgb));
-    box-shadow: var(--shadow);
-  }
-  
-  /* Premium card with elevation */
+  /* Premium card with elevation (uses plinth-card from utilities) */
   .plinth-card-elevated {
     background: rgb(var(--bg-page));
     border: 1px solid rgb(var(--border-subtle-rgb));
@@ -814,7 +926,7 @@
     animation: pulseSoft 2s ease-in-out infinite;
   }
   
-  /* Shimmer for loading states */
+  /* Shimmer for loading states - Premium skeleton animation */
   .shimmer {
     background: linear-gradient(
       90deg,
@@ -824,6 +936,20 @@
     );
     background-size: 1000px 100%;
     animation: shimmer 2s linear infinite;
+  }
+  
+  /* Enhanced skeleton shimmer - More premium feel */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--surface-muted)) 0%,
+      hsl(var(--surface)) 25%,
+      hsl(var(--surface)) 50%,
+      hsl(var(--surface)) 75%,
+      hsl(var(--surface-muted)) 100%
+    );
+    background-size: 1200px 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
   }
   
   .plinth-surface-tint {
@@ -880,6 +1006,49 @@
   
   .clickable-row:active {
     background-color: hsl(var(--muted) / 0.7);
+  }
+  
+  /* Signature Motion Micro-interactions - Subtle, fast, classy */
+  /* Hover lift + shadow for cards/buttons */
+  .motion-lift {
+    transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+  }
+  
+  .motion-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .motion-lift:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  /* Focus ring - Clean, branded */
+  .motion-focus-ring {
+    transition: outline-color 150ms ease-out, outline-offset 150ms ease-out;
+  }
+  
+  .motion-focus-ring:focus-visible {
+    outline: 2px solid hsl(var(--accent-primary));
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  
+  /* Page section reveal - Subtle fade + slide */
+  .motion-reveal {
+    animation: slideUp 200ms ease-out;
+  }
+  
+  /* Card hover with subtle lift */
+  .card-hover {
+    transition: transform 200ms ease-out, box-shadow 200ms ease-out, border-color 200ms ease-out;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: hsl(var(--border-strong));
   }
 
   /* Evidence Material System - Bound artifact visual language */
@@ -1035,6 +1204,335 @@
     border: 1px solid hsl(var(--plinth-border-evidence-inner));
     pointer-events: none;
     z-index: 1;
+  }
+}
+
+@layer utilities {
+  /* Plinth Glass Surface Utilities - Layered depth system */
+  .plinth-surface {
+    background: rgb(var(--plinth-surface-1-bg));
+    border: 1px solid rgb(var(--plinth-surface-1-border));
+    border-radius: var(--radius-md);
+    box-shadow: var(--plinth-surface-1-shadow);
+    position: relative;
+    /* Subtle noise texture */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, var(--plinth-noise-opacity)) 2px,
+        rgba(0, 0, 0, var(--plinth-noise-opacity)) 4px
+      );
+  }
+  
+  /* Edge highlight for glass effect */
+  .plinth-surface::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--plinth-glass-edge-highlight);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .plinth-panel {
+    background: rgb(var(--plinth-surface-1-bg));
+    border: 1px solid rgb(var(--plinth-surface-1-border));
+    border-radius: var(--radius-lg);
+    box-shadow: var(--plinth-surface-1-shadow);
+    position: relative;
+    backdrop-filter: blur(var(--plinth-surface-1-blur));
+    -webkit-backdrop-filter: blur(var(--plinth-surface-1-blur));
+    /* Subtle noise texture */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, var(--plinth-noise-opacity)) 2px,
+        rgba(0, 0, 0, var(--plinth-noise-opacity)) 4px
+      );
+  }
+  
+  .plinth-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--plinth-glass-edge-highlight);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .plinth-card {
+    background: rgb(var(--plinth-surface-1-bg));
+    border: 1px solid rgb(var(--plinth-surface-1-border));
+    border-radius: var(--radius-md);
+    box-shadow: var(--plinth-surface-1-shadow);
+    position: relative;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+    /* Subtle noise texture */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, var(--plinth-noise-opacity)) 2px,
+        rgba(0, 0, 0, var(--plinth-noise-opacity)) 4px
+      );
+  }
+  
+  .plinth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--plinth-glass-edge-highlight);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .plinth-card:hover {
+    border-color: rgb(var(--plinth-surface-2-border));
+    box-shadow: var(--plinth-surface-2-shadow);
+  }
+  
+  /* Elevation levels */
+  .plinth-elev-0 {
+    background: rgb(var(--plinth-surface-0-bg));
+    border: var(--plinth-surface-0-border);
+    box-shadow: var(--plinth-surface-0-shadow);
+  }
+  
+  .plinth-elev-1 {
+    background: rgb(var(--plinth-surface-1-bg));
+    border: 1px solid rgb(var(--plinth-surface-1-border));
+    box-shadow: var(--plinth-surface-1-shadow);
+    position: relative;
+  }
+  
+  .plinth-elev-1::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--plinth-glass-edge-highlight);
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .plinth-elev-2 {
+    background: rgb(var(--plinth-surface-2-bg));
+    border: 1px solid rgb(var(--plinth-surface-2-border));
+    box-shadow: var(--plinth-surface-2-shadow);
+    backdrop-filter: blur(var(--plinth-surface-2-blur));
+    -webkit-backdrop-filter: blur(var(--plinth-surface-2-blur));
+    position: relative;
+  }
+  
+  .plinth-elev-2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--plinth-glass-edge-highlight);
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  /* Confidence Spectrum Utilities */
+  .confidence-badge-directional {
+    background: hsl(var(--confidence-directional-bg));
+    color: hsl(var(--confidence-directional-text));
+    border-color: hsl(var(--confidence-directional-border));
+  }
+  
+  .confidence-badge-supported {
+    background: hsl(var(--confidence-supported-bg));
+    color: hsl(var(--confidence-supported-text));
+    border-color: hsl(var(--confidence-supported-border));
+  }
+  
+  .confidence-badge-investment-ready {
+    background: hsl(var(--confidence-investment-ready-bg));
+    color: hsl(var(--confidence-investment-ready-text));
+    border-color: hsl(var(--confidence-investment-ready-border));
+  }
+  
+  /* Confidence rail (thin left border) */
+  .confidence-rail-directional {
+    border-left: 3px solid hsl(var(--confidence-directional-accent));
+  }
+  
+  .confidence-rail-supported {
+    border-left: 3px solid hsl(var(--confidence-supported-accent));
+  }
+  
+  .confidence-rail-investment-ready {
+    border-left: 3px solid hsl(var(--confidence-investment-ready-accent));
+  }
+  
+  /* Confidence bar (progress indicator) */
+  .confidence-bar-directional {
+    background: linear-gradient(
+      to right,
+      hsl(var(--confidence-directional-accent)) 0%,
+      hsl(var(--confidence-directional-accent) / 0.6) 100%
+    );
+  }
+  
+  .confidence-bar-supported {
+    background: linear-gradient(
+      to right,
+      hsl(var(--confidence-supported-accent)) 0%,
+      hsl(var(--confidence-supported-accent) / 0.6) 100%
+    );
+  }
+  
+  .confidence-bar-investment-ready {
+    background: linear-gradient(
+      to right,
+      hsl(var(--confidence-investment-ready-accent)) 0%,
+      hsl(var(--confidence-investment-ready-accent) / 0.6) 100%
+    );
+  }
+  
+  /* Evidence Type Accent Utilities */
+  .evidence-accent-pricing {
+    background: hsl(var(--evidence-pricing-bg));
+    color: hsl(var(--evidence-pricing-text));
+  }
+  
+  .evidence-accent-docs {
+    background: hsl(var(--evidence-docs-bg));
+    color: hsl(var(--evidence-docs-text));
+  }
+  
+  .evidence-accent-reviews {
+    background: hsl(var(--evidence-reviews-bg));
+    color: hsl(var(--evidence-reviews-text));
+  }
+  
+  .evidence-accent-changelog {
+    background: hsl(var(--evidence-changelog-bg));
+    color: hsl(var(--evidence-changelog-text));
+  }
+  
+  .evidence-accent-community {
+    background: hsl(var(--evidence-community-bg));
+    color: hsl(var(--evidence-community-text));
+  }
+  
+  /* Readout Typography Utilities - Executive brief styling */
+  .readout-h1 {
+    font-family: var(--plinth-font-display);
+    font-size: var(--font-size-2xl);
+    font-weight: 600;
+    line-height: var(--plinth-leading-tight);
+    letter-spacing: var(--plinth-tracking-tight);
+    color: hsl(var(--plinth-text-strong));
+    max-width: 65ch; /* Limit line length for readability */
+  }
+  
+  .readout-h2 {
+    font-family: var(--plinth-font-display);
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    line-height: var(--plinth-leading-tight);
+    letter-spacing: var(--plinth-tracking-tight);
+    color: hsl(var(--plinth-text-strong));
+    max-width: 65ch;
+  }
+  
+  .readout-kicker {
+    font-family: var(--plinth-font-body);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    line-height: var(--plinth-leading-normal);
+    letter-spacing: var(--plinth-tracking-wide);
+    text-transform: uppercase;
+    color: hsl(var(--plinth-text-muted));
+  }
+  
+  .readout-body {
+    font-family: var(--plinth-font-body);
+    font-size: var(--font-size-base);
+    font-weight: 400;
+    line-height: var(--plinth-leading-relaxed);
+    letter-spacing: var(--plinth-tracking-normal);
+    color: hsl(var(--plinth-text-strong));
+    max-width: 65ch;
+  }
+  
+  .readout-label {
+    font-family: var(--plinth-font-body);
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+    line-height: var(--plinth-leading-normal);
+    letter-spacing: var(--plinth-tracking-normal);
+    color: hsl(var(--plinth-text-muted));
+  }
+  
+  /* Readout layout - Slightly wider measure, consistent dividers */
+  .readout-layout {
+    max-width: 75ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .readout-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid hsl(var(--border-subtle));
+  }
+  
+  .readout-section:last-child {
+    border-bottom: none;
+  }
+  
+  /* Branded Data Viz Primitives - Plinth tick motif */
+  /* Plinth tick - Tiny notch/marker for quantified elements */
+  .plinth-tick {
+    position: relative;
+  }
+  
+  .plinth-tick::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 60%;
+    background: hsl(var(--accent-primary));
+    border-radius: 1px;
+  }
+  
+  .plinth-tick-right::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 60%;
+    background: hsl(var(--accent-primary));
+    border-radius: 1px;
   }
 }
 

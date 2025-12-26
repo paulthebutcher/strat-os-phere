@@ -35,11 +35,11 @@ export function ReadoutHeader({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <PlinthIconDirect name="readout" size={20} className="text-foreground/70" />
-            <h1 className="text-3xl font-semibold text-foreground tracking-tight">
+            <h1 className="readout-h1">
               Results readout
             </h1>
           </div>
-          <p className="text-base text-muted-foreground">
+          <p className="readout-label">
             A decision-ready synthesis of your competitive landscape
           </p>
           {formattedDate && (

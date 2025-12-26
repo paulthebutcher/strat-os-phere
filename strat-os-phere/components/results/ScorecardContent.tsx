@@ -71,11 +71,11 @@ export function ScorecardContent({
     <section className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground mb-2 flex items-center gap-2">
+          <h1 className="readout-h1 mb-2 flex items-center gap-2">
             <PlinthIconDirect name="score" size={22} className="text-foreground/70" />
             Scorecard
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="readout-label">
             Competitive evaluation on key criteria weighted by importance.
           </p>
         </div>
@@ -87,11 +87,11 @@ export function ScorecardContent({
         <SectionCard className="score-summary">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
+              <h2 className="readout-h2 mb-1 flex items-center gap-2">
                 <PlinthIconDirect name="coverage" size={18} className="text-foreground/70" />
                 Evidence Coverage
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="readout-label">
                 Overall quality and completeness of evidence used for scoring
               </p>
             </div>
@@ -106,7 +106,7 @@ export function ScorecardContent({
 
       {scoring.criteria && scoring.criteria.length > 0 && (
         <SectionCard>
-          <h2 className="text-xl font-semibold text-foreground mb-6">Criteria</h2>
+          <h2 className="readout-h2 mb-6">Criteria</h2>
           <div className="space-y-6">
             {scoring.criteria.map((criterion) => {
               // Find scores for this criterion
@@ -201,7 +201,7 @@ export function ScorecardContent({
 
       {sortedSummary.length > 0 && (
         <SectionCard>
-          <h2 className="text-xl font-semibold text-foreground mb-6">Competitor breakdown</h2>
+          <h2 className="readout-h2 mb-6">Competitor breakdown</h2>
           <div className="space-y-6">
             {sortedSummary.map((summary, index) => (
               <div key={index} className="space-y-4">

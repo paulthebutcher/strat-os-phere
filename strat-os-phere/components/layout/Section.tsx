@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { ReceiptPerforation } from "@/components/graphics/SignalMotifs"
 
 export interface SectionProps {
   title?: string
@@ -16,7 +17,7 @@ export interface SectionProps {
  * Provides:
  * - Optional title + description
  * - Consistent spacing above/below (24px gap)
- * - Optional divider (border-top)
+ * - Optional divider (border-top with signal motif)
  * 
  * Use for grouping related content with consistent rhythm.
  */
@@ -33,10 +34,15 @@ export function PageSection({
       id={id}
       className={cn(
         "space-y-4",
-        divider && "border-t border-border pt-6",
+        divider && "pt-6",
         className
       )}
     >
+      {divider && (
+        <div className="mb-4 -mt-2">
+          <ReceiptPerforation className="text-foreground" opacity={0.06} />
+        </div>
+      )}
       {(title || description) && (
         <div className="space-y-1">
           {title && (

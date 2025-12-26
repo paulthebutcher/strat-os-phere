@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { ContourLines } from "@/components/graphics/SignalMotifs"
 
 export interface PageHeaderProps {
   eyebrow?: string
@@ -19,6 +20,7 @@ export interface PageHeaderProps {
  * - Subtitle (optional, 1-2 lines, muted)
  * - Primary action (optional, right-aligned on desktop)
  * - Secondary actions (optional, right-aligned on desktop)
+ * - Subtle signal motif background
  * 
  * Rules:
  * - One primary action max
@@ -35,29 +37,35 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <header className={cn("space-y-2", className)}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1 flex-1">
-          {eyebrow && (
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {eyebrow}
-            </p>
-          )}
-          <h1 className="text-heading-l font-semibold text-foreground tracking-tight">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="text-sm text-muted-foreground max-w-2xl leading-normal">
-              {subtitle}
-            </p>
+    <header className={cn("relative space-y-2 pb-6", className)}>
+      {/* Subtle background motif */}
+      <div className="absolute -bottom-4 left-0 right-0 h-16 overflow-hidden pointer-events-none opacity-20">
+        <ContourLines className="w-full h-full text-foreground" opacity={0.03} />
+      </div>
+      <div className="relative z-10">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1 flex-1">
+            {eyebrow && (
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {eyebrow}
+              </p>
+            )}
+            <h1 className="text-heading-l font-semibold text-foreground tracking-tight">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="text-sm text-muted-foreground max-w-2xl leading-normal">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          {(primaryAction || secondaryActions) && (
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              {secondaryActions}
+              {primaryAction}
+            </div>
           )}
         </div>
-        {(primaryAction || secondaryActions) && (
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            {secondaryActions}
-            {primaryAction}
-          </div>
-        )}
       </div>
     </header>
   )

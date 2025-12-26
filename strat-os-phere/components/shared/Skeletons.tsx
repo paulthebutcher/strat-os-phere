@@ -13,13 +13,13 @@ export function SkeletonCard({ className }: { className?: string }) {
       )}
     >
       <div className="space-y-2">
-        <div className="h-5 bg-muted rounded w-3/4" />
-        <div className="h-4 bg-muted rounded w-1/2" />
+        <div className="h-5 bg-muted rounded w-3/4 skeleton-shimmer" />
+        <div className="h-4 bg-muted rounded w-1/2 skeleton-shimmer" />
       </div>
       <div className="space-y-3">
-        <div className="h-4 bg-muted rounded" />
-        <div className="h-4 bg-muted rounded w-5/6" />
-        <div className="h-4 bg-muted rounded w-4/6" />
+        <div className="h-4 bg-muted rounded skeleton-shimmer" />
+        <div className="h-4 bg-muted rounded w-5/6 skeleton-shimmer" />
+        <div className="h-4 bg-muted rounded w-4/6 skeleton-shimmer" />
       </div>
     </div>
   )
@@ -35,10 +35,10 @@ export function SkeletonTable({ rows = 3 }: { rows?: number }) {
         <div key={index} className="px-4 py-3 space-y-2 animate-pulse">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 space-y-2">
-              <div className="h-4 bg-muted rounded w-1/4" />
-              <div className="h-3 bg-muted rounded w-1/3" />
+              <div className="h-4 bg-muted rounded w-1/4 skeleton-shimmer" />
+              <div className="h-3 bg-muted rounded w-1/3 skeleton-shimmer" />
             </div>
-            <div className="h-8 bg-muted rounded w-20" />
+            <div className="h-8 bg-muted rounded w-20 skeleton-shimmer" />
           </div>
         </div>
       ))}
@@ -53,7 +53,7 @@ export function SkeletonLine({ width = 'full', className }: { width?: string; cl
   return (
     <div
       className={cn(
-        'h-4 bg-muted rounded animate-pulse',
+        'h-4 bg-muted rounded animate-pulse skeleton-shimmer',
         width === 'full' ? 'w-full' : width,
         className
       )}

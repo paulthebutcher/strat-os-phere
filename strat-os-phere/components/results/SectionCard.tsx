@@ -25,7 +25,8 @@ export function SectionCard({
       className={cn(
         'readout-card', // Evidence material styling
         'p-6',
-        'transition-all duration-[175ms] ease-out',
+        'card-hover', // Motion micro-interaction
+        'motion-reveal', // Page section reveal animation
         className
       )}
     >
