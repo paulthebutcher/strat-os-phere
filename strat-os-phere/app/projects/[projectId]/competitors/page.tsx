@@ -27,6 +27,7 @@ import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } fro
 import { logAppError } from '@/lib/errors/log'
 import { getLatestProjectInput } from '@/lib/data/projectInputs'
 import { SuggestedCompetitorsPanel } from '@/components/competitors/SuggestedCompetitorsPanel'
+import { getProjectStepState, logStepState } from '@/lib/projects/stepState'
 
 interface CompetitorsPageProps {
   params: Promise<{
@@ -126,7 +127,14 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
 
     const { project } = projectResult
 
+    // Get centralized step state (single source of truth)
+    const stepState = await getProjectStepState(supabase, projectId)
+    
+    // Dev-only instrumentation
+    logStepState(projectId, stepState, 'step2 page load')
+
     // Load suggested competitor names from project inputs (if any)
+    // Note: stepState.hasSuggestedCompetitors is a boolean, we still need the actual names
     let suggestedCompetitorNames: string[] = []
     try {
       const inputResult = await getLatestProjectInput(supabase, projectId)
@@ -193,8 +201,9 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
     const safeCompetitors = Array.isArray(competitors) ? competitors : []
     const safeArtifacts = Array.isArray(artifacts) ? artifacts : []
     
-    const competitorCount = safeCompetitors.length
-  const hasCompetitors = competitorCount > 0
+    // Use step state as source of truth (not derived from DB rows)
+    const competitorCount = stepState.competitorsCount
+    const hasCompetitors = competitorCount > 0
   const readyForAnalysis = competitorCount >= MIN_COMPETITORS_FOR_ANALYSIS
   const remainingToReady = Math.max(
     0,

@@ -24,6 +24,7 @@ import type { SearchParams } from '@/lib/routing/searchParams'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { getLatestProjectInput } from '@/lib/data/projectInputs'
 import { logger } from '@/lib/logger'
+import { getProjectStepState, logStepState } from '@/lib/projects/stepState'
 
 interface EvidencePageProps {
   params: Promise<{
@@ -134,58 +135,29 @@ export default async function EvidencePage(props: EvidencePageProps) {
     const { project } = projectResult
 
     // HARD GATE: Step 3 requires competitor confirmation
-    // Check if competitors are confirmed before allowing access to evidence page
-    let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
-    let competitorsConfirmed = false
-    
+    // Use centralized step state (single source of truth)
+    let stepState
     try {
-      // Load competitors and project inputs to check confirmation status
-      const [competitorsResult, inputResult] = await Promise.all([
-        listCompetitorsForProject(supabase, projectId).catch((error) => {
-          logProjectError({
-            route,
-            projectId,
-            queryName: 'listCompetitorsForProject (gate check)',
-            error,
-          })
-          return []
-        }),
-        getLatestProjectInput(supabase, projectId).catch(() => ({ ok: false as const, error: { code: 'UNKNOWN', message: 'Failed to load inputs' } })),
-      ])
+      stepState = await getProjectStepState(supabase, projectId)
       
-      competitors = competitorsResult ?? []
+      // Dev-only instrumentation
+      logStepState(projectId, stepState, 'step3 gate check')
       
-      // Check for confirmation timestamp or boolean flag
-      if (inputResult.ok && inputResult.data?.input_json) {
-        const inputs = inputResult.data.input_json as Record<string, any>
-        competitorsConfirmed = 
-          Boolean(inputs.competitorsConfirmedAt) || 
-          inputs.competitorsConfirmed === true
-      }
-      
-      // Dev-only logging
-      if (process.env.NODE_ENV !== 'production') {
-        logger.info('[flow] step3 gate check', {
-          projectId,
-          confirmed: competitorsConfirmed,
-          competitorCount: competitors.length,
-          hasConfirmedAt: Boolean(inputResult.ok && inputResult.data?.input_json && (inputResult.data.input_json as Record<string, any>).competitorsConfirmedAt),
-        })
-      }
-      
-      // Hard gate: redirect to Step 2 if competitors not confirmed or no competitors exist
-      if (!competitorsConfirmed || competitors.length === 0) {
+      // Hard gate: redirect to Step 2 if Step 2 is not complete
+      // Step 2 is complete only if BOTH confirmed AND has competitors
+      if (!stepState.canProceedToStep3) {
         if (process.env.NODE_ENV !== 'production') {
           logger.info('[flow] step3 gate redirect', {
             projectId,
-            confirmed: competitorsConfirmed,
-            competitorCount: competitors.length,
+            confirmed: stepState.competitorsConfirmed,
+            competitorCount: stepState.competitorsCount,
+            canProceed: stepState.canProceedToStep3,
           })
         }
         redirect(`/projects/${projectId}/competitors`)
       }
     } catch (error) {
-      // If we can't verify confirmation, redirect to be safe
+      // If we can't verify step state, redirect to be safe
       logProjectError({
         route,
         projectId,
@@ -193,7 +165,10 @@ export default async function EvidencePage(props: EvidencePageProps) {
         error,
       })
       if (process.env.NODE_ENV !== 'production') {
-        logger.info('[flow] step3 gate redirect (error)', { projectId, error: error instanceof Error ? error.message : 'unknown' })
+        logger.info('[flow] step3 gate redirect (error)', { 
+          projectId, 
+          error: error instanceof Error ? error.message : 'unknown' 
+        })
       }
       redirect(`/projects/${projectId}/competitors`)
     }
