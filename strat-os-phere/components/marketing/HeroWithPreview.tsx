@@ -15,7 +15,7 @@ import { MarketingContainer } from "./MarketingContainer"
 
 export function HeroWithPreview() {
   return (
-    <section className="relative overflow-hidden pt-16 md:pt-20 pb-8 sm:pb-12 md:pb-16">
+    <section className="relative overflow-hidden pt-20 md:pt-24 pb-8 sm:pb-12 md:pb-16">
       {/* Subtle radial gradient background */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div 
