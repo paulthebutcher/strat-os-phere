@@ -16,22 +16,22 @@ export function ProblemSection() {
   return (
     <MarketingSection variant="muted">
       <MarketingContainer maxWidth="7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[0.45fr_0.55fr] gap-8 lg:gap-12 items-center">
-          {/* Left: Text content - left-aligned for rhythm */}
+        <div className="flex flex-col gap-8 sm:gap-12">
+          {/* Context: Text content above - centered, constrained width */}
           <Reveal>
-            <div className="space-y-4 sm:space-y-5 text-left lg:pr-8">
+            <div className="text-center space-y-3 sm:space-y-4 max-w-3xl mx-auto">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-semibold tracking-tight text-text-primary leading-tight">
                 Too many opinions. Not enough proof.
               </h2>
-              <p className="text-sm sm:text-base text-text-secondary leading-relaxed">
+              <p className="text-sm sm:text-base text-text-secondary">
                 Most strategy debates fail before they start. Not because ideas are bad. Because evidence is thin.
               </p>
             </div>
           </Reveal>
           
-          {/* Right: Visual - full width on mobile, constrained on desktop */}
+          {/* Visual: Full-width visual below - the primary explanation */}
           <Reveal delay={60}>
-            <SignalChaosPanel className="rounded-xl border border-border-subtle/40 lg:min-h-[500px]" />
+            <SignalChaosPanel className="rounded-xl border border-border-subtle/40 lg:min-h-[500px] w-full" />
           </Reveal>
         </div>
       </MarketingContainer>
