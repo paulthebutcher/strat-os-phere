@@ -36,7 +36,7 @@ export function HeroWithPreview() {
                 <h1 className={cn(
                   "text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight leading-tight text-text-primary"
                 )}>
-                  Bring a hunch. Leave with receipts.
+                  Find your unfair advantage
                 </h1>
               </Reveal>
               
@@ -44,7 +44,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
                 )}>
-                  Plinth turns public signals into evidence you can stand behind.
+                  Plinth helps you see where you're ahead—and why it holds up.
                 </p>
               </Reveal>
 

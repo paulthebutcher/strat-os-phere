@@ -8,12 +8,12 @@
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { ProblemEvidenceCollage } from "./ProblemEvidenceCollage"
+import { BeforeAfterContrast } from "./BeforeAfterContrast"
 
 export function ProblemSection() {
   return (
     <MarketingSection variant="muted">
-      <MarketingContainer maxWidth="6xl">
+      <MarketingContainer maxWidth="7xl">
         <Reveal>
           <div className="text-center space-y-4 sm:space-y-6">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
@@ -25,10 +25,10 @@ export function ProblemSection() {
           </div>
         </Reveal>
         
-        {/* Visual collage showing the noise of strategy work */}
+        {/* Before/After contrast visual - the emotional hook */}
         <Reveal delay={60}>
-          <div className="mt-8 sm:mt-12">
-            <ProblemEvidenceCollage />
+          <div className="mt-8 sm:mt-12 md:mt-16">
+            <BeforeAfterContrast />
           </div>
         </Reveal>
       </MarketingContainer>

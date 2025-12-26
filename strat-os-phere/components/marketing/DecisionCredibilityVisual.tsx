@@ -1,10 +1,22 @@
 /**
  * DecisionCredibilityVisual
  * 
- * Single static visual that communicates Plinth's value in one frame:
- * Recommendation, Evidence attached, Confidence boundaries, What would change the call, and Next steps.
+ * Canonical "Decision Readout" visual - Plinth's visual signature.
  * 
- * Marketing-only component. No animation, no interaction - pure value communication.
+ * This is the hero asset used across the site:
+ * - Hero section
+ * - "No dashboards" section
+ * - Mid-page explainer
+ * - CTA reinforcement
+ * 
+ * Must visibly include:
+ * - Recommendation headline
+ * - Confidence score
+ * - Evidence source chips
+ * - Category scorecards
+ * - "What would change this call"
+ * 
+ * Like Stripe's payment form, Notion's editor, Linear's issue view.
  */
 "use client"
 
@@ -12,6 +24,8 @@ import { Badge } from "@/components/ui/badge"
 import { ConfidencePill } from "./ConfidencePill"
 import { cn } from "@/lib/utils"
 import { FileText, CheckCircle2 } from "lucide-react"
+import { EvidenceIcon, ConfidenceIcon, ChangeTriggerIcon } from "./icons/PlinthIcons"
+import { WhatWouldChangeVisual } from "./WhatWouldChangeVisual"
 
 // Confidence range bar component
 function ConfidenceRangeBar() {
@@ -80,11 +94,14 @@ export function DecisionCredibilityVisual() {
 
           {/* Row B: Evidence attached */}
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">
-              Evidence
-            </p>
+            <div className="flex items-center gap-2">
+              <EvidenceIcon size={16} />
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">
+                Evidence
+              </p>
+            </div>
             <p className="text-sm text-text-secondary mb-3">
-              12 sources attached
+              12 sources attached — all verifiable
             </p>
             <div className="flex flex-wrap gap-2">
               {evidenceSources.map((source, index) => {
@@ -108,9 +125,12 @@ export function DecisionCredibilityVisual() {
 
           {/* Row C: Confidence boundaries */}
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">
-              Confidence Boundaries
-            </p>
+            <div className="flex items-center gap-2">
+              <ConfidenceIcon size={16} />
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">
+                Confidence Boundaries
+              </p>
+            </div>
             <ConfidenceRangeBar />
           </div>
 
@@ -119,19 +139,7 @@ export function DecisionCredibilityVisual() {
 
           {/* Row D: What would change the call */}
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">
-              What Would Change This Call
-            </p>
-            <ul className="space-y-2 text-sm text-text-secondary">
-              <li className="flex items-start gap-2">
-                <span className="text-text-muted mt-0.5">•</span>
-                <span>+2 enterprise reviews confirming this pain</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-text-muted mt-0.5">•</span>
-                <span>Competitor X ships equivalent workflow</span>
-              </li>
-            </ul>
+            <WhatWouldChangeVisual variant="compact" />
           </div>
 
           {/* Divider */}

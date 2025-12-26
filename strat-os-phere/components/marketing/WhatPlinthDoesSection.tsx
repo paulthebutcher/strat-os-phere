@@ -20,7 +20,7 @@ export function WhatPlinthDoesSection() {
             {/* Section header */}
             <div className="text-center space-y-3 sm:space-y-4">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-text-primary leading-tight">
-                What Plinth does and doesn't do
+                How Plinth creates real advantage
               </h2>
             </div>
 
@@ -29,24 +29,20 @@ export function WhatPlinthDoesSection() {
               {/* Column 1: Plinth does */}
               <div className="space-y-4">
                 <h3 className="text-base sm:text-lg font-semibold text-text-primary">
-                  Plinth does
+                  Plinth focuses on
                 </h3>
                 <ul className="space-y-3 text-sm sm:text-base text-text-secondary leading-relaxed">
                   <li className="flex items-start">
                     <span className="mr-2 text-text-muted">•</span>
-                    <span>Aggregates public competitive signals</span>
+                    <span>Competitive signals that shape real bets</span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-text-muted">•</span>
-                    <span>Makes assumptions explicit</span>
+                    <span>Explicit assumptions and evidence</span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-text-muted">•</span>
-                    <span>Shows confidence and uncertainty side-by-side</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2 text-text-muted">•</span>
-                    <span>Produces shareable, inspectable readouts</span>
+                    <span>Outputs you can stand behind</span>
                   </li>
                 </ul>
               </div>
@@ -54,24 +50,20 @@ export function WhatPlinthDoesSection() {
               {/* Column 2: Plinth doesn't */}
               <div className="space-y-4">
                 <h3 className="text-base sm:text-lg font-semibold text-text-primary">
-                  Plinth doesn't
+                  Plinth avoids
                 </h3>
                 <ul className="space-y-3 text-sm sm:text-base text-text-secondary leading-relaxed">
                   <li className="flex items-start">
                     <span className="mr-2 text-text-muted">•</span>
-                    <span>Replace strategic judgment</span>
+                    <span>Endless exploration</span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-text-muted">•</span>
-                    <span>Hide uncertainty behind scores</span>
+                    <span>False certainty</span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-text-muted">•</span>
-                    <span>Optimize for dashboards or vanity metrics</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2 text-text-muted">•</span>
-                    <span>Claim certainty where none exists</span>
+                    <span>Vanity metrics</span>
                   </li>
                 </ul>
               </div>

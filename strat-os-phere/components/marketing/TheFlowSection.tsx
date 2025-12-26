@@ -94,7 +94,7 @@ export function TheFlowSection() {
               From hunch to proof.
             </h2>
             <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
-              Question to evidence to readout. This holds up.
+              Advantage starts as instinct. It survives on evidence.
             </p>
           </div>
         </Reveal>
@@ -117,7 +117,7 @@ export function TheFlowSection() {
                     Bring the question
                   </h3>
                   <p className="text-xs text-text-secondary">
-                    A hunch, a market, a bet you're considering.
+                    Where you think you might have an edge.
                   </p>
                 </div>
               </div>
@@ -141,10 +141,10 @@ export function TheFlowSection() {
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold text-text-primary">
-                    We bring the proof
+                    We gather signals
                   </h3>
                   <p className="text-xs text-text-secondary">
-                    Pricing, docs, reviews, changelogs. Tagged and inspectable.
+                    Competitors, pricing, docs, reviews—what the market actually shows.
                   </p>
                 </div>
               </div>
@@ -166,10 +166,10 @@ export function TheFlowSection() {
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold text-text-primary">
-                    You walk in prepared
+                    You see the advantage
                   </h3>
                   <p className="text-xs text-text-secondary">
-                    One clear point of view. Sources attached. Uncertainty shown.
+                    One clear point of view, with proof attached.
                   </p>
                 </div>
               </div>

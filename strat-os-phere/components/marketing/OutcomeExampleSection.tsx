@@ -27,7 +27,7 @@ export function OutcomeExampleSection() {
                 No dashboards. No rabbit holes.
               </h2>
               <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
-                Just the output you would actually share.
+                Just the part that creates leverage.
               </p>
             </div>
 
@@ -42,7 +42,7 @@ export function OutcomeExampleSection() {
                         One clear point of view
                       </h3>
                       <p className="text-xs text-text-secondary">
-                        Not 12 "insights." One recommendation you can explain.
+                        Not a list of ideas. The one that matters.
                       </p>
                     </li>
                     <li className="space-y-1">
@@ -50,7 +50,7 @@ export function OutcomeExampleSection() {
                         Proof you can open
                       </h3>
                       <p className="text-xs text-text-secondary">
-                        Every claim links to a real source. Easy to verify. Easy to share.
+                        Every claim ties back to a real source.
                       </p>
                     </li>
                     <li className="space-y-1">
@@ -58,7 +58,7 @@ export function OutcomeExampleSection() {
                         Confidence you can explain
                       </h3>
                       <p className="text-xs text-text-secondary">
-                        See what's solid, what's directional, and what's missing.
+                        What's solid. What's directional. What's missing.
                       </p>
                     </li>
                     <li className="space-y-1">
@@ -66,13 +66,10 @@ export function OutcomeExampleSection() {
                         What would change the call
                       </h3>
                       <p className="text-xs text-text-secondary">
-                        The next evidence to gather. So you know exactly what to do next.
+                        The signals that would erase your edge—or strengthen it.
                       </p>
                     </li>
                   </ul>
-                  <p className="text-xs text-text-muted italic pt-2">
-                    This holds up in skeptical rooms. And fast-moving teams.
-                  </p>
                 </div>
               </div>
 

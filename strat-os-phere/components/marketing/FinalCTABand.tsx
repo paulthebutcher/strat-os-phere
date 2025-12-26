@@ -21,7 +21,7 @@ export function FinalCTABand() {
           <div className="space-y-8 sm:space-y-10">
             <div className="text-center space-y-4">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-text-primary">
-                See what holds up.
+                See where you're ahead
               </h2>
             </div>
             
