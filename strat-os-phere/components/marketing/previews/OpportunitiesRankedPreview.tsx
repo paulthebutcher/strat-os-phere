@@ -9,13 +9,14 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { ConfidencePill } from "@/components/marketing/ConfidencePill"
+import { sampleAnalysis } from "../sampleReadoutData"
 
 const opportunities = [
   {
     rank: 1,
-    title: "Introduce a constrained free tier to unlock mid-market adoption",
-    confidence: "investment_ready" as const,
-    citations: 8,
+    title: sampleAnalysis.recommendation.title,
+    confidence: sampleAnalysis.recommendation.confidenceLevel,
+    citations: sampleAnalysis.evidence.totalSources - 7,
   },
   {
     rank: 2,

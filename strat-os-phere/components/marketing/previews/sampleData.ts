@@ -4,75 +4,55 @@
  * Static sample data used by marketing preview components.
  * These are NOT real app data - they're purely presentational for the landing page.
  * No API calls, no database queries, no app state.
+ * 
+ * Note: This file is being phased out in favor of sampleReadoutData.ts for consistency.
+ * Some components may still reference this for backward compatibility.
  */
 
+import { sampleAnalysis } from "../sampleReadoutData"
+
 export const sampleEvidenceQueue = {
-  competitors: [
-    { name: "PagerDuty", domain: "pagerduty.com", status: "done" },
-    { name: "Opsgenie", domain: "atlassian.com", status: "done" },
-    { name: "Splunk On-Call", domain: "splunk.com", status: "fetching" },
-    { name: "Better Stack", domain: "betterstack.com", status: "queued" },
-    { name: "Datadog", domain: "datadoghq.com", status: "queued" },
-  ],
-  items: [
-    { type: "Pricing", title: "Pricing", domain: "pagerduty.com", status: "done" },
-    { type: "Docs", title: "API Docs", domain: "pagerduty.com", status: "done" },
-    { type: "Changelog", title: "Release Notes", domain: "pagerduty.com", status: "done" },
-    { type: "Pricing", title: "Pricing", domain: "atlassian.com", status: "done" },
-    { type: "Docs", title: "Documentation", domain: "atlassian.com", status: "done" },
-    { type: "Pricing", title: "Pricing", domain: "splunk.com", status: "fetching" },
-    { type: "Docs", title: "Documentation", domain: "splunk.com", status: "queued" },
-    { type: "Reviews", title: "G2 Reviews", domain: "g2.com", status: "skipped" },
-    { type: "Pricing", title: "Pricing", domain: "betterstack.com", status: "queued" },
-  ],
-  coverage: { sources: 14, types: 4, freshness: "High", progress: 68 },
-  currentTask: "Collecting pricing pages from splunk.com...",
+  competitors: sampleAnalysis.competitors.map((comp, idx) => ({
+    name: comp.name,
+    domain: comp.domain,
+    status: idx < 2 ? "done" : idx === 2 ? "fetching" : "queued"
+  })),
+  items: sampleAnalysis.evidence.sources.slice(0, 9).map((source, idx) => ({
+    type: source.type,
+    title: source.title,
+    domain: source.domain,
+    status: idx < 5 ? "done" : idx === 5 ? "fetching" : idx === 7 ? "skipped" : "queued"
+  })),
+  coverage: { 
+    sources: sampleAnalysis.evidence.totalSources, 
+    types: sampleAnalysis.evidence.types.length, 
+    freshness: "High", 
+    progress: 68 
+  },
+  currentTask: `Collecting pricing pages from ${sampleAnalysis.competitors[2].domain}...`,
 };
 
 export const sampleNormalizedLedger = {
-  evidenceTypes: [
-    { id: "pricing", label: "Pricing", count: 12, active: true },
-    { id: "docs", label: "Docs", count: 8, active: false },
-    { id: "changelog", label: "Changelog", count: 5, active: false },
-    { id: "reviews", label: "Reviews", count: 15, active: false },
-  ],
-  evidenceRows: [
-    {
-      domain: "pagerduty.com",
-      pageTitle: "Pricing - PagerDuty",
-      extractedAt: "2 days ago",
-      badges: ["Pricing", "Fresh"],
-      confidence: "high",
-    },
-    {
-      domain: "atlassian.com",
-      pageTitle: "Opsgenie Pricing Plans",
-      extractedAt: "1 day ago",
-      badges: ["Pricing", "Fresh"],
-      confidence: "high",
-    },
-    {
-      domain: "splunk.com",
-      pageTitle: "Splunk On-Call Pricing",
-      extractedAt: "5 days ago",
-      badges: ["Pricing"],
-      confidence: "medium",
-    },
-    {
-      domain: "betterstack.com",
-      pageTitle: "Better Stack Pricing",
-      extractedAt: "3 days ago",
-      badges: ["Pricing", "Fresh"],
-      confidence: "high",
-    },
-    {
-      domain: "datadoghq.com",
-      pageTitle: "Datadog Incident Management Pricing",
-      extractedAt: "1 week ago",
-      badges: ["Pricing"],
-      confidence: "medium",
-    },
-  ],
+  evidenceTypes: sampleAnalysis.evidence.types.map(et => ({
+    id: et.type.toLowerCase(),
+    label: et.type,
+    count: et.count,
+    active: et.type === "Pricing"
+  })),
+  evidenceRows: sampleAnalysis.evidence.sources
+    .filter(s => s.type === "Pricing")
+    .slice(0, 5)
+    .map(source => ({
+      domain: source.domain,
+      pageTitle: source.title,
+      extractedAt: source.updated,
+      badges: source.updated.includes("week") || source.updated.includes("day") 
+        ? ["Pricing", "Fresh"] 
+        : ["Pricing"],
+      confidence: source.updated.includes("week") || source.updated.includes("day") 
+        ? "high" 
+        : "medium",
+    })),
   confidenceSignals: {
     crossSourceAgreement: { level: "High", percentage: 92 },
     recency: { days: 30, label: "30 days" },
@@ -83,29 +63,26 @@ export const sampleNormalizedLedger = {
 export const sampleRankedOpportunities = [
   {
     rank: 1,
-    title: "Free tier expansion opportunity",
+    title: sampleAnalysis.recommendation.title,
     description:
-      "3 of 5 competitors offer free tiers with generous limits. PagerDuty and Opsgenie have seen 40%+ user growth after launching free tiers.",
-    confidence: 92,
+      `${sampleAnalysis.competitors.length - 1} of ${sampleAnalysis.competitors.length} competitors offer free tiers with similar positioning. ${sampleAnalysis.competitors[0].name} and ${sampleAnalysis.competitors[1].name} have seen significant user growth after launching free tiers.`,
+    confidence: sampleAnalysis.recommendation.score,
     defensibility: "High",
-    citations: 8,
+    citations: sampleAnalysis.evidence.totalSources - 7,
     metrics: [
-      { label: "Market coverage", value: "60%" },
+      { label: "Market coverage", value: "80%" },
       { label: "User impact", value: "High" },
     ],
-    sources: [
-      "pagerduty.com/pricing",
-      "atlassian.com/docs",
-      "splunk.com/blog",
-      "betterstack.com/pricing",
-      "datadoghq.com/changelog",
-    ],
+    sources: sampleAnalysis.evidence.sources
+      .filter(s => s.type === "Pricing" || s.type === "Docs")
+      .slice(0, 5)
+      .map(s => `${s.domain}${s.path}`),
   },
   {
     rank: 2,
     title: "API-first positioning gap",
     description:
-      "Opsgenie and Better Stack emphasize API access in their positioning. Splunk and PagerDuty have limited API marketing, creating a positioning opportunity.",
+      `${sampleAnalysis.competitors[1].name} and ${sampleAnalysis.competitors[2].name} emphasize API access in their positioning. Other competitors have limited API marketing, creating a positioning opportunity.`,
     confidence: 85,
     defensibility: "Medium",
     citations: 6,
@@ -113,12 +90,10 @@ export const sampleRankedOpportunities = [
       { label: "Market coverage", value: "40%" },
       { label: "User impact", value: "Medium" },
     ],
-    sources: [
-      "atlassian.com/docs",
-      "betterstack.com/docs",
-      "splunk.com/docs",
-      "pagerduty.com/docs",
-    ],
+    sources: sampleAnalysis.evidence.sources
+      .filter(s => s.type === "Docs")
+      .slice(0, 4)
+      .map(s => `${s.domain}${s.path}`),
   },
   {
     rank: 3,
@@ -132,13 +107,10 @@ export const sampleRankedOpportunities = [
       { label: "Market coverage", value: "80%" },
       { label: "User impact", value: "High" },
     ],
-    sources: [
-      "g2.com/reviews",
-      "pagerduty.com/changelog",
-      "atlassian.com/changelog",
-      "splunk.com/blog",
-      "betterstack.com/docs",
-    ],
+    sources: sampleAnalysis.evidence.sources
+      .filter(s => s.type === "Reviews" || s.type === "Changelog")
+      .slice(0, 5)
+      .map(s => `${s.domain}${s.path}`),
   },
 ];
 

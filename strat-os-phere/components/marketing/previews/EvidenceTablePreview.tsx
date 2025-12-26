@@ -9,18 +9,17 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { ExternalLink } from "lucide-react"
+import { sampleAnalysis } from "../sampleReadoutData"
 
-const evidence = [
-  { domain: "competitor-a.com/pricing", type: "Pricing" },
-  { domain: "G2 Enterprise review", type: "Reviews" },
-  { domain: "competitor-b.com/docs", type: "Docs" },
-]
+const evidence = sampleAnalysis.evidence.sources.slice(0, 3).map(source => ({
+  domain: `${source.domain}${source.path}`,
+  type: source.type
+}))
 
-const sourcePills = [
-  { label: "Pricing page", type: "Pricing" },
-  { label: "Docs", type: "Docs" },
-  { label: "Reviews", type: "Reviews" },
-]
+const sourcePills = sampleAnalysis.evidence.types.slice(0, 3).map(et => ({
+  label: et.type,
+  type: et.type
+}))
 
 export function EvidenceTablePreview() {
   return (

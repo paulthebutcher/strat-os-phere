@@ -13,6 +13,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 interface ProblemEvidenceCollageProps {
   className?: string
@@ -75,8 +76,9 @@ export function ProblemEvidenceCollage({ className }: ProblemEvidenceCollageProp
           <div className="h-1 bg-slate-200 rounded w-4/5" />
           {/* Highlighted text */}
           <div className="mt-2 p-1.5 bg-yellow-100/60 rounded border border-yellow-200/40">
-            <div className="h-1 bg-yellow-600/30 rounded w-full" />
-            <div className="h-1 bg-yellow-600/30 rounded w-3/4 mt-0.5" />
+            <div className="text-[9px] text-yellow-900/70 leading-tight font-medium">
+              Users can't evaluate without procurement approval
+            </div>
           </div>
           <div className="h-1 bg-slate-200 rounded w-full mt-1" />
         </div>
@@ -100,8 +102,9 @@ export function ProblemEvidenceCollage({ className }: ProblemEvidenceCollageProp
           <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border-subtle/40">
             <div className="w-5 h-5 rounded-full bg-blue-200/60" />
             <div className="flex-1 space-y-1">
-              <div className="h-1 bg-slate-200 rounded w-full" />
-              <div className="h-1 bg-slate-200 rounded w-3/4" />
+              <div className="text-[9px] text-slate-600/70 leading-tight font-medium">
+                Do we need a free tier to compete with {sampleAnalysis.competitors[0].name}?
+              </div>
             </div>
           </div>
           {/* Opinion indicator */}
@@ -125,7 +128,9 @@ export function ProblemEvidenceCollage({ className }: ProblemEvidenceCollageProp
           </div>
           {/* Bold claim highlight */}
           <div className="mt-3 p-2 bg-red-50/50 rounded border border-red-100/30">
-            <div className="h-2 bg-red-200/40 rounded w-full font-semibold" />
+            <div className="text-[9px] text-red-800/70 leading-tight font-semibold">
+              What's the evidence? Which sources?
+            </div>
           </div>
         </div>
 

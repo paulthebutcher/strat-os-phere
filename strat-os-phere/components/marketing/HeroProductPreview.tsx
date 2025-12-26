@@ -11,19 +11,20 @@ import { Badge } from "@/components/ui/badge"
 import { ConfidencePill } from "./ConfidencePill"
 import { cn } from "@/lib/utils"
 import { FileText, TrendingUp, Shield } from "lucide-react"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 // Sample opportunity data for the preview
 const sampleOpportunity = {
-  title: "Introduce a constrained free tier to unlock mid-market adoption",
-  oneLiner: "4/5 competitors offer free tiers capped at usage. Reviews cite 'trial friction' as a blocker to adoption.",
-  confidence: "directional" as const,
-  score: 8.7,
-  evidenceCount: 14,
-  citations: [
-    { type: "Pricing", domain: "competitor-a.com", note: "SSO included in Enterprise plan" },
-    { type: "Docs", domain: "competitor-b.com", note: "Published 2 months ago" },
-    { type: "Reviews", domain: "review-site.com", note: "47 upvotes, top request" },
-  ],
+  title: sampleAnalysis.recommendation.title,
+  oneLiner: `${sampleAnalysis.competitors.length - 1}/${sampleAnalysis.competitors.length} competitors offer free tiers capped at usage. Reviews cite 'trial friction' as a blocker to adoption.`,
+  confidence: sampleAnalysis.recommendation.confidenceLevel,
+  score: sampleAnalysis.recommendation.score / 10,
+  evidenceCount: sampleAnalysis.evidence.totalSources,
+  citations: sampleAnalysis.evidence.sources.slice(0, 3).map(source => ({
+    type: source.type,
+    domain: source.domain,
+    note: `Updated ${source.updated}`
+  })),
 }
 
 export function HeroProductPreview() {

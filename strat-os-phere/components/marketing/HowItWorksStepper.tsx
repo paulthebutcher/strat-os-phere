@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { ConfidencePill } from "./ConfidencePill"
 import { cn } from "@/lib/utils"
 import { Lightbulb, Search, TrendingUp, ArrowRight } from "lucide-react"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 // Step 1 Visual: Single sentence input
 function Step1Visual() {
@@ -28,11 +29,10 @@ function Step1Visual() {
 
 // Step 2 Visual: Stacked source pills
 function Step2Visual() {
-  const sources = [
-    { type: "Pricing", domain: "competitor-a.com" },
-    { type: "Docs", domain: "competitor-b.com" },
-    { type: "Reviews", domain: "review-site.com" },
-  ]
+  const sources = sampleAnalysis.evidence.sources.slice(0, 3).map(source => ({
+    type: source.type,
+    domain: source.domain
+  }))
 
   return (
     <div className="space-y-2">

@@ -17,59 +17,57 @@ import { cn } from "@/lib/utils"
 import { useEffect, useRef, useState } from "react"
 import { ConfidencePill } from "@/components/marketing/ConfidencePill"
 import { prefersReducedMotion } from "@/lib/motion/tokens"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 // Hero proof asset — single investment-ready recommendation
 const primaryOpportunity = {
-  title: "Introduce a constrained free tier to unlock mid-market adoption",
-  confidence: "investment_ready" as const,
-  overallScore: 82,
-  citationsCount: 8,
-  evidenceTypes: ["pricing", "docs", "reviews"]
+  title: sampleAnalysis.recommendation.title,
+  confidence: sampleAnalysis.recommendation.confidenceLevel,
+  overallScore: sampleAnalysis.recommendation.score,
+  citationsCount: sampleAnalysis.evidence.totalSources - 7,
+  evidenceTypes: sampleAnalysis.evidence.types.slice(0, 3).map(et => et.type.toLowerCase())
 }
 
 // Evidence categories with scores and sources
 const evidenceCategories = [
   {
-    category: "Competitive Norms",
-    insight: "4 / 5 competitors offer capped free tiers",
-    score: 9,
-    maxScore: 10,
+    category: sampleAnalysis.recommendation.scoreBreakdown.competitiveNorms.label,
+    insight: sampleAnalysis.recommendation.scoreBreakdown.competitiveNorms.reasoning,
+    score: sampleAnalysis.recommendation.scoreBreakdown.competitiveNorms.score,
+    maxScore: sampleAnalysis.recommendation.scoreBreakdown.competitiveNorms.max,
     sourceTypes: ["Pricing"]
   },
   {
-    category: "Customer Friction",
-    insight: "Reviews cite trial friction as adoption blocker",
-    score: 8,
-    maxScore: 10,
-    sourceTypes: ["Reviews", "G2"]
+    category: sampleAnalysis.recommendation.scoreBreakdown.customerFriction.label,
+    insight: sampleAnalysis.recommendation.scoreBreakdown.customerFriction.reasoning,
+    score: sampleAnalysis.recommendation.scoreBreakdown.customerFriction.score,
+    maxScore: sampleAnalysis.recommendation.scoreBreakdown.customerFriction.max,
+    sourceTypes: ["Reviews"]
   },
   {
-    category: "Market Maturity",
-    insight: "Incident management buyers expect hands-on evaluation",
-    score: 7,
-    maxScore: 10,
-    sourceTypes: ["Docs", "Positioning"]
+    category: sampleAnalysis.recommendation.scoreBreakdown.marketMaturity.label,
+    insight: sampleAnalysis.recommendation.scoreBreakdown.marketMaturity.reasoning,
+    score: sampleAnalysis.recommendation.scoreBreakdown.marketMaturity.score,
+    maxScore: sampleAnalysis.recommendation.scoreBreakdown.marketMaturity.max,
+    sourceTypes: ["Docs"]
   },
   {
-    category: "Business Risk",
-    insight: "Cannibalization risk limited by usage caps",
-    score: 6,
-    maxScore: 10,
+    category: sampleAnalysis.recommendation.scoreBreakdown.businessRisk.label,
+    insight: sampleAnalysis.recommendation.scoreBreakdown.businessRisk.reasoning,
+    score: sampleAnalysis.recommendation.scoreBreakdown.businessRisk.score,
+    maxScore: sampleAnalysis.recommendation.scoreBreakdown.businessRisk.max,
     sourceTypes: ["Pricing"]
   }
 ]
 
 // Sample cited sources
-const citedSources = [
-  { domain: "competitor-a.com", type: "Pricing", path: "/pricing" },
-  { domain: "competitor-b.com", type: "Docs", path: "/docs/getting-started" },
-  { domain: "reviews-site.com", type: "Reviews", path: "/reviews" },
-]
+const citedSources = sampleAnalysis.evidence.sources.slice(0, 3).map(source => ({
+  domain: source.domain,
+  type: source.type,
+  path: source.path
+}))
 
-const guardrails = [
-  "Two competitors launch equivalent free tiers",
-  "Trial-to-paid conversion improves materially without pricing changes"
-]
+const guardrails = sampleAnalysis.whatWouldChange.slice(0, 2).map(trigger => trigger.event)
 
 interface HeroReadoutRevealProps {
   /** Show callout highlights (for "Zoom In" section) */

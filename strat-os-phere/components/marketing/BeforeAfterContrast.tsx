@@ -12,6 +12,7 @@
 import { cn } from "@/lib/utils"
 import { DecisionCredibilityVisual } from "./DecisionCredibilityVisual"
 import { FileText, MessageSquare, Presentation } from "lucide-react"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 interface BeforeAfterContrastProps {
   className?: string
@@ -58,8 +59,9 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
               <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border-subtle/40">
                 <div className="w-4 h-4 rounded-full bg-blue-200/60" />
                 <div className="flex-1 space-y-1">
-                  <div className="h-1 bg-slate-200 rounded w-full" />
-                  <div className="h-1 bg-slate-200 rounded w-3/4" />
+                  <div className="text-[9px] text-slate-600/70 leading-tight font-medium">
+                    Do we need a free tier to compete with {sampleAnalysis.competitors[0].name}?
+                  </div>
                 </div>
               </div>
               <div className="absolute bottom-2 right-2">
@@ -79,8 +81,9 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
               <div className="h-1 bg-slate-200 rounded w-4/5" />
               {/* Highlighted text */}
               <div className="mt-2 p-1.5 bg-yellow-100/70 rounded border border-yellow-200/50">
-                <div className="h-1 bg-yellow-600/40 rounded w-full" />
-                <div className="h-1 bg-yellow-600/40 rounded w-3/4 mt-0.5" />
+                <div className="text-[9px] text-yellow-900/70 leading-tight font-medium">
+                  Users can't evaluate without procurement approval
+                </div>
               </div>
               <div className="h-1 bg-slate-200 rounded w-full mt-1" />
               <div className="absolute top-2 right-2">
@@ -101,7 +104,9 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
               </div>
               {/* Red callout */}
               <div className="mt-3 p-2 bg-red-50/60 rounded border border-red-100/40">
-                <div className="h-2 bg-red-200/50 rounded w-full font-semibold" />
+                <div className="text-[9px] text-red-800/70 leading-tight font-semibold">
+                  Free plan: 1 service / 7 days retention
+                </div>
               </div>
               <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500/80 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">!</span>
@@ -122,6 +127,9 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
               {/* Comment indicator */}
               <div className="absolute bottom-2 right-2">
                 <Presentation className="w-4 h-4 text-red-400 opacity-70" />
+              </div>
+              <div className="absolute top-8 left-3 text-[8px] text-slate-500/60 italic">
+                What's the evidence? Which sources?
               </div>
             </div>
 

@@ -7,46 +7,21 @@
  */
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { sampleAnalysis } from "../sampleReadoutData"
 
 // Static sample data for the preview
 const sampleOpportunity = {
-  title: "Introduce a constrained free tier to unlock mid-market adoption",
-  oneLiner: "4/5 competitors offer free tiers capped at usage. Reviews cite 'trial friction' as a blocker to adoption.",
+  title: sampleAnalysis.recommendation.title,
+  oneLiner: `${sampleAnalysis.competitors.length - 1}/${sampleAnalysis.competitors.length} competitors offer free tiers capped at usage. Reviews cite 'trial friction' as a blocker to adoption.`,
   customer: "Mid-market buyers comparing tools before procurement",
   whyNow: "No competitor pairs free tier with guided upgrade paths. Free tiers with caps convert without cannibalizing revenue.",
   evidenceSummary: "Strong evidence from pricing pages, documentation, and feature requests. All sources are recent (within last 90 days).",
-  citations: [
-    {
-      source_type: "pricing",
-      domain: "competitor-a.com",
-      title: "Enterprise tier pricing",
-      note: "SSO included in Enterprise plan",
-    },
-    {
-      source_type: "docs",
-      domain: "competitor-b.com",
-      title: "SSO integration guide",
-      note: "Published 2 months ago",
-    },
-    {
-      source_type: "reviews",
-      domain: "review-site.com",
-      title: "Feature request: Enterprise SSO",
-      note: "47 upvotes, top request",
-    },
-    {
-      source_type: "changelog",
-      domain: "competitor-c.com",
-      title: "Product updates",
-      note: "SSO launched 3 months ago",
-    },
-    {
-      source_type: "pricing",
-      domain: "competitor-d.com",
-      title: "Enterprise features",
-      note: "SSO available in Enterprise+",
-    },
-  ],
+  citations: sampleAnalysis.evidence.sources.slice(0, 5).map(source => ({
+    source_type: source.type.toLowerCase(),
+    domain: source.domain,
+    title: source.title,
+    note: `Updated ${source.updated}`,
+  })),
   confidence: {
     coverage: "High",
     evidenceStrength: "8.9",

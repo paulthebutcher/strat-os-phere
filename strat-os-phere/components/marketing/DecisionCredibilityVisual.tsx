@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils"
 import { FileText, CheckCircle2 } from "lucide-react"
 import { EvidenceIcon, ConfidenceIcon, ChangeTriggerIcon } from "./icons/PlinthIcons"
 import { WhatWouldChangeVisual } from "./WhatWouldChangeVisual"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 // Confidence range bar component
 function ConfidenceRangeBar() {
@@ -55,17 +56,15 @@ function ConfidenceRangeBar() {
 }
 
 export function DecisionCredibilityVisual() {
-  const evidenceSources = [
-    { type: "Pricing page", icon: FileText },
-    { type: "Docs", icon: FileText },
-    { type: "Enterprise reviews", icon: FileText },
-  ]
+  const evidenceTypes = sampleAnalysis.evidence.types.slice(0, 3).map(et => ({
+    type: et.type,
+    icon: FileText
+  }))
 
-  const nextSteps = [
-    "Validate with 8 target teams",
-    "Pull more evidence from docs + changelogs",
-    "Run a lightweight prototype test",
-  ]
+  const evidenceSources = evidenceTypes.map(et => ({
+    type: et.type,
+    icon: et.icon
+  }))
 
   return (
     <div className="w-full max-w-[960px] mx-auto">
@@ -80,10 +79,10 @@ export function DecisionCredibilityVisual() {
               </p>
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold text-text-primary leading-tight flex-1 min-w-0">
-                  Add structured handoff workflows
+                  {sampleAnalysis.recommendation.title}
                 </h3>
                 <div className="shrink-0 mt-2 sm:mt-0">
-                  <ConfidencePill level="directional" />
+                  <ConfidencePill level={sampleAnalysis.recommendation.confidenceLevel} />
                 </div>
               </div>
             </div>
@@ -101,7 +100,7 @@ export function DecisionCredibilityVisual() {
               </p>
             </div>
             <p className="text-sm text-text-secondary mb-3">
-              12 sources attached — all verifiable
+              {sampleAnalysis.evidence.totalSources} sources attached — all verifiable
             </p>
             <div className="flex flex-wrap gap-2">
               {evidenceSources.map((source, index) => {
@@ -151,7 +150,7 @@ export function DecisionCredibilityVisual() {
               Next Steps
             </p>
             <ul className="space-y-2">
-              {nextSteps.map((step, index) => (
+              {sampleAnalysis.nextSteps.map((step, index) => (
                 <li key={index} className="flex items-start gap-2 text-sm text-text-secondary">
                   <CheckCircle2
                     className="w-4 h-4 text-text-muted mt-0.5 shrink-0"

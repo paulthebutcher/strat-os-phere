@@ -12,15 +12,15 @@ import { Reveal, Stagger } from "./motion"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { FileText, ExternalLink, CheckCircle2 } from "lucide-react"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 // Evidence drawer preview
 function EvidenceDrawerPreview() {
-  const evidence = [
-    { domain: "pagerduty.com", type: "Pricing", status: "Fresh" },
-    { domain: "atlassian.com", type: "Docs", status: "Fresh" },
-    { domain: "splunk.com", type: "Pricing", status: null },
-    { domain: "betterstack.com", type: "Pricing", status: "Fresh" },
-  ]
+  const evidence = sampleAnalysis.evidence.sources.slice(0, 4).map(source => ({
+    domain: source.domain,
+    type: source.type,
+    status: source.updated.includes("week") || source.updated.includes("day") ? "Fresh" : null
+  }))
 
   return (
     <div className="bg-white rounded-lg border border-border-subtle p-4 sm:p-5 space-y-3 h-full">
@@ -51,11 +51,11 @@ function EvidenceDrawerPreview() {
 
 // Citation list preview
 function CitationListPreview() {
-  const citations = [
-    { domain: "competitor-a.com", quote: "SSO included in Enterprise plan", type: "Pricing" },
-    { domain: "competitor-b.com", quote: "Published 2 months ago", type: "Docs" },
-    { domain: "review-site.com", quote: "47 upvotes on feature requests", type: "Reviews" },
-  ]
+  const citations = sampleAnalysis.evidence.sources.slice(0, 3).map(source => ({
+    domain: source.domain,
+    quote: source.title,
+    type: source.type
+  }))
 
   return (
     <div className="bg-white rounded-lg border border-border-subtle p-4 sm:p-5 space-y-3 h-full">
@@ -86,11 +86,15 @@ function CitationListPreview() {
 
 // Competitor source preview
 function CompetitorSourcePreview() {
-  const competitors = [
-    { name: "PagerDuty", domain: "pagerduty.com", sources: 4, verified: true },
-    { name: "Opsgenie", domain: "atlassian.com", sources: 3, verified: true },
-    { name: "Splunk", domain: "splunk.com", sources: 2, verified: false },
-  ]
+  const competitors = sampleAnalysis.competitors.slice(0, 3).map(comp => {
+    const sources = sampleAnalysis.evidence.sources.filter(s => s.domain === comp.domain)
+    return {
+      name: comp.name,
+      domain: comp.domain,
+      sources: sources.length,
+      verified: sources.length >= 2
+    }
+  })
 
   return (
     <div className="bg-white rounded-lg border border-border-subtle p-4 sm:p-5 space-y-3 h-full">

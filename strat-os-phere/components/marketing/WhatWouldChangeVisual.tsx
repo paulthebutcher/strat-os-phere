@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils"
 import { ChangeTriggerIcon, EvidenceIcon } from "./icons/PlinthIcons"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, TrendingUp, FileText } from "lucide-react"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 interface WhatWouldChangeVisualProps {
   className?: string
@@ -25,26 +26,7 @@ export function WhatWouldChangeVisual({
   className,
   variant = "detailed"
 }: WhatWouldChangeVisualProps) {
-  const triggers = [
-    {
-      event: "+2 enterprise reviews confirming this pain",
-      evidenceType: "reviews",
-      action: "Monitor review sites",
-      priority: "high"
-    },
-    {
-      event: "Competitor X ships equivalent workflow",
-      evidenceType: "changelog",
-      action: "Track competitor updates",
-      priority: "medium"
-    },
-    {
-      event: "New pricing page shows feature shift",
-      evidenceType: "pricing",
-      action: "Watch pricing pages",
-      priority: "medium"
-    }
-  ]
+  const triggers = sampleAnalysis.whatWouldChange
 
   if (variant === "compact") {
     return (

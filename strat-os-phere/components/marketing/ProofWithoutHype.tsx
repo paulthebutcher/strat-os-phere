@@ -12,13 +12,14 @@ import { Badge } from "@/components/ui/badge"
 import { Reveal } from "./motion"
 import { cn } from "@/lib/utils"
 import { FileText, TrendingUp, AlertCircle } from "lucide-react"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 // Citation drawer preview
 function CitationDrawerPreview() {
-  const citations = [
-    { domain: "competitor-a.com", quote: "SSO included in Enterprise plan" },
-    { domain: "competitor-b.com", quote: "Published 2 months ago" },
-  ]
+  const citations = sampleAnalysis.evidence.sources.slice(0, 2).map(source => ({
+    domain: source.domain,
+    quote: source.title
+  }))
 
   return (
     <div className="bg-white rounded-lg border border-border-subtle p-4 sm:p-5 space-y-3 min-h-[140px] flex flex-col">

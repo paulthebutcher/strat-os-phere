@@ -10,6 +10,7 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
+import { sampleAnalysis } from "../sampleReadoutData"
 
 interface Opportunity {
   title: string
@@ -21,12 +22,12 @@ interface Opportunity {
 
 const opportunities: Opportunity[] = [
   {
-    title: "Introduce a constrained free tier to unlock mid-market adoption",
-    confidence: "investment_ready",
-    citationsCount: 8,
-    evidenceTypes: 3,
+    title: sampleAnalysis.recommendation.title,
+    confidence: sampleAnalysis.recommendation.confidenceLevel,
+    citationsCount: sampleAnalysis.evidence.totalSources - 7,
+    evidenceTypes: sampleAnalysis.evidence.types.length,
     bullets: [
-      "4/5 competitors offer free tiers capped at usage",
+      `${sampleAnalysis.competitors.length - 1}/${sampleAnalysis.competitors.length} competitors offer free tiers capped at usage`,
       "Reviews cite 'trial friction' as a blocker to adoption"
     ]
   },
@@ -52,12 +53,10 @@ const opportunities: Opportunity[] = [
   }
 ]
 
-const citations = [
-  { domain: "competitor-a.com", type: "Pricing" },
-  { domain: "competitor-b.com", type: "Docs" },
-  { domain: "competitor-c.com", type: "Pricing" },
-  { domain: "reviews-site.com", type: "Reviews" },
-]
+const citations = sampleAnalysis.evidence.sources.slice(0, 4).map(source => ({
+  domain: source.domain,
+  type: source.type
+}))
 
 const confidenceColors = {
   directional: "bg-blue-50 text-blue-700 border-blue-200",

@@ -13,6 +13,7 @@ import { Reveal } from "./motion"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight } from "lucide-react"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 // Step 1: Raw inputs
 function Step1Visual() {
@@ -32,11 +33,10 @@ function Step1Visual() {
 
 // Step 2: Evidence collected
 function Step2Visual() {
-  const sources = [
-    { type: "Pricing", domain: "competitor-a.com" },
-    { type: "Docs", domain: "competitor-b.com" },
-    { type: "Reviews", domain: "review-site.com" },
-  ]
+  const sources = sampleAnalysis.evidence.sources.slice(0, 3).map(source => ({
+    type: source.type,
+    domain: source.domain
+  }))
 
   return (
     <div className="bg-white rounded-lg border border-border-subtle p-3 space-y-2 min-h-[120px] flex flex-col justify-center">
@@ -86,11 +86,11 @@ function Step4Visual() {
     <div className="bg-white rounded-lg border border-border-subtle p-3 space-y-2 min-h-[120px] flex flex-col justify-center">
       <div className="space-y-1">
         <p className="text-xs font-semibold text-text-primary">Recommendation</p>
-        <p className="text-[10px] text-text-secondary">Ship SSO in Q2</p>
+        <p className="text-[10px] text-text-secondary">{sampleAnalysis.recommendation.title}</p>
       </div>
       <div className="pt-2 border-t border-border-subtle">
         <p className="text-[10px] text-text-muted">
-          Would change if: competitor pricing shifts
+          Would change if: {sampleAnalysis.whatWouldChange[0].event.split('.')[0].toLowerCase()}
         </p>
       </div>
     </div>

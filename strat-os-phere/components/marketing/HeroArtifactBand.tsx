@@ -9,6 +9,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { sampleAnalysis } from "./sampleReadoutData"
 
 interface Opportunity {
   title: string
@@ -19,10 +20,10 @@ interface Opportunity {
 
 const opportunities: Opportunity[] = [
   {
-    title: "Introduce a constrained free tier to unlock mid-market adoption",
-    confidence: "investment_ready",
-    citationsCount: 5,
-    evidenceTypes: 2,
+    title: sampleAnalysis.recommendation.title,
+    confidence: sampleAnalysis.recommendation.confidenceLevel,
+    citationsCount: sampleAnalysis.evidence.totalSources - 7,
+    evidenceTypes: sampleAnalysis.evidence.types.length,
   },
   {
     title: "Improve API rate limits based on competitor signals",
@@ -38,11 +39,9 @@ const opportunities: Opportunity[] = [
   },
 ]
 
-const citations = [
-  { domain: "competitor-a.com" },
-  { domain: "competitor-b.com" },
-  { domain: "competitor-c.com" },
-]
+const citations = sampleAnalysis.competitors.slice(0, 3).map(comp => ({
+  domain: comp.domain
+}))
 
 const confidenceColors = {
   directional: "bg-blue-50 text-blue-700 border-blue-200",
