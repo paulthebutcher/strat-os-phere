@@ -26,6 +26,7 @@ import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
 import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
 import { DecisionQualityIndicators } from '@/components/projects/DecisionQualityIndicators'
 import { getLatestRunningRunForProject } from '@/lib/data/runs'
+import { getLatestCommittedRunForProject } from '@/lib/data/projectRuns'
 import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 import { computeEvidenceCoverageLite } from '@/lib/evidence/coverageLite'
 import { EMPTY_EVIDENCE_COVERAGE_LITE } from '@/lib/evidence/coverageTypes'
@@ -165,6 +166,30 @@ export default async function DecisionPage(props: DecisionPageProps) {
     let runningRun: Awaited<ReturnType<typeof getLatestRunningRunForProject>> = null
     let decisionRunState: Awaited<ReturnType<typeof getDecisionRunState>> | null = null
 
+    // Get committed run to use for loading decision model
+    let committedRunId: string | undefined = undefined
+    try {
+      const committedRunResult = await getLatestCommittedRunForProject(supabase, projectId)
+      if (committedRunResult.ok && committedRunResult.data) {
+        committedRunId = committedRunResult.data.id
+        
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[decision] Using committed run for DecisionModel', {
+            projectId,
+            runId: committedRunId,
+          })
+        }
+      }
+    } catch (error) {
+      // Log but continue - will fall back to latest artifacts
+      logProjectError({
+        route,
+        projectId,
+        queryName: 'getLatestCommittedRunForProject',
+        error,
+      })
+    }
+
     try {
       const [competitorsResult, decisionModelResult, evidenceBundleResult, runningRunResult, decisionRunStateResult] = await Promise.all([
         listCompetitorsForProject(supabase, projectId).catch((error) => {
@@ -176,7 +201,7 @@ export default async function DecisionPage(props: DecisionPageProps) {
           })
           return []
         }),
-        getDecisionModel(supabase, { projectId }).catch((error) => {
+        getDecisionModel(supabase, { projectId, runId: committedRunId }).catch((error) => {
           logProjectError({
             route,
             projectId,

@@ -15,7 +15,11 @@ export interface StartEvidenceRunResult {
 export interface StartEvidenceRunError {
   ok: false
   message: string
-  details?: Record<string, unknown>
+  status?: number
+  details?: {
+    code?: string
+    [key: string]: unknown
+  }
 }
 
 export type StartEvidenceRunResponse =
@@ -43,10 +47,16 @@ export async function startEvidenceRun(
       }
     }
 
+    // Return structured error with status code
     return {
       ok: false,
-      message: result.message || 'Failed to start analysis. Please try again.',
-      details: result.details,
+      message: result.message || result.error?.message || 'Failed to start analysis. Please try again.',
+      status: response.status,
+      details: {
+        code: result.error?.code || result.code || (response.status === 401 ? 'UNAUTHENTICATED' : response.status === 403 ? 'FORBIDDEN' : 'UNKNOWN'),
+        ...result.details,
+        ...result.error?.details,
+      },
     }
   } catch (error) {
     return {

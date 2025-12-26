@@ -40,6 +40,7 @@ export type ProjectRun = {
   started_at: string | null
   finished_at: string | null
   created_at: string
+  committed_at: string | null
   error_code: string | null
   error_message: string | null
   error_detail: string | null
@@ -642,6 +643,64 @@ export async function getProjectRunById(
       },
     }
   }
+}
+
+/**
+ * Get the latest committed run for a project
+ * This is the canonical pointer to committed decision results
+ * A run is committed when committed_at IS NOT NULL
+ */
+export async function getLatestCommittedRunForProject(
+  client: Client,
+  projectId: string
+): Promise<ProjectRunResult<ProjectRun | null>> {
+  try {
+    const typedClient = getTypedClient(client)
+    
+    const { data, error } = await typedClient
+      .from('project_runs')
+      .select('*')
+      .eq('project_id', projectId)
+      .not('committed_at', 'is', null)
+      .order('committed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error && error.code !== 'PGRST116') {
+      logServerError('getLatestCommittedRunForProject', error, { projectId })
+      return {
+        ok: false,
+        error: {
+          code: error.code || 'UNKNOWN',
+          message: error.message || 'Failed to fetch latest committed run',
+        },
+      }
+    }
+
+    return { ok: true, data: data ? (data as ProjectRun) : null }
+  } catch (error) {
+    logServerError('getLatestCommittedRunForProject', error, { projectId })
+    return {
+      ok: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      },
+    }
+  }
+}
+
+/**
+ * Get the latest successful (succeeded) run for a project
+ * @deprecated Use getLatestCommittedRunForProject instead
+ * This function is kept for backward compatibility but should be replaced
+ */
+export async function getLatestSuccessfulRunForProject(
+  client: Client,
+  projectId: string
+): Promise<ProjectRunResult<ProjectRun | null>> {
+  // Delegate to committed run function
+  return getLatestCommittedRunForProject(client, projectId)
 }
 
 /**

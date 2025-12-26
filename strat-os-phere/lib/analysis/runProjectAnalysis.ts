@@ -29,6 +29,7 @@ import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { generateOpportunitiesV1 } from '@/lib/opportunities/generateOpportunitiesV1'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import { markStepCompleted, markStepFailed } from '@/lib/runs/orchestrator'
+import { commitDecisionResult } from '@/lib/results/commitDecisionResult'
 
 /**
  * Pipeline version constant - update when pipeline logic changes
@@ -520,7 +521,73 @@ export async function runProjectAnalysis(
     // Step 6: Mark analysis step as completed
     await markStepCompleted(supabase, run.id, 'analysis')
 
-    // Step 7: Mark as succeeded with output
+    // Step 7: Commit the decision result BEFORE marking as succeeded
+    // This ensures that a run is only marked succeeded if it can be committed
+    const commitResult = await commitDecisionResult(supabase, {
+      projectId,
+      runId: run.id,
+    })
+
+    if (!commitResult.ok) {
+      // Commit failed - mark run as failed
+      const failureReason = commitResult.reason === 'missing_required_artifacts'
+        ? 'Run completed but required artifacts are missing'
+        : `Run completed but commit failed: ${commitResult.message}`
+      
+      await markStepFailed(supabase, run.id, 'analysis', {
+        code: 'COMMIT_FAILED',
+        message: failureReason,
+        detail: commitResult.message,
+      })
+      
+      const failedResult = await setRunFailed(supabase, run.id, {
+        error_code: 'COMMIT_FAILED',
+        error_message: failureReason,
+        error_detail: commitResult.message,
+        metricsPatch: {
+          steps: steps,
+        },
+      })
+
+      if (process.env.NODE_ENV !== 'production') {
+        logger.error('[runProjectAnalysis] Commit failed, marking run as failed', {
+          projectId,
+          runId: run.id,
+          reason: commitResult.reason,
+          error: commitResult.message,
+        })
+      }
+
+      if (failedResult.ok) {
+        return {
+          ok: false,
+          error: {
+            code: 'COMMIT_FAILED',
+            message: failureReason,
+            runId: run.id,
+          },
+        }
+      }
+
+      return {
+        ok: false,
+        error: {
+          code: 'COMMIT_FAILED',
+          message: failureReason,
+          runId: run.id,
+        },
+      }
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      logger.info('[runProjectAnalysis] Decision result committed', {
+        projectId,
+        runId: run.id,
+        committed: commitResult.committed,
+      })
+    }
+
+    // Step 8: Mark as succeeded with output (only after successful commit)
     // Build output with opportunities artifact if generated
     const output: Record<string, any> = {
       pipeline_version: pipelineVersion,
@@ -564,6 +631,14 @@ export async function runProjectAnalysis(
           runId: run.id,
         },
       }
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      logger.info('[runProjectAnalysis] Run marked succeeded with committed runId', {
+        projectId,
+        runId: run.id,
+        committedAt: successResult.data.committed_at,
+      })
     }
 
     return { ok: true, run: successResult.data }

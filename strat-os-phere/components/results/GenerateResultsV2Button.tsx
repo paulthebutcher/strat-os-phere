@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,7 @@ export function GenerateResultsV2Button({
   onStart,
 }: GenerateResultsV2ButtonProps) {
   const [isStarting, setIsStarting] = useState(false)
+  const router = useRouter()
 
   const handleClick = async () => {
     if (isStarting) return
@@ -87,14 +89,31 @@ export function GenerateResultsV2Button({
           createdAt: new Date().toISOString(),
         })
 
+        // Navigate to project opportunities page to show generating state
+        // This provides a deterministic project-scoped page that can show:
+        // - run progress (if available)
+        // - "Generating results" state
+        // - eventual committed results when ready
+        router.push(`/projects/${projectId}/opportunities`)
+        
         // Toast will appear automatically via RunToasts component
         // User can continue navigating - toast persists
         setIsStarting(false)
       } else {
-        // Error: show error toast
-        const errorMessage =
-          result.message || 'Failed to start analysis. Please try again.'
-        toastError('Failed to start analysis', errorMessage)
+        // Handle structured errors
+        const errorMessage = result.message || 'Failed to start analysis. Please try again.'
+        const errorDetails = result.details || {}
+        
+        // Check for specific error codes
+        if (errorDetails.code === 'UNAUTHENTICATED' || errorMessage.includes('401')) {
+          toastError('Session expired', 'Please sign in to continue.')
+          router.push(`/login?next=${encodeURIComponent(`/projects/${projectId}/opportunities`)}`)
+        } else if (errorDetails.code === 'FORBIDDEN' || errorMessage.includes('403')) {
+          toastError('Access denied', "You don't have access to this project.")
+        } else {
+          toastError('Failed to start analysis', errorMessage)
+        }
+        
         setIsStarting(false)
       }
     } catch (error) {

@@ -84,11 +84,10 @@ export function toProjectsListRow(project: ProjectWithCounts): ProjectsListRow {
   
   const evidenceStrength = mapEvidenceStrength(evidenceScore);
   
-  // Note: latest_successful_run_id doesn't exist in production schema
-  // Use lastArtifactAt as indicator of successful run
-  const hasSuccessfulRun = !!project.lastArtifactAt;
-  // Use derived lastArtifactAt instead of latest_run_id (which doesn't exist in production)
-  const hasRun = !!project.lastArtifactAt;
+  // Use latestCommittedRunId as the canonical indicator of committed results
+  const hasSuccessfulRun = !!project.latestCommittedRunId;
+  // Use latestRunCreatedAt or lastArtifactAt as indicator of any run activity
+  const hasRun = !!project.latestRunCreatedAt || !!project.lastArtifactAt;
   const hasEvidence = project.evidenceSourceCount > 0 || project.competitorsWithEvidenceCount > 0;
   
   const primaryCta = determinePrimaryCta(hasSuccessfulRun, hasRun, hasEvidence);

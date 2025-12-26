@@ -5,7 +5,7 @@ import { PROJECT_FULL_SELECT, PROJECT_LIST_SELECT, PROJECT_DASHBOARD_SELECT } fr
 import { isMissingColumnError } from '@/lib/db/safeDb'
 import { buildProjectUpdate } from '@/lib/db/projectUpdate'
 import { getLatestAnalysisInfoForProjects } from './latestRun'
-import { getLatestRunForProject } from './projectRuns'
+import { getLatestRunForProject, getLatestCommittedRunForProject } from './projectRuns'
 
 type Client = TypedSupabaseClient
 
@@ -127,7 +127,9 @@ export type ProjectWithCounts = {
   competitorCount: number
   competitorsWithEvidenceCount: number
   evidenceSourceCount: number
-  latestRunCreatedAt: string | null // Derived from artifacts table
+  latestRunCreatedAt: string | null // Latest run from project_runs
+  latestCommittedRunId: string | null // Latest committed run ID (committed_at IS NOT NULL)
+  latestCommittedRunCreatedAt: string | null // Latest committed run created_at
   lastArtifactAt?: string | null // Derived from artifacts table
   lastArtifactType?: string | null // Derived from artifacts table
 }
@@ -166,7 +168,7 @@ export async function listProjectsWithCounts(
   const projectIds = projectList.map(p => p.id)
 
   // Fetch counts and latest run info in parallel for all projects
-  const [competitorCounts, evidenceCounts, runData, latestAnalysisInfo] = await Promise.all([
+  const [competitorCounts, evidenceCounts, runData, successfulRunData, latestAnalysisInfo] = await Promise.all([
     // Count competitors per project
     Promise.all(
       projectIds.map(async (projectId) => {
@@ -231,6 +233,26 @@ export async function listProjectsWithCounts(
         }
       })
     ),
+    // Get latest committed run for each project
+    Promise.all(
+      projectIds.map(async (projectId) => {
+        const committedRunResult = await getLatestCommittedRunForProject(client, projectId)
+        if (committedRunResult.ok && committedRunResult.data) {
+          return {
+            projectId,
+            latestCommittedRunId: committedRunResult.data.id,
+            latestCommittedRunCreatedAt: committedRunResult.data.created_at,
+            latestCommittedRunCommittedAt: committedRunResult.data.committed_at,
+          }
+        }
+        return {
+          projectId,
+          latestCommittedRunId: null,
+          latestCommittedRunCreatedAt: null,
+          latestCommittedRunCommittedAt: null,
+        }
+      })
+    ),
     // Get latest analysis info from artifacts table (derived, resilient)
     getLatestAnalysisInfoForProjects(client, projectIds),
   ])
@@ -247,6 +269,13 @@ export async function listProjectsWithCounts(
   )
   const latestRunMap = new Map(
     runData.map(r => [r.projectId, r.latestRunCreatedAt])
+  )
+  const latestCommittedRunMap = new Map(
+    successfulRunData.map(r => [r.projectId, {
+      runId: r.latestCommittedRunId,
+      createdAt: r.latestCommittedRunCreatedAt,
+      committedAt: r.latestCommittedRunCommittedAt,
+    }])
   )
 
   // Combine data
@@ -271,6 +300,9 @@ export async function listProjectsWithCounts(
       evidenceSourceCount: evidenceCountMap.get(projectId) ?? 0,
       // Latest run from project_runs (new source of truth, replaces analysis_runs)
       latestRunCreatedAt: latestRunMap.get(projectId) ?? null,
+      // Latest committed run from project_runs
+      latestCommittedRunId: latestCommittedRunMap.get(projectId)?.runId ?? null,
+      latestCommittedRunCreatedAt: latestCommittedRunMap.get(projectId)?.createdAt ?? null,
       // Derived from artifacts table (resilient, no schema drift)
       lastArtifactAt: latestInfo?.lastArtifactAt ?? null,
       lastArtifactType: latestInfo?.lastArtifactType ?? null,

@@ -9,6 +9,7 @@ import { getProjectSafe } from '@/lib/data/projectsContract'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { getArtifactsForRun } from './runs'
 import { getAnalysisRunById, getLatestRunningRunForProject } from '@/lib/data/runs'
+import { getLatestCommittedRunForProject } from '@/lib/data/projectRuns'
 
 export interface ProjectResults {
   project: Project
@@ -48,7 +49,7 @@ export async function getProjectResults(
   // Determine active run ID and run record:
   // 1. Prefer runId from query params if provided
   // 2. Else check for a running run
-  // 3. Else use latest artifacts (latest_successful_run_id doesn't exist in production schema)
+  // 3. Else use latest successful (committed) run
   // 4. Else null (show empty state)
   let activeRunId: string | null = null
   let activeRun: AnalysisRun | null = null
@@ -73,14 +74,14 @@ export async function getProjectResults(
     }
   }
   
-  // Fall back to latest artifacts (latest_successful_run_id doesn't exist in production schema)
-  if (!activeRunId && allArtifacts.length > 0) {
-    // Use the most recent artifact's run ID if available
-    // Artifacts are ordered by created_at descending, so first one is most recent
-    const latestArtifact = allArtifacts[0]
-    // Extract run ID from artifact if it has one (may need to check artifact structure)
-    // For now, we'll use the artifact's project_id and look for related runs
-    // This is a simplified approach - can be enhanced later
+  // Fall back to latest committed run
+  if (!activeRunId) {
+    const committedRunResult = await getLatestCommittedRunForProject(supabase, projectId)
+    if (committedRunResult.ok && committedRunResult.data) {
+      activeRunId = committedRunResult.data.id
+      // Convert ProjectRun to AnalysisRun format if needed
+      // For now, we'll use the run ID and fetch artifacts
+    }
   }
 
   // Get artifacts for the active run (or empty array if no active run)
@@ -100,9 +101,9 @@ export async function getProjectResults(
     }
   }
 
-  // Check if there's any successful run (for UI state)
-  // latest_successful_run_id doesn't exist in production schema, so check artifacts instead
-  const hasSuccessfulRun = artifacts.length > 0
+  // Check if there's any committed run (for UI state)
+  const committedRunResult = await getLatestCommittedRunForProject(supabase, projectId)
+  const hasSuccessfulRun = committedRunResult.ok && committedRunResult.data !== null
 
   return {
     project,
