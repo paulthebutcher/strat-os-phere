@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { RunTimelineDrawer } from './RunTimelineDrawer'
-import type { AnalysisRun } from '@/lib/supabase/types'
+import type { UiRun } from '@/lib/data/projectRuns'
 
 interface InProgressBannerProps {
-  run: AnalysisRun
+  run: UiRun
   projectId: string
 }
 
@@ -17,7 +17,7 @@ export function InProgressBanner({ run, projectId }: InProgressBannerProps) {
   const [showTimeline, setShowTimeline] = useState(false)
 
   const percent = run.percent ?? 0
-  const phase = run.current_phase ?? 'Starting...'
+  const phase = run.currentPhase ?? 'Starting...'
 
   return (
     <>

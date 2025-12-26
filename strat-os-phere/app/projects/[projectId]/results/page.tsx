@@ -44,7 +44,7 @@ import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
 import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
 import { NextBestActionCard } from '@/components/ux/NextBestActionCard'
 import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
-import { projectRunStatusToUiStatus } from '@/lib/data/projectRuns'
+import { projectRunStatusToUiStatus, projectRunToUiRun } from '@/lib/data/projectRuns'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { isMissingColumnError } from '@/lib/db/safeDb'
@@ -288,11 +288,14 @@ export default async function ResultsPage(props: ResultsPageProps) {
   const showAppendix = tab === 'appendix'
   const showTabContent = tab && tab !== 'readout' && tab !== 'appendix'
 
+  // Map ProjectRun to UiRun for client component
+  const uiRun = projectRunToUiRun(results.activeRun)
+
   return (
     <PageGuidanceWrapper pageId={PAGE_IDS.results}>
       <ResultsPageClient
         projectId={projectId}
-        initialRun={results.activeRun}
+        initialRun={uiRun}
         initialArtifacts={results.artifacts}
       >
         <PageShell size="wide">
@@ -312,8 +315,8 @@ export default async function ResultsPage(props: ResultsPageProps) {
           )}
 
           {/* In-progress banner - Shows when running (replaces state banner) */}
-          {isRunning && results.activeRun && (
-            <InProgressBanner run={results.activeRun} projectId={projectId} />
+          {isRunning && uiRun && (
+            <InProgressBanner run={uiRun} projectId={projectId} />
           )}
 
           {/* Coverage Indicator - Show when we have results or partial results */}

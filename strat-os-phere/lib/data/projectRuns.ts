@@ -60,6 +60,43 @@ export function projectRunStatusToUiStatus(status: ProjectRunStatus): UiRunStatu
 }
 
 /**
+ * UI-safe run view model
+ * Abstracts away differences between AnalysisRunRow and ProjectRun
+ * Used by client components that don't need to know the underlying DB schema
+ */
+export type UiRun = {
+  id: string
+  status: UiRunStatus
+  startedAt: string | null
+  finishedAt: string | null
+  // Legacy fields for backward compatibility (mapped from ProjectRun metrics or null)
+  percent: number | null
+  currentPhase: string | null
+}
+
+/**
+ * Convert ProjectRun to UiRun view model
+ * Maps database fields to UI-safe format
+ */
+export function projectRunToUiRun(run: ProjectRun | null): UiRun | null {
+  if (!run) return null
+
+  // Extract progress info from metrics if available
+  const metrics = run.metrics || {}
+  const percent = typeof metrics.percent === 'number' ? metrics.percent : null
+  const currentPhase = typeof metrics.current_phase === 'string' ? metrics.current_phase : null
+
+  return {
+    id: run.id,
+    status: projectRunStatusToUiStatus(run.status),
+    startedAt: run.started_at,
+    finishedAt: run.finished_at,
+    percent,
+    currentPhase,
+  }
+}
+
+/**
  * Project run row type
  */
 export type ProjectRun = {

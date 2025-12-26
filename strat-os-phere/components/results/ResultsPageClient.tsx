@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AnalysisRun, Artifact } from '@/lib/supabase/types'
+import type { Artifact } from '@/lib/supabase/types'
+import type { UiRun, ProjectRun } from '@/lib/data/projectRuns'
+import { projectRunToUiRun } from '@/lib/data/projectRuns'
 
 interface ResultsPageClientProps {
   projectId: string
-  initialRun: AnalysisRun | null
+  initialRun: UiRun | null
   initialArtifacts: Artifact[]
   children: React.ReactNode
 }
@@ -38,13 +40,17 @@ export function ResultsPageClient({
         const runData = await runResponse.json()
         
         if (runData.ok && runData.run) {
-          setRun(runData.run)
-          
-          // Stop polling if run is completed or failed
-          if (runData.run.status === 'completed' || runData.run.status === 'failed') {
-            setIsPolling(false)
-            // Refresh the page to show final results
-            router.refresh()
+          // Map ProjectRun from API to UiRun
+          const uiRun = projectRunToUiRun(runData.run as ProjectRun)
+          if (uiRun) {
+            setRun(uiRun)
+            
+            // Stop polling if run is completed or failed
+            if (uiRun.status === 'completed' || uiRun.status === 'failed') {
+              setIsPolling(false)
+              // Refresh the page to show final results
+              router.refresh()
+            }
           }
         }
 
