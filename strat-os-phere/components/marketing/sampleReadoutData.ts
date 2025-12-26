@@ -15,31 +15,31 @@ export const sampleAnalysis = {
     title: "Launch a constrained free tier focused on teams evaluating reliability tooling",
     confidence: "Strong",
     confidenceLevel: "investment_ready" as const,
-    score: 82,
+    score: 81.4,
     scoreBreakdown: {
       competitiveNorms: {
-        score: 9,
+        score: 8.6,
         max: 10,
         label: "Competitive norms",
-        reasoning: "4 of 5 competitors have a free tier with similar positioning"
+        reasoning: "4 of 5 competitors offer free tiers with usage-based limits; StatusFlow and PagerGrid expanded theirs in the past 6 months"
       },
       customerFriction: {
-        score: 8,
+        score: 7.9,
         max: 10,
         label: "Customer friction",
-        reasoning: "Reviews cite 'trial friction' and 'budget approval delays' as blockers"
+        reasoning: "Enterprise reviews mention evaluation friction and security review delays before purchase; mid-market buyers cite trial time limits as adoption blockers"
       },
       marketMaturity: {
-        score: 7,
+        score: 7.1,
         max: 10,
         label: "Market maturity",
-        reasoning: "Buyers expect hands-on evaluation and reliability proof before purchase"
+        reasoning: "Buyers expect hands-on evaluation periods and reliability proof before committing; free tiers have become table stakes in this category"
       },
       businessRisk: {
-        score: 6,
+        score: 6.4,
         max: 10,
         label: "Business risk",
-        reasoning: "Cannibalization mitigated by hard caps and upgrade gates"
+        reasoning: "Cannibalization risk appears manageable given hard caps on team size and retention windows; upgrade conversion data from competitors supports this"
       }
     }
   },
@@ -51,10 +51,10 @@ export const sampleAnalysis = {
     { name: "OnCallPro", domain: "oncallpro.io" }
   ],
   evidence: {
-    totalSources: 15,
+    totalSources: 17,
     types: [
-      { type: "Pricing", count: 5 },
-      { type: "Docs", count: 4 },
+      { type: "Pricing", count: 6 },
+      { type: "Docs", count: 5 },
       { type: "Reviews", count: 3 },
       { type: "Changelog", count: 2 },
       { type: "Community", count: 1 }
@@ -164,29 +164,48 @@ export const sampleAnalysis = {
         type: "Pricing",
         title: "OnCallPro Pricing",
         updated: "1 month ago"
+      },
+      {
+        domain: "pagergrid.io",
+        path: "/docs/pricing-faq",
+        type: "Docs",
+        title: "Free Tier FAQ - PagerGrid",
+        updated: "3 weeks ago"
+      },
+      {
+        domain: "alerthub.com",
+        path: "/docs/getting-started",
+        type: "Docs",
+        title: "Getting Started - Free Tier",
+        updated: "2 weeks ago"
       }
     ]
   },
   whatWouldChange: [
     {
-      event: "Two competitors expand free tier limits above 5 seats or 7 days retention",
+      event: "Two competitors introduce equivalent free tiers with usage parity (5+ seats, 14+ days retention) within 90 days",
       evidenceType: "changelog",
-      action: "Monitor competitor changelogs and pricing pages",
+      action: "Monitor competitor changelogs and pricing pages weekly; reassess differentiation strategy",
       priority: "high"
     },
     {
-      event: "Trial-to-paid conversion increases above 15% without pricing changes",
+      event: "Trial-to-paid conversion improves to above 18% without pricing or feature changes, indicating reduced friction",
       evidenceType: "reviews",
-      action: "Track conversion metrics and user feedback",
+      action: "Track conversion metrics and enterprise buyer feedback monthly; review if free tier still necessary",
       priority: "high"
     },
     {
-      event: "Support load spikes above 20 tickets per 100 free tier signups",
+      event: "Enterprise buyers complete evaluations without security review delays in majority of cases (measured via sales team feedback)",
       evidenceType: "community",
-      action: "Monitor support ticket volume and community discussions",
+      action: "Monitor support ticket volume, sales cycle data, and community discussions; adjust free tier positioning if blockers shift",
       priority: "medium"
     }
-  ],
+  ] as Array<{
+    event: string
+    evidenceType: string
+    action: string
+    priority: "high" | "medium" | "low"
+  }>,
   nextSteps: [
     "Validate free tier limits with 8 target mid-market teams",
     "Pull additional evidence from competitor docs and changelogs",

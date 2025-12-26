@@ -15,7 +15,7 @@ import { sampleAnalysis } from "./sampleReadoutData"
 // Sample opportunity data for the preview
 const sampleOpportunity = {
   title: sampleAnalysis.recommendation.title,
-  oneLiner: `${sampleAnalysis.competitors.length - 1}/${sampleAnalysis.competitors.length} competitors offer free tiers capped at usage. Reviews cite 'trial friction' as a blocker to adoption.`,
+  oneLiner: `${sampleAnalysis.competitors.length - 1} of ${sampleAnalysis.competitors.length} competitors offer free tiers with usage-based limits. Enterprise reviews mention evaluation friction and security review delays before purchase.`,
   confidence: sampleAnalysis.recommendation.confidenceLevel,
   score: sampleAnalysis.recommendation.score / 10,
   evidenceCount: sampleAnalysis.evidence.totalSources,
@@ -105,7 +105,7 @@ export function HeroProductPreview() {
                 <TrendingUp className="w-4 h-4 text-text-muted" />
                 <div>
                   <p className="text-xs text-text-muted mb-0.5">Evidence strength</p>
-                  <p className="text-base font-semibold text-text-primary">8.9</p>
+                  <p className="text-base font-semibold text-text-primary">8.1</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">

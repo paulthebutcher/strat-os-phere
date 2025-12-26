@@ -12,7 +12,7 @@ const SAMPLE_OPPORTUNITIES = [
     id: "1",
     title: "Launch 'Autopilot incident summaries' that ship in Slack in <60s",
     description: "PagerDuty and Opsgenie both highlight 'time to resolution' as a key differentiator. Your users spend 5-10 minutes manually summarizing incidents for stakeholders.",
-    score: 8.7,
+    score: 8.6,
     citationsCount: 12,
     badges: [
       { label: "High confidence", tone: "success" as const },
@@ -24,7 +24,7 @@ const SAMPLE_OPPORTUNITIES = [
     id: "2",
     title: "Add 'Incident severity prediction' using historical patterns",
     description: "Incident.io's blog post on 'Reducing false alarms' shows 40% of incidents are misclassified. Your users waste time escalating low-severity issues.",
-    score: 7.9,
+    score: 7.8,
     citationsCount: 8,
     badges: [
       { label: "High confidence", tone: "success" as const },
@@ -36,7 +36,7 @@ const SAMPLE_OPPORTUNITIES = [
     id: "3",
     title: "Create 'On-call handoff notes' template that auto-populates from runbooks",
     description: "Statuspage and VictorOps emphasize 'context preservation' during handoffs. Your engineers spend 15-20 minutes writing handoff notes.",
-    score: 7.2,
+    score: 7.1,
     citationsCount: 6,
     badges: [
       { label: "Medium confidence", tone: "warning" as const },

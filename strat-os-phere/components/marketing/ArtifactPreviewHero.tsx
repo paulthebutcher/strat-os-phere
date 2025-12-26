@@ -19,7 +19,7 @@ const MOCK_SAMPLE = {
     {
       id: "1",
       title: "Launch 'Autopilot incident summaries' that ship in Slack in <60s",
-      score: 8.7,
+      score: 8.6,
       confidence: "High" as const,
       recencyLabel: "Last 30 days",
       sourceCount: 12,
@@ -35,7 +35,7 @@ const MOCK_SAMPLE = {
     {
       id: "2",
       title: "Add 'Incident severity prediction' using historical patterns",
-      score: 7.9,
+      score: 7.8,
       confidence: "High" as const,
       recencyLabel: "Last 45 days",
       sourceCount: 8,
@@ -51,7 +51,7 @@ const MOCK_SAMPLE = {
     {
       id: "3",
       title: "Create 'On-call handoff notes' template that auto-populates from runbooks",
-      score: 7.2,
+      score: 7.1,
       confidence: "Medium" as const,
       recencyLabel: "Last 60 days",
       sourceCount: 6,
@@ -67,7 +67,7 @@ const MOCK_SAMPLE = {
     {
       id: "4",
       title: "Build 'Incident timeline visualization' with automatic correlation",
-      score: 6.8,
+      score: 6.7,
       confidence: "Medium" as const,
       recencyLabel: "Last 90 days",
       sourceCount: 5,

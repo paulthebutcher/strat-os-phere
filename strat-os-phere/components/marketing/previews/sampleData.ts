@@ -27,7 +27,7 @@ export const sampleEvidenceQueue = {
     sources: sampleAnalysis.evidence.totalSources, 
     types: sampleAnalysis.evidence.types.length, 
     freshness: "High", 
-    progress: 68 
+    progress: 73 
   },
   currentTask: `Collecting pricing pages from ${sampleAnalysis.competitors[2].domain}...`,
 };
@@ -54,8 +54,8 @@ export const sampleNormalizedLedger = {
         : "medium",
     })),
   confidenceSignals: {
-    crossSourceAgreement: { level: "High", percentage: 92 },
-    recency: { days: 30, label: "30 days" },
+    crossSourceAgreement: { level: "High", percentage: 87 },
+    recency: { days: 28, label: "28 days" },
     coverageGaps: { type: "Reviews", missing: "2/5 competitors" },
   },
 };
@@ -65,12 +65,12 @@ export const sampleRankedOpportunities = [
     rank: 1,
     title: sampleAnalysis.recommendation.title,
     description:
-      `${sampleAnalysis.competitors.length - 1} of ${sampleAnalysis.competitors.length} competitors offer free tiers with similar positioning. ${sampleAnalysis.competitors[0].name} and ${sampleAnalysis.competitors[1].name} have seen significant user growth after launching free tiers.`,
+      `${sampleAnalysis.competitors.length - 1} of ${sampleAnalysis.competitors.length} competitors offer free tiers with usage-based limits. ${sampleAnalysis.competitors[0].name} and ${sampleAnalysis.competitors[1].name} expanded their free tiers in the past 6 months, with user growth tracking in their changelogs.`,
     confidence: sampleAnalysis.recommendation.score,
     defensibility: "High",
-    citations: sampleAnalysis.evidence.totalSources - 7,
+    citations: sampleAnalysis.evidence.totalSources - 6,
     metrics: [
-      { label: "Market coverage", value: "80%" },
+      { label: "Market coverage", value: "78%" },
       { label: "User impact", value: "High" },
     ],
     sources: sampleAnalysis.evidence.sources
@@ -83,11 +83,11 @@ export const sampleRankedOpportunities = [
     title: "API-first positioning gap",
     description:
       `${sampleAnalysis.competitors[1].name} and ${sampleAnalysis.competitors[2].name} emphasize API access in their positioning. Other competitors have limited API marketing, creating a positioning opportunity.`,
-    confidence: 85,
+    confidence: 84.2,
     defensibility: "Medium",
-    citations: 6,
+    citations: 7,
     metrics: [
-      { label: "Market coverage", value: "40%" },
+      { label: "Market coverage", value: "42%" },
       { label: "User impact", value: "Medium" },
     ],
     sources: sampleAnalysis.evidence.sources
@@ -100,11 +100,11 @@ export const sampleRankedOpportunities = [
     title: "Team collaboration features",
     description:
       "All competitors have strong team features, but reviews indicate gaps in real-time collaboration UX. Opportunity for differentiation.",
-    confidence: 78,
+    confidence: 76.8,
     defensibility: "Medium",
-    citations: 12,
+    citations: 11,
     metrics: [
-      { label: "Market coverage", value: "80%" },
+      { label: "Market coverage", value: "76%" },
       { label: "User impact", value: "High" },
     ],
     sources: sampleAnalysis.evidence.sources

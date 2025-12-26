@@ -22,11 +22,11 @@ const exampleOpportunity = {
   title: "Grow B2B Sales",
   description: "Enterprise customers are evaluating SSO capabilities. Three competitors added this feature in the last 6 months.",
   confidence: "directional" as const,
-  score: 78,
-  evidenceCount: 14,
-  evidenceSnippet: "Pricing pages show SSO in enterprise tiers • Documentation published 2 months ago • 47 upvotes on feature requests",
+  score: 76.8,
+  evidenceCount: 13,
+  evidenceSnippet: "Pricing pages show SSO in enterprise tiers • Documentation published 2 months ago • 43 upvotes on feature requests",
   nextAction: "Ship SSO in Q2",
-  wouldChange: "If competitor pricing shifts or new market data emerges",
+  wouldChange: "If two competitors remove SSO from enterprise tiers or enterprise buyer feedback shifts priorities",
 }
 
 export function ExampleOutput() {

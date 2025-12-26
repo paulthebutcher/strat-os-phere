@@ -16,8 +16,8 @@ import { ConfidencePill } from "@/components/marketing/ConfidencePill"
 const primaryOpportunity = {
   title: "Introduce a constrained free tier to unlock mid-market adoption",
   confidence: "investment_ready" as const,
-  overallScore: 82,
-  citationsCount: 8,
+  overallScore: 81.4,
+  citationsCount: 11,
   evidenceTypes: ["pricing", "docs", "reviews"]
 }
 
@@ -25,29 +25,29 @@ const primaryOpportunity = {
 const evidenceCategories = [
   {
     category: "Competitive Norms",
-    insight: "4 / 5 competitors offer capped free tiers",
-    score: 9,
+    insight: "4 of 5 competitors offer free tiers with usage-based limits; StatusFlow and PagerGrid expanded theirs in the past 6 months",
+    score: 8.6,
     maxScore: 10,
     sourceTypes: ["Pricing"]
   },
   {
     category: "Customer Friction",
-    insight: "Reviews cite trial friction as adoption blocker",
-    score: 8,
+    insight: "Enterprise reviews mention evaluation friction and security review delays before purchase; mid-market buyers cite trial time limits as adoption blockers",
+    score: 7.9,
     maxScore: 10,
     sourceTypes: ["Reviews", "G2"]
   },
   {
     category: "Market Maturity",
-    insight: "Incident management buyers expect hands-on evaluation",
-    score: 7,
+    insight: "Incident management buyers expect hands-on evaluation periods and reliability proof before committing; free tiers have become table stakes in this category",
+    score: 7.1,
     maxScore: 10,
     sourceTypes: ["Docs", "Positioning"]
   },
   {
     category: "Business Risk",
-    insight: "Cannibalization risk limited by usage caps",
-    score: 6,
+    insight: "Cannibalization risk appears manageable given hard caps on team size and retention windows; upgrade conversion data from competitors supports this",
+    score: 6.4,
     maxScore: 10,
     sourceTypes: ["Pricing"]
   }
@@ -62,8 +62,8 @@ const scoringWeights = [
 ]
 
 const guardrails = [
-  "Two competitors launch equivalent free tiers",
-  "Trial-to-paid conversion improves materially without pricing changes"
+  "Two competitors introduce equivalent free tiers with usage parity (5+ seats, 14+ days retention) within 90 days",
+  "Trial-to-paid conversion improves to above 18% without pricing or feature changes, indicating reduced friction"
 ]
 
 function prefersReducedMotion(): boolean {

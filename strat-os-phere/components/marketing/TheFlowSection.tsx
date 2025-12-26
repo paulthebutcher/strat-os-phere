@@ -1,93 +1,45 @@
 /**
- * The Flow - Guided reveal animation
+ * The Flow - From hunch to proof
  * 
- * Animated left → right progression:
- * 1. Blur + fade chaos inputs
- * 2. Snap into fully rendered Plinth readout
- * 3. Emphasis pulse on recommendation, confidence, evidence count
+ * Clean 3-step progression:
+ * 1. Input Card (question + tags) - small, muted
+ * 2. Signal Stack - medium, muted
+ * 3. Decision Card - large, dominant, elevated
+ * 
+ * Visual weight clearly favors Step 3 (Plinth output).
  */
 "use client"
 
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { HeroMoment } from "./HeroMoment"
-import { ProblemEvidenceCollage } from "./ProblemEvidenceCollage"
+import { DecisionCard } from "./DecisionCard"
+import { SignalStack } from "./SignalStack"
 import { cn } from "@/lib/utils"
 import { ArrowRight, ChevronDown } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { sampleAnalysis } from "./sampleReadoutData"
 
-// Tiny input card mock (small, muted) - animated to fade/blur
-function InputCardVisual({ phase }: { phase: number }) {
-  const shouldBlur = phase >= 2
+// Input Card - Step 1: You bring (small, muted)
+function InputCard() {
   return (
-    <div 
-      className={cn(
-        "p-3 rounded-lg bg-white/80 border border-border-subtle/60 shadow-sm space-y-2 transition-all duration-700 min-h-[120px]",
-        shouldBlur ? "opacity-35 blur-[2px]" : "opacity-60 blur-[0.5px]"
-      )}
-    >
+    <div className="p-4 rounded-lg bg-white/80 border border-border-subtle/60 shadow-sm space-y-2">
       <div className="space-y-1.5">
-        <h4 className="text-xs font-semibold text-text-primary">
-          Should we introduce a free tier?
+        <h4 className="text-sm font-semibold text-text-primary">
+          {sampleAnalysis.decisionQuestion}
         </h4>
-        <p className="text-[10px] text-text-secondary">
-          Market: Incident management tools
+        <p className="text-xs text-text-secondary">
+          Market: {sampleAnalysis.market}
         </p>
       </div>
-      <div className="flex flex-wrap gap-1 pt-1.5 border-t border-border-subtle/50">
-        <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5">
+      <div className="flex flex-wrap gap-1 pt-2 border-t border-border-subtle/50">
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
           Pricing
         </Badge>
-        <Badge variant="secondary" className="text-[9px] px-1.5 py-0.5">
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
           Reviews
         </Badge>
       </div>
-    </div>
-  )
-}
-
-// Compact chaos thumbnail (medium, muted) - animated to blur/fade
-function EvidenceChaosThumbnail({ phase }: { phase: number }) {
-  const shouldBlur = phase >= 2
-  return (
-    <div 
-      className={cn(
-        "relative rounded-lg overflow-hidden border border-border-subtle/60 shadow-sm transition-all duration-700 min-h-[120px]",
-        shouldBlur ? "opacity-35 blur-[3px]" : "opacity-65 blur-[1px]"
-      )}
-    >
-      <ProblemEvidenceCollage className="aspect-[4/3] scale-75 origin-center" />
-    </div>
-  )
-}
-
-// Full Plinth readout (large, dominant) - animated snap-in
-function ReadoutHeroVisual({ phase }: { phase: number }) {
-  const isVisible = phase >= 2
-
-  return (
-    <div 
-      className={cn(
-        "relative rounded-xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-2 border-border-subtle bg-white transition-all duration-500",
-        isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-      )}
-    >
-      {/* Subtle spotlight behind the card */}
-      <div 
-        className="absolute -inset-4 opacity-60 rounded-2xl pointer-events-none -z-10"
-        style={{
-          background: 'radial-gradient(circle at center, hsl(230 65% 50% / 0.1), hsl(230 65% 50% / 0.05), transparent)'
-        }}
-      />
-      
-      {/* Main readout */}
-      <div className="p-6 md:p-8">
-        <HeroMoment variant="full" className="min-h-[500px]" />
-      </div>
-      
-      {/* Stronger glow effect */}
-      <div className="absolute inset-0 rounded-xl ring-2 ring-accent-primary/30 pointer-events-none" />
     </div>
   )
 }
@@ -110,11 +62,11 @@ export function TheFlowSection() {
         <Reveal delay={60}>
           <div className="space-y-6 sm:space-y-8">
             {/* Weighted 3-step layout: [1fr] → [1.2fr] → [2fr] with arrows */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.2fr_auto_2fr] items-start gap-4 lg:gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.2fr_auto_2fr] items-start gap-4 lg:gap-6">
               {/* Step 1: You bring (small) */}
               <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
                 <div className="w-full">
-                  <InputCardVisual phase={1} />
+                  <InputCard />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
@@ -136,10 +88,10 @@ export function TheFlowSection() {
                 <ChevronDown className="w-5 h-5 text-text-muted" />
               </div>
 
-              {/* Step 2: Plinth does (medium) */}
+              {/* Step 2: Plinth does (medium) - Signal Stack */}
               <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
                 <div className="w-full">
-                  <EvidenceChaosThumbnail phase={1} />
+                  <SignalStack variant="vertical" />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
@@ -161,10 +113,17 @@ export function TheFlowSection() {
                 <ChevronDown className="w-5 h-5 text-text-muted" />
               </div>
 
-              {/* Step 3: You get (large, dominant) */}
+              {/* Step 3: You get (large, dominant) - Decision Card */}
               <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
-                <div className="w-full">
-                  <ReadoutHeroVisual phase={2} />
+                <div className="w-full relative">
+                  {/* Subtle spotlight behind the card */}
+                  <div 
+                    className="absolute -inset-4 opacity-60 rounded-2xl pointer-events-none -z-10"
+                    style={{
+                      background: 'radial-gradient(circle at center, hsl(230 65% 50% / 0.1), hsl(230 65% 50% / 0.05), transparent)'
+                    }}
+                  />
+                  <DecisionCard className="relative shadow-xl border-accent-primary/20" />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-xs sm:text-sm font-semibold text-text-primary">

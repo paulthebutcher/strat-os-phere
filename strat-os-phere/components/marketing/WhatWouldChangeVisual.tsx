@@ -99,9 +99,8 @@ export function WhatWouldChangeVisual({
             {/* Evidence type + action */}
             <div className="flex items-center gap-3 pt-2 border-t border-border-subtle">
               <div className="flex items-center gap-2">
-                {trigger.evidenceType === "reviews" && <FileText size={14} className="text-text-muted" />}
+                {(trigger.evidenceType === "reviews" || trigger.evidenceType === "community") && <FileText size={14} className="text-text-muted" />}
                 {trigger.evidenceType === "changelog" && <TrendingUp size={14} className="text-text-muted" />}
-                {trigger.evidenceType === "pricing" && <FileText size={14} className="text-text-muted" />}
                 <Badge variant="secondary" className="text-xs">
                   {trigger.evidenceType}
                 </Badge>

@@ -12,7 +12,7 @@ import { sampleAnalysis } from "../sampleReadoutData"
 // Static sample data for the preview
 const sampleOpportunity = {
   title: sampleAnalysis.recommendation.title,
-  oneLiner: `${sampleAnalysis.competitors.length - 1}/${sampleAnalysis.competitors.length} competitors offer free tiers capped at usage. Reviews cite 'trial friction' as a blocker to adoption.`,
+  oneLiner: `${sampleAnalysis.competitors.length - 1} of ${sampleAnalysis.competitors.length} competitors offer free tiers with usage-based limits. Enterprise reviews mention evaluation friction and security review delays before purchase.`,
   customer: "Mid-market buyers comparing tools before procurement",
   whyNow: "No competitor pairs free tier with guided upgrade paths. Free tiers with caps convert without cannibalizing revenue.",
   evidenceSummary: "Strong evidence from pricing pages, documentation, and feature requests. All sources are recent (within last 90 days).",
@@ -24,8 +24,8 @@ const sampleOpportunity = {
   })),
   confidence: {
     coverage: "High",
-    evidenceStrength: "8.9",
-    totalScore: "8.7",
+    evidenceStrength: "8.1",
+    totalScore: "8.14",
   },
   assumptions: [
     "Enterprise customers prioritize SSO for security compliance",
