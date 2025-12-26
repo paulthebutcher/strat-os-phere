@@ -21,7 +21,7 @@ import { MarketingContainer } from "./MarketingContainer"
 
 export function HeroWithPreview() {
   return (
-    <section className="relative overflow-hidden pt-12 md:pt-24 pb-6 sm:pb-12 md:pb-16">
+    <section className="relative overflow-hidden pt-12 md:pt-24 pb-6 sm:pb-12 md:pb-16 w-full max-w-[100vw]">
       {/* Ambient background - softened and simplified */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div 
@@ -33,92 +33,84 @@ export function HeroWithPreview() {
       </div>
 
       {/* Main content: stacked layout */}
-      <div className="relative z-10">
-        <MarketingContainer maxWidth="6xl">
-          <div className="flex flex-col gap-4 sm:gap-8 md:gap-10">
-            {/* Top: Copy and CTAs - PRIMARY READING PATH - centered in viewport */}
-            <div className="max-w-[55ch] mx-auto text-center space-y-3 sm:space-y-5">
-              <Reveal delay={0}>
-                <h1 className={cn(
-                  "editorial-headline mx-auto lg:max-w-none lg:whitespace-nowrap"
+      <div className="relative z-10 w-full">
+        {/* Hero text: truly centered in viewport */}
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center text-center space-y-4 sm:space-y-5 md:space-y-6">
+            <Reveal delay={0}>
+              <h1 className={cn(
+                "editorial-headline lg:max-w-none lg:whitespace-nowrap"
+              )}>
+                Find your <span className="editorial-gradient-text">unfair advantage</span>.
+              </h1>
+            </Reveal>
+            
+            <Reveal delay={60}>
+              <div className="space-y-1.5 max-w-2xl">
+                <p className={cn(
+                  "editorial-body text-text-primary"
                 )}>
-                  Find your <span className="editorial-gradient-text">unfair advantage</span>.
-                </h1>
-              </Reveal>
-              
-              <Reveal delay={60}>
-                <div className="space-y-2">
-                  <p className={cn(
-                    "editorial-body text-text-primary max-w-[55ch] mx-auto"
-                  )}>
-                    Turn competitive signals into strategic bets you can defend.
-                  </p>
-                  <p className={cn(
-                    "editorial-body text-text-secondary max-w-[55ch] mx-auto"
-                  )}>
-                    Citations, assumptions, and confidence—ready to forward.
-                  </p>
-                </div>
-              </Reveal>
-
-              <Reveal delay={90}>
-                <div className="flex flex-col items-center gap-2.5">
-                  <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center items-center w-full">
-                    <Link href="/example" className="w-full sm:w-auto">
-                      <Button 
-                        size="lg" 
-                        variant="brand"
-                        className={cn(
-                          "w-full sm:w-auto text-base px-6 sm:px-8 py-5 sm:py-6 min-h-[44px]",
-                          HoverLift.className
-                        )}
-                      >
-                        View example decision
-                      </Button>
-                    </Link>
-                    <Link href="/how-plinth-thinks" className="w-full sm:w-auto">
-                      <Button 
-                        size="lg" 
-                        variant="outline" 
-                        className={cn(
-                          "w-full sm:w-auto border-2 hover:bg-accent-primary/5 min-h-[44px]",
-                          HoverLift.subtle
-                        )}
-                      >
-                        How it works
-                      </Button>
-                    </Link>
-                  </div>
-                  <p className="editorial-meta mt-0.5 hidden sm:block">Built for leaders who need more than analysis—they need conviction.</p>
-                </div>
-              </Reveal>
-            </div>
-
-            {/* Bridge copy above artifact - hidden on mobile */}
-            <Reveal delay={120}>
-              <p className="text-center editorial-meta max-w-[65ch] mx-auto hidden sm:block">
-                The answer. Documented. Defensible.
-              </p>
+                  Turn competitive evidence into strategic bets you can defend.
+                </p>
+                <p className={cn(
+                  "editorial-meta text-text-secondary"
+                )}>
+                  Citations. Assumptions. Confidence.
+                </p>
+              </div>
             </Reveal>
 
-            {/* Hero Artifact: Large, centered deliverable */}
-            <div className="max-w-6xl mx-auto w-full">
-              <div className="relative">
-                {/* Caption label */}
-                <p className="text-center editorial-meta mb-2 text-text-muted">
-                  Example decision output
-                </p>
-                <div className="shadow-2xl rounded-xl overflow-hidden border-2 border-slate-200/50">
-                  <HeroReadoutReveal variant="full" />
+            <Reveal delay={90}>
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center items-center w-full">
+                  <Link href="/example" className="w-full sm:w-auto">
+                    <Button 
+                      size="lg" 
+                      variant="brand"
+                      className={cn(
+                        "w-full sm:w-auto text-base px-6 sm:px-8 py-5 sm:py-6 min-h-[44px]",
+                        HoverLift.className
+                      )}
+                    >
+                      View example decision
+                    </Button>
+                  </Link>
+                  <Link href="/how-plinth-thinks" className="w-full sm:w-auto">
+                    <Button 
+                      size="lg" 
+                      variant="outline" 
+                      className={cn(
+                        "w-full sm:w-auto border-2 hover:bg-accent-primary/5 min-h-[44px]",
+                        HoverLift.subtle
+                      )}
+                    >
+                      How it works
+                    </Button>
+                  </Link>
                 </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+
+        {/* Hero Artifact: Large, centered deliverable with more separation */}
+        <div className="mt-12 sm:mt-16 md:mt-20 w-full px-4 sm:px-6 lg:px-8">
+          <MarketingContainer maxWidth="6xl">
+            <div className="relative">
+              {/* Caption label */}
+              <p className="text-center editorial-meta mb-2 text-text-muted">
+                Example decision output
+              </p>
+              <div className="shadow-2xl rounded-xl overflow-hidden border-2 border-slate-200/50">
+                <HeroReadoutReveal variant="full" />
               </div>
               {/* Editorial footnote: time & effort cue */}
               <p className="text-center editorial-meta mt-4 text-text-secondary">
                 Analyzed 47 sources across 4 evidence types · Generated in 3.2 minutes
               </p>
             </div>
-          </div>
-        </MarketingContainer>
+          </MarketingContainer>
+        </div>
       </div>
     </section>
   )

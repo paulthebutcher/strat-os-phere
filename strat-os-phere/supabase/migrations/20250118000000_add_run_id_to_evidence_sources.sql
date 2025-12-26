@@ -12,7 +12,23 @@ BEGIN
     AND column_name = 'run_id'
   ) THEN
     ALTER TABLE public.evidence_sources 
-    ADD COLUMN run_id UUID REFERENCES public.project_runs(id) ON DELETE SET NULL;
+    ADD COLUMN run_id UUID;
+  END IF;
+END $$;
+
+-- Add foreign key constraint if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints 
+    WHERE constraint_schema = 'public'
+    AND table_name = 'evidence_sources'
+    AND constraint_name = 'evidence_sources_run_id_fkey'
+    AND constraint_type = 'FOREIGN KEY'
+  ) THEN
+    ALTER TABLE public.evidence_sources
+    ADD CONSTRAINT evidence_sources_run_id_fkey
+    FOREIGN KEY (run_id) REFERENCES public.project_runs(id) ON DELETE SET NULL;
   END IF;
 END $$;
 
