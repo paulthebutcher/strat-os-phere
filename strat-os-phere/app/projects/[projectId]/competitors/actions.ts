@@ -17,7 +17,7 @@ import {
 import { loadProject } from '@/lib/projects/loadProject'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
-import { getLatestProjectInput } from '@/lib/data/projectInputs'
+import { getLatestProjectInput, updateProjectInput } from '@/lib/data/projectInputs'
 
 type ActionResult = {
   success: boolean
@@ -341,6 +341,41 @@ export async function confirmSuggestedCompetitors(
           evidence_text: null, // Evidence collected later
         })
       }
+    }
+
+    // Set competitorsConfirmedAt timestamp in project inputs
+    // This creates an explicit contract that Step 3 can enforce
+    try {
+      const inputResult = await getLatestProjectInput(supabase, projectId)
+      if (inputResult.ok && inputResult.data) {
+        await updateProjectInput(
+          supabase,
+          inputResult.data.id,
+          {
+            competitorsConfirmedAt: new Date().toISOString(),
+            competitorsConfirmed: true,
+          }
+        )
+      } else {
+        // If no input exists yet, create one with confirmation
+        const { createDraftProjectInput } = await import('@/lib/data/projectInputs')
+        await createDraftProjectInput(supabase, projectId, {
+          competitorsConfirmedAt: new Date().toISOString(),
+          competitorsConfirmed: true,
+        })
+      }
+    } catch (error) {
+      // Log but don't fail - confirmation is best effort
+      logger.error('Failed to set competitorsConfirmedAt', { projectId, error })
+    }
+
+    // Dev-only logging
+    if (process.env.NODE_ENV !== 'production') {
+      logger.info('[flow] step2 competitors confirmed', {
+        projectId,
+        selectedCount: selectedNames.length,
+        createdCount: competitorsToAdd.length,
+      })
     }
 
     revalidatePath(`/projects/${projectId}/competitors`)

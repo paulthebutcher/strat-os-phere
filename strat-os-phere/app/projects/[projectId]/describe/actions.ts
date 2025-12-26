@@ -99,12 +99,22 @@ export async function submitDescribeStep(
     )
 
     // Store suggested competitor names in project input
+    // IMPORTANT: This only stores names, NOT competitor rows.
+    // Competitors are created only via Step 2 confirmation.
     if (competitorNames.length > 0) {
       const updatedInputJson = {
         ...cleanedInputJson,
         suggestedCompetitorNames: competitorNames,
       }
       await createDraftProjectInput(supabase, projectId, updatedInputJson)
+    }
+
+    // Dev-only logging
+    if (process.env.NODE_ENV !== 'production') {
+      logger.info('[flow] step1 submitted', {
+        projectId,
+        suggestedCount: competitorNames.length,
+      })
     }
 
     revalidatePath(`/projects/${projectId}/describe`)
