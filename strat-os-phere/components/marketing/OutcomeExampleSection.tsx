@@ -1,55 +1,39 @@
 /**
- * Outcome Example Section (Decision Canvas)
+ * What You Actually Get (No New Visuals)
  * 
- * Proof-first layout: full-width artifact with compact proof legend.
- * Single cohesive proof block that keeps attention on the artifact.
+ * Crop variations of the same hero screenshot:
+ * - Recommendation area
+ * - Evidence list
+ * - Confidence indicators
  */
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+"use client"
+
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { DecisionBriefPreview } from "./previews/DecisionBriefPreview"
+import { HeroMoment } from "./HeroMoment"
 import { cn } from "@/lib/utils"
 
-interface ProofLegendItemProps {
+interface WhatYouGetItemProps {
   label: string
-  description: string
 }
 
-function ProofLegendItem({ label, description }: ProofLegendItemProps) {
+function WhatYouGetItem({ label }: WhatYouGetItemProps) {
   return (
     <div className="space-y-1">
       <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
         {label}
       </h3>
-      {description && (
-        <p className="text-xs text-text-secondary leading-relaxed">
-          {description}
-        </p>
-      )}
     </div>
   )
 }
 
 export function OutcomeExampleSection() {
-  const proofLegendItems = [
-    {
-      label: "One clear point of view",
-      description: ""
-    },
-    {
-      label: "Sources you can open",
-      description: ""
-    },
-    {
-      label: "Confidence that shows its work",
-      description: ""
-    },
-    {
-      label: "What would change the call",
-      description: ""
-    }
+  const items = [
+    "One clear point of view",
+    "Sources you can open",
+    "Confidence that shows its work",
+    "What would change the call"
   ]
 
   return (
@@ -57,46 +41,44 @@ export function OutcomeExampleSection() {
       <MarketingContainer maxWidth="6xl">
         <Reveal>
           <div className="flex flex-col gap-6 sm:gap-8">
-            {/* Section headline + subhead */}
+            {/* Section headline */}
             <div className="text-center space-y-2 sm:space-y-3">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight lg:whitespace-nowrap">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
                 No dashboards. No rabbit holes.
               </h2>
             </div>
 
-            {/* Full-width artifact wrapper */}
-            <div className="w-full">
-              <DecisionBriefPreview />
-            </div>
-
-            {/* Compact proof legend - 4-up grid */}
-            <div className={cn(
-              "grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6",
-              "pt-2 sm:pt-4"
-            )}>
-              {proofLegendItems.map((item, index) => (
-                <ProofLegendItem
-                  key={index}
-                  label={item.label}
-                  description={item.description}
-                />
-              ))}
-            </div>
-
-            {/* Mobile CTA */}
-            <Reveal delay={60}>
-              <div className="mt-4 sm:mt-6 text-center lg:hidden">
-                <Link href="/example" className="inline-block w-full sm:w-auto">
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="w-full sm:w-auto"
-                  >
-                    See what holds up
-                  </Button>
-                </Link>
+            {/* Crop variations grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              {/* Recommendation crop */}
+              <div className="space-y-3">
+                <div className="rounded-lg overflow-hidden shadow-lg border border-border-subtle">
+                  <HeroMoment variant="cropped-recommendation" className="min-h-[200px]" />
+                </div>
+                <WhatYouGetItem label="One clear point of view" />
               </div>
-            </Reveal>
+
+              {/* Evidence crop */}
+              <div className="space-y-3">
+                <div className="rounded-lg overflow-hidden shadow-lg border border-border-subtle">
+                  <HeroMoment variant="cropped-evidence" className="min-h-[200px]" />
+                </div>
+                <WhatYouGetItem label="Sources you can open" />
+              </div>
+
+              {/* Confidence crop */}
+              <div className="space-y-3">
+                <div className="rounded-lg overflow-hidden shadow-lg border border-border-subtle">
+                  <HeroMoment variant="cropped-confidence" className="min-h-[200px]" />
+                </div>
+                <WhatYouGetItem label="Confidence that shows its work" />
+              </div>
+            </div>
+
+            {/* What would change the call */}
+            <div className="text-center pt-2">
+              <WhatYouGetItem label="What would change the call" />
+            </div>
           </div>
         </Reveal>
       </MarketingContainer>

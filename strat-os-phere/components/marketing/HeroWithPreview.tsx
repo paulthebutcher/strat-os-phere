@@ -1,17 +1,15 @@
 /**
- * Hero With Preview Section
+ * Hero Section — Reveal the Moment
  * 
- * Stacked hero: copy on top, preview below.
- * Conversion-optimized layout with clear proof following claim.
+ * Large, centered hero screenshot. Nothing else competing visually.
+ * This is the visual spine of the page.
  */
 "use client"
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { DecisionBriefPreview } from "./previews/DecisionBriefPreview"
-import { PreviewArtifact } from "./PreviewArtifact"
+import { HeroReadoutReveal } from "./HeroReadoutReveal"
 import { Reveal, HoverLift } from "./motion"
 import { MarketingContainer } from "./MarketingContainer"
 
@@ -31,15 +29,14 @@ export function HeroWithPreview() {
       {/* Main content: stacked layout */}
       <div className="relative z-10">
         <MarketingContainer maxWidth="6xl">
-          <div className="flex flex-col gap-3 sm:gap-4 md:gap-5">
+          <div className="flex flex-col gap-6 sm:gap-8 md:gap-10">
             {/* Top: Copy and CTAs */}
-            <div className="max-w-[1100px] mx-auto text-center space-y-3 sm:space-y-4">
+            <div className="max-w-[1100px] mx-auto text-center space-y-4 sm:space-y-5">
               <Reveal delay={0}>
                 <h1 className={cn(
-                  "text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight leading-tight text-text-primary",
-                  "lg:whitespace-nowrap"
+                  "text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight leading-tight text-text-primary"
                 )}>
-                  Clarity that holds up
+                  Bring a hunch. Leave with receipts.
                 </h1>
               </Reveal>
               
@@ -47,7 +44,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
                 )}>
-                  When the stakes are high and the room is skeptical, evidence beats instinct.
+                  Plinth turns public signals into evidence you can actually stand behind.
                 </p>
               </Reveal>
 
@@ -63,7 +60,7 @@ export function HeroWithPreview() {
                           HoverLift.className
                         )}
                       >
-                        Pressure-test an idea
+                        Pressure-test an idea →
                       </Button>
                     </Link>
                     <Link href="/example" className="w-full sm:w-auto">
@@ -84,22 +81,12 @@ export function HeroWithPreview() {
               </Reveal>
             </div>
 
-            {/* Below: Decision Brief Preview - immediately after CTAs */}
-            <Reveal delay={120}>
-              <div className="max-w-6xl mx-auto w-full">
-                <div className="max-h-[420px] lg:max-h-[520px] overflow-hidden">
-                  <PreviewArtifact
-                    title=""
-                    subtitle=""
-                    callouts={[]}
-                  >
-                    <DecisionBriefPreview />
-                  </PreviewArtifact>
-                </div>
-                
-                {/* Interactive affordance */}
+            {/* Hero Moment: Large, centered screenshot */}
+            <div className="max-w-6xl mx-auto w-full">
+              <div className="shadow-2xl rounded-xl overflow-hidden">
+                <HeroReadoutReveal variant="full" />
               </div>
-            </Reveal>
+            </div>
           </div>
         </MarketingContainer>
       </div>

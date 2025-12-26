@@ -1,15 +1,16 @@
 /**
- * "The Turn: What Changes with Plinth" Section
+ * The Turn — Why This Is Different
  * 
- * Shows the transformation - clean decision readout with highlighted sources and confidence indicators.
+ * Side-by-side:
+ * - Left: messy inputs (opinions, dashboards, docs)
+ * - Right: the same hero readout
  */
 "use client"
 
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { PreviewArtifact } from "./PreviewArtifact"
-import { DecisionBriefPreview } from "./previews/DecisionBriefPreview"
+import { HeroMoment } from "./HeroMoment"
 import { cn } from "@/lib/utils"
 
 export function TheTurnSection() {
@@ -22,24 +23,48 @@ export function TheTurnSection() {
               Same question. Different outcome.
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-text-secondary max-w-2xl mx-auto">
-              Plinth turns public signals into something you can actually stand behind.
+              Most strategy debates fail because evidence never makes it to the table.
             </p>
           </div>
         </Reveal>
         
         <Reveal delay={60}>
-          <div className="max-w-5xl mx-auto">
-            <PreviewArtifact
-              title=""
-              subtitle=""
-              callouts={[
-                { label: "Clean readout" },
-                { label: "Sources included" },
-                { label: "Confidence shown" }
-              ]}
-            >
-              <DecisionBriefPreview />
-            </PreviewArtifact>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            {/* Left: Messy inputs */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
+                Without Plinth
+              </h3>
+              <div className={cn(
+                "rounded-lg border border-border-subtle bg-surface-muted/30 p-6 sm:p-8",
+                "min-h-[400px] flex flex-col items-center justify-center space-y-4"
+              )}>
+                <div className="w-full space-y-3">
+                  <div className="h-16 bg-surface/50 rounded border border-border-subtle/50 flex items-center px-4">
+                    <p className="text-xs text-text-muted">📊 Dashboard fragments</p>
+                  </div>
+                  <div className="h-16 bg-surface/50 rounded border border-border-subtle/50 flex items-center px-4">
+                    <p className="text-xs text-text-muted">💬 Opinion threads</p>
+                  </div>
+                  <div className="h-16 bg-surface/50 rounded border border-border-subtle/50 flex items-center px-4">
+                    <p className="text-xs text-text-muted">📄 Scattered docs</p>
+                  </div>
+                  <div className="h-16 bg-surface/50 rounded border border-border-subtle/50 flex items-center px-4">
+                    <p className="text-xs text-text-muted">❓ Unanswered questions</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Hero readout */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">
+                With Plinth
+              </h3>
+              <div className="shadow-xl rounded-lg overflow-hidden">
+                <HeroMoment variant="full" />
+              </div>
+            </div>
           </div>
         </Reveal>
       </MarketingContainer>

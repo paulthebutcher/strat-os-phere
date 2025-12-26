@@ -1,47 +1,55 @@
 /**
- * Final CTA Band
+ * Final CTA — Return to the Moment
  * 
- * Simple and welcoming final CTA section.
+ * Full hero screenshot again (slightly smaller)
  */
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
-import { microcopy } from "@/lib/copy/microcopy"
 import { Reveal, HoverLift } from "./motion"
+import { HeroMoment } from "./HeroMoment"
 
 export function FinalCTABand() {
   return (
     <MarketingSection variant="gradient" className="relative overflow-hidden">
-      <MarketingContainer maxWidth="4xl" className="relative z-10">
+      <MarketingContainer maxWidth="5xl" className="relative z-10">
         <Reveal>
-          <div className={cn(
-            "relative overflow-hidden rounded-2xl border border-border-subtle",
-            "bg-surface p-12 text-center shadow-lg md:p-16"
-          )}>
-            <div className="space-y-6">
-              <h2 className="text-2xl md:text-4xl font-semibold tracking-tight text-text-primary">
+          <div className="space-y-8 sm:space-y-10">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-text-primary">
                 See what holds up.
               </h2>
-              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
-                <Link href="/new">
-                  <Button 
-                    size="lg" 
-                    variant="brand"
-                    className={cn(
-                      "w-full sm:w-auto shadow-lg",
-                      HoverLift.className
-                    )}
-                  >
-                    Pressure-test an idea →
-                  </Button>
-                </Link>
-              </div>
-              <p className="text-sm md:text-base text-text-muted pt-2">
-                Takes ~2 minutes. No login required.
-              </p>
             </div>
+            
+            {/* Hero screenshot (slightly smaller) */}
+            <div className="max-w-4xl mx-auto">
+              <div className="shadow-2xl rounded-xl overflow-hidden">
+                <HeroMoment variant="full" />
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-2">
+              <Link href="/new" className="w-full sm:w-auto">
+                <Button 
+                  size="lg" 
+                  variant="brand"
+                  className={cn(
+                    "w-full sm:w-auto shadow-lg",
+                    HoverLift.className
+                  )}
+                >
+                  Pressure-test an idea →
+                </Button>
+              </Link>
+            </div>
+            <p className="text-sm md:text-base text-text-muted text-center pt-2">
+              Takes ~2 minutes. No login required.
+            </p>
           </div>
         </Reveal>
       </MarketingContainer>
