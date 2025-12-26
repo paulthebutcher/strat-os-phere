@@ -41,6 +41,10 @@ import { DecisionReceipt } from '@/components/results/DecisionReceipt'
 import { DecisionSummary } from '@/components/results/DecisionSummary'
 import { ProjectBreadcrumbs } from '@/components/layout/ProjectBreadcrumbs'
 import { DeepDiveLinks } from '@/components/projects/DeepDiveLinks'
+import { ReadoutHero } from '@/components/results/ReadoutHero'
+import { EvidenceProgressStrip } from '@/components/results/EvidenceProgressStrip'
+import { EvidencePreview } from '@/components/results/EvidencePreview'
+import { NextStepsPanel } from '@/components/results/NextStepsPanel'
 
 interface DecisionPageProps {
   params: Promise<{
@@ -66,7 +70,7 @@ export async function generateMetadata(props: DecisionPageProps): Promise<Metada
   }
   
   return createPageMetadata({
-    title: `Decision summary for ${projectName}`,
+    title: `Executive Readout for ${projectName}`,
     description:
       "Primary recommendation, confidence assessment, and key insights from competitive analysis.",
     path: `/projects/${projectId}/decision`,
@@ -292,53 +296,35 @@ export default async function DecisionPage(props: DecisionPageProps) {
           </PageSection>
 
           <PageHeader
-            title="Decision Summary"
-            subtitle="Primary recommendation, confidence assessment, and key insights from your analysis."
+            title="Executive Readout"
+            subtitle="Primary recommendation, confidence, and next steps"
             secondaryActions={
               <>
-                <TourLink />
                 <ShareButton projectId={projectId} />
+                <TourLink />
               </>
             }
           />
 
-          {/* DecisionRun Status Banner - persistent run/evidence status */}
-          {decisionRunState && (
-            <PageSection>
-              <DecisionRunStatusBanner state={decisionRunState} />
-            </PageSection>
-          )}
+          {/* Readout Hero - Primary recommendation and confidence */}
+          <PageSection>
+            <ReadoutHero
+              opportunitiesV3={opportunities.best?.type === 'opportunities_v3' ? opportunities.best.content : null}
+              opportunitiesV2={opportunities.best?.type === 'opportunities_v2' ? opportunities.best.content : null}
+              coverage={coverageLite}
+              competitorCount={competitorCount}
+              projectName={project?.name || undefined}
+              projectMarket={project?.market || undefined}
+            />
+          </PageSection>
 
-          {/* System State Banner - shows empty/running/partial/complete states */}
-          {viewModel.systemState !== 'complete' && (
+          {/* Evidence Progress Strip - Compact progress indicator */}
+          {(decisionRunState || viewModel.systemState !== 'complete') && (
             <PageSection>
-              <SystemStateBanner
-                state={viewModel.systemState}
-                actions={
-                  nextAction.onClickIntent === 'generate' ? (
-                    <GenerateAnalysisButton
-                      projectId={projectId}
-                      label={nextAction.label}
-                      canGenerate={coverageLite.isEvidenceSufficient}
-                      missingReasons={coverageLite.isEvidenceSufficient ? [] : coverageLite.reasonsMissing}
-                    />
-                  ) : nextAction.href ? (
-                    <Link href={nextAction.href} className="text-sm font-medium text-primary underline-offset-4 hover:underline">
-                      {nextAction.label}
-                    </Link>
-                  ) : undefined
-                }
-              />
-            </PageSection>
-          )}
-
-          {/* Coverage Indicator - Show when we have results */}
-          {viewModel.systemState !== 'empty' && viewModel.systemState !== 'running' && (
-            <PageSection>
-              <CoverageIndicator
-                level={viewModel.coverageLevel}
-                sourceCount={viewModel.sourceCount}
-                competitorCount={viewModel.competitorCount}
+              <EvidenceProgressStrip
+                decisionRunState={decisionRunState}
+                coverage={coverageLite}
+                competitorCount={competitorCount}
               />
             </PageSection>
           )}
@@ -355,7 +341,24 @@ export default async function DecisionPage(props: DecisionPageProps) {
             </PageSection>
           )}
 
-          {/* Decision Summary - Primary decision-oriented synthesis surface */}
+          {/* Next Steps Panel */}
+          <PageSection>
+            <NextStepsPanel
+              coverage={coverageLite}
+              projectId={projectId}
+            />
+          </PageSection>
+
+          {/* Evidence Preview - Always shows something */}
+          <PageSection>
+            <EvidencePreview
+              evidenceBundle={evidenceBundle}
+              coverage={coverageLite}
+              projectId={projectId}
+            />
+          </PageSection>
+
+          {/* Decision Summary - Deep dive content (collapsed or below fold) */}
           <PageSection>
             <DecisionSummary
               projectId={projectId}

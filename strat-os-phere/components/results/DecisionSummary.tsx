@@ -471,19 +471,13 @@ export function DecisionSummary({
           )}
 
           {evidenceReadiness === 'unavailable' && (
-            <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+            <div className="p-4 bg-muted/30 rounded-lg border border-border-subtle">
               <p className="text-sm text-foreground mb-2 font-medium">
-                Evidence unavailable
+                Evidence collection in progress
               </p>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                We couldn't retrieve supporting sources for this recommendation.
-                This decision is incomplete and should not be relied on yet.
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Confidence is directional until coverage improves. See Evidence Preview above for current sources.
               </p>
-              <Button asChild variant="outline" size="sm">
-                <Link href={paths.evidence(projectId)}>
-                  Retry evidence collection
-                </Link>
-              </Button>
             </div>
           )}
 
