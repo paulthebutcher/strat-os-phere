@@ -2,10 +2,11 @@
  * What You Get (No Dashboards Section)
  * 
  * 2-column layout:
- * - Left: narrative + bullet proof points
- * - Right: cohesive "Readout Proof Stack" visual
- *   - Top: Full readout crop (recommendation + score + sources)
- *   - Below: Two small callout crops (evidence list + risk/uncertainty)
+ * - Left: narrative + bullet proof points (supporting)
+ * - Right: After-first showcase (dominant)
+ *   - Top: Large After readout hero (primary)
+ *   - Middle: Smaller After "What would change" card (secondary)
+ *   - Bottom: Small muted Before strip (supporting)
  */
 "use client"
 
@@ -13,6 +14,7 @@ import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
 import { HeroMoment } from "./HeroMoment"
+import { ProblemEvidenceCollage } from "./ProblemEvidenceCollage"
 import { cn } from "@/lib/utils"
 
 export function OutcomeExampleSection() {
@@ -33,8 +35,8 @@ export function OutcomeExampleSection() {
 
             {/* 2-column layout: Story + Proof */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-              {/* Left: Narrative + Bullets (5 cols on desktop) */}
-              <div className="lg:col-span-5 space-y-6 order-2 lg:order-1">
+              {/* Left: Narrative + Bullets (4 cols on desktop, supporting) */}
+              <div className="lg:col-span-4 space-y-6 order-2 lg:order-1">
                 <div className="space-y-4">
                   <ul className="space-y-4">
                     <li className="space-y-1">
@@ -73,24 +75,49 @@ export function OutcomeExampleSection() {
                 </div>
               </div>
 
-              {/* Right: Readout Proof Stack (7 cols on desktop) */}
-              <div className="lg:col-span-7 space-y-4 order-1 lg:order-2">
-                {/* Primary: Full readout crop */}
-                <div className="rounded-lg overflow-hidden shadow-lg border border-border-subtle">
-                  <HeroMoment variant="cropped-recommendation" className="min-h-[240px]" />
+              {/* Right: After-first showcase (8 cols on desktop, dominant) */}
+              <div className="lg:col-span-8 space-y-4 order-1 lg:order-2">
+                {/* 1. After: Decision Readout (large, crisp, primary hero) */}
+                <div className="relative rounded-xl overflow-hidden shadow-2xl border-2 border-border-subtle bg-white">
+                  {/* After callout pills */}
+                  <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
+                    <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
+                      One recommendation
+                    </div>
+                    <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
+                      Evidence attached
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 z-10">
+                    <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
+                      Confidence shown
+                    </div>
+                  </div>
+                  
+                  <HeroMoment variant="full" className="min-h-[500px]" />
+                  
+                  {/* Subtle glow effect */}
+                  <div className="absolute inset-0 rounded-xl ring-2 ring-accent-primary/20 pointer-events-none" />
                 </div>
 
-                {/* Secondary row: Two small callout crops */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Sources you can open */}
-                  <div className="rounded-lg overflow-hidden shadow-lg border border-border-subtle">
-                    <HeroMoment variant="cropped-evidence" className="min-h-[160px]" />
+                {/* 2. After: "What would change this call" (smaller, crisp, secondary) */}
+                <div className="relative rounded-lg overflow-hidden shadow-lg border border-border-subtle bg-white">
+                  <div className="absolute top-2 right-2 z-10">
+                    <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-md">
+                      What would change the call
+                    </div>
                   </div>
+                  <HeroMoment variant="cropped-guardrails" className="min-h-[180px]" />
+                </div>
 
-                  {/* What would change the call */}
-                  <div className="rounded-lg overflow-hidden shadow-lg border border-border-subtle">
-                    <HeroMoment variant="cropped-guardrails" className="min-h-[160px]" />
+                {/* 3. Before: chaos thumbnail strip (small, muted, supporting) */}
+                <div className="relative rounded-lg overflow-hidden border border-border-subtle/60 shadow-sm opacity-60 blur-[1px]">
+                  <div className="absolute top-2 left-2 z-10 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
+                    <span className="text-[10px] font-semibold text-amber-900 uppercase tracking-wide">
+                      Before
+                    </span>
                   </div>
+                  <ProblemEvidenceCollage className="aspect-[16/4] scale-90 origin-center" />
                 </div>
               </div>
             </div>

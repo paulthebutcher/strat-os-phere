@@ -23,27 +23,27 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
       "relative w-full rounded-2xl border-2 border-border-subtle overflow-hidden bg-white shadow-xl",
       className
     )}>
-      {/* Split container */}
-      <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border-subtle">
+      {/* Weighted split container: Before ~30%, After ~70% */}
+      <div className="grid grid-cols-1 md:grid-cols-[0.3fr_0.7fr] divide-y md:divide-y-0 md:divide-x divide-border-subtle">
         
-        {/* LEFT: "Before" - Opinion Chaos */}
-        <div className="relative bg-gradient-to-br from-slate-50 via-white to-slate-50/50 p-6 sm:p-8 md:p-10">
+        {/* LEFT: "Before" - Opinion Chaos (muted, supporting) */}
+        <div className="relative bg-gradient-to-br from-slate-50 via-white to-slate-50/50 p-4 sm:p-6 md:p-6 opacity-70 blur-[1px]">
           {/* Overlay label */}
-          <div className="absolute top-4 left-4 z-10">
-            <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-1.5">
-              <span className="text-xs font-semibold text-amber-900 uppercase tracking-wide">
-                Opinion
+          <div className="absolute top-3 left-3 z-10">
+            <div className="bg-amber-50/80 border border-amber-200/60 rounded-md px-2 py-1">
+              <span className="text-[10px] font-semibold text-amber-900/80 uppercase tracking-wide">
+                Before
               </span>
             </div>
           </div>
 
-          {/* Chaos collage - overlapping, tilted layers */}
-          <div className="relative h-full min-h-[400px] md:min-h-[500px]">
+          {/* Chaos collage - overlapping, tilted layers (muted) */}
+          <div className="relative h-full min-h-[300px] md:min-h-[400px]">
             
-            {/* Layer 1: Slack thread (back, tilted) */}
+            {/* Layer 1: Slack thread (back, tilted, more muted) */}
             <div className={cn(
-              "absolute top-8 left-4 w-[85%] rounded-lg bg-white/90 backdrop-blur-sm",
-              "border border-border-subtle/60 shadow-md p-4 space-y-2",
+              "absolute top-6 left-3 w-[85%] rounded-lg bg-white/70 backdrop-blur-sm",
+              "border border-border-subtle/40 shadow-sm p-3 space-y-1.5",
               "transform rotate-[-2deg] z-0"
             )}>
               <div className="flex items-center gap-2 mb-2">
@@ -67,10 +67,10 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
               </div>
             </div>
 
-            {/* Layer 2: Google Doc with highlights (middle, tilted) */}
+            {/* Layer 2: Google Doc with highlights (middle, tilted, muted) */}
             <div className={cn(
-              "absolute top-16 right-6 w-[80%] rounded-lg bg-white/90 backdrop-blur-sm",
-              "border border-border-subtle/60 shadow-md p-4 space-y-1.5",
+              "absolute top-12 right-4 w-[80%] rounded-lg bg-white/70 backdrop-blur-sm",
+              "border border-border-subtle/40 shadow-sm p-3 space-y-1",
               "transform rotate-[1.5deg] z-10"
             )}>
               <div className="h-2 bg-slate-300 rounded w-full" />
@@ -88,10 +88,10 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
               </div>
             </div>
 
-            {/* Layer 3: Pricing page with callouts (front, tilted) */}
+            {/* Layer 3: Pricing page with callouts (front, tilted, muted) */}
             <div className={cn(
-              "absolute bottom-12 left-8 w-[75%] rounded-lg bg-white/95 backdrop-blur-sm",
-              "border-2 border-red-200/40 shadow-lg p-4 space-y-2",
+              "absolute bottom-8 left-6 w-[75%] rounded-lg bg-white/75 backdrop-blur-sm",
+              "border border-red-200/30 shadow-sm p-3 space-y-1.5",
               "transform rotate-[-1deg] z-20"
             )}>
               <div className="h-2 bg-slate-800/20 rounded w-1/2 mb-2" />
@@ -108,10 +108,10 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
               </div>
             </div>
 
-            {/* Layer 4: Slide deck with comments (overlapping) */}
+            {/* Layer 4: Slide deck with comments (overlapping, muted) */}
             <div className={cn(
-              "absolute bottom-6 right-4 w-[70%] rounded-lg bg-gradient-to-br from-slate-50 to-white",
-              "backdrop-blur-sm border border-border-subtle/60 shadow-md p-4 space-y-2",
+              "absolute bottom-4 right-3 w-[70%] rounded-lg bg-gradient-to-br from-slate-50/80 to-white/80",
+              "backdrop-blur-sm border border-border-subtle/40 shadow-sm p-3 space-y-1.5",
               "transform rotate-[0.8deg] z-30"
             )}>
               <div className="h-3 bg-slate-800/20 rounded w-1/2 mb-2" />
@@ -136,28 +136,46 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
           </div>
         </div>
 
-        {/* RIGHT: "After" - Plinth Clarity */}
-        <div className="relative bg-white p-6 sm:p-8 md:p-10">
+        {/* RIGHT: "After" - Plinth Clarity (dominant, crisp) */}
+        <div className="relative bg-white p-6 sm:p-8 md:p-10 shadow-inner">
           {/* Overlay label */}
           <div className="absolute top-4 right-4 z-10">
-            <div className="bg-green-50 border border-green-200 rounded-md px-3 py-1.5">
+            <div className="bg-green-50 border-2 border-green-300 rounded-md px-3 py-1.5 shadow-md">
               <span className="text-xs font-semibold text-green-900 uppercase tracking-wide">
-                Proof
+                After
               </span>
             </div>
           </div>
+          
+          {/* After callout pills */}
+          <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
+            <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
+              One recommendation
+            </div>
+            <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
+              Evidence attached
+            </div>
+          </div>
+          <div className="absolute top-16 left-4 z-10">
+            <div className="bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
+              Confidence shown
+            </div>
+          </div>
 
-          {/* Clean Plinth Decision Readout */}
-          <div className="h-full min-h-[400px] md:min-h-[500px] flex items-center justify-center">
-            <div className="w-full max-w-[480px] scale-90 md:scale-100">
+          {/* Clean Plinth Decision Readout (larger, sharper) */}
+          <div className="h-full min-h-[500px] md:min-h-[600px] flex items-center justify-center">
+            <div className="w-full max-w-[600px] scale-100 md:scale-105">
               <DecisionCredibilityVisual />
             </div>
           </div>
+          
+          {/* Subtle glow effect */}
+          <div className="absolute inset-0 rounded-xl ring-2 ring-accent-primary/20 pointer-events-none" />
         </div>
       </div>
 
-      {/* Divider line with arrow (optional, subtle) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 hidden md:block">
+      {/* Divider line with arrow (positioned at ~30% mark) */}
+      <div className="absolute top-1/2 left-[30%] -translate-x-1/2 -translate-y-1/2 z-50 hidden md:block">
         <div className="bg-white border-2 border-accent-primary rounded-full p-2 shadow-lg">
           <svg 
             className="w-6 h-6 text-accent-primary" 
