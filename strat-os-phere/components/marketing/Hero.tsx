@@ -45,7 +45,7 @@ export function Hero() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-3xl mx-auto"
                 )}>
-                  Evidence-backed insights that hold up in real conversations — not just docs.
+                  Evidence-backed insights that hold up in real conversations. Not just docs.
                 </p>
               </Reveal>
             </div>
@@ -61,7 +61,7 @@ export function Hero() {
                 <p className={cn(
                   "text-sm sm:text-base text-text-secondary"
                 )}>
-                  From a rough idea to clarity you can trust — with evidence attached.
+                  From a rough idea to clarity you can trust. Evidence attached.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">

@@ -1,19 +1,88 @@
 /**
- * The Flow (Still Image-First)
+ * The Flow (Clean 3-Step Timeline)
  * 
- * A simplified 3-panel visual, all pointing toward the same hero readout:
- * 1. Input (hunch / question)
- * 2. Evidence (logos, docs, reviews)
- * 3. Output (the hero screenshot again)
+ * A clean horizontal timeline showing:
+ * 1. Input (question + market chips)
+ * 2. Evidence (sources count + types + competitor coverage)
+ * 3. Output (readout crop: recommendation + score + sources)
  */
 "use client"
 
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
-import { Reveal, Stagger } from "./motion"
+import { Reveal } from "./motion"
 import { HeroMoment } from "./HeroMoment"
 import { cn } from "@/lib/utils"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ChevronDown } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+
+// Micro-visual: Input card mock
+function InputCardVisual() {
+  return (
+    <div className="p-4 rounded-lg bg-white border border-border-subtle shadow-sm space-y-3">
+      <div className="space-y-2">
+        <h4 className="text-sm font-semibold text-text-primary">
+          Should we introduce a free tier?
+        </h4>
+        <p className="text-xs text-text-secondary">
+          Market: Incident management tools
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border-subtle">
+        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+          Pricing
+        </Badge>
+        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+          Reviews
+        </Badge>
+        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+          Docs
+        </Badge>
+      </div>
+    </div>
+  )
+}
+
+// Micro-visual: Evidence collection state
+function EvidenceStateVisual() {
+  return (
+    <div className="p-4 rounded-lg bg-white border border-border-subtle shadow-sm space-y-3">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-text-primary">Sources</span>
+          <span className="text-xs text-text-secondary">8 found</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-text-primary">Competitors</span>
+          <span className="text-xs text-text-secondary">5 analyzed</span>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border-subtle">
+        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+          Pricing
+        </Badge>
+        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+          Reviews
+        </Badge>
+        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+          Docs
+        </Badge>
+        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+          Positioning
+        </Badge>
+      </div>
+    </div>
+  )
+}
+
+// Micro-visual: Readout crop
+function ReadoutCropVisual() {
+  return (
+    <div className="rounded-lg overflow-hidden shadow-lg border border-border-subtle">
+      <HeroMoment variant="cropped-recommendation" className="min-h-[180px]" />
+    </div>
+  )
+}
 
 export function TheFlowSection() {
   return (
@@ -24,90 +93,83 @@ export function TheFlowSection() {
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
               From hunch to proof.
             </h2>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center items-center text-sm text-text-secondary">
-              <span>You bring the question</span>
-              <span className="hidden sm:inline">·</span>
-              <span>Plinth does the digging</span>
-              <span className="hidden sm:inline">·</span>
-              <span>You get something defensible</span>
-            </div>
+            <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
+              Question to evidence to readout. This holds up.
+            </p>
           </div>
         </Reveal>
         
         <Reveal delay={60}>
           <div className="space-y-6 sm:space-y-8">
-            {/* 3-panel flow */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-center">
-              {/* Panel 1: Input */}
+            {/* 3-step horizontal timeline */}
+            <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
+              {/* Step 1: Input */}
               <div className={cn(
-                "p-6 rounded-lg bg-surface/50 border border-border-subtle",
-                "text-center space-y-3"
+                "flex flex-col items-center text-center space-y-4 flex-1 w-full lg:w-auto"
               )}>
-                <div className={cn(
-                  "rounded-lg border border-border-subtle bg-surface-muted/30",
-                  "aspect-video flex items-center justify-center mb-3"
-                )}>
-                  <p className="text-xs text-text-muted px-2 text-center">
-                    Question / Hunch
-                  </p>
+                <div className="w-full">
+                  <div className="rounded-lg bg-surface/50 border border-border-subtle p-4">
+                    <InputCardVisual />
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-text-primary mb-1">
-                    You bring
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-text-primary">
+                    Bring the question
                   </h3>
                   <p className="text-xs text-text-secondary">
-                    a question, a market, a hunch
+                    A hunch, a market, a bet you're considering.
                   </p>
                 </div>
               </div>
 
-              {/* Arrow */}
-              <div className="hidden md:flex justify-center">
+              {/* Arrow 1 (desktop) / Down chevron (mobile) */}
+              <div className="hidden lg:flex items-center justify-center flex-shrink-0">
                 <ArrowRight className="w-6 h-6 text-text-muted" />
               </div>
+              <div className="flex lg:hidden items-center justify-center py-2">
+                <ChevronDown className="w-5 h-5 text-text-muted" />
+              </div>
 
-              {/* Panel 2: Evidence */}
+              {/* Step 2: Evidence */}
               <div className={cn(
-                "p-6 rounded-lg bg-surface/50 border border-border-subtle",
-                "text-center space-y-3"
+                "flex flex-col items-center text-center space-y-4 flex-1 w-full lg:w-auto"
               )}>
-                <div className={cn(
-                  "rounded-lg border border-border-subtle bg-surface-muted/30",
-                  "aspect-video flex items-center justify-center mb-3"
-                )}>
-                  <p className="text-xs text-text-muted px-2 text-center">
-                    Evidence gathering
-                  </p>
+                <div className="w-full">
+                  <div className="rounded-lg bg-surface/50 border border-border-subtle p-4">
+                    <EvidenceStateVisual />
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-text-primary mb-1">
-                    Plinth does
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-text-primary">
+                    We bring the proof
                   </h3>
                   <p className="text-xs text-text-secondary">
-                    the digging
+                    Pricing, docs, reviews, changelogs. Tagged and inspectable.
                   </p>
                 </div>
               </div>
 
-              {/* Arrow */}
-              <div className="hidden md:flex justify-center">
+              {/* Arrow 2 (desktop) / Down chevron (mobile) */}
+              <div className="hidden lg:flex items-center justify-center flex-shrink-0">
                 <ArrowRight className="w-6 h-6 text-text-muted" />
               </div>
+              <div className="flex lg:hidden items-center justify-center py-2">
+                <ChevronDown className="w-5 h-5 text-text-muted" />
+              </div>
 
-              {/* Panel 3: Output (Hero readout) */}
+              {/* Step 3: Output */}
               <div className={cn(
-                "p-6 rounded-lg bg-surface/50 border border-border-subtle",
-                "text-center space-y-3"
+                "flex flex-col items-center text-center space-y-4 flex-1 w-full lg:w-auto"
               )}>
-                <div className="rounded-lg overflow-hidden shadow-lg">
-                  <HeroMoment variant="full" className="min-h-[200px]" />
+                <div className="w-full">
+                  <ReadoutCropVisual />
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-text-primary mb-1">
-                    You get
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-text-primary">
+                    You walk in prepared
                   </h3>
                   <p className="text-xs text-text-secondary">
-                    something defensible
+                    One clear point of view. Sources attached. Uncertainty shown.
                   </p>
                 </div>
               </div>
@@ -118,4 +180,3 @@ export function TheFlowSection() {
     </MarketingSection>
   )
 }
-

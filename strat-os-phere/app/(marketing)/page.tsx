@@ -26,7 +26,7 @@ import { createPageMetadata } from "@/lib/seo/metadata"
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
     title: "Clarity that holds up",
-    description: "When the stakes are high and the room is skeptical, evidence beats instinct.",
+    description: "When the room is skeptical, evidence wins.",
     path: "/",
     ogVariant: "default",
     canonical: true,

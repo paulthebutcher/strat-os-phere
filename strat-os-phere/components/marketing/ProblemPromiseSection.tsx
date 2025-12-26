@@ -18,7 +18,7 @@ export function ProblemPromiseSection() {
               Strategy that matters shouldn't feel like guesswork.
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed text-text-secondary max-w-3xl mx-auto line-clamp-3 sm:line-clamp-none">
-              Most teams generate ideas or summaries. Plinth turns them into defensible calls backed by evidence you can point to — in minutes, not meetings.
+              Most teams generate ideas or summaries. Plinth turns them into defensible calls backed by evidence you can point to. In minutes, not meetings.
             </p>
           </div>
         </Reveal>

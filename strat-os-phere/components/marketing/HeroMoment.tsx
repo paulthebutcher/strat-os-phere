@@ -79,8 +79,8 @@ function prefersReducedMotion(): boolean {
 interface HeroMomentProps {
   /** Show callout highlights (for "Zoom In" section) */
   showCallouts?: boolean
-  /** Variant: full, cropped-recommendation, cropped-evidence, cropped-confidence */
-  variant?: "full" | "cropped-recommendation" | "cropped-evidence" | "cropped-confidence"
+  /** Variant: full, cropped-recommendation, cropped-evidence, cropped-confidence, cropped-guardrails */
+  variant?: "full" | "cropped-recommendation" | "cropped-evidence" | "cropped-confidence" | "cropped-guardrails"
   /** Optional className */
   className?: string
 }
@@ -105,7 +105,7 @@ export function HeroMoment({
   const showRecommendation = variant === "full" || variant === "cropped-recommendation" || variant === "cropped-confidence"
   const showEvidence = variant === "full" || variant === "cropped-evidence"
   const showConfidence = variant === "full" || variant === "cropped-confidence"
-  const showGuardrails = variant === "full"
+  const showGuardrails = variant === "full" || variant === "cropped-guardrails"
   
   // For cropped variants, adjust min-height
   const isCropped = variant !== "full"

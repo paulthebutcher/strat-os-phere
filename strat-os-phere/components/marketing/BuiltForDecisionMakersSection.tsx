@@ -28,7 +28,7 @@ export function BuiltForDecisionMakersSection() {
     },
     {
       headline: "Move the conversation forward",
-      description: "Focus on what's supported — and what would change the call — not opinions.",
+      description: "Focus on what's supported and what would change the call. Not opinions.",
     },
   ]
 
@@ -39,7 +39,7 @@ export function BuiltForDecisionMakersSection() {
           <div className="space-y-8 sm:space-y-12">
             <div className="text-center space-y-4 sm:space-y-6">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight lg:whitespace-nowrap">
-                Built for thinking that will be challenged
+                For thinking that will be challenged
               </h2>
             </div>
             <div className="grid gap-4 sm:gap-6 md:grid-cols-3 max-w-5xl mx-auto">

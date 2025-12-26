@@ -8,7 +8,7 @@
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { cn } from "@/lib/utils"
+import { ProblemEvidenceCollage } from "./ProblemEvidenceCollage"
 
 export function ProblemSection() {
   return (
@@ -20,22 +20,15 @@ export function ProblemSection() {
               Too many opinions. Not enough proof.
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-text-secondary max-w-2xl mx-auto">
-              Most strategy debates fail before they start — not because ideas are bad, but because evidence is thin.
+              Most strategy debates fail before they start. Not because ideas are bad. Because evidence is thin.
             </p>
           </div>
         </Reveal>
         
-        {/* Visual placeholder - should show blurred dashboards, highlighted docs, Slack threads, slides */}
+        {/* Visual collage showing the noise of strategy work */}
         <Reveal delay={60}>
           <div className="mt-8 sm:mt-12">
-            <div className={cn(
-              "rounded-2xl border border-border-subtle bg-surface-muted/30 p-8 sm:p-12",
-              "aspect-video flex items-center justify-center"
-            )}>
-              <p className="text-sm text-text-muted text-center">
-                [Visual: Blurred dashboards, highlighted docs, Slack threads, slides full of opinions]
-              </p>
-            </div>
+            <ProblemEvidenceCollage />
           </div>
         </Reveal>
       </MarketingContainer>

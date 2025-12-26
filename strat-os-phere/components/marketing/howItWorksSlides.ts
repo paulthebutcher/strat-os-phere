@@ -27,11 +27,11 @@ export const HOW_IT_WORKS_SLIDES: HowItWorksSlide[] = [
     headline: 'Frame',
     shortDescriptor: 'Start with a real decision',
     copy: [
-      `Start with a real decision — not a prompt.`,
+      `Start with a real decision. Not a prompt.`,
       `Plinth works best when the question is explicit. You can start with a hunch, a competitor set, or a market tension you're trying to resolve.`,
     ],
     preview: FramePreview,
-    proofLine: `We infer what to research from how you frame the decision — just like a strategy team would.`,
+    proofLine: `We infer what to research from how you frame the decision. Just like a strategy team would.`,
   },
   {
     id: 'scan',
@@ -40,7 +40,7 @@ export const HOW_IT_WORKS_SLIDES: HowItWorksSlide[] = [
     shortDescriptor: 'Gather public market signals',
     copy: [
       `Plinth gathers public market signals continuously.`,
-      `We analyze pricing pages, documentation, reviews, changelogs, and positioning across competitors — focusing only on primary sources.`,
+      `We analyze pricing pages, documentation, reviews, changelogs, and positioning across competitors. Focusing only on primary sources.`,
     ],
     preview: ScanPreview,
     proofLine: `Every claim is grounded in something you can open and inspect.`,
@@ -52,7 +52,7 @@ export const HOW_IT_WORKS_SLIDES: HowItWorksSlide[] = [
     shortDescriptor: 'Score evidence by relevance',
     copy: [
       `Not all signals matter equally.`,
-      `Plinth scores evidence based on consistency, coverage, and relevance — separating directional ideas from investment-ready calls.`,
+      `Plinth scores evidence based on consistency, coverage, and relevance. Separating directional ideas from investment-ready calls.`,
     ],
     preview: WeighPreview,
     proofLine: `Confidence is explicit. Uncertainty is surfaced.`,
@@ -64,7 +64,7 @@ export const HOW_IT_WORKS_SLIDES: HowItWorksSlide[] = [
     shortDescriptor: 'Get a defendable recommendation',
     copy: [
       `The output is a decision you can defend.`,
-      `You get a single, prioritized recommendation when confidence is high — with clear boundaries on what would change the call.`,
+      `You get a single, prioritized recommendation when confidence is high. With clear boundaries on what would change the call.`,
     ],
     preview: DecidePreview,
     proofLine: `No dashboards. No guesswork. Just clarity.`,

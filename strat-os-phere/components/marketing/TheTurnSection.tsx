@@ -11,6 +11,7 @@ import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
 import { HeroMoment } from "./HeroMoment"
+import { ProblemEvidenceCollage } from "./ProblemEvidenceCollage"
 import { cn } from "@/lib/utils"
 
 export function TheTurnSection() {
@@ -35,24 +36,8 @@ export function TheTurnSection() {
               <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
                 Without Plinth
               </h3>
-              <div className={cn(
-                "rounded-lg border border-border-subtle bg-surface-muted/30 p-6 sm:p-8",
-                "min-h-[400px] flex flex-col items-center justify-center space-y-4"
-              )}>
-                <div className="w-full space-y-3">
-                  <div className="h-16 bg-surface/50 rounded border border-border-subtle/50 flex items-center px-4">
-                    <p className="text-xs text-text-muted">📊 Dashboard fragments</p>
-                  </div>
-                  <div className="h-16 bg-surface/50 rounded border border-border-subtle/50 flex items-center px-4">
-                    <p className="text-xs text-text-muted">💬 Opinion threads</p>
-                  </div>
-                  <div className="h-16 bg-surface/50 rounded border border-border-subtle/50 flex items-center px-4">
-                    <p className="text-xs text-text-muted">📄 Scattered docs</p>
-                  </div>
-                  <div className="h-16 bg-surface/50 rounded border border-border-subtle/50 flex items-center px-4">
-                    <p className="text-xs text-text-muted">❓ Unanswered questions</p>
-                  </div>
-                </div>
+              <div className="rounded-lg border border-border-subtle overflow-hidden shadow-lg">
+                <ProblemEvidenceCollage className="aspect-[4/3] rounded-lg" />
               </div>
             </div>
 

@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
     title: "How Plinth thinks",
     description:
-      "How Plinth turns public signals into defensible calls—with citations and confidence boundaries.",
+      "How Plinth turns public signals into defensible calls. With citations and confidence boundaries.",
     path: "/how-plinth-thinks",
     ogVariant: "default",
     canonical: true,
@@ -34,7 +34,7 @@ export default function HowPlinthThinksPage() {
     <MarketingPageShell
       title="How Plinth thinks"
       eyebrow="Methodology"
-      lead="A decision system designed to make confidence boundaries explicit — what the evidence supports now, what it doesn't yet, and what would increase certainty."
+      lead="A decision system that makes confidence boundaries explicit. What the evidence supports now, what it doesn't yet, and what would increase certainty."
     >
       {/* Hero note */}
       <MarketingSection>
@@ -111,7 +111,7 @@ export default function HowPlinthThinksPage() {
                         Collect public market evidence
                       </h3>
                       <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                        We gather evidence from publicly accessible sources across your competitors — marketing sites, documentation, announcements, and reviews.
+                        We gather evidence from publicly accessible sources across your competitors. Marketing sites, documentation, announcements, and reviews.
                       </p>
                     </div>
                   </div>

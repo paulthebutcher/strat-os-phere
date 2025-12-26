@@ -58,7 +58,7 @@ export function ProofSection() {
     {
       icon: ArrowRight,
       title: "A clear point of view",
-      description: "Not just options — a recommendation, plus what would change it.",
+      description: "Not just options. A recommendation, plus what would change it.",
     },
   ]
 

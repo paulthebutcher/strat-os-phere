@@ -71,7 +71,7 @@ export function ArtifactPreviewRow() {
           confidence="exploratory"
           citationsCount={3}
           evidenceTypes={2}
-          caption="Here's what's real—and what's missing."
+          caption="What's real and what's missing."
         />
 
         {/* Right: Investment-ready */}
@@ -81,7 +81,7 @@ export function ArtifactPreviewRow() {
           confidence="investment_ready"
           citationsCount={8}
           evidenceTypes={4}
-          caption="Here's what to do—and why now."
+          caption="What to do and why now."
         />
       </div>
     </Reveal>

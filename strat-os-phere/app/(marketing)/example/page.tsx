@@ -39,7 +39,7 @@ export default function ExamplePage() {
     <MarketingPageShell
       title="One clear opportunity"
       eyebrow="Example"
-      lead="An example of how Plinth ties recommendations to evidence — and calls out what would increase confidence."
+      lead="An example of how Plinth ties recommendations to evidence and calls out what would increase confidence."
     >
       <MarketingSection>
         <MarketingContainer maxWidth="4xl">
