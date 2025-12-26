@@ -11,7 +11,7 @@
 
 import { cn } from "@/lib/utils"
 import { DecisionCredibilityVisual } from "./DecisionCredibilityVisual"
-import { MessageSquare, Presentation } from "lucide-react"
+import { FileText, MessageSquare, Presentation } from "lucide-react"
 
 interface BeforeAfterContrastProps {
   className?: string
