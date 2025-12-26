@@ -3,6 +3,7 @@
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { toastSuccess, toastError } from '@/lib/toast/toast'
 
 interface CopySectionButtonProps {
   /**
@@ -32,6 +33,7 @@ export function CopySectionButton({
 
       await navigator.clipboard.writeText(content)
       setCopied(true)
+      toastSuccess('Copied')
 
       window.setTimeout(() => {
         setCopied(false)
@@ -41,6 +43,7 @@ export function CopySectionButton({
         err instanceof Error ? err.message : 'Unable to copy to clipboard.'
       setError(message)
       setCopied(false)
+      toastError('Failed to copy', message)
     }
   }
 

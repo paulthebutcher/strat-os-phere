@@ -11,6 +11,10 @@ import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
+import { PageShell } from '@/components/layout/PageShell'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { PageSection } from '@/components/layout/Section'
+import { ProjectBreadcrumbs } from '@/components/layout/ProjectBreadcrumbs'
 
 interface ScorecardPageProps {
   params: Promise<{
@@ -134,17 +138,30 @@ export default async function ScorecardPage(props: ScorecardPageProps) {
     }
     
     const normalized = normalizeResultsArtifacts(artifacts)
-  const { scoringMatrix } = normalized
+    const { scoringMatrix } = normalized
 
-  return (
-    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-      <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
-        <ScorecardContent
-          projectId={projectId}
-          scoring={scoringMatrix?.content}
+    return (
+      <PageShell size="wide">
+        {/* Breadcrumb Navigation */}
+        <PageSection>
+          <ProjectBreadcrumbs
+            projectId={projectId}
+            projectName={project.name}
+          />
+        </PageSection>
+
+        <PageHeader
+          title="Scorecard"
+          subtitle="Competitive scorecard evaluating competitors on key criteria weighted by importance."
         />
-      </main>
-    </div>
+
+        <PageSection>
+          <ScorecardContent
+            projectId={projectId}
+            scoring={scoringMatrix?.content}
+          />
+        </PageSection>
+      </PageShell>
     )
   } catch (error) {
     // Log any unexpected errors

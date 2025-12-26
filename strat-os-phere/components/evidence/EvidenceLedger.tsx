@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Copy, ExternalLink, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toastSuccess } from '@/lib/toast/toast'
 import type { EvidenceLedgerModel, EvidenceItem } from '@/lib/evidence/ledger'
 
 interface EvidenceLedgerProps {
@@ -47,6 +48,7 @@ function EvidenceItemRow({ item }: { item: EvidenceItem }) {
   const handleCopy = async () => {
     await copyToClipboard(item.url)
     setCopied(true)
+    toastSuccess('Copied link')
     setTimeout(() => setCopied(false), 2000)
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { toastSuccess, toastError } from '@/lib/toast/toast'
 
 interface ShareButtonProps {
   projectId: string
@@ -54,9 +55,11 @@ export function ShareButton({ projectId }: ShareButtonProps) {
     try {
       await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
+      toastSuccess('Copied link')
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       setError('Failed to copy link')
+      toastError('Failed to copy link')
     }
   }
 

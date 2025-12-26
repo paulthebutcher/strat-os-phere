@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils'
 import { gateScore, type DirectionalSignal } from '@/lib/scoring/evidenceGating'
 import type { CitationInput } from '@/lib/scoring/extractEvidenceFromArtifacts'
 import { microcopy } from '@/lib/copy/microcopy'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Info } from 'lucide-react'
 
 interface ScorePillProps {
   score: ComputedScore
@@ -103,21 +105,47 @@ export function ScorePill({ score, citations = [], className, showTooltip = fals
   if (gated.showNumeric && gated.score !== null) {
     const value = gated.score
     let variant: 'default' | 'secondary' = 'secondary'
+    let tooltipText = ''
 
     if (value >= 8) {
       variant = 'default' // High score - use primary/default variant
+      tooltipText = `High score (${value.toFixed(1)}/10) based on ${score.evidenceCount} evidence source${score.evidenceCount !== 1 ? 's' : ''}. Strong confidence in this assessment.`
     } else if (value >= 5) {
       variant = 'secondary' // Medium score - use secondary variant
+      tooltipText = `Moderate score (${value.toFixed(1)}/10) based on ${score.evidenceCount} evidence source${score.evidenceCount !== 1 ? 's' : ''}. Directional signal requiring validation.`
     } else {
       variant = 'secondary' // Low score - use secondary variant
+      tooltipText = `Lower score (${value.toFixed(1)}/10) based on ${score.evidenceCount} evidence source${score.evidenceCount !== 1 ? 's' : ''}. Needs more evidence to validate.`
+    }
+
+    const badgeContent = (
+      <Badge variant={variant} className="text-xs">
+        {value.toFixed(1)}/10
+      </Badge>
+    )
+
+    if (showTooltip) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={cn('flex items-center gap-2 cursor-help', className)}>
+                {badgeContent}
+                <Info className="h-3 w-3 text-muted-foreground" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs max-w-xs">{tooltipText}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )
     }
 
     return (
       <div className={cn('flex items-center gap-2', className)}>
-        <Badge variant={variant} className="text-xs">
-          {value.toFixed(1)}/10
-        </Badge>
-        {showTooltip && score.evidenceCount > 0 && (
+        {badgeContent}
+        {score.evidenceCount > 0 && (
           <span className="text-xs text-muted-foreground">
             {score.evidenceCount} citation{score.evidenceCount !== 1 ? 's' : ''}
           </span>
@@ -131,16 +159,38 @@ export function ScorePill({ score, citations = [], className, showTooltip = fals
   const directionalLabel = getDirectionalLabel(gated.directional)
   const coverageMessage = getCoverageMessage(gated.coverage)
 
+  const tooltipText = `${directionalLabel} signal. ${coverageMessage}. ${score.evidenceCount > 0 ? `Based on ${score.evidenceCount} evidence source${score.evidenceCount !== 1 ? 's' : ''}.` : 'More evidence needed for numeric scoring.'}`
+
+  const badgeContent = (
+    <Badge variant={directionalVariant} className="text-xs">
+      {directionalLabel}
+    </Badge>
+  )
+
+  if (showTooltip) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className={cn('flex items-center gap-2 cursor-help', className)}>
+              {badgeContent}
+              <Info className="h-3 w-3 text-muted-foreground" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs max-w-xs">{tooltipText}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      <Badge variant={directionalVariant} className="text-xs">
-        {directionalLabel}
-      </Badge>
-      {showTooltip && (
-        <span className="text-xs text-muted-foreground">
-          {coverageMessage}
-        </span>
-      )}
+      {badgeContent}
+      <span className="text-xs text-muted-foreground">
+        {coverageMessage}
+      </span>
     </div>
   )
 }

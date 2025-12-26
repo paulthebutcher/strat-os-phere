@@ -13,6 +13,9 @@ import type { EvidenceCoverageLite } from '@/lib/evidence/coverageLite'
 import { EMPTY_EVIDENCE_COVERAGE_LITE } from '@/lib/evidence/coverageTypes'
 import type { Citation } from '@/lib/schemas/opportunityV3'
 import { safeString } from '@/lib/text/safeString'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Info } from 'lucide-react'
+import { MotionSection } from '@/components/ui/Motion'
 
 interface DecisionSummaryProps {
   projectId: string
@@ -408,11 +411,23 @@ export function DecisionSummary({
           {canShowConfidence && (
             <>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                <div>
-                  <span className="text-sm font-medium text-foreground">{displayConfidence.label}</span>
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2 cursor-help">
+                          <span className="text-sm font-medium text-foreground">{displayConfidence.label}</span>
+                          <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs max-w-xs">{displayConfidence.description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   {/* Only show score if we have evidence */}
                   {hasEvidence && score !== null && (
-                    <span className="text-sm text-muted-foreground ml-2">Score: {score}/100</span>
+                    <span className="text-sm text-muted-foreground">Score: {score}/100</span>
                   )}
                 </div>
                 {projectMarket && (
@@ -428,7 +443,7 @@ export function DecisionSummary({
         </div>
 
         {/* 2. Evidence Snapshot - NOW FIRST, before narrative (reordered per PR) */}
-        <div className="mb-6 pb-6 border-b border-border-subtle">
+        <MotionSection className="mb-6 pb-6 border-b border-border-subtle">
           <h3 className="text-sm font-semibold text-foreground mb-3">Evidence snapshot</h3>
           
           {/* Evidence readiness states */}
@@ -503,11 +518,11 @@ export function DecisionSummary({
               </p>
             </div>
           )}
-        </div>
+        </MotionSection>
 
         {/* 3. Why This Matters - Concise rationale (moved after evidence) */}
         {whyThisMatters.length > 0 && (
-          <div className="mb-6 pb-6 border-b border-border-subtle">
+          <MotionSection className="mb-6 pb-6 border-b border-border-subtle" delay={0.15}>
             <h3 className="text-sm font-semibold text-foreground mb-3">Why this matters</h3>
             <div className="space-y-2">
               {whyThisMatters.map((insight, idx) => (
@@ -516,12 +531,12 @@ export function DecisionSummary({
                 </p>
               ))}
             </div>
-          </div>
+          </MotionSection>
         )}
 
         {/* 4. Scoring & Confidence - Explicit (only show if we have evidence) */}
         {hasEvidence && keyFactors.length > 0 && (
-          <div className="mb-6 pb-6 border-b border-border-subtle">
+          <MotionSection className="mb-6 pb-6 border-b border-border-subtle" delay={0.2}>
             <h3 className="text-sm font-semibold text-foreground mb-3">Key scoring factors</h3>
             <div className="space-y-2">
               {keyFactors.map((factor, idx) => (
@@ -531,14 +546,14 @@ export function DecisionSummary({
                 </div>
               ))}
             </div>
-          </div>
+          </MotionSection>
         )}
 
         {/* 5. Guardrails - What would change the call */}
-        <div className="mb-6">
+        <MotionSection className="mb-6" delay={0.25}>
           <h3 className="text-sm font-semibold text-foreground mb-2">What would change this call</h3>
           <p className="text-sm text-foreground">{whatWouldChange}</p>
-        </div>
+        </MotionSection>
 
         {/* Action links */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-4 border-t border-border-subtle">
