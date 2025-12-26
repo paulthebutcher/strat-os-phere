@@ -837,6 +837,87 @@
     background-clip: text;
   }
   
+  /* Editorial Typography Hierarchy - Marketing Only */
+  /* Headline (H1) - Large, assertive, compact line-height, max 1-2 lines */
+  .editorial-headline {
+    font-size: clamp(2rem, 5vw, 3.5rem); /* 32px - 56px responsive */
+    font-weight: 600;
+    line-height: 1.15; /* Compact, assertive */
+    letter-spacing: -0.02em;
+    color: hsl(var(--text-primary));
+    max-width: 18ch; /* ~12-14 words per line (approximately 18-20ch for short words) */
+    margin: 0;
+  }
+  
+  /* Section Headline (H2) - Interprets meaning, strong weight contrast */
+  .editorial-section-headline {
+    font-size: clamp(1.5rem, 3vw, 2.25rem); /* 24px - 36px responsive */
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: hsl(var(--text-primary));
+    max-width: 25ch; /* Short, declarative sentences */
+    margin: 0;
+  }
+  
+  /* Kicker / Eyebrow - Uppercase, tight tracking, anchors context */
+  .editorial-kicker {
+    font-size: 0.75rem; /* 12px */
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.08em; /* Tight tracking */
+    text-transform: uppercase;
+    color: hsl(var(--text-secondary));
+    margin: 0;
+  }
+  
+  /* Body - Slightly larger than default, comfortable line length, calm color */
+  .editorial-body {
+    font-size: 1.0625rem; /* 17px - slightly larger than default */
+    font-weight: 400;
+    line-height: 1.65; /* Comfortable reading */
+    letter-spacing: 0;
+    color: hsl(var(--text-primary)); /* Calm, not light gray */
+    max-width: 65ch; /* Comfortable line length */
+    margin: 0;
+  }
+  
+  /* Meta / Caption - Clearly secondary, for evidence counts, assumptions, caveats */
+  .editorial-meta {
+    font-size: 0.8125rem; /* 13px */
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
+    color: hsl(var(--text-secondary));
+    margin: 0;
+  }
+  
+  /* Restrained Gradient Text - Semantic emphasis only */
+  /* Horizontal gradient: brand color → neutral dark (subtle, restrained) */
+  .editorial-gradient-text {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--accent-primary)) 0%,
+      hsl(var(--text-primary) / 0.85) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Vertical rhythm utilities for editorial spacing */
+  .editorial-spacing-tight {
+    margin-bottom: 0.75rem; /* 12px */
+  }
+  
+  .editorial-spacing-normal {
+    margin-bottom: 1.5rem; /* 24px */
+  }
+  
+  .editorial-spacing-relaxed {
+    margin-bottom: 2.25rem; /* 36px */
+  }
+  
   .marketing-gradient-bg {
     background: linear-gradient(135deg, 
       hsl(var(--marketing-gradient-start) / 0.1), 

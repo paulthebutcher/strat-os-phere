@@ -1,8 +1,14 @@
 /**
- * Hero Section — Reveal the Moment
+ * Hero Section — The Artifact Demo (Explicit Exception)
  * 
- * Large, centered hero screenshot. Nothing else competing visually.
- * This is the visual spine of the page.
+ * The hero keeps the artifact demo with these constraints:
+ * - It must feel like a deliverable, not a live app
+ * - No tooltips, annotations, or UI chrome
+ * - Framed as "the answer," not "a preview"
+ * - This is the only place a realistic product artifact appears
+ * 
+ * The hero earns trust.
+ * The rest of the page earns belief.
  */
 "use client"
 
@@ -31,18 +37,18 @@ export function HeroWithPreview() {
         <MarketingContainer maxWidth="6xl">
           <div className="flex flex-col gap-6 sm:gap-8 md:gap-10">
             {/* Top: Copy and CTAs */}
-            <div className="max-w-[1100px] mx-auto text-center space-y-4 sm:space-y-5">
+            <div className="max-w-[1100px] mx-auto text-center space-y-5 sm:space-y-6">
               <Reveal delay={0}>
                 <h1 className={cn(
-                  "text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight leading-tight text-text-primary"
+                  "editorial-headline mx-auto"
                 )}>
-                  Find your unfair advantage.
+                  Find your <span className="editorial-gradient-text">unfair advantage</span>.
                 </h1>
               </Reveal>
               
               <Reveal delay={60}>
                 <p className={cn(
-                  "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
+                  "editorial-body text-text-primary max-w-[65ch] mx-auto"
                 )}>
                   See where you're ahead—and why it holds up when challenged.
                 </p>
@@ -76,21 +82,21 @@ export function HeroWithPreview() {
                       </Button>
                     </Link>
                   </div>
-                  <p className="text-xs text-text-muted mt-0.5">Get a defensible readout in minutes</p>
+                  <p className="editorial-meta mt-0.5">Get a defensible readout in minutes</p>
                 </div>
               </Reveal>
             </div>
 
-            {/* Bridge copy above preview */}
+            {/* Bridge copy above artifact */}
             <Reveal delay={120}>
-              <p className="text-center text-sm sm:text-base text-text-secondary max-w-[90ch] mx-auto">
-                This is what it looks like when the answer holds up.
+              <p className="text-center editorial-meta max-w-[65ch] mx-auto">
+                The answer. Documented. Defensible.
               </p>
             </Reveal>
 
-            {/* Hero Moment: Large, centered screenshot */}
+            {/* Hero Artifact: Large, centered deliverable */}
             <div className="max-w-6xl mx-auto w-full">
-              <div className="shadow-2xl rounded-xl overflow-hidden">
+              <div className="shadow-2xl rounded-xl overflow-hidden border-2 border-slate-200/50">
                 <HeroReadoutReveal variant="full" />
               </div>
             </div>

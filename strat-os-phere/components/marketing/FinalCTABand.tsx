@@ -1,7 +1,8 @@
 /**
- * Final CTA — Return to the Moment
+ * Final CTA — Narrative Conclusion
  * 
- * Full hero screenshot again (slightly smaller)
+ * No UI previews. Only the hero section shows the artifact demo.
+ * This is a clean, narrative conclusion that invites action.
  */
 "use client"
 
@@ -11,7 +12,6 @@ import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal, HoverLift } from "./motion"
-import { HeroMoment } from "./HeroMoment"
 
 export function FinalCTABand() {
   return (
@@ -19,17 +19,13 @@ export function FinalCTABand() {
       <MarketingContainer maxWidth="5xl" className="relative z-10">
         <Reveal>
           <div className="space-y-8 sm:space-y-10">
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-4 max-w-[65ch] mx-auto">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-text-primary">
                 Get a clear answer in minutes
               </h2>
-            </div>
-            
-            {/* Hero screenshot (slightly smaller) */}
-            <div className="max-w-4xl mx-auto">
-              <div className="shadow-2xl rounded-xl overflow-hidden">
-                <HeroMoment variant="full" />
-              </div>
+              <p className="text-base sm:text-lg text-text-secondary">
+                See where you're ahead—and why it holds up when challenged.
+              </p>
             </div>
 
             {/* CTAs */}
@@ -44,6 +40,18 @@ export function FinalCTABand() {
                   )}
                 >
                   Pressure-test an idea →
+                </Button>
+              </Link>
+              <Link href="/example" className="w-full sm:w-auto">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className={cn(
+                    "w-full sm:w-auto border-2 hover:bg-accent-primary/5",
+                    HoverLift.subtle
+                  )}
+                >
+                  See a real readout →
                 </Button>
               </Link>
             </div>

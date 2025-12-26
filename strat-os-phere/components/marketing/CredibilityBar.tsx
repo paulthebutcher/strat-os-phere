@@ -14,7 +14,7 @@ export function CredibilityBar() {
     <div className="w-full bg-slate-50/40 border-y border-black/5">
       <MarketingContainer maxWidth="6xl">
         <div className="py-3 sm:py-4">
-          <p className="text-xs sm:text-sm text-text-secondary text-center leading-relaxed">
+          <p className="editorial-meta text-center">
             Built for product, strategy, and UX leaders at scale
           </p>
         </div>

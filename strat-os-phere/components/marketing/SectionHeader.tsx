@@ -31,15 +31,19 @@ export function SectionHeader({
   return (
     <div className={cn("space-y-3 sm:space-y-4", alignClasses[align], className)}>
       {eyebrow && (
-        <p className="text-xs sm:text-sm font-medium text-text-secondary uppercase tracking-wide">
+        <p className="editorial-kicker">
           {eyebrow}
         </p>
       )}
-      <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-text-primary lg:whitespace-nowrap">
+      <h2 className={cn(
+        "editorial-section-headline",
+        align === "center" && "mx-auto",
+        align === "right" && "ml-auto"
+      )}>
         {title}
       </h2>
       {subhead && (
-        <div className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl">
+        <div className="editorial-body max-w-[65ch]">
           {typeof subhead === "string" ? <p>{subhead}</p> : subhead}
         </div>
       )}

@@ -1,36 +1,43 @@
 /**
- * What You Walk Into The Room With
+ * ACT III — The Shift: Evidence Creates Structure
  * 
- * Asymmetric before/after comparison.
- * Left: Messy signal stack (compressed, faded, abstract)
- * Right: Clean outcome artifact (larger, structured, calm)
+ * Visually communicate the transition from noise to form.
  * 
- * No "Before / After" labels needed - hierarchy does the persuasion.
+ * Visual treatment:
+ * - Fragments from earlier acts begin to align
+ * - Loose elements snap into rows and columns
+ * - Signals become grouped
+ * - Clear boundaries appear
+ * 
+ * This is not the app yet.
+ * It's the concept of structure.
+ * 
+ * Think: "The fog is lifting."
  */
 "use client"
 
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { AsymmetricContrast } from "./AsymmetricContrast"
+import { StructureEmergingPanel } from "./StructureEmergingPanel"
 
 export function TheFlowSection() {
   return (
     <MarketingSection tone="alt" density="normal">
       <MarketingContainer maxWidth="6xl">
         <Reveal>
-          <div className="text-center space-y-2 sm:space-y-3 mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
-              What you walk into the room with
+          <div className="text-center space-y-4 mb-8 max-w-[65ch] mx-auto">
+            <h2 className="editorial-section-headline mx-auto">
+              Evidence creates <span className="editorial-gradient-text">structure</span>
             </h2>
-            <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
-              A single recommendation, supported by real evidence and explicit confidence.
+            <p className="editorial-body mx-auto">
+              The fog is lifting. Fragments align. Signals group. Boundaries appear.
             </p>
           </div>
         </Reveal>
         
         <Reveal delay={60}>
-          <AsymmetricContrast />
+          <StructureEmergingPanel className="rounded-xl lg:min-h-[500px] w-full" />
         </Reveal>
       </MarketingContainer>
     </MarketingSection>

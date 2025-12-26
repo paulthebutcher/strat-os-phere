@@ -1,33 +1,42 @@
 /**
- * Act 4: The Advantage — Why this compounds over time
+ * ACT V — The Aftermath: What Changes When It Holds Up
  * 
- * Structural proof blocks showing how Plinth thinks without showing UI.
- * Coverage, confidence boundaries, and invalidation conditions.
+ * Show downstream impact without feature lists.
+ * 
+ * Visual treatment:
+ * - Symbolic representations
+ * - Closed loops instead of endless cycles
+ * - Clean timelines instead of branching debates
+ * - Fewer artifacts, more resolution
+ * - Calm, confident composition
+ * 
+ * Minimal text. Clear implication:
+ * "This is what alignment looks like."
  */
 "use client"
 
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { ProofGrid } from "./ProofGrid"
+import { AftermathPanel } from "./AftermathPanel"
 
 export function WhyItHoldsUpSection() {
   return (
     <MarketingSection tone="default" density="normal">
       <MarketingContainer maxWidth="6xl">
         <Reveal>
-          <div className="text-center space-y-2 sm:space-y-3 mb-6 sm:mb-8 max-w-3xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-semibold tracking-tight text-text-primary leading-tight">
-              Evidence you can open and defend
+          <div className="text-center space-y-4 mb-8 max-w-[65ch] mx-auto">
+            <h2 className="editorial-section-headline mx-auto">
+              What changes when it <span className="editorial-gradient-text">holds up</span>
             </h2>
-            <p className="text-sm sm:text-base text-text-secondary">
-              Every claim links to its source. Confidence levels are explicit. You can cite this, not just present it.
+            <p className="editorial-body mx-auto">
+              Closed loops. Clean timelines. Fewer artifacts, more resolution.
             </p>
           </div>
         </Reveal>
         
         <Reveal delay={60}>
-          <ProofGrid />
+          <AftermathPanel className="rounded-xl lg:min-h-[500px] w-full" />
         </Reveal>
       </MarketingContainer>
     </MarketingSection>

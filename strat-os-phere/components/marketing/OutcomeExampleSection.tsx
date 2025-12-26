@@ -1,9 +1,20 @@
 /**
- * Act 3: The Receipt — What you actually get out
+ * ACT IV — The Outcome: A Defensible Call
  * 
- * Single large outcome artifact.
- * Heroic, exportable, feels like something you'd screenshot for leadership.
- * No full product UI previews.
+ * Present the result of using Plinth, not the interface.
+ * 
+ * Visual treatment:
+ * - A single, strong Decision Artifact
+ * - Document-like, printable, composed
+ * - Contains: Recommendation, Confidence band, Evidence count,
+ *   Explicit assumptions or change conditions
+ * 
+ * This artifact should feel:
+ * - Final
+ * - Shareable
+ * - Credible in executive settings
+ * 
+ * Still not a UI screenshot — this is a narrative artifact.
  */
 "use client"
 
@@ -19,12 +30,12 @@ export function OutcomeExampleSection() {
         <Reveal>
           <div className="flex flex-col gap-6 sm:gap-8">
             {/* Section headline - centered, compact */}
-            <div className="text-center space-y-2 sm:space-y-3 max-w-2xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
-                No dashboards. No rabbit holes.
+            <div className="text-center space-y-4 max-w-[65ch] mx-auto">
+              <h2 className="editorial-section-headline mx-auto">
+                A <span className="editorial-gradient-text">defensible call</span>
               </h2>
-              <p className="text-sm sm:text-base text-text-secondary">
-                Just the part that creates leverage.
+              <p className="editorial-body mx-auto">
+                The recommendation. The confidence. The evidence. The conditions that would change it.
               </p>
             </div>
 

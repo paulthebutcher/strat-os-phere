@@ -1,14 +1,15 @@
 /**
  * Marketing Homepage
  * 
- * 4-act visual narrative:
- * 1. The mess — what decision-making looks like today
- * 2. The turning point — what Plinth changes
- * 3. The receipt — what you actually get out
- * 4. The advantage — why this compounds over time
+ * 5-act visual narrative:
+ * ACT I — The Problem: Decisions Without Shape
+ * ACT II — The Stakes: Being Wrong Is Expensive
+ * ACT III — The Shift: Evidence Creates Structure
+ * ACT IV — The Outcome: A Defensible Call
+ * ACT V — The Aftermath: What Changes When It Holds Up
  * 
- * Each section earns its vertical space and advances the story.
- * Background surfaces group narrative beats.
+ * Core Rule: Hero keeps the artifact demo. Everything else is narrative, symbolic, and compositional.
+ * No UI screenshots below the hero. The product is the inevitable conclusion, not the subject.
  */
 import type { Metadata } from "next"
 import { HeroWithPreview } from "@/components/marketing/HeroWithPreview"
@@ -18,9 +19,9 @@ import { Footer } from "@/components/marketing/Footer"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
 import { ProblemSection } from "@/components/marketing/ProblemSection"
 import { TheTurnSection } from "@/components/marketing/TheTurnSection"
-import { TheFlowSection } from "@/components/marketing/TheFlowSection"
 import { OutcomeExampleSection } from "@/components/marketing/OutcomeExampleSection"
 import { WhyItHoldsUpSection } from "@/components/marketing/WhyItHoldsUpSection"
+import { StructureEmergingSection } from "@/components/marketing/StructureEmergingSection"
 import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -37,28 +38,28 @@ export default function MarketingHome() {
   return (
     <MarketingShell>
       <main className="marketing-landing min-h-screen">
-        {/* Hero: The Moment Before the Meeting */}
+        {/* Hero: The Artifact Demo (Only UI on Page) */}
         <HeroWithPreview />
         
         {/* Credibility Bar: Quiet enterprise signal */}
         <CredibilityBar />
         
-        {/* Act 1: The Mess — What decision-making looks like today */}
+        {/* ACT I — The Problem: Decisions Without Shape */}
         <ProblemSection />
         
-        {/* Act 2: The Turning Point — What Plinth changes */}
+        {/* ACT II — The Stakes: Being Wrong Is Expensive */}
         <TheTurnSection />
         
-        {/* What you walk into the room with: Outcome-focused section */}
-        <TheFlowSection />
+        {/* ACT III — The Shift: Evidence Creates Structure */}
+        <StructureEmergingSection />
         
-        {/* Act 3: The Receipt — What you actually get out */}
+        {/* ACT IV — The Outcome: A Defensible Call */}
         <OutcomeExampleSection />
         
-        {/* Act 4: The Advantage — Why this compounds over time */}
+        {/* ACT V — The Aftermath: What Changes When It Holds Up */}
         <WhyItHoldsUpSection />
         
-        {/* Final CTA: Invite, Don't Sell */}
+        {/* Final CTA: Narrative Conclusion */}
         <FinalCTABand />
         
         <Footer />
