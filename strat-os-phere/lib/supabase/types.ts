@@ -17,12 +17,6 @@ import type {
   DecisionLevel,
   InputConfidence,
   StartingPoint,
-  AnalysisRunRow,
-  AnalysisRunInsert,
-  AnalysisRunStatus,
-  AnalysisRunEventRow,
-  AnalysisRunEventInsert,
-  AnalysisRunEventLevel,
   Json,
 } from './database.types'
 
@@ -43,12 +37,6 @@ export type {
   DecisionLevel,
   InputConfidence,
   StartingPoint,
-  AnalysisRunRow,
-  AnalysisRunInsert,
-  AnalysisRunStatus,
-  AnalysisRunEventRow,
-  AnalysisRunEventInsert,
-  AnalysisRunEventLevel,
   Json,
 }
 
@@ -75,11 +63,4 @@ export type NewArtifact = ArtifactInsert
 // Do not redefine elsewhere. All evidence pipeline code must import from '@/lib/supabase/types'.
 export type EvidenceSource = EvidenceSourceRow
 export type NewEvidenceSource = EvidenceSourceInsert
-
-export type AnalysisRun = AnalysisRunRow
-export type NewAnalysisRun = AnalysisRunInsert
-
-export type AnalysisRunEvent = AnalysisRunEventRow
-export type NewAnalysisRunEvent = AnalysisRunEventInsert
-
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import type { AnalysisRun } from '@/lib/supabase/types'
+import type { UiRun } from '@/lib/data/projectRuns'
 
 interface RunStatusChipProps {
   projectId: string
@@ -14,7 +14,7 @@ interface RunStatusChipProps {
  * Polls for latest run status and shows progress
  */
 export function RunStatusChip({ projectId }: RunStatusChipProps) {
-  const [run, setRun] = useState<AnalysisRun | null>(null)
+  const [run, setRun] = useState<UiRun | null>(null)
   const [isPolling, setIsPolling] = useState(false)
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function RunStatusChip({ projectId }: RunStatusChipProps) {
   }
 
   const percent = run.percent ?? 0
-  const phase = run.current_phase ?? 'Starting...'
+  const phase = run.currentPhase ?? 'Starting...'
 
   return (
     <Link href={`/projects/${projectId}/results?runId=${run.id}`}>

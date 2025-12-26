@@ -1,5 +1,11 @@
 // Database type definitions for Supabase
 // This file defines the structure of the database tables for TypeScript type safety
+//
+// IMPORTANT: This file should be regenerated from Supabase after applying migrations.
+// To regenerate:
+//   supabase gen types typescript --project-id <project-id> > lib/supabase/database.types.ts
+// Or for local development:
+//   supabase gen types typescript --local > lib/supabase/database.types.ts
 
 export type Json =
   | string
@@ -98,6 +104,7 @@ export interface EvidenceSourceRow {
   id: string
   project_id: string
   competitor_id: string | null
+  run_id: string | null
   domain: string
   url: string
   extracted_text: string
@@ -112,6 +119,7 @@ export interface EvidenceSourceRow {
 export interface EvidenceSourceInsert {
   project_id: string
   competitor_id?: string | null
+  run_id?: string | null
   domain: string
   url: string
   extracted_text: string
@@ -178,62 +186,6 @@ export interface ArtifactInsert {
 
 export type ArtifactUpdate = Partial<ArtifactInsert>
 
-// Analysis run status
-export type AnalysisRunStatus = 'queued' | 'running' | 'completed' | 'failed'
-
-// Analysis run event level
-export type AnalysisRunEventLevel = 'info' | 'warn' | 'error'
-
-export interface AnalysisRunRow {
-  id: string
-  project_id: string
-  status: AnalysisRunStatus
-  started_at: string | null
-  completed_at: string | null
-  last_heartbeat_at: string | null
-  current_phase: string | null
-  percent: number | null
-  error_message: string | null
-  error: Json | null
-  created_at: string
-  updated_at: string
-}
-
-export interface AnalysisRunInsert {
-  project_id: string
-  status?: AnalysisRunStatus
-  started_at?: string | null
-  completed_at?: string | null
-  last_heartbeat_at?: string | null
-  current_phase?: string | null
-  percent?: number | null
-  error_message?: string | null
-  error?: Json | null
-  updated_at?: string | null
-}
-
-export type AnalysisRunUpdate = Partial<AnalysisRunInsert>
-
-export interface AnalysisRunEventRow {
-  id: string
-  run_id: string
-  created_at: string
-  level: AnalysisRunEventLevel
-  phase: string | null
-  message: string
-  meta: Json | null
-}
-
-export interface AnalysisRunEventInsert {
-  run_id: string
-  level: AnalysisRunEventLevel
-  phase?: string | null
-  message: string
-  meta?: Json | null
-}
-
-export type AnalysisRunEventUpdate = Partial<AnalysisRunEventInsert>
-
 // Project run status
 export type ProjectRunStatus = 'queued' | 'running' | 'succeeded' | 'failed'
 
@@ -271,6 +223,42 @@ export interface ProjectRunInsert {
 
 export type ProjectRunUpdate = Partial<ProjectRunInsert>
 
+export interface ProjectInputRow {
+  id: string
+  project_id: string
+  version: number
+  status: 'draft' | 'final'
+  input_json: Json
+  created_at: string
+}
+
+export interface ProjectInputInsert {
+  project_id: string
+  version: number
+  status: 'draft' | 'final'
+  input_json: Json
+}
+
+export type ProjectInputUpdate = Partial<ProjectInputInsert>
+
+export interface ProjectShareRow {
+  id: string
+  project_id: string
+  share_token: string
+  created_at: string
+  revoked_at: string | null
+  created_by: string | null
+}
+
+export interface ProjectShareInsert {
+  project_id: string
+  share_token?: string
+  revoked_at?: string | null
+  created_by?: string | null
+}
+
+export type ProjectShareUpdate = Partial<ProjectShareInsert>
+
 // Supabase generated-style Database type
 export type Database = {
   public: {
@@ -299,18 +287,6 @@ export type Database = {
         Update: ArtifactUpdate
         Relationships: []
       }
-      analysis_runs: {
-        Row: AnalysisRunRow
-        Insert: AnalysisRunInsert
-        Update: AnalysisRunUpdate
-        Relationships: []
-      }
-      analysis_run_events: {
-        Row: AnalysisRunEventRow
-        Insert: AnalysisRunEventInsert
-        Update: AnalysisRunEventUpdate
-        Relationships: []
-      }
       evidence_cache: {
         Row: EvidenceCacheRow
         Insert: EvidenceCacheInsert
@@ -321,6 +297,18 @@ export type Database = {
         Row: ProjectRunRow
         Insert: ProjectRunInsert
         Update: ProjectRunUpdate
+        Relationships: []
+      }
+      project_inputs: {
+        Row: ProjectInputRow
+        Insert: ProjectInputInsert
+        Update: ProjectInputUpdate
+        Relationships: []
+      }
+      project_shares: {
+        Row: ProjectShareRow
+        Insert: ProjectShareInsert
+        Update: ProjectShareUpdate
         Relationships: []
       }
     }

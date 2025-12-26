@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import type { AnalysisRun } from '@/lib/supabase/types'
+import type { UiRun } from '@/lib/data/projectRuns'
 
 /**
  * Global status chip shown in header when a run is in progress
@@ -12,7 +12,7 @@ import type { AnalysisRun } from '@/lib/supabase/types'
  */
 export function NavRunStatusChip() {
   const pathname = usePathname()
-  const [run, setRun] = useState<AnalysisRun | null>(null)
+  const [run, setRun] = useState<UiRun | null>(null)
   const [isPolling, setIsPolling] = useState(false)
 
   // Extract projectId from pathname (e.g., /projects/[projectId]/...)

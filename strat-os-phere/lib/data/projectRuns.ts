@@ -61,7 +61,7 @@ export function projectRunStatusToUiStatus(status: ProjectRunStatus): UiRunStatu
 
 /**
  * UI-safe run view model
- * Abstracts away differences between AnalysisRunRow and ProjectRun
+ * Provides UI-safe run view model abstraction
  * Used by client components that don't need to know the underlying DB schema
  */
 export type UiRun = {

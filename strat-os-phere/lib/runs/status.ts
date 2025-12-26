@@ -1,16 +1,18 @@
 /**
  * Helper functions to derive run status from artifacts
- * Used as fallback when analysis_runs table doesn't have the run record
+ * Used as fallback when project_runs table doesn't have the run record
  */
 
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import type { Artifact } from '@/lib/supabase/types'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { getProjectRunById, type ProjectRun } from '@/lib/data/projectRuns'
-import type { AnalysisRunStatus } from '@/lib/supabase/types'
+
+// Run status type for UI/derived status (maps 'succeeded' -> 'completed')
+export type RunStatus = 'queued' | 'running' | 'completed' | 'failed'
 
 export interface RunStatusInfo {
-  status: AnalysisRunStatus
+  status: RunStatus
   progress?: number
   updatedAt?: string
 }
@@ -24,7 +26,7 @@ export interface RunStatusInfo {
 function deriveStatusFromArtifacts(
   artifacts: Artifact[],
   runId: string
-): AnalysisRunStatus {
+): RunStatus {
   const runArtifacts = artifacts.filter(
     (a) => a.content_json && typeof a.content_json === 'object' && 'run_id' in a.content_json && a.content_json.run_id === runId
   )
@@ -68,8 +70,8 @@ export async function getRunStatus(
       ? (runRecord.metrics as { percent?: number }).percent
       : undefined
     
-    // Map ProjectRun status to AnalysisRunStatus
-    const status = runRecord.status === 'succeeded' ? 'completed' : runRecord.status as AnalysisRunStatus
+    // Map ProjectRun status to RunStatus ('succeeded' -> 'completed')
+    const status: RunStatus = runRecord.status === 'succeeded' ? 'completed' : runRecord.status
     
     return {
       status,
@@ -78,7 +80,7 @@ export async function getRunStatus(
     }
   }
 
-  // Fallback: derive from artifacts
+  // Fallback: derive from artifacts (legacy support)
   const artifacts = await listArtifacts(supabase, { projectId })
   const status = deriveStatusFromArtifacts(artifacts, runId)
 

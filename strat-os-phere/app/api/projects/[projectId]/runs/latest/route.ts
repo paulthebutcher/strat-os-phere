@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getLatestRunForProject } from '@/lib/data/projectRuns'
+import { getLatestRunForProject, projectRunToUiRun } from '@/lib/data/projectRuns'
 import { getProjectSafe } from '@/lib/data/projectsContract'
 
 /**
@@ -50,10 +50,11 @@ export async function GET(
 
     const latestRunResult = await getLatestRunForProject(supabase, projectId)
     const latestRun = latestRunResult.ok ? latestRunResult.data : null
+    const uiRun = projectRunToUiRun(latestRun)
 
     return NextResponse.json({
       ok: true,
-      run: latestRun,
+      run: uiRun,
       // Note: latest_successful_run_id doesn't exist in production schema
       // Latest run info is derived from artifacts table via lib/data/latestRun.ts
     })

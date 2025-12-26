@@ -217,7 +217,7 @@ export async function listProjectsWithCounts(
       })
     ),
     // Get latest run created_at for each project from project_runs (new source of truth)
-    // Note: This replaces the old analysis_runs table query
+    // Get latest run from project_runs (source of truth)
     Promise.all(
       projectIds.map(async (projectId) => {
         const runResult = await getLatestRunForProject(client, projectId)

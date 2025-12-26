@@ -8,7 +8,17 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import type { AnalysisRunEvent } from '@/lib/supabase/types'
+// Legacy event type for timeline drawer
+// Note: analysis_run_events table no longer exists. This component may need re-implementation
+// to use project_runs.metrics or be removed if not actively used.
+interface RunEvent {
+  id: string
+  phase: string | null
+  message: string
+  level: 'info' | 'warn' | 'error'
+  meta: Record<string, unknown> | null
+  created_at: string
+}
 
 interface RunTimelineDrawerProps {
   runId: string
@@ -19,6 +29,8 @@ interface RunTimelineDrawerProps {
 
 /**
  * Drawer showing run timeline with phases and events
+ * NOTE: This component references the legacy analysis_run_events table which no longer exists.
+ * Consider re-implementing to use project_runs.metrics or removing if unused.
  */
 export function RunTimelineDrawer({
   runId,
@@ -26,7 +38,7 @@ export function RunTimelineDrawer({
   open,
   onOpenChange,
 }: RunTimelineDrawerProps) {
-  const [events, setEvents] = useState<AnalysisRunEvent[]>([])
+  const [events, setEvents] = useState<RunEvent[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -50,7 +62,7 @@ export function RunTimelineDrawer({
   }, [runId, open])
 
   // Group events by phase
-  const eventsByPhase = new Map<string, AnalysisRunEvent[]>()
+  const eventsByPhase = new Map<string, RunEvent[]>()
   for (const event of events) {
     const phase = event.phase || 'unknown'
     const existing = eventsByPhase.get(phase) || []

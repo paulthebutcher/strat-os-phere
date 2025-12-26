@@ -30,7 +30,7 @@ export function toProjectCardModel(project: Project): ProjectCardModel {
   const status: ProjectCardModel['status'] = 'draft'
 
   // Primary action: route to opportunities (can be enhanced later with artifact checks)
-  // Note: "Generating..." status would require checking analysis_runs table for running status
+  // Note: "Generating..." status would require checking project_runs table for running status
   // For now, we conservatively show "Generate results"
   const primaryAction: ProjectCardModel['primaryAction'] = {
     label: 'Generate results',

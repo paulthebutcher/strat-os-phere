@@ -112,7 +112,7 @@ export function toProjectsListRow(project: ProjectWithCounts): ProjectsListRow {
     status,
     evidenceStrength,
     evidenceScore,
-    // Prefer derived lastArtifactAt, fallback to latestRunCreatedAt from analysis_runs
+    // Prefer derived lastArtifactAt, fallback to latestRunCreatedAt from project_runs
     lastRunAt: project.lastArtifactAt || project.latestRunCreatedAt || undefined,
     lastTouchedAt: lastTouchedAt || undefined,
     primaryCta,
