@@ -14,7 +14,7 @@ import { ReactNode, useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { prefersReducedMotion } from "@/lib/motion/tokens"
 
-interface ArtifactSettleProps {
+export interface ArtifactSettleProps {
   children: ReactNode
   delay?: number
   className?: string
