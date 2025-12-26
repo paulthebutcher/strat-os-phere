@@ -3,34 +3,41 @@ import { NextResponse } from 'next/server'
 import { runProjectAnalysis, PIPELINE_VERSION } from '@/lib/analysis/runProjectAnalysis'
 import { toAppError, NotReadyError, UnauthorizedError, NotFoundError, AnalysisFailedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
+import { ok, fail } from '@/lib/contracts/api'
+import { appErrorToCode, errorCodeToStatus } from '@/lib/contracts/errors'
+import { RunIdSchema } from '@/lib/contracts/domain'
+import { z } from 'zod'
 
 /**
- * Response type matching what the client expects
+ * Response schema for generate endpoint
  */
-type GenerateAnalysisResult =
-  | { ok: true; runId: string }
-  | { ok: false; message: string; details?: Record<string, unknown> }
+const GenerateAnalysisResponseSchema = z.object({
+  runId: RunIdSchema,
+})
+
+type GenerateAnalysisResponse = z.infer<typeof GenerateAnalysisResponseSchema>
 
 /**
  * POST /api/projects/[projectId]/generate
  * Triggers a new analysis run for the project using project_runs
+ * Returns ApiResponse<{ runId }>
  */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ projectId: string }> }
-): Promise<NextResponse<GenerateAnalysisResult>> {
+): Promise<NextResponse<{ ok: true; data: GenerateAnalysisResponse } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown> } }>> {
   const { projectId } = await params
   try {
     const result = await runProjectAnalysis(projectId, PIPELINE_VERSION)
 
     if (result.ok) {
-      return NextResponse.json(
-        {
-          ok: true,
-          runId: result.run.id,
-        },
-        { status: 200 }
-      )
+      const responseData: GenerateAnalysisResponse = {
+        runId: result.run.id,
+      }
+      
+      // Validate outgoing payload
+      const validated = GenerateAnalysisResponseSchema.parse(responseData)
+      return NextResponse.json(ok(validated), { status: 200 })
     } else {
       // Convert error to AppError for consistent handling
       let appError: ReturnType<typeof toAppError>
@@ -78,24 +85,16 @@ export async function POST(
 
       logAppError('api.projects.generate', appError, { projectId, runId: result.error.runId })
 
-      // Map error codes to appropriate HTTP status codes
-      const statusCode =
-        errorCode === 'UNAUTHENTICATED'
-          ? 401
-          : errorCode === 'PROJECT_NOT_FOUND_OR_FORBIDDEN' ||
-              errorCode === 'NO_INPUTS'
-            ? 400
-            : 500
+      // Map to contract error code
+      const contractErrorCode = appErrorToCode(appError)
+      const statusCode = errorCodeToStatus(contractErrorCode)
 
       return NextResponse.json(
-        {
-          ok: false,
-          message: appError.userMessage,
-          details: {
-            code: appError.code,
-            runId: result.error.runId,
-          },
-        },
+        fail(contractErrorCode, appError.userMessage, {
+          code: appError.code,
+          runId: result.error.runId,
+          ...appError.details,
+        }),
         { status: statusCode }
       )
     }
@@ -103,14 +102,16 @@ export async function POST(
     const appError = toAppError(error, { projectId, route: '/api/projects/[projectId]/generate' })
     logAppError('api.projects.generate', appError, { projectId })
     
-    const errorResult: GenerateAnalysisResult = {
-      ok: false,
-      message: appError.userMessage,
-      details: {
+    const contractErrorCode = appErrorToCode(appError)
+    const statusCode = errorCodeToStatus(contractErrorCode)
+    
+    return NextResponse.json(
+      fail(contractErrorCode, appError.userMessage, {
         code: appError.code,
-      },
-    }
-    return NextResponse.json(errorResult, { status: 500 })
+        ...appError.details,
+      }),
+      { status: statusCode }
+    )
   }
 }
 

@@ -13,6 +13,21 @@ import { performShortlist, DEFAULT_SHORTLIST_QUOTA } from '@/lib/evidence/shortl
 import { toFetchedPage } from '@/lib/evidence/normalizeToFetchedPage'
 import { FLAGS } from '@/lib/flags'
 import { resolveActiveRunId } from '@/lib/runs/activeRun'
+import { ok, fail } from '@/lib/contracts/api'
+import { appErrorToCode, errorCodeToStatus } from '@/lib/contracts/errors'
+import { toAppError } from '@/lib/errors/errors'
+import { RunIdSchema } from '@/lib/contracts/domain'
+import { z } from 'zod'
+
+/**
+ * Response schema for collect-evidence endpoint
+ */
+const CollectEvidenceResponseSchema = z.object({
+  runId: RunIdSchema,
+  message: z.string(),
+})
+
+type CollectEvidenceResponse = z.infer<typeof CollectEvidenceResponseSchema>
 
 /**
  * POST /api/projects/[projectId]/collect-evidence
@@ -20,11 +35,12 @@ import { resolveActiveRunId } from '@/lib/runs/activeRun'
  * This is a "soft start" that runs in the background
  * 
  * Requires runId (via body or resolved from active run)
+ * Returns ApiResponse<{ runId, message }>
  */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ projectId: string }> }
-): Promise<NextResponse<{ ok: boolean; message?: string; error?: string }>> {
+): Promise<NextResponse<{ ok: true; data: CollectEvidenceResponse } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown> } }>> {
   const { projectId } = await params
 
   try {
@@ -35,7 +51,7 @@ export async function POST(
 
     if (!user) {
       return NextResponse.json(
-        { ok: false, message: 'Not authenticated' },
+        fail('UNAUTHENTICATED', 'You must be signed in to collect evidence'),
         { status: 401 }
       )
     }
@@ -63,11 +79,9 @@ export async function POST(
         userId: user.id,
       })
       return NextResponse.json(
-        {
-          ok: false,
-          message: 'No analysis run found. Please generate an analysis first.',
-          error: 'NO_RUN',
-        },
+        fail('NOT_READY', 'No analysis run found. Please generate an analysis first.', {
+          code: 'NO_RUN',
+        }),
         { status: 400 }
       )
     }
@@ -79,7 +93,7 @@ export async function POST(
 
     if (competitors.length === 0) {
       return NextResponse.json(
-        { ok: false, message: 'No competitors found' },
+        fail('NOT_READY', 'No competitors found. Please add competitors first.'),
         { status: 400 }
       )
     }
@@ -240,21 +254,25 @@ export async function POST(
       runSource: runResolution.source,
     })
 
-    return NextResponse.json({
-      ok: true,
+    const responseData: CollectEvidenceResponse = {
+      runId,
       message: 'Evidence collection started',
-    })
+    }
+    
+    // Validate outgoing payload
+    const validated = CollectEvidenceResponseSchema.parse(responseData)
+    return NextResponse.json(ok(validated))
   } catch (error) {
     logger.error('[collect-evidence] Failed to start evidence collection', error)
+    const appError = toAppError(error, { projectId, route: '/api/projects/[projectId]/collect-evidence' })
+    const errorCode = appErrorToCode(appError)
+    const statusCode = errorCodeToStatus(errorCode)
+    
     return NextResponse.json(
-      {
-        ok: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Failed to start evidence collection',
-      },
-      { status: 500 }
+      fail(errorCode, appError.userMessage, {
+        details: appError.details,
+      }),
+      { status: statusCode }
     )
   }
 }

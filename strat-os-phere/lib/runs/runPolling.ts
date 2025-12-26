@@ -3,11 +3,13 @@
  */
 
 import type { RunStatusResponse } from './types'
+import { unwrapApiResponseOrNull } from '@/lib/api/unwrap'
 
 const POLL_INTERVAL_MS = 4000 // Poll every 4 seconds
 
 /**
  * Poll a single run's status
+ * Returns queued status if run doesn't exist yet (graceful fallback)
  */
 export async function pollRunStatus(
   runId: string
@@ -27,7 +29,18 @@ export async function pollRunStatus(
     throw new Error(`Failed to fetch status: ${response.statusText}`)
   }
 
-  const data = await response.json() as RunStatusResponse
+  // Unwrap ApiResponse
+  const data = await unwrapApiResponseOrNull<RunStatusResponse>(response)
+  
+  // Fallback to queued if unwrap failed
+  if (!data) {
+    return {
+      runId,
+      status: 'queued',
+      updatedAt: new Date().toISOString(),
+    }
+  }
+  
   return data
 }
 

@@ -72,7 +72,16 @@ export function AnalysisRunToast({
         throw new Error(`Failed to fetch status: ${response.statusText}`)
       }
 
-      const data: RunStatusResponse = await response.json()
+      // Unwrap ApiResponse
+      const { unwrapApiResponseOrNull } = await import('@/lib/api/unwrap')
+      const data = await unwrapApiResponseOrNull<RunStatusResponse>(response)
+      
+      if (!data) {
+        // Fallback to running if unwrap failed
+        setStatus('running')
+        return
+      }
+      
       setStatus(data.status)
       
       if (data.progress !== undefined) {
@@ -166,15 +175,17 @@ export function AnalysisRunToast({
         method: 'POST',
       })
 
-      const result = await response.json()
+      // Unwrap ApiResponse
+      const { unwrapApiResponseOrNull } = await import('@/lib/api/unwrap')
+      const result = await unwrapApiResponseOrNull<{ runId: string }>(response)
 
-      if (result.ok && result.runId) {
+      if (result && result.runId) {
         // Navigate to results and update toast
         router.push(`${paths.decision(projectId)}?runId=${result.runId}`)
         // Toast will be updated by the button that triggered this
         onDismiss()
       } else {
-        setErrorMessage(result.message || 'Failed to start analysis')
+        setErrorMessage('Failed to start analysis')
       }
     } catch (error) {
       setErrorMessage(

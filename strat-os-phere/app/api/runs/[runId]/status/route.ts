@@ -6,16 +6,39 @@ import { getAnalysisRunById } from '@/lib/data/runs'
 import { getProjectById } from '@/lib/data/projects'
 import type { ArtifactRow } from '@/lib/supabase/database.types'
 import type { RunStatusResponse } from '@/lib/runs/types'
+import { ok, fail } from '@/lib/contracts/api'
+import { appErrorToCode, errorCodeToStatus } from '@/lib/contracts/errors'
+import { toAppError } from '@/lib/errors/errors'
+import { z } from 'zod'
+
+/**
+ * Response schema for run status endpoint
+ * Maintains backward compatibility with existing RunStatusResponse
+ */
+const RunStatusResponseSchema = z.object({
+  runId: z.string().uuid(),
+  analysisId: z.string().uuid().optional(),
+  status: z.enum(['queued', 'running', 'completed', 'failed']),
+  progress: z.object({
+    step: z.string().optional(),
+    completed: z.number().min(0).max(100).optional(),
+    total: z.number().optional(),
+  }).optional(),
+  updatedAt: z.string().datetime(),
+  errorMessage: z.string().optional(),
+})
+
+type RunStatusResponseContract = z.infer<typeof RunStatusResponseSchema>
 
 /**
  * GET /api/runs/[runId]/status
- * Returns the status of an analysis run in RunStatusResponse format
+ * Returns the status of an analysis run in ApiResponse<RunStatusResponse> format
  * Checks analysis_runs table first, then falls back to artifacts
  */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ runId: string }> }
-): Promise<NextResponse<RunStatusResponse | { error: string; message?: string }>> {
+): Promise<NextResponse<{ ok: true; data: RunStatusResponseContract } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown> } }>> {
   try {
     const { runId } = await params
     const supabase = await createClient()
@@ -27,7 +50,7 @@ export async function GET(
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        fail('UNAUTHENTICATED', 'You must be signed in to view run status'),
         { status: 401 }
       )
     }
@@ -71,7 +94,7 @@ export async function GET(
       const project = await getProjectById(supabase, projectId)
       if (!project || project.user_id !== user.id) {
         return NextResponse.json(
-          { error: 'Forbidden' },
+          fail('FORBIDDEN', 'You do not have access to this run'),
           { status: 403 }
         )
       }
@@ -79,10 +102,10 @@ export async function GET(
       const statusInfo = await getRunStatus(supabase, runId, projectId)
       
       // Convert to RunStatusResponse format
-      const response: RunStatusResponse = {
+      const responseData: RunStatusResponseContract = {
         runId,
         analysisId: projectId, // Using projectId as analysisId for now
-        status: statusInfo.status,
+        status: statusInfo.status as 'queued' | 'running' | 'completed' | 'failed',
         progress: statusInfo.progress
           ? {
               completed: statusInfo.progress,
@@ -92,25 +115,32 @@ export async function GET(
         updatedAt: statusInfo.updatedAt || new Date().toISOString(),
       }
       
-      return NextResponse.json(response)
+      // Validate outgoing payload
+      const validated = RunStatusResponseSchema.parse(responseData)
+      return NextResponse.json(ok(validated))
     }
 
     // If no projectId found, return queued status
     // This can happen if the run doesn't exist yet
-    const response: RunStatusResponse = {
+    const responseData: RunStatusResponseContract = {
       runId,
       status: 'queued',
       updatedAt: new Date().toISOString(),
     }
-    return NextResponse.json(response)
+    
+    const validated = RunStatusResponseSchema.parse(responseData)
+    return NextResponse.json(ok(validated))
   } catch (error) {
     console.error('Error fetching run status:', error)
+    const appError = toAppError(error, { route: '/api/runs/[runId]/status' })
+    const errorCode = appErrorToCode(appError)
+    const statusCode = errorCodeToStatus(errorCode)
+    
     return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
+      fail(errorCode, appError.userMessage, {
+        details: appError.details,
+      }),
+      { status: statusCode }
     )
   }
 }

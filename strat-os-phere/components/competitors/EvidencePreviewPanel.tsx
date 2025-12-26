@@ -142,8 +142,14 @@ export function EvidencePreviewPanel({
           })
 
           if (response.ok) {
-            setCollectionStarted(true)
-            setState('collecting')
+            // Unwrap ApiResponse
+            const { unwrapApiResponseOrNull } = await import('@/lib/api/unwrap')
+            const data = await unwrapApiResponseOrNull<{ runId: string; message: string }>(response)
+            
+            if (data) {
+              setCollectionStarted(true)
+              setState('collecting')
+            }
           }
         } catch (error) {
           console.error('[EvidencePreviewPanel] Failed to start collection:', error)
