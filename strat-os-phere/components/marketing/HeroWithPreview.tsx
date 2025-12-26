@@ -44,7 +44,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
                 )}>
-                  Plinth turns public signals into evidence you can actually stand behind.
+                  Plinth turns public signals into evidence you can stand behind.
                 </p>
               </Reveal>
 

@@ -1,5 +1,5 @@
 /**
- * What You Actually Get (No New Visuals)
+ * What You Get (No New Visuals)
  * 
  * Crop variations of the same hero screenshot:
  * - Recommendation area

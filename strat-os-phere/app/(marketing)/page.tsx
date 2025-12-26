@@ -11,11 +11,13 @@
  */
 import type { Metadata } from "next"
 import { HeroWithPreview } from "@/components/marketing/HeroWithPreview"
+import { CredibilityBar } from "@/components/marketing/CredibilityBar"
 import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
 import { ProblemSection } from "@/components/marketing/ProblemSection"
 import { TheTurnSection } from "@/components/marketing/TheTurnSection"
+import { WhatPlinthDoesSection } from "@/components/marketing/WhatPlinthDoesSection"
 import { TheFlowSection } from "@/components/marketing/TheFlowSection"
 import { OutcomeExampleSection } from "@/components/marketing/OutcomeExampleSection"
 import { WhyItHoldsUpSection } from "@/components/marketing/WhyItHoldsUpSection"
@@ -38,11 +40,17 @@ export default function MarketingHome() {
         {/* 1. Hero: The Moment Before the Meeting */}
         <HeroWithPreview />
         
+        {/* 1a. Credibility Bar: Quiet enterprise signal */}
+        <CredibilityBar />
+        
         {/* 2. "This Is the Problem" (Image-Led, Minimal Text) */}
         <ProblemSection />
         
         {/* 3. The Turn: What Changes with Plinth */}
         <TheTurnSection />
+        
+        {/* 3a. What Plinth Does — and Doesn't Do: Explicit guardrails */}
+        <WhatPlinthDoesSection />
         
         {/* 4. The Flow (Keep It Fast, Visual, Punny) */}
         <TheFlowSection />
