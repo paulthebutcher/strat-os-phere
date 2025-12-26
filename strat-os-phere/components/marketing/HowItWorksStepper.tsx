@@ -11,7 +11,6 @@ import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal, Stagger } from "./motion"
 import { Badge } from "@/components/ui/badge"
-import { ConfidencePill } from "./ConfidencePill"
 import { cn } from "@/lib/utils"
 import { Lightbulb, Search, TrendingUp, ArrowRight } from "lucide-react"
 import { sampleAnalysis } from "./sampleReadoutData"
@@ -57,12 +56,12 @@ function Step2Visual() {
 function Step3Visual() {
   return (
     <div className="bg-white rounded-lg border border-border-subtle p-3 sm:p-4 space-y-2">
-      <div className="flex items-center gap-2">
-        <ConfidencePill level="exploratory" className="text-[10px] px-2 py-0.5" />
-        <span className="text-[10px] text-text-muted">→</span>
-        <ConfidencePill level="directional" className="text-[10px] px-2 py-0.5" />
-        <span className="text-[10px] text-text-muted">→</span>
-        <ConfidencePill level="investment_ready" className="text-[10px] px-2 py-0.5" />
+      <div className="flex items-center gap-2 text-xs text-text-secondary">
+        <span>Exploratory</span>
+        <span className="text-text-muted">→</span>
+        <span>Directional</span>
+        <span className="text-text-muted">→</span>
+        <span className="font-semibold text-text-primary">Investment-ready</span>
       </div>
     </div>
   )

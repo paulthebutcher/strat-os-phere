@@ -35,40 +35,17 @@ export function TheTurnSection() {
                 Before
               </h3>
               <div className="rounded-lg border border-border-subtle/60 overflow-hidden shadow-sm opacity-60 blur-[1px]">
-                <div className="relative">
-                  <ProblemEvidenceCollage className="aspect-[4/3] rounded-lg scale-95 origin-center" />
-                  {/* Overlay label */}
-                  <div className="absolute top-2 left-2 bg-amber-50/90 border border-amber-200/60 rounded-md px-2 py-1 z-10">
-                    <span className="text-[9px] font-semibold text-amber-900/80 uppercase tracking-wide">
-                      No synthesis
-                    </span>
-                  </div>
-                </div>
+                <ProblemEvidenceCollage className="aspect-[4/3] rounded-lg scale-95 origin-center" />
               </div>
             </div>
 
-            {/* Right: After - dominant, full opacity, explicit labels */}
+            {/* Right: After - dominant, full opacity */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-text-primary uppercase tracking-wider">
                 After (Plinth)
               </h3>
               <div className="relative shadow-2xl rounded-lg overflow-hidden border-2 border-accent-primary/20 bg-white">
-                {/* Plinth Readout label */}
-                <div className="absolute top-3 right-3 z-10">
-                  <div className="bg-accent-primary text-white text-[10px] px-2.5 py-1 rounded-full font-semibold shadow-lg">
-                    Plinth Readout
-                  </div>
-                </div>
-                {/* Explicit labels */}
-                <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
-                  <div className="bg-accent-primary text-white text-[10px] px-2.5 py-1 rounded-full font-semibold shadow-lg">
-                    Score: 78/100
-                  </div>
-                  <div className="bg-accent-primary text-white text-[10px] px-2.5 py-1 rounded-full font-semibold shadow-lg">
-                    Sources: 8
-                  </div>
-                </div>
-                <HeroMoment variant="full" className="mt-8" />
+                <HeroMoment variant="full" />
                 {/* Subtle glow */}
                 <div className="absolute inset-0 rounded-lg ring-2 ring-accent-primary/20 pointer-events-none" />
               </div>

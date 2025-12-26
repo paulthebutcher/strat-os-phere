@@ -30,31 +30,9 @@ export function OutcomeExampleSection() {
               </p>
             </div>
 
-            {/* Hero Plinth Readout - larger, explicit label */}
+            {/* Hero Plinth Readout - larger */}
             <Reveal delay={60}>
               <div className="relative rounded-xl overflow-hidden shadow-2xl border-2 border-accent-primary/20 bg-white">
-                {/* Plinth Readout label - explicit */}
-                <div className="absolute top-4 right-4 z-10">
-                  <div className="bg-accent-primary text-white text-xs px-3 py-1.5 rounded-md font-semibold shadow-lg border border-accent-primary">
-                    Plinth Readout
-                  </div>
-                </div>
-                
-                {/* Explicit labels */}
-                <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
-                  <div className="bg-accent-primary text-white text-[11px] px-3 py-1.5 rounded-full font-semibold shadow-lg">
-                    One recommendation
-                  </div>
-                  <div className="bg-accent-primary text-white text-[11px] px-3 py-1.5 rounded-full font-semibold shadow-lg">
-                    8 sources
-                  </div>
-                </div>
-                <div className="absolute top-16 left-4 z-10">
-                  <div className="bg-accent-primary text-white text-[11px] px-3 py-1.5 rounded-full font-semibold shadow-lg">
-                    Confidence shown
-                  </div>
-                </div>
-                
                 <HeroMoment variant="full" className="min-h-[600px] md:min-h-[700px]" />
                 
                 {/* Stronger glow effect */}

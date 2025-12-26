@@ -9,8 +9,6 @@
 import { useState } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { GlassPanel } from "./GlassPanel"
-import { ConfidencePill } from "./ConfidencePill"
-import { Callout } from "./Callout"
 import { CitationList, type Citation } from "./CitationList"
 import { type ExampleOpportunity } from "@/lib/examples/opportunities"
 import { cn } from "@/lib/utils"
@@ -46,18 +44,15 @@ export function ExampleOpportunityArtifact({ opportunity }: ExampleOpportunityAr
     <div className="space-y-8">
       {/* Title + Confidence */}
       <div className="space-y-4">
-        <div className="flex items-center gap-4 flex-wrap">
-          <h2 className="text-2xl md:text-3xl font-semibold text-text-primary flex-1">
-            {opportunity.title}
-          </h2>
-          <ConfidencePill level={opportunity.confidenceLevel} />
-        </div>
+        <h2 className="text-2xl md:text-3xl font-semibold text-text-primary">
+          {opportunity.title}
+        </h2>
         <p className="text-sm text-text-secondary">
           {confidenceLabel[opportunity.confidenceLevel]}
         </p>
-        <Callout>
+        <p className="text-xs text-text-muted italic">
           This confidence boundary prevents false precision. Plinth tells you when it's safe to explore vs. invest.
-        </Callout>
+        </p>
       </div>
 
       {/* What to do */}
@@ -130,9 +125,9 @@ export function ExampleOpportunityArtifact({ opportunity }: ExampleOpportunityAr
           Evidence
         </h3>
         <CitationList citations={citations} />
-        <Callout className="mt-4">
+        <p className="text-xs text-text-muted italic mt-4">
           This is why citations matter. Every claim is traceable to a source, so you can verify and understand context.
-        </Callout>
+        </p>
       </div>
 
       {/* What would increase confidence */}
@@ -197,9 +192,9 @@ export function ExampleOpportunityArtifact({ opportunity }: ExampleOpportunityAr
                 </ul>
               </div>
             </div>
-            <Callout className="mt-4">
+            <p className="text-xs text-text-muted italic mt-4">
               These are the assumptions that could flip the decision. Plinth makes them explicit so you can validate them.
-            </Callout>
+            </p>
           </GlassPanel>
         )}
       </div>

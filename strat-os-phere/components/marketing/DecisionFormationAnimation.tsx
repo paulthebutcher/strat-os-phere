@@ -11,7 +11,6 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { ConfidencePill } from "./ConfidencePill"
 import { Badge } from "@/components/ui/badge"
 import { durations, easing, prefersReducedMotion } from "@/lib/motion/tokens"
 import Link from "next/link"
@@ -247,7 +246,9 @@ export function DecisionFormationAnimation() {
 
             <div className="space-y-3 pt-2">
               <div style={getConfidenceStyle()}>
-                <ConfidencePill level={RECOMMENDATION_CONFIDENCE} />
+                <span className="text-xs font-semibold text-text-primary capitalize">
+                  {RECOMMENDATION_CONFIDENCE.replace('_', '-')}
+                </span>
               </div>
               
               {currentFrame === "confidence" && (
@@ -272,7 +273,9 @@ export function DecisionFormationAnimation() {
               
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-xs text-text-muted">Confidence:</span>
-                <ConfidencePill level={RECOMMENDATION_CONFIDENCE} />
+                <span className="text-xs font-semibold text-text-primary capitalize">
+                  {RECOMMENDATION_CONFIDENCE.replace('_', '-')}
+                </span>
               </div>
             </div>
 

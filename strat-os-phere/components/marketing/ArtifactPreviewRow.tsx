@@ -8,7 +8,6 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { ConfidencePill } from "./ConfidencePill"
 import { cn } from "@/lib/utils"
 import { Reveal } from "./motion"
 
@@ -46,7 +45,9 @@ function ArtifactPreview({
 
           {/* Confidence + Evidence */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <ConfidencePill level={confidence} className="text-[10px] px-2 py-0.5" />
+            <span className="text-[10px] font-semibold text-text-primary capitalize">
+              {confidence.replace('_', '-')}
+            </span>
             <span className="text-[10px] sm:text-xs text-text-muted">
               {citationsCount} citations · {evidenceTypes} types
             </span>

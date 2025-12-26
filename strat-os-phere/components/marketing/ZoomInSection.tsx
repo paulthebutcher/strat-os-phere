@@ -32,7 +32,7 @@ export function ZoomInSection() {
         <Reveal delay={60}>
           <div className="max-w-5xl mx-auto">
             <div className="shadow-2xl rounded-xl overflow-hidden">
-              <HeroMoment variant="full" showCallouts={true} />
+              <HeroMoment variant="full" />
             </div>
           </div>
         </Reveal>

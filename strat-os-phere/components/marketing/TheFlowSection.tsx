@@ -16,9 +16,6 @@ import { ProblemEvidenceCollage } from "./ProblemEvidenceCollage"
 import { cn } from "@/lib/utils"
 import { ArrowRight, ChevronDown } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { ConfidencePill } from "./ConfidencePill"
-import { useEffect, useState, useRef } from "react"
-import { prefersReducedMotion } from "@/lib/motion/tokens"
 
 // Tiny input card mock (small, muted) - animated to fade/blur
 function InputCardVisual({ phase }: { phase: number }) {
@@ -65,17 +62,9 @@ function EvidenceChaosThumbnail({ phase }: { phase: number }) {
   )
 }
 
-// Full Plinth readout with proof strip (large, dominant) - animated snap-in with pulse
+// Full Plinth readout (large, dominant) - animated snap-in
 function ReadoutHeroVisual({ phase }: { phase: number }) {
-  const [pulseKey, setPulseKey] = useState(0)
   const isVisible = phase >= 2
-  const shouldPulse = phase >= 3
-
-  useEffect(() => {
-    if (!shouldPulse) return
-    const timer = setTimeout(() => setPulseKey(k => k + 1), 500)
-    return () => clearTimeout(timer)
-  }, [shouldPulse, pulseKey])
 
   return (
     <div 
@@ -92,37 +81,9 @@ function ReadoutHeroVisual({ phase }: { phase: number }) {
         }}
       />
       
-      {/* Plinth Readout tag - moved to top-left */}
-      <div className="absolute top-3 left-3 z-10 bg-accent-primary text-white text-[10px] px-3 py-1.5 rounded-md font-semibold shadow-lg uppercase tracking-wide">
-        Plinth Readout
-      </div>
-      
       {/* Main readout */}
-      <div className="p-6 md:p-8 pt-12 md:pt-14">
+      <div className="p-6 md:p-8">
         <HeroMoment variant="full" className="min-h-[500px]" />
-      </div>
-      
-      {/* Proof strip at bottom with emphasis pulse */}
-      <div 
-        className={cn(
-          "px-6 md:px-8 pb-6 md:pb-8 pt-4 border-t border-border-subtle bg-surface-muted/20 transition-all duration-500",
-          shouldPulse && "bg-accent-primary/5"
-        )}
-        key={pulseKey}
-      >
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <ConfidencePill level="investment_ready" className="text-[10px]" />
-            <span className="text-text-secondary">Confidence shown</span>
-          </div>
-          <span className="text-text-muted">·</span>
-          <div className="flex items-center gap-1.5">
-            <Badge variant="secondary" className="text-[10px] px-2 py-0.5">8 sources</Badge>
-            <span className="text-text-secondary">Evidence attached</span>
-          </div>
-          <span className="text-text-muted">·</span>
-          <span className="text-text-secondary">One recommendation</span>
-        </div>
       </div>
       
       {/* Stronger glow effect */}
@@ -141,7 +102,7 @@ export function TheFlowSection() {
               From hunch to proof.
             </h2>
             <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
-              Bring a hunch. Get a readout you can defend.
+              One clear recommendation, backed by sources you can open. Confidence that shows its work—scores, assumptions, and gaps are explicit.
             </p>
           </div>
         </Reveal>

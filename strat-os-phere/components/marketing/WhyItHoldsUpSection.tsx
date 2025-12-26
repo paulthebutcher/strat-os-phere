@@ -29,15 +29,8 @@ export function WhyItHoldsUpSection() {
         <Reveal delay={60}>
           <div className="max-w-4xl mx-auto">
             <div className="relative rounded-xl border-2 border-accent-primary/20 shadow-2xl overflow-hidden bg-white">
-              {/* Plinth Readout label */}
-              <div className="absolute top-4 right-4 z-10">
-                <div className="bg-accent-primary text-white text-xs px-3 py-1.5 rounded-md font-semibold shadow-lg border border-accent-primary">
-                  Plinth Readout
-                </div>
-              </div>
               <HeroReadoutReveal 
                 variant="full" 
-                showCallouts={true}
                 className="rounded-none"
               />
               {/* Stronger glow */}

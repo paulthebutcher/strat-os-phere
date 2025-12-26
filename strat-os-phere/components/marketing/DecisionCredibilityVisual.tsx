@@ -21,7 +21,6 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { ConfidencePill } from "./ConfidencePill"
 import { cn } from "@/lib/utils"
 import { FileText, CheckCircle2 } from "lucide-react"
 import { EvidenceIcon, ConfidenceIcon, ChangeTriggerIcon } from "./icons/PlinthIcons"
@@ -77,14 +76,9 @@ export function DecisionCredibilityVisual() {
               <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">
                 Recommendation
               </p>
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold text-text-primary leading-tight flex-1 min-w-0">
-                  {sampleAnalysis.recommendation.title}
-                </h3>
-                <div className="shrink-0 mt-2 sm:mt-0">
-                  <ConfidencePill level={sampleAnalysis.recommendation.confidenceLevel} />
-                </div>
-              </div>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold text-text-primary leading-tight">
+                {sampleAnalysis.recommendation.title}
+              </h3>
             </div>
           </div>
 

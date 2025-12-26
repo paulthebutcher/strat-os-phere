@@ -16,7 +16,6 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
-import { ConfidencePill } from "@/components/marketing/ConfidencePill"
 import { sampleAnalysis } from "./sampleReadoutData"
 
 // Hero proof asset — single investment-ready recommendation
@@ -75,8 +74,6 @@ function prefersReducedMotion(): boolean {
 }
 
 interface HeroMomentProps {
-  /** Show callout highlights (for "Zoom In" section) */
-  showCallouts?: boolean
   /** Variant: full, cropped-recommendation, cropped-evidence, cropped-confidence, cropped-guardrails */
   variant?: "full" | "cropped-recommendation" | "cropped-evidence" | "cropped-confidence" | "cropped-guardrails"
   /** Optional className */
@@ -84,7 +81,6 @@ interface HeroMomentProps {
 }
 
 export function HeroMoment({ 
-  showCallouts = false, 
   variant = "full",
   className 
 }: HeroMomentProps) {
@@ -121,27 +117,12 @@ export function HeroMoment({
       {/* Decision Header */}
       {showRecommendation && (
         <div className="p-6 md:p-8 border-b border-border-subtle relative">
-          {showCallouts && (
-            <div className="absolute -top-2 -right-2 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg z-10">
-              Recommendation
-            </div>
-          )}
           <h3 className="text-lg md:text-xl font-semibold text-text-primary leading-snug mb-4 line-clamp-2">
             {primaryOpportunity.title}
           </h3>
           
           {/* Meta row */}
           <div className="flex flex-wrap items-center gap-4 text-sm">
-            {showConfidence && (
-              <>
-                <ConfidencePill level={primaryOpportunity.confidence} className="text-xs" />
-                {showCallouts && variant === "full" && (
-                  <div className="absolute top-6 right-6 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg z-10">
-                    Confidence
-                  </div>
-                )}
-              </>
-            )}
             {variant === "full" && (
               <>
                 <div className="flex items-center gap-2">
@@ -181,11 +162,6 @@ export function HeroMoment({
       {/* Evidence Grid */}
       {showEvidence && (
         <div className="p-6 md:p-8 flex-1 relative">
-          {showCallouts && (
-            <div className="absolute top-4 right-4 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg z-10">
-              Source links
-            </div>
-          )}
           {/* Evidence row with chips */}
           {variant === "full" && (
             <div className="mb-4 pb-4 border-b border-border-subtle">
@@ -288,11 +264,6 @@ export function HeroMoment({
       {/* What would change this call - Inline callout bar */}
       {showGuardrails && (
         <div className="p-6 md:p-8 border-t border-border-subtle bg-surface-muted/30 relative">
-          {showCallouts && (
-            <div className="absolute -top-2 left-4 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg z-10">
-              What would change this
-            </div>
-          )}
           <p className="text-sm font-semibold text-text-primary mb-3">
             What would change this decision?
           </p>

@@ -36,7 +36,7 @@ export function HeroWithPreview() {
                 <h1 className={cn(
                   "text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight leading-tight text-text-primary"
                 )}>
-                  Find your unfair advantage
+                  Find your unfair advantage.
                 </h1>
               </Reveal>
               
@@ -44,7 +44,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
                 )}>
-                  Plinth helps you see where you're ahead and why it holds up.
+                  Plinth turns public market signals into a clear point of view you can defend.
                 </p>
               </Reveal>
 
@@ -76,10 +76,17 @@ export function HeroWithPreview() {
                       </Button>
                     </Link>
                   </div>
-                  <p className="text-xs text-text-muted mt-0.5">Takes ~2 minutes. No login required.</p>
+                  <p className="text-xs text-text-muted mt-0.5">Two minutes. No setup. A real answer.</p>
                 </div>
               </Reveal>
             </div>
+
+            {/* Bridge copy above preview */}
+            <Reveal delay={120}>
+              <p className="text-center text-sm sm:text-base text-text-secondary max-w-[90ch] mx-auto">
+                This is what it looks like when the answer holds up.
+              </p>
+            </Reveal>
 
             {/* Hero Moment: Large, centered screenshot */}
             <div className="max-w-6xl mx-auto w-full">

@@ -15,7 +15,6 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useEffect, useRef, useState } from "react"
-import { ConfidencePill } from "@/components/marketing/ConfidencePill"
 import { prefersReducedMotion } from "@/lib/motion/tokens"
 import { sampleAnalysis } from "./sampleReadoutData"
 
@@ -70,8 +69,6 @@ const citedSources = sampleAnalysis.evidence.sources.slice(0, 3).map(source => (
 const guardrails = sampleAnalysis.whatWouldChange.slice(0, 2).map(trigger => trigger.event)
 
 interface HeroReadoutRevealProps {
-  /** Show callout highlights (for "Zoom In" section) */
-  showCallouts?: boolean
   /** Variant: full, cropped-recommendation, cropped-evidence, cropped-confidence */
   variant?: "full" | "cropped-recommendation" | "cropped-evidence" | "cropped-confidence"
   /** Optional className */
@@ -79,7 +76,6 @@ interface HeroReadoutRevealProps {
 }
 
 export function HeroReadoutReveal({ 
-  showCallouts = false, 
   variant = "full",
   className 
 }: HeroReadoutRevealProps) {
@@ -196,36 +192,12 @@ export function HeroReadoutReveal({
               : "background-color 400ms cubic-bezier(0, 0, 0.2, 1) 1800ms, border-color 400ms cubic-bezier(0, 0, 0.2, 1) 1800ms",
           }}
         >
-          {showCallouts && (
-            <div className="absolute -top-2 -right-2 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg z-10">
-              Recommendation
-            </div>
-          )}
           <h3 className="text-lg md:text-xl font-semibold text-text-primary leading-snug mb-4">
             {primaryOpportunity.title}
           </h3>
           
           {/* Meta row */}
           <div className="flex flex-wrap items-center gap-4 text-sm">
-            {showConfidence && (
-              <>
-                <div
-                  style={{
-                    opacity: confidenceVisible ? 1 : 0,
-                    transition: reduceMotion.current 
-                      ? "none" 
-                      : `opacity 200ms cubic-bezier(0, 0, 0.2, 1) ${confidenceDelay}ms`,
-                  }}
-                >
-                  <ConfidencePill level={primaryOpportunity.confidence} className="text-xs" />
-                </div>
-                {showCallouts && variant === "full" && (
-                  <div className="absolute top-6 right-6 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg z-10">
-                    Confidence
-                  </div>
-                )}
-              </>
-            )}
             {variant === "full" && (
               <>
                 <div 
@@ -284,11 +256,6 @@ export function HeroReadoutReveal({
       {/* Evidence Grid */}
       {showEvidence && (
         <div className="p-6 md:p-8 flex-1 relative">
-          {showCallouts && (
-            <div className="absolute top-4 right-4 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg z-10">
-              Source links
-            </div>
-          )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {evidenceCategories.map((category, idx) => {
               const delay = getEvidenceDelay(idx)
@@ -399,11 +366,6 @@ export function HeroReadoutReveal({
               : `opacity 200ms cubic-bezier(0, 0, 0.2, 1) ${getEvidenceDelay(evidenceCategories.length + 1)}ms`,
           }}
         >
-          {showCallouts && (
-            <div className="absolute -top-2 left-4 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg z-10">
-              What would change this
-            </div>
-          )}
           <p className="text-sm font-semibold text-text-primary mb-3">
             What would change this decision?
           </p>

@@ -8,7 +8,6 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { ConfidencePill } from "./ConfidencePill"
 import { cn } from "@/lib/utils"
 import { FileText, TrendingUp, Shield } from "lucide-react"
 import { sampleAnalysis } from "./sampleReadoutData"
@@ -42,7 +41,9 @@ export function HeroProductPreview() {
                 </span>
                 <span className="text-xs text-text-muted">score</span>
               </div>
-              <ConfidencePill level={sampleOpportunity.confidence} />
+              <span className="text-xs font-semibold text-text-primary capitalize">
+                {sampleOpportunity.confidence.replace('_', '-')}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="text-xs">
