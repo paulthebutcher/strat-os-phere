@@ -1,13 +1,17 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { getProjectById } from '@/lib/data/projects'
-import { getLatestRunForProject } from '@/lib/data/projectRuns'
 import { getStepStatus, type StepName } from '@/lib/runs/orchestrator'
-import { ok, fail } from '@/lib/contracts/api'
-import { appErrorToCode, errorCodeToStatus } from '@/lib/contracts/errors'
-import { toAppError } from '@/lib/errors/errors'
+import { ok } from '@/lib/contracts/api'
 import { z } from 'zod'
+import {
+  generateRequestId,
+  requireUser,
+  parseParams,
+  respondOk,
+} from '@/lib/api/routeGuard'
+import { mapErrorToApiResponse } from '@/lib/api/mapErrorToApiError'
+import { logger } from '@/lib/logger'
 
 /**
  * Response schema for run status endpoint
@@ -38,44 +42,54 @@ type RunStatusResponseContract = z.infer<typeof RunStatusResponseSchema>
 /**
  * GET /api/runs/[runId]/status
  * Returns the status of an analysis run in ApiResponse<RunStatusResponse> format
- * Checks analysis_runs table first, then falls back to artifacts
+ * Checks project_runs table and verifies ownership via project
  */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ runId: string }> }
-): Promise<NextResponse<{ ok: true; data: RunStatusResponseContract } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown> } }>> {
+): Promise<NextResponse<{ ok: true; data: RunStatusResponseContract } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown>; requestId?: string } }>> {
+  const requestId = generateRequestId()
+
   try {
-    const { runId } = await params
-    const supabase = await createClient()
-
-    // Get user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json(
-        fail('UNAUTHENTICATED', 'You must be signed in to view run status'),
-        { status: 401 }
-      )
+    // Require authentication
+    const authResult = await requireUser(requestId)
+    if (!authResult.ok) {
+      return authResult.response
     }
+    const ctx = authResult.value
+
+    // Validate runId param
+    const rawParams = await params
+    const paramsResult = parseParams(
+      z.object({ runId: z.string().uuid() }),
+      rawParams,
+      requestId
+    )
+    if (!paramsResult.ok) {
+      return paramsResult.response
+    }
+    const { runId } = paramsResult.value
 
     // Get run record from project_runs table
-    const { data: runRecord, error: runError } = await supabase
+    const { data: runRecord, error: runError } = await ctx.supabase
       .from('project_runs')
       .select('*')
       .eq('id', runId)
       .single()
 
     if (runError || !runRecord) {
-      // Run not found - return queued status
+      // Run not found - return queued status (graceful degradation for polling)
+      logger.info('[status] Run not found, returning queued status', {
+        requestId,
+        runId,
+      })
       const notFoundResponse: RunStatusResponseContract = {
         runId,
         status: 'queued',
         updatedAt: new Date().toISOString(),
       }
       const notFoundValidated = RunStatusResponseSchema.parse(notFoundResponse)
-      return NextResponse.json(ok(notFoundValidated))
+      return respondOk(notFoundValidated, requestId)
     }
 
     type ProjectRunRow = {
@@ -90,11 +104,24 @@ export async function GET(
     const typedRun = runRecord as ProjectRunRow
     const projectId = typedRun.project_id
 
-    // Verify user has access to this project
-    const project = await getProjectById(supabase, projectId)
-    if (!project || project.user_id !== user.id) {
+    // Verify user has access to this project (ownership check)
+    const project = await getProjectById(ctx.supabase, projectId)
+    if (!project || project.user_id !== ctx.user.id) {
+      logger.warn('[status] Access denied - run does not belong to user', {
+        requestId,
+        runId,
+        projectId,
+        userId: ctx.user.id,
+        projectOwnerId: project?.user_id,
+      })
+      const { response, statusCode } = mapErrorToApiResponse(
+        new Error('You do not have access to this run'),
+        requestId,
+        { runId, projectId }
+      )
+      // Override to FORBIDDEN
       return NextResponse.json(
-        fail('FORBIDDEN', 'You do not have access to this run'),
+        { ...response, error: { ...response.error, code: 'FORBIDDEN', requestId } },
         { status: 403 }
       )
     }
@@ -148,19 +175,18 @@ export async function GET(
     
     // Validate outgoing payload
     const validated = RunStatusResponseSchema.parse(responseData)
-    return NextResponse.json(ok(validated))
+    return respondOk(validated, requestId)
   } catch (error) {
-    console.error('Error fetching run status:', error)
-    const appError = toAppError(error, { route: '/api/runs/[runId]/status' })
-    const errorCode = appErrorToCode(appError)
-    const statusCode = errorCodeToStatus(errorCode)
-    
-    return NextResponse.json(
-      fail(errorCode, appError.userMessage, {
-        details: appError.details,
-      }),
-      { status: statusCode }
+    logger.error('[status] Error fetching run status', {
+      requestId,
+      error,
+    })
+    const { response, statusCode } = mapErrorToApiResponse(
+      error,
+      requestId,
+      { route: '/api/runs/[runId]/status' }
     )
+    return NextResponse.json(response, { status: statusCode })
   }
 }
 

@@ -1,6 +1,5 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { runProjectAnalysis, PIPELINE_VERSION } from '@/lib/analysis/runProjectAnalysis'
 import { toAppError, NotReadyError, UnauthorizedError, NotFoundError, AnalysisFailedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
@@ -16,6 +15,15 @@ import {
 import { getLatestSuccessfulArtifact } from '@/lib/artifacts/getLatestSuccessfulArtifact'
 import { logger } from '@/lib/logger'
 import { z } from 'zod'
+import {
+  generateRequestId,
+  requireUser,
+  requireProjectOwner,
+  parseParams,
+  respondOk,
+  respondError,
+} from '@/lib/api/routeGuard'
+import { mapErrorToApiResponse } from '@/lib/api/mapErrorToApiError'
 
 /**
  * Response schema for generate endpoint
@@ -40,23 +48,38 @@ type GenerateAnalysisResponse = z.infer<typeof GenerateAnalysisResponseSchema>
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ projectId: string }> }
-): Promise<NextResponse<{ ok: true; data: GenerateAnalysisResponse } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown> } }>> {
-  const { projectId } = await params
-  try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+): Promise<NextResponse<{ ok: true; data: GenerateAnalysisResponse } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown>; requestId?: string } }>> {
+  const requestId = generateRequestId()
+  let projectId: string | undefined
 
-    if (!user) {
-      return NextResponse.json(
-        fail('UNAUTHENTICATED', 'You must be signed in to generate analysis'),
-        { status: 401 }
-      )
+  try {
+    // Require authentication
+    const authResult = await requireUser(requestId)
+    if (!authResult.ok) {
+      return authResult.response
+    }
+    const ctx = authResult.value
+
+    // Validate projectId param
+    const rawParams = await params
+    const paramsResult = parseParams(
+      z.object({ projectId: z.string().uuid() }),
+      rawParams,
+      requestId
+    )
+    if (!paramsResult.ok) {
+      return paramsResult.response
+    }
+    projectId = paramsResult.value.projectId
+
+    // Require project ownership
+    const ownershipResult = await requireProjectOwner(ctx, projectId)
+    if (!ownershipResult.ok) {
+      return ownershipResult.response
     }
 
     // Get or create active run
-    const runResult = await getOrCreateActiveRun(supabase, projectId, user.id, {
+    const runResult = await getOrCreateActiveRun(ctx.supabase, projectId, ctx.user.id, {
       allowCreate: true,
       pipelineVersion: PIPELINE_VERSION,
     })
@@ -66,10 +89,7 @@ export async function POST(
       const errorCode = runResult.error.code === 'NO_INPUTS'
         ? 'NOT_READY'
         : 'INTERNAL_ERROR'
-      return NextResponse.json(
-        fail(errorCode, runResult.error.message),
-        { status: 400 }
-      )
+      return respondError(errorCode, runResult.error.message, { projectId }, requestId)
     }
 
     const run = runResult.run
@@ -81,7 +101,7 @@ export async function POST(
     // If analysis step already completed, check for artifacts and return
     if (analysisStepStatus.status === 'completed') {
       // Check if we have a latest successful artifact
-      const artifact = await getLatestSuccessfulArtifact(supabase, {
+      const artifact = await getLatestSuccessfulArtifact(ctx.supabase, {
         projectId,
         runId,
         type: 'opportunities_v3', // or whatever the main artifact type is
@@ -89,6 +109,7 @@ export async function POST(
 
       if (artifact) {
         logger.info('[generate] Analysis step already completed with artifact', {
+          requestId,
           projectId,
           runId,
           artifactId: artifact.id,
@@ -97,13 +118,14 @@ export async function POST(
           runId,
         }
         const validated = GenerateAnalysisResponseSchema.parse(responseData)
-        return NextResponse.json(ok(validated), { status: 200 })
+        return respondOk(validated, requestId)
       }
     }
 
     // If analysis step is running, return current status
     if (analysisStepStatus.status === 'running') {
       logger.info('[generate] Analysis step already running', {
+        requestId,
         projectId,
         runId,
       })
@@ -111,16 +133,13 @@ export async function POST(
         runId,
       }
       const validated = GenerateAnalysisResponseSchema.parse(responseData)
-      return NextResponse.json(ok(validated), { status: 200 })
+      return respondOk(validated, requestId)
     }
 
     // Advance run to analysis step (idempotent, handles retry if failed)
-    const advanceResult = await advanceRun(supabase, runId, 'analysis')
+    const advanceResult = await advanceRun(ctx.supabase, runId, 'analysis')
     if (!advanceResult.ok) {
-      return NextResponse.json(
-        fail('INTERNAL_ERROR', advanceResult.error.message),
-        { status: 500 }
-      )
+      return respondError('INTERNAL_ERROR', advanceResult.error.message, { projectId, runId }, requestId)
     }
 
     // Proceed with analysis
@@ -133,7 +152,7 @@ export async function POST(
       
       // Validate outgoing payload
       const validated = GenerateAnalysisResponseSchema.parse(responseData)
-      return NextResponse.json(ok(validated), { status: 200 })
+      return respondOk(validated, requestId)
     } else {
       // Convert error to AppError for consistent handling
       let appError: ReturnType<typeof toAppError>
@@ -179,7 +198,7 @@ export async function POST(
         )
       }
 
-      logAppError('api.projects.generate', appError, { projectId, runId: result.error.runId })
+      logAppError('api.projects.generate', appError, { requestId, projectId, runId: result.error.runId })
 
       // Map to contract error code
       const contractErrorCode = appErrorToCode(appError)
@@ -190,24 +209,22 @@ export async function POST(
           code: appError.code,
           runId: result.error.runId,
           ...appError.details,
+          requestId,
         }),
         { status: statusCode }
       )
     }
   } catch (error) {
-    const appError = toAppError(error, { projectId, route: '/api/projects/[projectId]/generate' })
-    logAppError('api.projects.generate', appError, { projectId })
-    
-    const contractErrorCode = appErrorToCode(appError)
-    const statusCode = errorCodeToStatus(contractErrorCode)
-    
-    return NextResponse.json(
-      fail(contractErrorCode, appError.userMessage, {
-        code: appError.code,
-        ...appError.details,
-      }),
-      { status: statusCode }
+    logger.error('[generate] Failed to generate analysis', {
+      requestId,
+      error,
+    })
+    const { response, statusCode } = mapErrorToApiResponse(
+      error,
+      requestId,
+      { projectId, route: '/api/projects/[projectId]/generate' }
     )
+    return NextResponse.json(response, { status: statusCode })
   }
 }
 

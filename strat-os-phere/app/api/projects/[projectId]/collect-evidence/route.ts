@@ -1,6 +1,5 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { buildTargetUrls } from '@/lib/extract/targets'
 import { extractWithSourceType } from '@/lib/extract/specialized'
@@ -20,11 +19,19 @@ import {
   getStepStatus,
   type StepName,
 } from '@/lib/runs/orchestrator'
-import { ok, fail } from '@/lib/contracts/api'
-import { appErrorToCode, errorCodeToStatus } from '@/lib/contracts/errors'
-import { toAppError } from '@/lib/errors/errors'
+import { ok } from '@/lib/contracts/api'
 import { RunIdSchema } from '@/lib/contracts/domain'
 import { z } from 'zod'
+import {
+  generateRequestId,
+  requireUser,
+  requireProjectOwner,
+  parseParams,
+  parseBody,
+  respondOk,
+  respondError,
+} from '@/lib/api/routeGuard'
+import { mapErrorToApiResponse } from '@/lib/api/mapErrorToApiError'
 
 /**
  * Response schema for collect-evidence endpoint
@@ -35,6 +42,13 @@ const CollectEvidenceResponseSchema = z.object({
 })
 
 type CollectEvidenceResponse = z.infer<typeof CollectEvidenceResponseSchema>
+
+/**
+ * Request body schema (optional)
+ */
+const CollectEvidenceBodySchema = z.object({
+  runId: RunIdSchema.optional(),
+}).optional()
 
 /**
  * POST /api/projects/[projectId]/collect-evidence
@@ -50,35 +64,49 @@ type CollectEvidenceResponse = z.infer<typeof CollectEvidenceResponseSchema>
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ projectId: string }> }
-): Promise<NextResponse<{ ok: true; data: CollectEvidenceResponse } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown> } }>> {
-  const { projectId } = await params
+): Promise<NextResponse<{ ok: true; data: CollectEvidenceResponse } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown>; requestId?: string } }>> {
+  const requestId = generateRequestId()
 
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    // Require authentication
+    const authResult = await requireUser(requestId)
+    if (!authResult.ok) {
+      return authResult.response
+    }
+    const ctx = authResult.value
 
-    if (!user) {
-      return NextResponse.json(
-        fail('UNAUTHENTICATED', 'You must be signed in to collect evidence'),
-        { status: 401 }
-      )
+    // Validate projectId param
+    const rawParams = await params
+    const paramsResult = parseParams(
+      z.object({ projectId: z.string().uuid() }),
+      rawParams,
+      requestId
+    )
+    if (!paramsResult.ok) {
+      return paramsResult.response
+    }
+    const { projectId } = paramsResult.value
+
+    // Require project ownership
+    const ownershipResult = await requireProjectOwner(ctx, projectId)
+    if (!ownershipResult.ok) {
+      return ownershipResult.response
     }
 
-    // Parse request body to get optional runId
-    let body: { runId?: string } | null = null
-    try {
-      const rawBody = await request.text()
-      if (rawBody) {
-        body = JSON.parse(rawBody)
-      }
-    } catch {
-      // Body is optional, so ignore parse errors
+    // Parse optional request body
+    const bodyResult = await parseBody(
+      CollectEvidenceBodySchema,
+      request,
+      requestId,
+      false // body is optional
+    )
+    if (!bodyResult.ok) {
+      return bodyResult.response
     }
+    const body = bodyResult.value
 
     // Get or create active run (idempotent)
-    const runResult = await getOrCreateActiveRun(supabase, projectId, user.id, {
+    const runResult = await getOrCreateActiveRun(ctx.supabase, projectId, ctx.user.id, {
       runId: body?.runId,
       allowCreate: true,
     })
@@ -88,10 +116,7 @@ export async function POST(
       const errorCode = runResult.error.code === 'NO_ACTIVE_RUN' || runResult.error.code === 'NO_INPUTS'
         ? 'NOT_READY'
         : 'INTERNAL_ERROR'
-      return NextResponse.json(
-        fail(errorCode, runResult.error.message),
-        { status: 400 }
-      )
+      return respondError(errorCode, runResult.error.message, { projectId }, requestId)
     }
 
     const run = runResult.run
@@ -103,6 +128,7 @@ export async function POST(
     // If step already completed, return success immediately
     if (evidenceStepStatus.status === 'completed') {
       logger.info('[collect-evidence] Evidence step already completed', {
+        requestId,
         projectId,
         runId,
       })
@@ -111,12 +137,13 @@ export async function POST(
         message: 'Evidence collection already completed',
       }
       const validated = CollectEvidenceResponseSchema.parse(responseData)
-      return NextResponse.json(ok(validated))
+      return respondOk(validated, requestId)
     }
 
     // If step is running, return current status (don't start another)
     if (evidenceStepStatus.status === 'running') {
       logger.info('[collect-evidence] Evidence step already running', {
+        requestId,
         projectId,
         runId,
       })
@@ -125,37 +152,32 @@ export async function POST(
         message: 'Evidence collection in progress',
       }
       const validated = CollectEvidenceResponseSchema.parse(responseData)
-      return NextResponse.json(ok(validated))
+      return respondOk(validated, requestId)
     }
 
     // Advance run to evidence step (idempotent, handles retry if failed)
-    const advanceResult = await advanceRun(supabase, runId, 'evidence')
+    const advanceResult = await advanceRun(ctx.supabase, runId, 'evidence')
     if (!advanceResult.ok) {
-      return NextResponse.json(
-        fail('INTERNAL_ERROR', advanceResult.error.message),
-        { status: 500 }
-      )
+      return respondError('INTERNAL_ERROR', advanceResult.error.message, { projectId, runId }, requestId)
     }
 
     // Get all competitors for the project
-    const competitors = await listCompetitorsForProject(supabase, projectId)
+    const competitors = await listCompetitorsForProject(ctx.supabase, projectId)
 
     if (competitors.length === 0) {
       // Mark step as failed
-      await markStepFailed(supabase, runId, 'evidence', {
+      await markStepFailed(ctx.supabase, runId, 'evidence', {
         code: 'NO_COMPETITORS',
         message: 'No competitors found. Please add competitors first.',
       })
-      return NextResponse.json(
-        fail('NOT_READY', 'No competitors found. Please add competitors first.'),
-        { status: 400 }
-      )
+      return respondError('NOT_READY', 'No competitors found. Please add competitors first.', { projectId }, requestId)
     }
 
     logger.info('[collect-evidence] Starting evidence collection', {
+      requestId,
       projectId,
       runId,
-      userId: user.id,
+      userId: ctx.user.id,
       competitorCount: competitors.length,
       action: advanceResult.action,
     })
@@ -213,7 +235,7 @@ export async function POST(
             }
 
             const { results: fetchedPages } = await fetchUrlsParallel(
-              supabase,
+              ctx.supabase,
               urlsToFetch,
               {
                 budgetMs: TOTAL_FETCH_BUDGET_MS_PER_COMPETITOR,
@@ -221,7 +243,7 @@ export async function POST(
             )
 
             const { shortlisted } = await performShortlist(
-              supabase,
+              ctx.supabase,
               fetchedPages,
               DEFAULT_SHORTLIST_QUOTA
             )
@@ -259,7 +281,7 @@ export async function POST(
                 page.extracted !== undefined
               )
               .map(async (page) => {
-                const result = await upsertEvidenceSource(supabase, {
+                const result = await upsertEvidenceSource(ctx.supabase, {
                   projectId,
                   runId,
                   competitorId: competitor.id,
@@ -298,27 +320,32 @@ export async function POST(
     )
       .then(async () => {
         // Mark evidence step as completed
-        await markStepCompleted(supabase, runId, 'evidence')
+        await markStepCompleted(ctx.supabase, runId, 'evidence')
         logger.info('[collect-evidence] Evidence collection completed', {
+          requestId,
           projectId,
           runId,
         })
       })
       .catch(async (error) => {
         // Mark evidence step as failed
-        await markStepFailed(supabase, runId, 'evidence', {
+        await markStepFailed(ctx.supabase, runId, 'evidence', {
           code: 'COLLECTION_ERROR',
           message: 'Failed to collect evidence',
           detail: error instanceof Error ? error.message : String(error),
         })
-        logger.error('[collect-evidence] Background collection error', error)
+        logger.error('[collect-evidence] Background collection error', {
+          requestId,
+          error,
+        })
       })
 
     // Return immediately - collection runs in background
     logger.info('[collect-evidence] Evidence collection initiated', {
+      requestId,
       projectId,
       runId,
-      userId: user.id,
+      userId: ctx.user.id,
       competitorCount: competitors.length,
     })
 
@@ -329,19 +356,18 @@ export async function POST(
     
     // Validate outgoing payload
     const validated = CollectEvidenceResponseSchema.parse(responseData)
-    return NextResponse.json(ok(validated))
+    return respondOk(validated, requestId)
   } catch (error) {
-    logger.error('[collect-evidence] Failed to start evidence collection', error)
-    const appError = toAppError(error, { projectId, route: '/api/projects/[projectId]/collect-evidence' })
-    const errorCode = appErrorToCode(appError)
-    const statusCode = errorCodeToStatus(errorCode)
-    
-    return NextResponse.json(
-      fail(errorCode, appError.userMessage, {
-        details: appError.details,
-      }),
-      { status: statusCode }
+    logger.error('[collect-evidence] Failed to start evidence collection', {
+      requestId,
+      error,
+    })
+    const { response, statusCode } = mapErrorToApiResponse(
+      error,
+      requestId,
+      { route: '/api/projects/[projectId]/collect-evidence' }
     )
+    return NextResponse.json(response, { status: statusCode })
   }
 }
 

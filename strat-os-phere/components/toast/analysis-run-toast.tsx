@@ -62,25 +62,8 @@ export function AnalysisRunToast({
   // Poll for run status
   const pollStatus = useCallback(async () => {
     try {
-      const response = await fetch(`/api/runs/${runId}/status`)
-      if (!response.ok) {
-        // If 404, run might not exist yet - treat as running
-        if (response.status === 404) {
-          setStatus('running')
-          return
-        }
-        throw new Error(`Failed to fetch status: ${response.statusText}`)
-      }
-
-      // Unwrap ApiResponse
-      const { unwrapApiResponseOrNull } = await import('@/lib/api/unwrap')
-      const data = await unwrapApiResponseOrNull<RunStatusResponse>(response)
-      
-      if (!data) {
-        // Fallback to running if unwrap failed
-        setStatus('running')
-        return
-      }
+      const { fetchApi } = await import('@/lib/api/fetchApi')
+      const data = await fetchApi<RunStatusResponse>(`/api/runs/${runId}/status`)
       
       setStatus(data.status)
       
@@ -109,7 +92,8 @@ export function AnalysisRunToast({
       }
     } catch (error) {
       console.error('Error polling run status:', error)
-      // Continue polling on error (might be transient)
+      // Continue polling on error (might be transient) - keep current status
+      // Status polling should be resilient to transient errors
       pollTimeoutRef.current = setTimeout(pollStatus, POLL_INTERVAL_MS)
     }
   }, [runId, onDismiss])
@@ -171,15 +155,13 @@ export function AnalysisRunToast({
   const handleRetry = useCallback(async () => {
     setIsRetrying(true)
     try {
-      const response = await fetch(`/api/projects/${projectId}/generate`, {
-        method: 'POST',
-      })
+      const { fetchApi } = await import('@/lib/api/fetchApi')
+      const result = await fetchApi<{ runId: string }>(
+        `/api/projects/${projectId}/generate`,
+        { method: 'POST' }
+      )
 
-      // Unwrap ApiResponse
-      const { unwrapApiResponseOrNull } = await import('@/lib/api/unwrap')
-      const result = await unwrapApiResponseOrNull<{ runId: string }>(response)
-
-      if (result && result.runId) {
+      if (result.runId) {
         // Navigate to results and update toast
         router.push(`${paths.decision(projectId)}?runId=${result.runId}`)
         // Toast will be updated by the button that triggered this

@@ -3,7 +3,7 @@
  */
 
 import type { RunStatusResponse } from './types'
-import { unwrapApiResponseOrNull } from '@/lib/api/unwrap'
+import { fetchApi, ApiError } from '@/lib/api/fetchApi'
 
 const POLL_INTERVAL_MS = 4000 // Poll every 4 seconds
 
@@ -14,34 +14,28 @@ const POLL_INTERVAL_MS = 4000 // Poll every 4 seconds
 export async function pollRunStatus(
   runId: string
 ): Promise<RunStatusResponse> {
-  const response = await fetch(`/api/runs/${runId}/status`)
-  
-  if (!response.ok) {
-    // If 404, run might not exist yet - treat as queued
-    if (response.status === 404) {
-      return {
-        runId,
-        status: 'queued',
-        updatedAt: new Date().toISOString(),
+  try {
+    return await fetchApi<RunStatusResponse>(`/api/runs/${runId}/status`)
+  } catch (error) {
+    // Gracefully handle errors for polling - return queued status
+    if (error instanceof ApiError) {
+      // If run not found or access denied, treat as queued (might be transient)
+      if (error.code === 'NOT_FOUND' || error.code === 'FORBIDDEN' || error.code === 'UNAUTHENTICATED') {
+        return {
+          runId,
+          status: 'queued',
+          updatedAt: new Date().toISOString(),
+        }
       }
     }
     
-    throw new Error(`Failed to fetch status: ${response.statusText}`)
-  }
-
-  // Unwrap ApiResponse
-  const data = await unwrapApiResponseOrNull<RunStatusResponse>(response)
-  
-  // Fallback to queued if unwrap failed
-  if (!data) {
+    // For other errors, also fallback to queued (transient network issues)
     return {
       runId,
       status: 'queued',
       updatedAt: new Date().toISOString(),
     }
   }
-  
-  return data
 }
 
 /**

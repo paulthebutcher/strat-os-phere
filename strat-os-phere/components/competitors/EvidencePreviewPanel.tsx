@@ -137,20 +137,14 @@ export function EvidencePreviewPanel({
     if (competitorCount > 0 && !collectionStarted) {
       const startCollection = async () => {
         try {
-          const response = await fetch(`/api/projects/${projectId}/collect-evidence`, {
-            method: 'POST',
-          })
-
-          if (response.ok) {
-            // Unwrap ApiResponse
-            const { unwrapApiResponseOrNull } = await import('@/lib/api/unwrap')
-            const data = await unwrapApiResponseOrNull<{ runId: string; message: string }>(response)
-            
-            if (data) {
-              setCollectionStarted(true)
-              setState('collecting')
-            }
-          }
+          const { fetchApi } = await import('@/lib/api/fetchApi')
+          const data = await fetchApi<{ runId: string; message: string }>(
+            `/api/projects/${projectId}/collect-evidence`,
+            { method: 'POST' }
+          )
+          
+          setCollectionStarted(true)
+          setState('collecting')
         } catch (error) {
           console.error('[EvidencePreviewPanel] Failed to start collection:', error)
         }
