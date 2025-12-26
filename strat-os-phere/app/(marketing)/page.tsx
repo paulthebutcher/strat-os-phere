@@ -1,8 +1,10 @@
 /**
  * Marketing Homepage
  * 
- * Story-driven flow that makes Plinth's value immediately obvious, tangible, and credible.
- * Narrative progression: Problem → Solution → Proof → Outcomes → Decision Makers → CTA
+ * Image-first storytelling with clever, memorable copy that sticks.
+ * Narrative arc: Hero → Problem → Turn → Flow → What You Get → Why It Holds Up → CTA
+ * 
+ * Goal: More "oh, I get it" moments. Fewer explanations. Plinth should feel obvious, not argued.
  * 
  * Pure marketing page with NO auth dependencies, NO Supabase, NO server actions.
  * All previews are static "blue sky" components using sample data.
@@ -11,18 +13,18 @@ import type { Metadata } from "next"
 import { HeroWithPreview } from "@/components/marketing/HeroWithPreview"
 import { FinalCTABand } from "@/components/marketing/FinalCTABand"
 import { Footer } from "@/components/marketing/Footer"
-import { HowItWorks } from "@/components/marketing/HowItWorks"
 import { MarketingShell } from "@/components/marketing/MarketingShell"
-import { ProblemPromiseSection } from "@/components/marketing/ProblemPromiseSection"
-import { ProofSection } from "@/components/marketing/ProofSection"
+import { ProblemSection } from "@/components/marketing/ProblemSection"
+import { TheTurnSection } from "@/components/marketing/TheTurnSection"
+import { TheFlowSection } from "@/components/marketing/TheFlowSection"
 import { OutcomeExampleSection } from "@/components/marketing/OutcomeExampleSection"
-import { BuiltForDecisionMakersSection } from "@/components/marketing/BuiltForDecisionMakersSection"
+import { WhyItHoldsUpSection } from "@/components/marketing/WhyItHoldsUpSection"
 import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata({
-    title: "Stand behind your strategy",
-    description: "Evidence-backed insights that hold up in real conversations — not just docs.",
+    title: "Clarity that holds up",
+    description: "When the stakes are high and the room is skeptical, evidence beats instinct.",
     path: "/",
     ogVariant: "default",
     canonical: true,
@@ -33,25 +35,25 @@ export default function MarketingHome() {
   return (
     <MarketingShell>
       <main className="marketing-landing min-h-screen">
-        {/* 1. Hero: "Stand behind your strategy" */}
+        {/* 1. Hero: The Moment Before the Meeting */}
         <HeroWithPreview />
         
-        {/* 2. How it works carousel */}
-        <HowItWorks />
+        {/* 2. "This Is the Problem" (Image-Led, Minimal Text) */}
+        <ProblemSection />
         
-        {/* 3. Problem → Plinth's Unique Promise */}
-        <ProblemPromiseSection />
+        {/* 3. The Turn: What Changes with Plinth */}
+        <TheTurnSection />
         
-        {/* 4. Proof → What You Actually Get */}
-        <ProofSection />
+        {/* 4. The Flow (Keep It Fast, Visual, Punny) */}
+        <TheFlowSection />
         
-        {/* 5. Outcome Example */}
+        {/* 5. What You Actually Get (No Dashboards Section) */}
         <OutcomeExampleSection />
         
-        {/* 6. Built for Real Decision Makers */}
-        <BuiltForDecisionMakersSection />
+        {/* 6. Why It Holds Up (Credibility Without Chest-Thumping) */}
+        <WhyItHoldsUpSection />
         
-        {/* 7. Final CTA */}
+        {/* 7. Final CTA: Invite, Don't Sell */}
         <FinalCTABand />
         
         <Footer />

@@ -23,9 +23,11 @@ function ProofLegendItem({ label, description }: ProofLegendItemProps) {
       <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
         {label}
       </h3>
-      <p className="text-xs text-text-secondary leading-relaxed">
-        {description}
-      </p>
+      {description && (
+        <p className="text-xs text-text-secondary leading-relaxed">
+          {description}
+        </p>
+      )}
     </div>
   )
 }
@@ -33,20 +35,20 @@ function ProofLegendItem({ label, description }: ProofLegendItemProps) {
 export function OutcomeExampleSection() {
   const proofLegendItems = [
     {
-      label: "Recommendation",
-      description: "One call, not a list"
+      label: "One clear point of view",
+      description: ""
     },
     {
-      label: "Evidence",
-      description: "Every claim is sourced"
+      label: "Sources you can open",
+      description: ""
     },
     {
-      label: "Confidence",
-      description: "Scores show what's supported"
+      label: "Confidence that shows its work",
+      description: ""
     },
     {
-      label: "Next steps",
-      description: "Guardrails show what changes the call"
+      label: "What would change the call",
+      description: ""
     }
   ]
 
@@ -58,11 +60,8 @@ export function OutcomeExampleSection() {
             {/* Section headline + subhead */}
             <div className="text-center space-y-2 sm:space-y-3">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight lg:whitespace-nowrap">
-                What you actually get
+                No dashboards. No rabbit holes.
               </h2>
-              <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
-                A strategic brief you can share with stakeholders. No dashboards, no fluff.
-              </p>
             </div>
 
             {/* Full-width artifact wrapper */}

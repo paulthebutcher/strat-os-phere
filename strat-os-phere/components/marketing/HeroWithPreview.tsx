@@ -39,7 +39,7 @@ export function HeroWithPreview() {
                   "text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight leading-tight text-text-primary",
                   "lg:whitespace-nowrap"
                 )}>
-                  Stand behind your strategy
+                  Clarity that holds up
                 </h1>
               </Reveal>
               
@@ -47,7 +47,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
                 )}>
-                  Evidence-backed insights that hold up in real conversations — not just docs.
+                  When the stakes are high and the room is skeptical, evidence beats instinct.
                 </p>
               </Reveal>
 
@@ -75,7 +75,7 @@ export function HeroWithPreview() {
                           HoverLift.subtle
                         )}
                       >
-                        See the full receipt
+                        See a real readout →
                       </Button>
                     </Link>
                   </div>
@@ -98,14 +98,6 @@ export function HeroWithPreview() {
                 </div>
                 
                 {/* Interactive affordance */}
-                <div className="mt-3 px-1 text-center sm:text-left">
-                  <Link 
-                    href="/example" 
-                    className="text-sm text-accent-primary hover:text-accent-primary/80 font-medium inline-flex items-center gap-1 transition-colors"
-                  >
-                    Click to see what holds up →
-                  </Link>
-                </div>
               </div>
             </Reveal>
           </div>
