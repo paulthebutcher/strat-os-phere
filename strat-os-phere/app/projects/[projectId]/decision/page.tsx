@@ -25,7 +25,7 @@ import { logAppError } from '@/lib/errors/log'
 import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
 import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
 import { DecisionQualityIndicators } from '@/components/projects/DecisionQualityIndicators'
-import { getLatestRunningRunForProject, getLatestCommittedRunForProject, type ProjectRun } from '@/lib/data/projectRuns'
+import { getLatestRunningRunForProject, getLatestCommittedRunForProject, type ProjectRun, projectRunStatusToUiStatus } from '@/lib/data/projectRuns'
 import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
 import { computeEvidenceCoverageLite } from '@/lib/evidence/coverageLite'
 import { EMPTY_EVIDENCE_COVERAGE_LITE } from '@/lib/evidence/coverageTypes'
@@ -278,7 +278,7 @@ export default async function DecisionPage(props: DecisionPageProps) {
     )
     const competitorCount = competitors.length
     const viewModel = deriveAnalysisViewModel({
-      activeRunStatus: runningRun?.status ?? null,
+      activeRunStatus: runningRun ? projectRunStatusToUiStatus(runningRun.status) : null,
       hasArtifacts: hasAnyArtifacts,
       artifactCount: decisionModel ? 1 : 0, // DecisionModel represents one logical artifact
       competitorCount: competitorCount,

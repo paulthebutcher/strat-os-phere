@@ -36,13 +36,37 @@ export type ProjectRunResult<T> =
 export type UnwrapProjectRunResult<R> = R extends ProjectRunResult<infer T> ? T : never
 
 /**
+ * Project run status type (matches database schema)
+ */
+export type ProjectRunStatus = 'queued' | 'running' | 'succeeded' | 'failed'
+
+/**
+ * UI run status type (used by view models)
+ * Maps 'succeeded' -> 'completed' to match UI expectations
+ */
+export type UiRunStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'
+
+/**
+ * Normalize project run status to UI status
+ * Maps 'succeeded' -> 'completed' at the boundary between database and UI
+ */
+export function projectRunStatusToUiStatus(status: ProjectRunStatus): UiRunStatus {
+  switch (status) {
+    case 'succeeded':
+      return 'completed'
+    default:
+      return status
+  }
+}
+
+/**
  * Project run row type
  */
 export type ProjectRun = {
   id: string
   project_id: string
   input_version: number
-  status: 'queued' | 'running' | 'succeeded' | 'failed'
+  status: ProjectRunStatus
   started_at: string | null
   finished_at: string | null
   created_at: string

@@ -44,6 +44,7 @@ import { SystemStateBanner } from '@/components/ux/SystemStateBanner'
 import { CoverageIndicator } from '@/components/ux/CoverageIndicator'
 import { NextBestActionCard } from '@/components/ux/NextBestActionCard'
 import { deriveAnalysisViewModel } from '@/lib/ux/analysisViewModel'
+import { projectRunStatusToUiStatus } from '@/lib/data/projectRuns'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { isMissingColumnError } from '@/lib/db/safeDb'
@@ -273,7 +274,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
 
   // Derive view model for state and coverage
   const viewModel = deriveAnalysisViewModel({
-    activeRunStatus: results.activeRun?.status ?? null,
+    activeRunStatus: results.activeRun ? projectRunStatusToUiStatus(results.activeRun.status) : null,
     hasArtifacts,
     artifactCount: results.artifacts.length,
     competitorCount: safeCompetitors.length,
