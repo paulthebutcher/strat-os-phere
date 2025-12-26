@@ -29,6 +29,52 @@ function getRunUpdatedAt(runRecord: AnalysisRunRow): string {
 }
 
 /**
+ * Type for error-like values that might appear in run records
+ */
+type RunErrorLike =
+  | string
+  | { message?: string; code?: string; details?: unknown }
+  | null
+  | undefined
+
+/**
+ * Safely extract error from AnalysisRunRow, handling schema drift.
+ * Checks multiple possible error fields without assuming DB shape.
+ */
+function getRunError(runRecord: AnalysisRunRow): RunErrorLike {
+  const r = runRecord as AnalysisRunRow & {
+    error?: RunErrorLike
+    last_error?: RunErrorLike
+    error_message?: string | null
+    failure_reason?: string | null
+  }
+
+  return (
+    r.error ??
+    r.last_error ??
+    r.error_message ??
+    r.failure_reason ??
+    undefined
+  )
+}
+
+/**
+ * Normalize error-like value to canonical error shape
+ */
+function normalizeRunError(err: RunErrorLike) {
+  if (!err) return undefined
+  if (typeof err === 'string') {
+    return { code: 'INTERNAL_ERROR' as const, message: err }
+  }
+  // object-ish error
+  return {
+    code: (err.code ?? 'INTERNAL_ERROR') as string,
+    message: err.message ?? 'Unknown error',
+    details: (err as any).details,
+  }
+}
+
+/**
  * Validate and gate a run status read
  * Returns canonical RunStatus or throws SchemaMismatchError
  */
@@ -51,6 +97,8 @@ export async function gateRunStatus(
   }
   
   // Map DB record to canonical shape
+  const err = getRunError(runRecord)
+  
   const canonical = {
     id: runRecord.id,
     projectId: runRecord.project_id,
@@ -59,12 +107,7 @@ export async function gateRunStatus(
     stepStatus: undefined, // Not in DB yet
     createdAt: runRecord.created_at,
     updatedAt: getRunUpdatedAt(runRecord),
-    error: runRecord.error
-      ? {
-          code: 'INTERNAL_ERROR',
-          message: typeof runRecord.error === 'string' ? runRecord.error : 'Unknown error',
-        }
-      : undefined,
+    error: normalizeRunError(err),
     progress: runRecord.percent
       ? {
           completed: runRecord.percent,
