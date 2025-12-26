@@ -59,14 +59,15 @@ export function AftermathPanel({ className }: AftermathPanelProps) {
             
             {/* Clean, linear timeline */}
             <div className="relative">
-              {/* Timeline line */}
-              <div className="absolute left-0 top-1/2 w-full h-1 bg-green-200 rounded-full -translate-y-1/2" />
+              {/* Timeline line - neutral slate instead of green */}
+              <div className="absolute left-0 top-1/2 w-full h-1 bg-slate-300 rounded-full -translate-y-1/2" />
               
               {/* Timeline nodes */}
               <div className="relative flex items-center justify-between">
+                {/* Decision Made - neutral */}
                 <div className="flex flex-col items-center gap-2 z-10">
-                  <div className="w-8 h-8 rounded-full bg-green-600 border-4 border-white shadow-md flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-400 shadow-md flex items-center justify-center">
+                    <Circle className="w-5 h-5 text-slate-400" />
                   </div>
                   <div className="text-center">
                     <div className="text-sm font-semibold text-slate-900">Decision</div>
@@ -74,9 +75,10 @@ export function AftermathPanel({ className }: AftermathPanelProps) {
                   </div>
                 </div>
                 
+                {/* Execution In Progress - neutral */}
                 <div className="flex flex-col items-center gap-2 z-10">
-                  <div className="w-8 h-8 rounded-full bg-green-600 border-4 border-white shadow-md flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-400 shadow-md flex items-center justify-center">
+                    <Circle className="w-5 h-5 text-slate-400" />
                   </div>
                   <div className="text-center">
                     <div className="text-sm font-semibold text-slate-900">Execution</div>
@@ -84,6 +86,7 @@ export function AftermathPanel({ className }: AftermathPanelProps) {
                   </div>
                 </div>
                 
+                {/* Outcome Measured - green (earned resolution) */}
                 <div className="flex flex-col items-center gap-2 z-10">
                   <div className="w-8 h-8 rounded-full bg-green-600 border-4 border-white shadow-md flex items-center justify-center">
                     <CheckCircle2 className="w-5 h-5 text-white" />
@@ -100,14 +103,14 @@ export function AftermathPanel({ className }: AftermathPanelProps) {
 
         {/* Symbolic Alignment Indicators */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {/* Alignment 1 */}
+          {/* Alignment 1 - Team Alignment: blue for evidence/alignment */}
           <div className="bg-white border border-slate-200 rounded-lg p-6 text-center shadow-sm">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <Circle className="w-3 h-3 fill-green-600 text-green-600" />
+              <Circle className="w-3 h-3 text-blue-600" strokeWidth={2.5} />
               <ArrowRight className="w-4 h-4 text-slate-400" />
-              <Circle className="w-3 h-3 fill-green-600 text-green-600" />
+              <Circle className="w-3 h-3 text-blue-600" strokeWidth={2.5} />
               <ArrowRight className="w-4 h-4 text-slate-400" />
-              <Circle className="w-3 h-3 fill-green-600 text-green-600" />
+              <Circle className="w-3 h-3 text-blue-600" strokeWidth={2.5} />
             </div>
             <div className="text-sm font-semibold text-slate-900 mb-1">
               Team Alignment
@@ -117,10 +120,10 @@ export function AftermathPanel({ className }: AftermathPanelProps) {
             </div>
           </div>
 
-          {/* Alignment 2 */}
+          {/* Alignment 2 - Clear Resolution: green but toned down */}
           <div className="bg-white border border-slate-200 rounded-lg p-6 text-center shadow-sm">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <div className="w-12 h-12 rounded-lg bg-green-100 border-2 border-green-300 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-lg bg-green-50 border-2 border-green-400 flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6 text-green-600" />
               </div>
             </div>
@@ -132,12 +135,12 @@ export function AftermathPanel({ className }: AftermathPanelProps) {
             </div>
           </div>
 
-          {/* Alignment 3 */}
+          {/* Alignment 3 - Forward Motion: neutral (motion ≠ success yet) */}
           <div className="bg-white border border-slate-200 rounded-lg p-6 text-center shadow-sm">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <div className="w-8 h-0.5 bg-green-600 rounded-full" />
-              <div className="w-8 h-0.5 bg-green-600 rounded-full" />
-              <div className="w-8 h-0.5 bg-green-600 rounded-full" />
+              <div className="w-8 h-0.5 bg-slate-400 rounded-full" />
+              <div className="w-8 h-0.5 bg-slate-400 rounded-full" />
+              <div className="w-8 h-0.5 bg-slate-400 rounded-full" />
             </div>
             <div className="text-sm font-semibold text-slate-900 mb-1">
               Forward Motion
