@@ -194,7 +194,9 @@ export interface AnalysisRunRow {
   current_phase: string | null
   percent: number | null
   error_message: string | null
+  error: Json | null
   created_at: string
+  updated_at: string
 }
 
 export interface AnalysisRunInsert {
@@ -206,6 +208,8 @@ export interface AnalysisRunInsert {
   current_phase?: string | null
   percent?: number | null
   error_message?: string | null
+  error?: Json | null
+  updated_at?: string | null
 }
 
 export type AnalysisRunUpdate = Partial<AnalysisRunInsert>

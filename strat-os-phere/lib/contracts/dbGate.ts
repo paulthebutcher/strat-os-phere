@@ -16,23 +16,6 @@ import { RunStatusSchema, ArtifactSchema } from './domain'
 import { SchemaMismatchError } from '@/lib/errors/errors'
 
 /**
- * Safely extract updated_at from AnalysisRunRow, handling schema drift.
- * Falls back to created_at if updated_at is not present.
- * 
- * NOTE: DB columns may lag behind generated types. Keep optional reads here
- * to avoid drift-driven build breaks. When schema is formalized, these
- * helpers can be simplified.
- */
-function getRunUpdatedAt(runRecord: AnalysisRunRow): string {
-  const r = runRecord as AnalysisRunRow & {
-    updated_at?: string | null
-    updatedAt?: string | null
-  }
-
-  return (r.updated_at ?? r.updatedAt ?? runRecord.created_at) as string
-}
-
-/**
  * Type for error-like values that might appear in run records
  */
 type RunErrorLike =
@@ -42,44 +25,29 @@ type RunErrorLike =
   | undefined
 
 /**
- * Safely extract error from AnalysisRunRow, handling schema drift.
- * Checks multiple possible error fields without assuming DB shape.
- * 
- * NOTE: DB columns may lag behind generated types. Keep optional reads here
- * to avoid drift-driven build breaks. When schema is formalized, these
- * helpers can be simplified.
+ * Normalize error from AnalysisRunRow to canonical error shape.
+ * Prefers structured error (jsonb) over error_message (text) for backward compatibility.
  */
-function getRunError(runRecord: AnalysisRunRow): RunErrorLike {
-  const r = runRecord as AnalysisRunRow & {
-    error?: RunErrorLike
-    last_error?: RunErrorLike
-    error_message?: string | null
-    failure_reason?: string | null
+function normalizeRunError(runRecord: AnalysisRunRow): { code: string; message: string; details?: unknown } | undefined {
+  // Prefer structured error jsonb field
+  if (runRecord.error && typeof runRecord.error === 'object' && !Array.isArray(runRecord.error)) {
+    const err = runRecord.error as { message?: string; code?: string; details?: unknown }
+    return {
+      code: err.code ?? 'INTERNAL_ERROR',
+      message: err.message ?? 'Unknown error',
+      details: err.details,
+    }
   }
-
-  return (
-    r.error ??
-    r.last_error ??
-    r.error_message ??
-    r.failure_reason ??
-    undefined
-  )
-}
-
-/**
- * Normalize error-like value to canonical error shape
- */
-function normalizeRunError(err: RunErrorLike) {
-  if (!err) return undefined
-  if (typeof err === 'string') {
-    return { code: 'INTERNAL_ERROR' as const, message: err }
+  
+  // Fall back to error_message text field for backward compatibility
+  if (runRecord.error_message) {
+    return {
+      code: 'INTERNAL_ERROR',
+      message: runRecord.error_message,
+    }
   }
-  // object-ish error
-  return {
-    code: (err.code ?? 'INTERNAL_ERROR') as string,
-    message: err.message ?? 'Unknown error',
-    details: (err as any).details,
-  }
+  
+  return undefined
 }
 
 /**
@@ -105,8 +73,6 @@ export async function gateRunStatus(
   }
   
   // Map DB record to canonical shape
-  const err = getRunError(runRecord)
-  
   const canonical = {
     id: runRecord.id,
     projectId: runRecord.project_id,
@@ -114,8 +80,8 @@ export async function gateRunStatus(
     currentStep: undefined, // Not in DB yet
     stepStatus: undefined, // Not in DB yet
     createdAt: runRecord.created_at,
-    updatedAt: getRunUpdatedAt(runRecord),
-    error: normalizeRunError(err),
+    updatedAt: runRecord.updated_at,
+    error: normalizeRunError(runRecord),
     progress: runRecord.percent
       ? {
           completed: runRecord.percent,

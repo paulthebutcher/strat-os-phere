@@ -1,6 +1,52 @@
 # Database Migrations
 
-This document contains SQL migrations for the database schema.
+This document describes the database migration workflow and contains reference SQL migrations.
+
+## Migration Workflow
+
+**IMPORTANT**: All schema changes must go through the formal migration system.
+
+### How to Change DB Schema
+
+1. **Add migration file**: Create a new file in `supabase/migrations/` with timestamp prefix:
+   ```
+   supabase/migrations/YYYYMMDDHHMMSS_description.sql
+   ```
+
+2. **Apply locally**: Run the migration against your local/dev database:
+   - Via Supabase CLI: `supabase db reset` (if using local Supabase)
+   - Or manually via Supabase SQL editor
+
+3. **Regenerate types**: Update TypeScript types to match the new schema:
+   ```bash
+   # If using Supabase CLI:
+   supabase gen types typescript --local > lib/supabase/database.types.ts
+   
+   # Or manually update lib/supabase/database.types.ts to match the new schema
+   ```
+
+4. **Commit everything**: Commit the migration file + regenerated types together
+
+### Rules
+
+- ✅ **Always** put schema-changing SQL in `supabase/migrations/`
+- ❌ **Never** put migrations only in `/docs/sql` (those are reference docs only)
+- ✅ **Always** regenerate types after applying migrations
+- ✅ **Always** run `pnpm check:schema` before committing to catch drift
+
+### Schema Drift Prevention
+
+The `pnpm check:schema` script enforces that:
+- Code doesn't reference columns that don't exist in production
+- Types stay in sync with actual database schema
+
+Run it as part of your pre-commit checks or CI pipeline.
+
+---
+
+## Reference Migrations
+
+The following are historical migrations kept for reference:
 
 ## Evidence Sources Table
 
