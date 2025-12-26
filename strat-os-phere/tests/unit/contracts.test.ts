@@ -5,7 +5,7 @@
  * These tests should fail loudly if contracts break.
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, test } from 'vitest'
 import {
   RunStatusSchema,
   OpportunitySchema,
@@ -14,6 +14,27 @@ import {
 } from '@/lib/contracts/domain'
 import { ok, fail, parseOrFail } from '@/lib/contracts/api'
 import { ErrorCodeSchema } from '@/lib/contracts/errors'
+
+// ============================================================================
+// Compilation Guard
+// ============================================================================
+// This test ensures all contract files can be imported and compiled.
+// If any contract file has a missing import or syntax error, this will fail.
+// This is intentionally simple - it exists to catch contract breakage early.
+
+// Import all contract modules to ensure they compile
+// If any file has a missing import (e.g., missing z), this will fail at import time
+import '@/lib/contracts/errors'
+import '@/lib/contracts/domain'
+import '@/lib/contracts/api'
+import '@/lib/contracts/api.types'
+import '@/lib/contracts/dbGate'
+import '@/lib/contracts/z'
+
+test('contracts import cleanly', () => {
+  // If we get here, all imports succeeded
+  expect(true).toBe(true)
+})
 
 describe('Domain Contracts', () => {
   describe('RunStatusSchema', () => {

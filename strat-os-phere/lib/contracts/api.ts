@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from './z'
 import type { ApiResponse, ApiSuccess, ApiError } from './api.types'
 import { ErrorCodeSchema } from './errors'
 

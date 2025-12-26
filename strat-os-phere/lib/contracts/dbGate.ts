@@ -11,13 +11,17 @@ import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import type { AnalysisRunRow } from '@/lib/supabase/types'
 import { getAnalysisRunById } from '@/lib/data/runs'
 import { listArtifacts } from '@/lib/data/artifacts'
+import { z } from './z'
 import { RunStatusSchema, ArtifactSchema } from './domain'
 import { SchemaMismatchError } from '@/lib/errors/errors'
-import { z } from 'zod'
 
 /**
  * Safely extract updated_at from AnalysisRunRow, handling schema drift.
  * Falls back to created_at if updated_at is not present.
+ * 
+ * NOTE: DB columns may lag behind generated types. Keep optional reads here
+ * to avoid drift-driven build breaks. When schema is formalized, these
+ * helpers can be simplified.
  */
 function getRunUpdatedAt(runRecord: AnalysisRunRow): string {
   const r = runRecord as AnalysisRunRow & {
@@ -40,6 +44,10 @@ type RunErrorLike =
 /**
  * Safely extract error from AnalysisRunRow, handling schema drift.
  * Checks multiple possible error fields without assuming DB shape.
+ * 
+ * NOTE: DB columns may lag behind generated types. Keep optional reads here
+ * to avoid drift-driven build breaks. When schema is formalized, these
+ * helpers can be simplified.
  */
 function getRunError(runRecord: AnalysisRunRow): RunErrorLike {
   const r = runRecord as AnalysisRunRow & {
