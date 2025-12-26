@@ -25,6 +25,8 @@ import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
+import { getLatestProjectInput } from '@/lib/data/projectInputs'
+import { SuggestedCompetitorsPanel } from '@/components/competitors/SuggestedCompetitorsPanel'
 
 interface CompetitorsPageProps {
   params: Promise<{
@@ -123,6 +125,20 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
     }
 
     const { project } = projectResult
+
+    // Load suggested competitor names from project inputs (if any)
+    let suggestedCompetitorNames: string[] = []
+    try {
+      const inputResult = await getLatestProjectInput(supabase, projectId)
+      if (inputResult.ok && inputResult.data?.input_json) {
+        const inputs = inputResult.data.input_json as Record<string, any>
+        if (Array.isArray(inputs.suggestedCompetitorNames)) {
+          suggestedCompetitorNames = inputs.suggestedCompetitorNames
+        }
+      }
+    } catch (error) {
+      // Ignore errors - suggestions are optional
+    }
 
     // Load related data with error handling - default to empty arrays on failure
     let competitors: Awaited<ReturnType<typeof listCompetitorsForProject>> = []
@@ -257,6 +273,14 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
         />
 
         <div className="space-y-6">
+          {/* Show suggested competitors panel if we have suggestions and no competitors yet */}
+          {suggestedCompetitorNames.length > 0 && competitorCount === 0 && (
+            <SuggestedCompetitorsPanel
+              projectId={projectId}
+              suggestedNames={suggestedCompetitorNames}
+            />
+          )}
+
           <CompetitorsPageClient
             projectId={projectId}
             competitors={safeCompetitors}

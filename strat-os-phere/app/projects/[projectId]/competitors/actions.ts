@@ -17,6 +17,7 @@ import {
 import { loadProject } from '@/lib/projects/loadProject'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
+import { getLatestProjectInput } from '@/lib/data/projectInputs'
 
 type ActionResult = {
   success: boolean
@@ -51,7 +52,6 @@ async function requireProjectAccess(projectId: string) {
   const projectResult = await loadProject(supabase, projectId, user.id)
 
   if (!projectResult.ok) {
-    // Redirect to dashboard on any error (not found, unauthorized, or query failed)
     redirect('/dashboard')
   }
 
@@ -261,4 +261,99 @@ export async function addCompetitorFromSearch(
   }
 }
 
+/**
+ * Confirm suggested competitors: resolve URLs and create competitors
+ * This is called after user explicitly confirms the suggested competitor names
+ */
+export async function confirmSuggestedCompetitors(
+  projectId: string,
+  selectedNames: string[]
+): Promise<ActionResult> {
+  const { supabase } = await requireProjectAccess(projectId)
 
+  if (!selectedNames || selectedNames.length === 0) {
+    return { success: false, message: 'Please select at least one competitor.' }
+  }
+
+  const existing = await listCompetitorsForProject(supabase, projectId)
+
+  if (existing.length + selectedNames.length > MAX_COMPETITORS_PER_PROJECT) {
+    return {
+      success: false,
+      message: `You can add up to ${MAX_COMPETITORS_PER_PROJECT} competitors per analysis.`,
+    }
+  }
+
+  try {
+    // Resolve URLs for each selected name
+    const competitorsToAdd: Array<{ name: string; url: string }> = []
+
+    for (const name of selectedNames) {
+      if (!name || !name.trim()) continue
+
+      // Call the competitors suggest API to resolve URL
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/competitors/suggest`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: name.trim(),
+          }),
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.ok && Array.isArray(data.candidates) && data.candidates.length > 0) {
+          // Use the first (highest scoring) candidate
+          const candidate = data.candidates[0]
+          if (candidate.url) {
+            competitorsToAdd.push({
+              name: candidate.name || name.trim(),
+              url: candidate.url,
+            })
+            continue
+          }
+        }
+      }
+
+      // Fallback: create competitor with placeholder URL if resolution fails
+      competitorsToAdd.push({
+        name: name.trim(),
+        url: `https://${name.toLowerCase().replace(/\s+/g, '')}.com`,
+      })
+    }
+
+    // Create all competitors
+    for (const competitor of competitorsToAdd) {
+      // Check for duplicates
+      const normalizedUrl = competitor.url.toLowerCase().trim()
+      const hasDuplicate = existing.some(
+        (c) => c.url?.toLowerCase().trim() === normalizedUrl
+      )
+
+      if (!hasDuplicate) {
+        await createCompetitor(supabase, {
+          project_id: projectId,
+          name: competitor.name,
+          url: competitor.url,
+          evidence_text: null, // Evidence collected later
+        })
+      }
+    }
+
+    revalidatePath(`/projects/${projectId}/competitors`)
+
+    return { success: true }
+  } catch (error) {
+    logger.error('Failed to confirm suggested competitors', error)
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Unable to add competitors. Please try again.'
+
+    return { success: false, message }
+  }
+}
