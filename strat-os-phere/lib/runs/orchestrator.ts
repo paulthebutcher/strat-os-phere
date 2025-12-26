@@ -28,6 +28,18 @@ import {
 import { getLatestProjectInput } from '@/lib/data/projectInputs'
 import { logger } from '@/lib/logger'
 import { PIPELINE_VERSION } from '@/lib/analysis/runProjectAnalysis'
+import {
+  parseStepStatus,
+  serializeStepStatus,
+  validateStepStatusEntry,
+  type StepName,
+  type StepStatusMap,
+  type StepStatusEntry,
+} from '@/lib/runs/stepStatusSchema'
+import { tryMarkStepRunning } from '@/lib/runs/runPersistence'
+
+// Re-export StepName for backward compatibility
+export type { StepName } from '@/lib/runs/stepStatusSchema'
 
 /**
  * Run state machine states
@@ -35,18 +47,10 @@ import { PIPELINE_VERSION } from '@/lib/analysis/runProjectAnalysis'
 export type RunState = 'created' | 'collecting' | 'analyzing' | 'completed' | 'failed'
 
 /**
- * Step names
- */
-export type StepName = 'context' | 'evidence' | 'analysis' | 'opportunities'
-
-/**
- * Step status
+ * Step status detail (re-exported from schema for backward compatibility)
  */
 export type StepStatus = 'pending' | 'running' | 'completed' | 'failed'
 
-/**
- * Step status detail
- */
 export interface StepStatusDetail {
   status: StepStatus
   startedAt?: string
@@ -59,30 +63,48 @@ export interface StepStatusDetail {
 }
 
 /**
- * Step status map stored in metrics.step_status
- */
-export interface StepStatusMap {
-  [stepName: string]: StepStatusDetail
-}
-
-/**
  * Get step status from run metrics
+ * Uses schema validation to prevent drift
  */
 export function getStepStatus(run: ProjectRun, stepName: StepName): StepStatusDetail {
   const metrics = (run.metrics as Record<string, any>) || {}
-  const stepStatus = (metrics.step_status as StepStatusMap) || {}
-  return stepStatus[stepName] || { status: 'pending' }
+  const stepStatus = parseStepStatus(metrics.step_status)
+  const entry = stepStatus[stepName]
+  
+  if (!entry) {
+    return { status: 'pending' }
+  }
+
+  // Validate entry shape
+  const validated = validateStepStatusEntry(entry)
+  if (!validated) {
+    // Invalid entry - return pending as safe default
+    return { status: 'pending' }
+  }
+
+  // Map to StepStatusDetail format
+  return {
+    status: validated.status,
+    startedAt: validated.startedAt,
+    finishedAt: validated.finishedAt,
+    error: validated.error ? {
+      code: validated.error.code,
+      message: validated.error.message,
+      detail: validated.error.detail,
+    } : undefined,
+  }
 }
 
 /**
- * Set step status in run metrics
+ * Update step status in run metrics with schema validation
+ * 
+ * This is the single place that "knows" the structure of metrics.step_status.
+ * It reads, parses, updates, validates, and writes back.
  */
-async function setStepStatus(
+async function updateStepStatus(
   supabase: TypedSupabaseClient,
   runId: string,
-  stepName: StepName,
-  status: StepStatus,
-  error?: { code: string; message: string; detail?: string }
+  updater: (currentStatus: StepStatusMap) => StepStatusMap
 ): Promise<{ ok: boolean; error?: { code: string; message: string } }> {
   try {
     // Get current metrics
@@ -95,7 +117,6 @@ async function setStepStatus(
     if (fetchRunError) {
       logger.error('[orchestrator] Failed to fetch run for step status update', {
         runId,
-        stepName,
         error: fetchRunError.message,
       })
       return {
@@ -109,21 +130,20 @@ async function setStepStatus(
 
     type RunWithMetrics = { metrics: Record<string, any> }
     const currentMetrics = ((currentRunData as RunWithMetrics | null)?.metrics as Record<string, any>) || {}
-    const stepStatus = (currentMetrics.step_status as StepStatusMap) || {}
     
-    const now = new Date().toISOString()
-    const stepDetail: StepStatusDetail = {
-      status,
-      ...(status === 'running' && !stepStatus[stepName]?.startedAt && { startedAt: now }),
-      ...(status === 'completed' || status === 'failed' ? { finishedAt: now } : {}),
-      ...(error ? { error } : {}),
-    }
+    // Parse current step status (validates shape)
+    const currentStepStatus = parseStepStatus(currentMetrics.step_status)
+    
+    // Apply update
+    const updatedStepStatus = updater(currentStepStatus)
+    
+    // Validate and serialize the updated status
+    const serialized = serializeStepStatus(updatedStepStatus)
 
-    stepStatus[stepName] = stepDetail
-
+    // Write back validated structure
     const updatedMetrics = {
       ...currentMetrics,
-      step_status: stepStatus,
+      step_status: serialized,
     }
 
     const result = await updateRunMetrics(supabase, runId, updatedMetrics)
@@ -133,9 +153,8 @@ async function setStepStatus(
 
     return { ok: true }
   } catch (error) {
-    logger.error('[orchestrator] Exception setting step status', {
+    logger.error('[orchestrator] Exception updating step status', {
       runId,
-      stepName,
       error: error instanceof Error ? error.message : String(error),
     })
     return {
@@ -146,6 +165,43 @@ async function setStepStatus(
       },
     }
   }
+}
+
+/**
+ * Set step status in run metrics
+ * Uses updateStepStatus for schema-validated updates
+ */
+async function setStepStatus(
+  supabase: TypedSupabaseClient,
+  runId: string,
+  stepName: StepName,
+  status: StepStatus,
+  error?: { code: string; message: string; detail?: string }
+): Promise<{ ok: boolean; error?: { code: string; message: string } }> {
+  const now = new Date().toISOString()
+  
+  return updateStepStatus(supabase, runId, (currentStatus) => {
+    const currentEntry = currentStatus[stepName]
+    
+    const updatedEntry: StepStatusEntry = {
+      status,
+      // Preserve startedAt if already set, otherwise set it for running status
+      startedAt: currentEntry?.startedAt || (status === 'running' ? now : undefined),
+      // Set finishedAt for terminal states
+      finishedAt: (status === 'completed' || status === 'failed') ? now : currentEntry?.finishedAt,
+      // Include error if provided
+      error: error ? {
+        code: error.code,
+        message: error.message,
+        detail: error.detail,
+      } : undefined,
+    }
+
+    return {
+      ...currentStatus,
+      [stepName]: updatedEntry,
+    }
+  })
 }
 
 /**
@@ -355,12 +411,45 @@ export async function advanceRun(
       await setStepStatus(supabase, runId, targetStep, 'pending')
     }
 
-    // Start the step
-    const setResult = await setStepStatus(supabase, runId, targetStep, 'running')
-    if (!setResult.ok) {
+    // Atomically mark step as running (race-condition safe)
+    const now = new Date().toISOString()
+    const atomicResult = await tryMarkStepRunning(supabase, runId, targetStep, now)
+
+    if (!atomicResult.ok) {
+      // Step was already running or completed by another request
+      if (atomicResult.reason === 'already_running' || atomicResult.reason === 'already_completed') {
+        // Re-fetch to get current status
+        const { data: currentRunData, error: refetchError } = await supabase
+          .from('project_runs')
+          .select('*')
+          .eq('id', runId)
+          .single()
+
+        if (refetchError || !currentRunData) {
+          return {
+            ok: false,
+            error: {
+              code: 'FETCH_ERROR',
+              message: 'Failed to fetch current run status',
+            },
+          }
+        }
+
+        const currentStatus = getStepStatus(currentRunData as ProjectRun, targetStep)
+        return {
+          ok: true,
+          action: 'noop',
+          stepStatus: currentStatus,
+        }
+      }
+
+      // Update failed
       return {
-        ok: false as const,
-        error: setResult.error!,
+        ok: false,
+        error: {
+          code: 'UPDATE_ERROR',
+          message: `Failed to mark step as running: ${atomicResult.reason}`,
+        },
       }
     }
 

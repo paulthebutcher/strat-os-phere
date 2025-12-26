@@ -18,10 +18,19 @@ export interface GetLatestSuccessfulArtifactParams {
 /**
  * Get the latest successful artifact for a run and type
  * 
+ * This function ensures idempotency by only returning artifacts from the specified run.
+ * No stale artifacts from different runs can satisfy idempotency checks.
+ * 
  * Strategy:
  * 1. Filter artifacts by projectId, runId (from content_json), and type
  * 2. Order by created_at DESC
  * 3. Return the first one (most recent)
+ * 
+ * Enforced selection criteria:
+ * - project_id = projectId (exact match)
+ * - run_id = runId (from content_json, exact match)
+ * - type = type (exact match)
+ * - Order by created_at DESC, limit 1
  * 
  * This is deterministic: same run + type always returns the same artifact
  */
@@ -33,9 +42,15 @@ export async function getLatestSuccessfulArtifact(
     // Get all artifacts for the project
     const artifacts = await listArtifacts(supabase, { projectId: params.projectId })
 
-    // Filter by runId and type
+    // Filter by runId and type (run-scoped lookup)
+    // This ensures no stale artifact from a different run can satisfy idempotency checks
     const runArtifacts = artifacts.filter((artifact) => {
-      // Check if artifact belongs to this run
+      // Enforce: project_id must match
+      if (artifact.project_id !== params.projectId) {
+        return false
+      }
+
+      // Enforce: run_id must match (from content_json)
       const contentJson = artifact.content_json
       if (!contentJson || typeof contentJson !== 'object') {
         return false
@@ -46,7 +61,7 @@ export async function getLatestSuccessfulArtifact(
         return false
       }
 
-      // Check type
+      // Enforce: type must match
       if (artifact.type !== params.type) {
         return false
       }

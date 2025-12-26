@@ -29,6 +29,10 @@ vi.mock('@/lib/data/projectInputs', () => ({
   getLatestProjectInput: vi.fn(),
 }))
 
+vi.mock('@/lib/runs/runPersistence', () => ({
+  tryMarkStepRunning: vi.fn(),
+}))
+
 describe('orchestrator', () => {
   let mockSupabase: TypedSupabaseClient
   let mockRun: ProjectRun
@@ -192,6 +196,112 @@ describe('orchestrator', () => {
       if (result.ok) {
         expect(result.action).toBe('resumed')
       }
+    })
+  })
+
+  describe('step_status schema validation', () => {
+    it('should normalize invalid metrics.step_status shape to empty map', () => {
+      const runWithInvalidSteps: ProjectRun = {
+        ...mockRun,
+        metrics: {
+          step_status: {
+            evidence: {
+              // Invalid: missing required 'status' field
+              startedAt: '2024-01-01T00:00:00Z',
+            },
+            // Invalid: wrong type
+            analysis: 'not-an-object',
+          },
+        },
+      }
+
+      // getStepStatus should handle invalid shape gracefully
+      const status = getStepStatus(runWithInvalidSteps, 'evidence')
+      // Should return pending as safe default for invalid entries
+      expect(status.status).toBe('pending')
+    })
+
+    it('should parse valid step_status correctly', () => {
+      const runWithValidSteps: ProjectRun = {
+        ...mockRun,
+        metrics: {
+          step_status: {
+            evidence: {
+              status: 'running',
+              startedAt: '2024-01-01T00:00:00Z',
+            },
+            analysis: {
+              status: 'completed',
+              startedAt: '2024-01-01T00:00:00Z',
+              finishedAt: '2024-01-01T00:01:00Z',
+            },
+          },
+        },
+      }
+
+      const evidenceStatus = getStepStatus(runWithValidSteps, 'evidence')
+      expect(evidenceStatus.status).toBe('running')
+      expect(evidenceStatus.startedAt).toBe('2024-01-01T00:00:00Z')
+
+      const analysisStatus = getStepStatus(runWithValidSteps, 'analysis')
+      expect(analysisStatus.status).toBe('completed')
+      expect(analysisStatus.finishedAt).toBe('2024-01-01T00:01:00Z')
+    })
+  })
+
+  describe('atomic double-start prevention', () => {
+    it('should prevent double-start when two requests try to start the same step', async () => {
+      const pendingRun: ProjectRun = {
+        ...mockRun,
+        status: 'queued',
+        metrics: {
+          step_status: {
+            evidence: {
+              status: 'pending',
+            },
+          },
+        },
+      }
+
+      // Mock tryMarkStepRunning to simulate race condition
+      const { tryMarkStepRunning } = await import('@/lib/runs/runPersistence')
+      
+      // First call succeeds
+      vi.mocked(tryMarkStepRunning).mockResolvedValueOnce({
+        ok: true,
+        run: { ...pendingRun, status: 'running' },
+      })
+
+      // Second call fails (already running)
+      vi.mocked(tryMarkStepRunning).mockResolvedValueOnce({
+        ok: false,
+        reason: 'already_running',
+      })
+
+      ;(mockSupabase.from as any).mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn()
+          .mockResolvedValueOnce({ data: pendingRun, error: null }) // First fetch
+          .mockResolvedValueOnce({ data: { ...pendingRun, status: 'running' }, error: null }), // Second fetch for no-op
+      })
+
+      // First request - should succeed
+      const result1 = await advanceRun(mockSupabase, 'run-123', 'evidence')
+      expect(result1.ok).toBe(true)
+      if (result1.ok) {
+        expect(result1.action).toBe('started')
+      }
+
+      // Second request - should no-op
+      const result2 = await advanceRun(mockSupabase, 'run-123', 'evidence')
+      expect(result2.ok).toBe(true)
+      if (result2.ok) {
+        expect(result2.action).toBe('noop')
+      }
+
+      // Verify tryMarkStepRunning was called twice
+      expect(tryMarkStepRunning).toHaveBeenCalledTimes(2)
     })
   })
 })
