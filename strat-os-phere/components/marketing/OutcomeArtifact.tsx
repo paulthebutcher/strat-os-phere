@@ -69,6 +69,7 @@ export function OutcomeArtifact({ className }: OutcomeArtifactProps) {
         "rounded-3xl border-2 border-border-subtle bg-white",
         "shadow-2xl p-10 sm:p-14 md:p-20 space-y-10 sm:space-y-12",
         "backdrop-blur-sm",
+        "corner-cut corner-cut-top-right",
         className
       )}
     >

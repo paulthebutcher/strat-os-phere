@@ -37,6 +37,9 @@ export function TheTurnSection() {
           </div>
         </Reveal>
         
+        {/* Asymmetrical divider for visual interest */}
+        <div className="divider-asymmetric mb-8" />
+        
         <Reveal delay={60}>
           <StakesDossierPanel className="rounded-xl lg:min-h-[600px] w-full" />
         </Reveal>

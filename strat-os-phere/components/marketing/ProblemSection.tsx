@@ -32,7 +32,7 @@ export function ProblemSection() {
                 Decisions without shape
               </h2>
               <p className="editorial-body mx-auto">
-                Too many opinions. Not enough proof. Most strategy debates fail before they start—not because ideas are bad, but because evidence never makes it to the table.
+                Too many opinions. Not enough proof. Most strategy debates fail before they start—not because ideas are bad, but because <span className="color-moment-accent font-medium">evidence never makes it to the table</span>.
               </p>
             </div>
           </Reveal>

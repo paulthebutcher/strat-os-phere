@@ -1679,3 +1679,143 @@
 .animate-pulse-once {
   animation: pulse-once 2s ease-in-out;
 }
+
+/* SPARKLE: Signature Micro-Motion Animations */
+@keyframes underlineReveal {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes artifactSettle {
+  from {
+    transform: translateY(2px);
+    opacity: 0.95;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeContent {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* SPARKLE: Micro-motion utilities */
+.motion-underline-reveal {
+  position: relative;
+}
+
+.motion-underline-reveal::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: currentColor;
+  transform-origin: left;
+  animation: underlineReveal 180ms ease-out both;
+}
+
+.motion-artifact-settle {
+  animation: artifactSettle 150ms ease-out both;
+}
+
+.motion-fade-content {
+  animation: fadeContent 120ms ease-out both;
+}
+
+/* SPARKLE: Edge Details & Micro-Craft */
+/* Corner cut utility - subtle corner notch */
+.corner-cut {
+  position: relative;
+}
+
+.corner-cut::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid hsl(var(--border-subtle));
+  border-left: 2px solid hsl(var(--border-subtle));
+  clip-path: polygon(0 0, 0 100%, 100% 0);
+}
+
+.corner-cut-top-right::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid hsl(var(--border-subtle));
+  border-right: 2px solid hsl(var(--border-subtle));
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+}
+
+/* Asymmetrical divider - slightly offset */
+.divider-asymmetric {
+  position: relative;
+  border-top: 1px solid hsl(var(--border-subtle));
+  margin-left: 8%;
+  margin-right: 0;
+}
+
+.divider-asymmetric-reverse {
+  position: relative;
+  border-top: 1px solid hsl(var(--border-subtle));
+  margin-left: 0;
+  margin-right: 8%;
+}
+
+/* Margin mark - appears at key transitions */
+.margin-mark {
+  position: relative;
+}
+
+.margin-mark::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 24px;
+  background: hsl(var(--accent-primary) / 0.3);
+}
+
+/* SPARKLE: Color Moments - Rare, intentional color usage */
+.color-moment-gradient {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--accent-primary) / 0.08) 0%,
+    transparent 100%
+  );
+}
+
+.color-moment-accent {
+  color: hsl(var(--accent-primary));
+}
+
+.color-moment-highlight {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--accent-primary)) 0%,
+    hsl(var(--text-primary) / 0.85) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

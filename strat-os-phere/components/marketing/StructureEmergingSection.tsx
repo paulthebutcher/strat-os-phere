@@ -26,11 +26,11 @@ export function StructureEmergingSection() {
     <MarketingSection tone="alt" density="normal">
       <MarketingContainer maxWidth="6xl">
         <div className="flex flex-col gap-6 sm:gap-8">
-          {/* Section headline - centered, compact */}
+          {/* Section headline - centered, compact with color moment */}
           <Reveal>
             <div className="text-center space-y-2 sm:space-y-3 max-w-3xl mx-auto">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-semibold tracking-tight text-text-primary leading-tight">
-                Evidence creates structure
+                Evidence creates <span className="color-moment-highlight">structure</span>
               </h2>
               <p className="text-sm sm:text-base text-text-secondary">
                 The fog lifts. Fragments align. Signals group. Boundaries appear.

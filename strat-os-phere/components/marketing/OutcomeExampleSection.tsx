@@ -20,7 +20,7 @@
 
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
-import { Reveal } from "./motion"
+import { Reveal, ArtifactSettle } from "./motion"
 import { OutcomeArtifact } from "./OutcomeArtifact"
 
 export function OutcomeExampleSection() {
@@ -39,11 +39,13 @@ export function OutcomeExampleSection() {
               </p>
             </div>
 
-            {/* Hero Outcome Artifact - centered, heroic */}
+            {/* Hero Outcome Artifact - centered, heroic with settling motion */}
             <Reveal delay={60}>
-              <div className="flex justify-center">
-                <OutcomeArtifact className="w-full max-w-5xl" />
-              </div>
+              <ArtifactSettle delay={100}>
+                <div className="flex justify-center">
+                  <OutcomeArtifact className="w-full max-w-5xl" />
+                </div>
+              </ArtifactSettle>
             </Reveal>
           </div>
         </Reveal>

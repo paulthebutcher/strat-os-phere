@@ -35,6 +35,9 @@ export function WhyItHoldsUpSection() {
           </div>
         </Reveal>
         
+        {/* Asymmetrical divider (reverse) */}
+        <div className="divider-asymmetric-reverse mb-8" />
+        
         <Reveal delay={60}>
           <AftermathPanel className="rounded-xl lg:min-h-[500px] w-full" />
         </Reveal>

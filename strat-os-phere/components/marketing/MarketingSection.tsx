@@ -48,8 +48,8 @@ export function MarketingSection({
     spacious: "py-20 sm:py-24 md:py-28",
   }
   
-  // Subtle section separator (not heavy borders)
-  const separatorClasses = resolvedTone === "subtle" ? "" : "border-t border-black/5"
+  // Subtle section separator (not heavy borders) - removed for cleaner transitions
+  const separatorClasses = ""
 
   return (
     <section
