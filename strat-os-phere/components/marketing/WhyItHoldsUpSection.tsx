@@ -18,10 +18,10 @@ export function WhyItHoldsUpSection() {
         <Reveal>
           <div className="text-center space-y-3 sm:space-y-4 mb-6 sm:mb-8 max-w-3xl mx-auto">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-semibold tracking-tight text-text-primary leading-tight">
-              This holds up in skeptical rooms.
+              Evidence you can open and defend
             </h2>
             <p className="text-sm sm:text-base text-text-secondary">
-              If you can't explain it, cite it, or defend it, it doesn't belong here.
+              Every claim links to its source. Confidence levels are explicit. You can cite this, not just present it.
             </p>
           </div>
         </Reveal>

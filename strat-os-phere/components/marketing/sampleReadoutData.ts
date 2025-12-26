@@ -12,7 +12,7 @@ export const sampleAnalysis = {
   market: "Incident management / on-call",
   decisionQuestion: "Should we launch a constrained free tier to unlock mid-market adoption?",
   recommendation: {
-    title: "Launch a constrained free tier focused on teams evaluating reliability tooling",
+    title: "Launch a constrained free tier for reliability teams",
     confidence: "Strong",
     confidenceLevel: "investment_ready" as const,
     score: 81.4,

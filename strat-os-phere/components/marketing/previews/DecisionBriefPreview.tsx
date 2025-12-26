@@ -188,7 +188,7 @@ export function DecisionBriefPreview() {
       {/* What would change this call - Inline callout bar */}
       <div className="p-6 md:p-8 border-t border-border-subtle bg-surface-muted/30">
         <p className="text-sm font-semibold text-text-primary mb-3">
-          What would change this decision?
+          What would change this call?
         </p>
         <ul className="space-y-1.5">
           {guardrails.map((guardrail, idx) => (

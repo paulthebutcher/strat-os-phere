@@ -44,7 +44,7 @@ export function HeroWithPreview() {
                 <p className={cn(
                   "text-base sm:text-lg md:text-xl leading-relaxed text-text-secondary max-w-[90ch] mx-auto"
                 )}>
-                  Plinth turns public market signals into a clear point of view you can defend.
+                  See where you're ahead—and why it holds up when challenged.
                 </p>
               </Reveal>
 
@@ -76,7 +76,7 @@ export function HeroWithPreview() {
                       </Button>
                     </Link>
                   </div>
-                  <p className="text-xs text-text-muted mt-0.5">Two minutes. No setup. A real answer.</p>
+                  <p className="text-xs text-text-muted mt-0.5">Get a defensible readout in minutes</p>
                 </div>
               </Reveal>
             </div>

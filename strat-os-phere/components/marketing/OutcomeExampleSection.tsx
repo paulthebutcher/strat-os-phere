@@ -45,7 +45,7 @@ export function OutcomeExampleSection() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
                 <div className="text-center space-y-1">
                   <h3 className="text-sm font-semibold text-text-primary">
-                    One clear point of view
+                    One clear recommendation
                   </h3>
                   <p className="text-xs text-text-secondary">
                     Not a list. The one that matters.
@@ -53,7 +53,7 @@ export function OutcomeExampleSection() {
                 </div>
                 <div className="text-center space-y-1">
                   <h3 className="text-sm font-semibold text-text-primary">
-                    Proof you can open
+                    Sources you can inspect
                   </h3>
                   <p className="text-xs text-text-secondary">
                     Every claim links to a source.

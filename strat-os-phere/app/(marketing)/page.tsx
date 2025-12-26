@@ -49,7 +49,7 @@ export default function MarketingHome() {
         {/* Act 2: The Turning Point — What Plinth changes */}
         <TheTurnSection />
         
-        {/* The Flow: Guided reveal from hunch to proof */}
+        {/* What you walk into the room with: Outcome-focused section */}
         <TheFlowSection />
         
         {/* Act 3: The Receipt — What you actually get out */}

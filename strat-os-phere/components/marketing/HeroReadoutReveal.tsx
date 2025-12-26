@@ -17,6 +17,32 @@ import { cn } from "@/lib/utils"
 import { useEffect, useRef, useState } from "react"
 import { prefersReducedMotion } from "@/lib/motion/tokens"
 import { sampleAnalysis } from "./sampleReadoutData"
+import { AlertTriangle } from "lucide-react"
+
+// Helper to get score color based on confidence range
+function getScoreColor(score: number): string {
+  if (score >= 80) return "text-[hsl(var(--readout-score-high))]"
+  if (score >= 60) return "text-[hsl(var(--readout-score-medium))]"
+  return "text-[hsl(var(--readout-score-low))]"
+}
+
+// Helper to get evidence type background color
+function getEvidenceTypeBgColor(type: string): string {
+  const normalizedType = type.toLowerCase()
+  if (normalizedType === "pricing") return "bg-[hsl(var(--readout-evidence-pricing))]"
+  if (normalizedType === "docs") return "bg-[hsl(var(--readout-evidence-docs))]"
+  if (normalizedType === "reviews") return "bg-[hsl(var(--readout-evidence-reviews))]"
+  if (normalizedType === "changelog") return "bg-[hsl(var(--readout-evidence-changelog))]"
+  return "bg-surface-muted/30"
+}
+
+// Helper to get score bar color and intensity for factor cards
+function getScoreBarColor(score: number, maxScore: number): { color: string; opacity: number } {
+  const percentage = (score / maxScore) * 100
+  if (percentage >= 80) return { color: "hsl(var(--readout-score-high))", opacity: 0.4 }
+  if (percentage >= 60) return { color: "hsl(var(--readout-score-medium))", opacity: 0.35 }
+  return { color: "hsl(var(--readout-score-low))", opacity: 0.3 }
+}
 
 // Hero proof asset — single investment-ready recommendation
 const primaryOpportunity = {
@@ -181,10 +207,10 @@ export function HeroReadoutReveal({
       {showRecommendation && (
         <div 
           className={cn(
-            "p-6 md:p-8 border-b border-border-subtle relative",
+            "p-6 md:p-8 border-b border-border-subtle relative border-l-4",
             recommendationHighlighted && !reduceMotion.current
-              ? "bg-surface-muted/10 border-l-2 border-l-accent-primary/30"
-              : "bg-transparent"
+              ? "bg-surface-muted/10 border-l-[hsl(var(--readout-primary-300))]"
+              : "bg-transparent border-l-[hsl(var(--readout-primary-300))]"
           )}
           style={{
             transition: reduceMotion.current 
@@ -209,10 +235,10 @@ export function HeroReadoutReveal({
                       : `opacity 200ms cubic-bezier(0, 0, 0.2, 1) ${confidenceDelay}ms`,
                   }}
                 >
-                  <span className="font-semibold text-text-primary">
-                    {primaryOpportunity.overallScore} / 100
+                  <span className={cn("font-semibold", getScoreColor(primaryOpportunity.overallScore))}>
+                    {primaryOpportunity.overallScore}
                   </span>
-                  <span className="text-text-secondary">Overall score</span>
+                  <span className="text-text-primary">/ 100 overall</span>
                 </div>
                 <div 
                   className="flex items-center gap-2 flex-wrap"
@@ -224,28 +250,36 @@ export function HeroReadoutReveal({
                   }}
                 >
                   <span className="text-text-secondary">
-                    {primaryOpportunity.citationsCount} sources
+                    {primaryOpportunity.citationsCount} verifiable sources
                   </span>
-                  <span className="text-text-muted">·</span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {primaryOpportunity.evidenceTypes.map((type, idx) => (
-                      <span 
-                        key={idx} 
-                        className="text-text-secondary capitalize"
-                        style={{
-                          opacity: evidenceVisible ? 1 : 0,
-                          transition: reduceMotion.current 
-                            ? "none" 
-                            : `opacity 200ms cubic-bezier(0, 0, 0.2, 1) ${getEvidenceDelay(idx + 1)}ms`,
-                        }}
-                      >
-                        {type}
-                        {idx < primaryOpportunity.evidenceTypes.length - 1 && (
-                          <span className="text-text-muted ml-1.5">·</span>
-                        )}
-                      </span>
-                    ))}
-                  </div>
+                </div>
+                <div 
+                  className="flex items-center gap-1.5 flex-wrap text-text-secondary text-sm"
+                  style={{
+                    opacity: evidenceVisible ? 1 : 0,
+                    transition: reduceMotion.current 
+                      ? "none" 
+                      : `opacity 200ms cubic-bezier(0, 0, 0.2, 1) ${getEvidenceDelay(1)}ms`,
+                  }}
+                >
+                  {primaryOpportunity.evidenceTypes.map((type, idx) => (
+                    <span 
+                      key={idx} 
+                      className="capitalize"
+                      style={{
+                        opacity: evidenceVisible ? 1 : 0,
+                        transition: reduceMotion.current 
+                          ? "none" 
+                          : `opacity 200ms cubic-bezier(0, 0, 0.2, 1) ${getEvidenceDelay(idx + 2)}ms`,
+                      }}
+                    >
+                      {type}
+                      {idx < primaryOpportunity.evidenceTypes.length - 1 && (
+                        <span className="text-text-muted ml-1.5">·</span>
+                      )}
+                    </span>
+                  ))}
+                  <span className="text-text-muted ml-1.5">included</span>
                 </div>
               </>
             )}
@@ -262,7 +296,7 @@ export function HeroReadoutReveal({
               return (
                 <div 
                   key={idx}
-                  className="p-4 rounded-lg border border-border-subtle bg-surface-muted/30 space-y-3"
+                  className="p-4 rounded-lg border border-border-subtle bg-surface-muted/30 space-y-3 relative"
                   style={{
                     opacity: evidenceVisible ? 1 : 0,
                     transition: reduceMotion.current 
@@ -288,12 +322,24 @@ export function HeroReadoutReveal({
                     </div>
                   </div>
                   
+                  {/* Color bar at bottom */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 h-1 rounded-b-lg"
+                    style={{
+                      backgroundColor: getScoreBarColor(category.score, category.maxScore).color,
+                      opacity: getScoreBarColor(category.score, category.maxScore).opacity,
+                    }}
+                  />
+                  
                   <div className="flex flex-wrap gap-1.5">
                     {category.sourceTypes.map((type, typeIdx) => (
                       <Badge 
                         key={typeIdx} 
                         variant="secondary" 
-                        className="text-xs px-2 py-0.5"
+                        className={cn(
+                          "text-xs px-2 py-0.5 border-0",
+                          getEvidenceTypeBgColor(type)
+                        )}
                         style={{
                           opacity: evidenceVisible ? 1 : 0,
                           transition: reduceMotion.current 
@@ -324,11 +370,14 @@ export function HeroReadoutReveal({
               <h4 className="text-sm font-semibold text-text-primary mb-3">
                 Cited Sources
               </h4>
-              <div className="space-y-2">
+              <div className="space-y-0">
                 {citedSources.map((source, idx) => (
                   <div 
                     key={idx} 
-                    className="flex items-center justify-between text-xs"
+                    className={cn(
+                      "flex items-center justify-between text-xs py-2",
+                      idx < citedSources.length - 1 && "border-b border-border-subtle"
+                    )}
                     style={{
                       opacity: evidenceVisible ? 1 : 0,
                       transition: reduceMotion.current 
@@ -358,7 +407,7 @@ export function HeroReadoutReveal({
       {/* What would change this call - Inline callout bar */}
       {showGuardrails && (
         <div 
-          className="p-6 md:p-8 border-t border-border-subtle bg-surface-muted/30 relative"
+          className="p-6 md:p-8 border-t border-border-subtle bg-[hsl(var(--readout-uncertainty-bg))] relative"
           style={{
             opacity: evidenceVisible ? 1 : 0,
             transition: reduceMotion.current 
@@ -366,8 +415,9 @@ export function HeroReadoutReveal({
               : `opacity 200ms cubic-bezier(0, 0, 0.2, 1) ${getEvidenceDelay(evidenceCategories.length + 1)}ms`,
           }}
         >
-          <p className="text-sm font-semibold text-text-primary mb-3">
-            What would change this decision?
+          <p className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-[hsl(var(--readout-score-low))] opacity-60" />
+            What would change this call?
           </p>
           <ul className="space-y-1.5">
             {guardrails.map((guardrail, idx) => (

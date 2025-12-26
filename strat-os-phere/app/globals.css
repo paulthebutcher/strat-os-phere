@@ -225,6 +225,17 @@
                  radial-gradient(800px 400px at 80% 40%, rgba(147,51,234,0.14), transparent 55%);
 
   --plinth-accent: 79 70 229; /* indigo-600 */
+  
+  /* Marketing readout color system - Muted, semantic colors */
+  --readout-primary-300: 230 30% 85%; /* Muted Plinth primary blue for recommendation accent */
+  --readout-score-high: 142 40% 45%; /* Muted green for high confidence (≥80) */
+  --readout-score-medium: 217 50% 50%; /* Muted blue for directional (60-79) */
+  --readout-score-low: 38 60% 50%; /* Muted amber for low confidence (<60) */
+  --readout-evidence-pricing: 217 40% 92%; /* Soft blue for Pricing */
+  --readout-evidence-docs: 262 30% 92%; /* Soft violet for Docs */
+  --readout-evidence-reviews: 180 35% 90%; /* Soft teal for Reviews */
+  --readout-evidence-changelog: 0 0% 94%; /* Soft gray for Changelog */
+  --readout-uncertainty-bg: 38 50% 96%; /* Soft amber background for uncertainty section */
 }
 
 .dark {
@@ -341,6 +352,17 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
   --color-ring-rgb: rgb(var(--ring-rgb));
+  
+  /* Marketing readout colors */
+  --color-readout-primary-300: hsl(var(--readout-primary-300));
+  --color-readout-score-high: hsl(var(--readout-score-high));
+  --color-readout-score-medium: hsl(var(--readout-score-medium));
+  --color-readout-score-low: hsl(var(--readout-score-low));
+  --color-readout-evidence-pricing: hsl(var(--readout-evidence-pricing));
+  --color-readout-evidence-docs: hsl(var(--readout-evidence-docs));
+  --color-readout-evidence-reviews: hsl(var(--readout-evidence-reviews));
+  --color-readout-evidence-changelog: hsl(var(--readout-evidence-changelog));
+  --color-readout-uncertainty-bg: hsl(var(--readout-uncertainty-bg));
   
   /* Border radius */
   --radius-sm: var(--radius-sm);

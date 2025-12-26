@@ -1,12 +1,12 @@
 /**
- * The Flow - From hunch to proof
+ * What You Walk Into The Room With
  * 
- * Clean 3-step progression:
- * 1. Input Card (question + tags) - small, muted
- * 2. Signal Stack - medium, muted
- * 3. Decision Card - large, dominant, elevated
+ * Outcome-focused two-part layout:
+ * - Left (20-30%): Compact input card with question and market context
+ * - Right (70-80%): Plinth readout as the visual and narrative center
  * 
- * Visual weight clearly favors Step 3 (Plinth output).
+ * No arrows, no process labels, no "Plinth does". 
+ * This section is about the outcome: what you walk into the room with.
  */
 "use client"
 
@@ -14,31 +14,19 @@ import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
 import { DecisionCard } from "./DecisionCard"
-import { SignalStack } from "./SignalStack"
-import { cn } from "@/lib/utils"
-import { ArrowRight, ChevronDown } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { sampleAnalysis } from "./sampleReadoutData"
 
-// Input Card - Step 1: You bring (small, muted)
+// Compact Input Card - lightweight context on the left
 function InputCard() {
   return (
-    <div className="p-4 rounded-lg bg-white/80 border border-border-subtle/60 shadow-sm space-y-2">
+    <div className="p-4 rounded-lg bg-white/60 border border-border-subtle/40 shadow-sm space-y-2">
       <div className="space-y-1.5">
-        <h4 className="text-sm font-semibold text-text-primary">
+        <h4 className="text-sm font-medium text-text-secondary">
           {sampleAnalysis.decisionQuestion}
         </h4>
-        <p className="text-xs text-text-secondary">
-          Market: {sampleAnalysis.market}
+        <p className="text-xs text-text-muted">
+          {sampleAnalysis.market}
         </p>
-      </div>
-      <div className="flex flex-wrap gap-1 pt-2 border-t border-border-subtle/50">
-        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-          Pricing
-        </Badge>
-        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-          Reviews
-        </Badge>
       </div>
     </div>
   )
@@ -51,89 +39,31 @@ export function TheFlowSection() {
         <Reveal>
           <div className="text-center space-y-4 sm:space-y-6 mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
-              From hunch to proof.
+              What you walk into the room with
             </h2>
             <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto">
-              One clear recommendation, backed by sources you can open. Confidence that shows its work—scores, assumptions, and gaps are explicit.
+              A single recommendation, supported by real evidence and explicit confidence.
             </p>
           </div>
         </Reveal>
         
         <Reveal delay={60}>
-          <div className="space-y-6 sm:space-y-8">
-            {/* Weighted 3-step layout: [1fr] → [1.2fr] → [2fr] with arrows */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.2fr_auto_2fr] items-start gap-4 lg:gap-6">
-              {/* Step 1: You bring (small) */}
-              <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
-                <div className="w-full">
-                  <InputCard />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
-                    You bring
-                  </h3>
-                  <p className="text-[10px] sm:text-xs text-text-secondary">
-                    Where you think you might have an edge.
-                  </p>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_3fr] gap-6 lg:gap-8 items-start">
+            {/* Left: Compact input card (lightweight context) */}
+            <div className="lg:pt-2">
+              <InputCard />
+            </div>
 
-              {/* Arrow 1 (desktop) */}
-              <div className="hidden lg:flex items-center justify-center self-center">
-                <ArrowRight className="w-6 h-6 text-text-muted" />
-              </div>
-              
-              {/* Mobile chevron 1 */}
-              <div className="flex lg:hidden items-center justify-center py-2 w-full">
-                <ChevronDown className="w-5 h-5 text-text-muted" />
-              </div>
-
-              {/* Step 2: Plinth does (medium) - Signal Stack */}
-              <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
-                <div className="w-full">
-                  <SignalStack variant="vertical" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
-                    Plinth does
-                  </h3>
-                  <p className="text-[10px] sm:text-xs text-text-secondary">
-                    Competitors, pricing, docs, reviews—what the market actually shows.
-                  </p>
-                </div>
-              </div>
-
-              {/* Arrow 2 (desktop) */}
-              <div className="hidden lg:flex items-center justify-center self-center">
-                <ArrowRight className="w-6 h-6 text-text-muted" />
-              </div>
-              
-              {/* Mobile chevron 2 */}
-              <div className="flex lg:hidden items-center justify-center py-2 w-full">
-                <ChevronDown className="w-5 h-5 text-text-muted" />
-              </div>
-
-              {/* Step 3: You get (large, dominant) - Decision Card */}
-              <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
-                <div className="w-full relative">
-                  {/* Subtle spotlight behind the card */}
-                  <div 
-                    className="absolute -inset-4 opacity-60 rounded-2xl pointer-events-none -z-10"
-                    style={{
-                      background: 'radial-gradient(circle at center, hsl(230 65% 50% / 0.1), hsl(230 65% 50% / 0.05), transparent)'
-                    }}
-                  />
-                  <DecisionCard className="relative shadow-xl border-accent-primary/20" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-xs sm:text-sm font-semibold text-text-primary">
-                    You get
-                  </h3>
-                  <p className="text-[10px] sm:text-xs text-text-secondary">
-                    One clear point of view, with proof attached.
-                  </p>
-                </div>
-              </div>
+            {/* Right: Plinth readout (dominant, 70-80% visual weight) */}
+            <div className="relative">
+              {/* Enhanced spotlight/glow behind the card */}
+              <div 
+                className="absolute -inset-6 opacity-80 rounded-2xl pointer-events-none -z-10"
+                style={{
+                  background: 'radial-gradient(circle at center, hsl(230 65% 50% / 0.15), hsl(230 65% 50% / 0.08), transparent)'
+                }}
+              />
+              <DecisionCard className="relative shadow-2xl border-accent-primary/30" />
             </div>
           </div>
         </Reveal>

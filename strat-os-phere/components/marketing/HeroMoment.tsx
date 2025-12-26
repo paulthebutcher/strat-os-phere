@@ -17,6 +17,32 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import { sampleAnalysis } from "./sampleReadoutData"
+import { AlertTriangle } from "lucide-react"
+
+// Helper to get score color based on confidence range
+function getScoreColor(score: number): string {
+  if (score >= 80) return "text-[hsl(var(--readout-score-high))]"
+  if (score >= 60) return "text-[hsl(var(--readout-score-medium))]"
+  return "text-[hsl(var(--readout-score-low))]"
+}
+
+// Helper to get evidence type background color
+function getEvidenceTypeBgColor(type: string): string {
+  const normalizedType = type.toLowerCase()
+  if (normalizedType === "pricing") return "bg-[hsl(var(--readout-evidence-pricing))]"
+  if (normalizedType === "docs") return "bg-[hsl(var(--readout-evidence-docs))]"
+  if (normalizedType === "reviews") return "bg-[hsl(var(--readout-evidence-reviews))]"
+  if (normalizedType === "changelog") return "bg-[hsl(var(--readout-evidence-changelog))]"
+  return "bg-surface-muted/30"
+}
+
+// Helper to get score bar color and intensity for factor cards
+function getScoreBarColor(score: number, maxScore: number): { color: string; opacity: number } {
+  const percentage = (score / maxScore) * 100
+  if (percentage >= 80) return { color: "hsl(var(--readout-score-high))", opacity: 0.4 }
+  if (percentage >= 60) return { color: "hsl(var(--readout-score-medium))", opacity: 0.35 }
+  return { color: "hsl(var(--readout-score-low))", opacity: 0.3 }
+}
 
 // Hero proof asset — single investment-ready recommendation
 const primaryOpportunity = {
@@ -116,7 +142,7 @@ export function HeroMoment({
     >
       {/* Decision Header */}
       {showRecommendation && (
-        <div className="p-6 md:p-8 border-b border-border-subtle relative">
+        <div className="p-6 md:p-8 border-b border-border-subtle relative border-l-4 border-l-[hsl(var(--readout-primary-300))]">
           <h3 className="text-lg md:text-xl font-semibold text-text-primary leading-snug mb-4 line-clamp-2">
             {primaryOpportunity.title}
           </h3>
@@ -126,32 +152,32 @@ export function HeroMoment({
             {variant === "full" && (
               <>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-text-primary text-base">
-                    {primaryOpportunity.overallScore}/100
+                  <span className={cn("font-bold text-base", getScoreColor(primaryOpportunity.overallScore))}>
+                    {primaryOpportunity.overallScore}
                   </span>
-                  <span className="text-text-secondary">Overall score</span>
+                  <span className="font-bold text-text-primary text-base">/ 100 overall</span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-text-secondary">
-                    {primaryOpportunity.citationsCount} sources
+                    {primaryOpportunity.citationsCount} verifiable sources
                   </span>
-                  <span className="text-text-muted">·</span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {primaryOpportunity.evidenceTypes.slice(0, 3).map((type, idx) => (
-                      <span key={idx} className="text-text-secondary capitalize">
-                        {type}
-                        {idx < Math.min(primaryOpportunity.evidenceTypes.length, 3) - 1 && (
-                          <span className="text-text-muted ml-1.5">·</span>
-                        )}
-                      </span>
-                    ))}
-                    {primaryOpportunity.evidenceTypes.length > 3 && (
-                      <>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap text-text-secondary text-sm">
+                  {primaryOpportunity.evidenceTypes.slice(0, 3).map((type, idx) => (
+                    <span key={idx} className="capitalize">
+                      {type}
+                      {idx < Math.min(primaryOpportunity.evidenceTypes.length, 3) - 1 && (
                         <span className="text-text-muted ml-1.5">·</span>
-                        <span className="text-text-secondary">+{primaryOpportunity.evidenceTypes.length - 3}</span>
-                      </>
-                    )}
-                  </div>
+                      )}
+                    </span>
+                  ))}
+                  {primaryOpportunity.evidenceTypes.length > 3 && (
+                    <>
+                      <span className="text-text-muted ml-1.5">·</span>
+                      <span>+{primaryOpportunity.evidenceTypes.length - 3}</span>
+                    </>
+                  )}
+                  <span className="text-text-muted ml-1.5">included</span>
                 </div>
               </>
             )}
@@ -171,7 +197,10 @@ export function HeroMoment({
                   <Badge 
                     key={idx} 
                     variant="secondary" 
-                    className="text-[10px] px-2 py-0.5"
+                    className={cn(
+                      "text-[10px] px-2 py-0.5 border-0 capitalize",
+                      getEvidenceTypeBgColor(type)
+                    )}
                   >
                     {type}
                   </Badge>
@@ -191,7 +220,7 @@ export function HeroMoment({
             {evidenceCategories.map((category, idx) => (
               <div 
                 key={idx}
-                className="p-3 rounded-lg border border-border-subtle bg-surface-muted/30 space-y-2"
+                className="p-3 rounded-lg border border-border-subtle bg-surface-muted/30 space-y-2 relative"
               >
                 <div className="space-y-1.5">
                   <h4 className="text-xs font-semibold text-text-primary line-clamp-1">
@@ -215,7 +244,10 @@ export function HeroMoment({
                     <Badge 
                       key={typeIdx} 
                       variant="secondary" 
-                      className="text-[10px] px-1.5 py-0.5"
+                      className={cn(
+                        "text-[10px] px-1.5 py-0.5 border-0",
+                        getEvidenceTypeBgColor(type)
+                      )}
                     >
                       {type}
                     </Badge>
@@ -229,6 +261,15 @@ export function HeroMoment({
                     </Badge>
                   )}
                 </div>
+                
+                {/* Color bar at bottom */}
+                <div 
+                  className="absolute bottom-0 left-0 right-0 h-1 rounded-b-lg"
+                  style={{
+                    backgroundColor: getScoreBarColor(category.score, category.maxScore).color,
+                    opacity: getScoreBarColor(category.score, category.maxScore).opacity,
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -239,9 +280,15 @@ export function HeroMoment({
               <h4 className="text-sm font-semibold text-text-primary mb-3">
                 Cited Sources
               </h4>
-              <div className="space-y-2">
+              <div className="space-y-0">
                 {citedSources.map((source, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs">
+                  <div 
+                    key={idx} 
+                    className={cn(
+                      "flex items-center justify-between text-xs py-2",
+                      idx < citedSources.length - 1 && "border-b border-border-subtle"
+                    )}
+                  >
                     <a 
                       href={`https://${source.domain}${source.path}`}
                       className="text-accent-primary hover:underline flex items-center gap-2"
@@ -250,7 +297,13 @@ export function HeroMoment({
                     >
                       <span>{source.domain}{source.path}</span>
                     </a>
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                    <Badge 
+                      variant="secondary" 
+                      className={cn(
+                        "text-[10px] px-1.5 py-0.5 border-0",
+                        getEvidenceTypeBgColor(source.type)
+                      )}
+                    >
                       {source.type}
                     </Badge>
                   </div>
@@ -263,9 +316,10 @@ export function HeroMoment({
 
       {/* What would change this call - Inline callout bar */}
       {showGuardrails && (
-        <div className="p-6 md:p-8 border-t border-border-subtle bg-surface-muted/30 relative">
-          <p className="text-sm font-semibold text-text-primary mb-3">
-            What would change this decision?
+        <div className="p-6 md:p-8 border-t border-border-subtle bg-[hsl(var(--readout-uncertainty-bg))] relative">
+          <p className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-[hsl(var(--readout-score-low))] opacity-60" />
+            What would change this call?
           </p>
           <ul className="space-y-1.5">
             {guardrails.map((guardrail, idx) => (

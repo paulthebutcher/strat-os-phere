@@ -11,13 +11,39 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { SectionHeader } from "./SectionHeader"
 import { Reveal } from "./motion"
 import { sampleAnalysis } from "./sampleReadoutData"
-import { Play, Pause } from "lucide-react"
+import { Play, Pause, AlertTriangle } from "lucide-react"
+
+// Helper to get score color based on confidence range
+function getScoreColor(score: number): string {
+  if (score >= 80) return "text-[hsl(var(--readout-score-high))]"
+  if (score >= 60) return "text-[hsl(var(--readout-score-medium))]"
+  return "text-[hsl(var(--readout-score-low))]"
+}
+
+// Helper to get evidence type background color
+function getEvidenceTypeBgColor(type: string): string {
+  const normalizedType = type.toLowerCase()
+  if (normalizedType === "pricing") return "bg-[hsl(var(--readout-evidence-pricing))]"
+  if (normalizedType === "docs") return "bg-[hsl(var(--readout-evidence-docs))]"
+  if (normalizedType === "reviews") return "bg-[hsl(var(--readout-evidence-reviews))]"
+  if (normalizedType === "changelog") return "bg-[hsl(var(--readout-evidence-changelog))]"
+  return "bg-surface-muted/30"
+}
+
+// Helper to get score bar color and intensity for factor cards
+function getScoreBarColor(score: number, maxScore: number): { color: string; opacity: number } {
+  const percentage = (score / maxScore) * 100
+  if (percentage >= 80) return { color: "hsl(var(--readout-score-high))", opacity: 0.4 }
+  if (percentage >= 60) return { color: "hsl(var(--readout-score-medium))", opacity: 0.35 }
+  return { color: "hsl(var(--readout-score-low))", opacity: 0.3 }
+}
 
 type AnnotationId = "recommendation" | "evidence" | "confidence" | "scorecard" | "what-would-change"
 
@@ -332,16 +358,17 @@ export function LiveAnnotatedReadout() {
                   {/* Recommendation Section */}
                   <div
                     data-annotation="recommendation"
-                    className="pb-6 border-b border-border-subtle"
+                    className="pb-6 border-b border-border-subtle border-l-4 border-l-[hsl(var(--readout-primary-300))]"
                   >
                     <h3 className="text-lg md:text-xl font-semibold text-text-primary leading-snug mb-4">
                       {sampleAnalysis.recommendation.title}
                     </h3>
                     <div className="flex flex-wrap items-center gap-4 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-text-primary">
-                          {sampleAnalysis.recommendation.score} / 100
+                        <span className={cn("font-semibold", getScoreColor(sampleAnalysis.recommendation.score))}>
+                          {sampleAnalysis.recommendation.score}
                         </span>
+                        <span className="text-text-primary">/ 100</span>
                         <span className="text-text-secondary">Overall score</span>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -351,12 +378,16 @@ export function LiveAnnotatedReadout() {
                         <span className="text-text-muted">·</span>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {sampleAnalysis.evidence.types.slice(0, 5).map((type, idx) => (
-                            <span key={idx} className="text-text-secondary capitalize">
-                              {type.type}
-                              {idx < sampleAnalysis.evidence.types.slice(0, 5).length - 1 && (
-                                <span className="text-text-muted ml-1.5">·</span>
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className={cn(
+                                "text-xs px-2 py-0.5 border-0 capitalize",
+                                getEvidenceTypeBgColor(type.type)
                               )}
-                            </span>
+                            >
+                              {type.type}
+                            </Badge>
                           ))}
                         </div>
                       </div>
@@ -399,7 +430,7 @@ export function LiveAnnotatedReadout() {
                       {Object.values(sampleAnalysis.recommendation.scoreBreakdown).map((breakdown, idx) => (
                         <div
                           key={idx}
-                          className="p-4 rounded-lg border border-border-subtle bg-surface-muted/30 space-y-2"
+                          className="p-4 rounded-lg border border-border-subtle bg-surface-muted/30 space-y-2 relative"
                         >
                           <div className="flex items-center justify-between">
                             <h5 className="text-sm font-semibold text-text-primary">
@@ -412,6 +443,14 @@ export function LiveAnnotatedReadout() {
                           <p className="text-xs text-text-secondary leading-relaxed">
                             {breakdown.reasoning}
                           </p>
+                          {/* Color bar at bottom */}
+                          <div 
+                            className="absolute bottom-0 left-0 right-0 h-1 rounded-b-lg"
+                            style={{
+                              backgroundColor: getScoreBarColor(breakdown.score, breakdown.max).color,
+                              opacity: getScoreBarColor(breakdown.score, breakdown.max).opacity,
+                            }}
+                          />
                         </div>
                       ))}
                     </div>
@@ -423,11 +462,14 @@ export function LiveAnnotatedReadout() {
                     className="py-6 border-b border-border-subtle"
                   >
                     <h4 className="text-sm font-semibold text-text-primary mb-4">Evidence</h4>
-                    <div className="space-y-2">
+                    <div className="space-y-0">
                       {sampleAnalysis.evidence.sources.slice(0, 5).map((source, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between text-xs p-2 rounded border border-border-subtle bg-surface-muted/20"
+                          className={cn(
+                            "flex items-center justify-between text-xs p-2 rounded border border-border-subtle bg-surface-muted/20",
+                            idx < sampleAnalysis.evidence.sources.slice(0, 5).length - 1 && "mb-2 border-b"
+                          )}
                         >
                           <a
                             href={`https://${source.domain}${source.path}`}
@@ -437,9 +479,15 @@ export function LiveAnnotatedReadout() {
                           >
                             <span>{source.domain}{source.path}</span>
                           </a>
-                          <span className="text-text-muted text-[10px]">
+                          <Badge 
+                            variant="secondary" 
+                            className={cn(
+                              "text-[10px] px-1.5 py-0.5 border-0",
+                              getEvidenceTypeBgColor(source.type)
+                            )}
+                          >
                             {source.type}
-                          </span>
+                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -448,9 +496,10 @@ export function LiveAnnotatedReadout() {
                   {/* What Would Change Section */}
                   <div
                     data-annotation="what-would-change"
-                    className="pt-6"
+                    className="pt-6 p-4 rounded-lg bg-[hsl(var(--readout-uncertainty-bg))]"
                   >
-                    <h4 className="text-sm font-semibold text-text-primary mb-3">
+                    <h4 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[hsl(var(--readout-score-low))] opacity-60" />
                       What would change this decision?
                     </h4>
                     <ul className="space-y-2">
