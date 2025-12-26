@@ -14,12 +14,12 @@ import { SignalChaosPanel } from "./SignalChaosPanel"
 
 export function ProblemSection() {
   return (
-    <MarketingSection variant="muted">
-      <MarketingContainer maxWidth="7xl">
-        <div className="flex flex-col gap-8 sm:gap-12">
+    <MarketingSection tone="alt" density="tight">
+      <MarketingContainer maxWidth="6xl">
+        <div className="flex flex-col gap-6 sm:gap-8">
           {/* Context: Text content above - centered, constrained width */}
           <Reveal>
-            <div className="text-center space-y-3 sm:space-y-4 max-w-3xl mx-auto">
+            <div className="text-center space-y-2 sm:space-y-3 max-w-3xl mx-auto">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-semibold tracking-tight text-text-primary leading-tight">
                 Too many opinions. Not enough proof.
               </h2>

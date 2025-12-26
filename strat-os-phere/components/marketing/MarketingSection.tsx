@@ -2,49 +2,63 @@
  * MarketingSection
  * 
  * Full-bleed section wrapper with consistent spacing and variant treatments.
- * Supports different visual treatments for section separation.
+ * Single source of truth for homepage layout rhythm.
+ * 
+ * Supports:
+ * - tone: Visual treatment (default, alt, subtle)
+ * - density: Vertical spacing (tight, normal, spacious)
  */
 import { cn } from "@/lib/utils"
 import { ReactNode } from "react"
 
 interface MarketingSectionProps {
   children: ReactNode
+  /** Visual treatment variant */
+  tone?: "default" | "alt" | "subtle"
+  /** Vertical spacing density */
+  density?: "tight" | "normal" | "spacious"
+  /** Legacy variant prop (maps to tone) */
   variant?: "default" | "muted" | "gradient" | "bordered" | "tinted"
-  bleed?: boolean
   className?: string
   id?: string
 }
 
 export function MarketingSection({
   children,
-  variant = "default",
-  bleed = true,
+  tone,
+  density = "normal",
+  variant,
   className,
   id,
 }: MarketingSectionProps) {
+  // Map legacy variant to tone if tone not provided
+  const resolvedTone = tone || (variant === "muted" || variant === "tinted" ? "alt" : variant === "gradient" ? "subtle" : "default")
+  
   const baseClasses = "w-full"
   
-  const variantClasses = {
-    default: "bg-transparent", // Inherit tan background from marketing-landing
-    muted: "bg-slate-50/60",
-    gradient: "bg-gradient-to-b from-accent-primary/5 via-transparent to-transparent",
-    bordered: "bg-white border-y border-black/5",
-    tinted: "bg-slate-50/60",
+  const toneClasses = {
+    default: "bg-transparent", // Inherit background from marketing-landing
+    alt: "bg-slate-50/60",
+    subtle: "bg-gradient-to-b from-accent-primary/5 via-transparent to-transparent",
   }
 
-  const spacingClasses = "py-10 sm:py-12 md:py-16 lg:py-20"
+  const densityClasses = {
+    tight: "py-12 sm:py-14 md:py-16",
+    normal: "py-16 sm:py-18 md:py-20",
+    spacious: "py-20 sm:py-24 md:py-28",
+  }
   
-  // Add border-t to all sections except gradient (which handles its own styling)
-  const borderClasses = variant !== "gradient" ? "border-t border-black/5" : ""
+  // Subtle section separator (not heavy borders)
+  const separatorClasses = resolvedTone === "subtle" ? "" : "border-t border-black/5"
 
   return (
     <section
       id={id}
       className={cn(
         baseClasses,
-        variantClasses[variant],
-        spacingClasses,
-        borderClasses,
+        toneClasses[resolvedTone],
+        densityClasses[density],
+        separatorClasses,
         className
       )}
     >

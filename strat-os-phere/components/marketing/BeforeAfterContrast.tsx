@@ -146,15 +146,6 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
 
         {/* RIGHT: "After" - Plinth Clarity (dominant, crisp, larger footprint) */}
         <div className="relative bg-white p-6 sm:p-8 md:p-10 shadow-xl">
-          {/* Plinth Readout label - explicit and prominent */}
-          <div className="absolute top-4 right-4 z-10">
-            <div className="bg-accent-primary text-white border-2 border-accent-primary rounded-md px-3 py-1.5 shadow-lg">
-              <span className="text-xs font-semibold uppercase tracking-wide">
-                Plinth Readout
-              </span>
-            </div>
-          </div>
-
           {/* Clean Plinth Decision Readout (larger, sharper, full opacity) */}
           <div className="h-full min-h-[550px] md:min-h-[650px] flex items-center justify-center">
             <div className="w-full max-w-[700px] scale-100 md:scale-110">

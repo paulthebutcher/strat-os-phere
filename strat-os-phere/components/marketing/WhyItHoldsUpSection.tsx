@@ -13,10 +13,10 @@ import { ProofGrid } from "./ProofGrid"
 
 export function WhyItHoldsUpSection() {
   return (
-    <MarketingSection variant="default">
-      <MarketingContainer maxWidth="7xl">
+    <MarketingSection tone="default" density="normal">
+      <MarketingContainer maxWidth="6xl">
         <Reveal>
-          <div className="text-center space-y-3 sm:space-y-4 mb-10 sm:mb-12 max-w-3xl mx-auto">
+          <div className="text-center space-y-2 sm:space-y-3 mb-6 sm:mb-8 max-w-3xl mx-auto">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-semibold tracking-tight text-text-primary leading-tight">
               Evidence you can open and defend
             </h2>

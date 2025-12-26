@@ -38,18 +38,20 @@ export function EvidencePipeline({ className }: EvidencePipelineProps) {
   return (
     <div
       className={cn(
-        "relative w-full py-16 px-6 sm:px-8",
+        "relative w-full py-10 px-6 sm:px-8",
+        "rounded-xl bg-gradient-to-br from-slate-50/50 via-white/80 to-slate-50/90",
+        "border border-slate-200/50 shadow-sm",
         className
       )}
     >
       {/* Connector line behind stations (desktop only) */}
       <div className="hidden md:block absolute top-1/2 left-0 right-0 h-px bg-slate-200/60 -translate-y-1/2" />
       
-      {/* Desktop: Horizontal pipeline band (3 columns) */}
-      <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] gap-6 items-start relative">
+      {/* Desktop: Horizontal pipeline band (3 columns) - tighter spacing */}
+      <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] gap-4 items-start relative">
         {/* Station 1: Sources */}
-        <div className="flex flex-col items-start gap-4">
-          <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col items-start gap-3">
+          <div className="flex flex-wrap gap-2.5">
             {evidenceSources.map((source, idx) => {
               const Icon = source.icon
               return (
@@ -79,8 +81,8 @@ export function EvidencePipeline({ className }: EvidencePipelineProps) {
         </div>
 
         {/* Station 2: Evidence Engine (focal point) */}
-        <div className="flex flex-col items-center gap-4 relative z-10">
-          <div className="px-8 py-6 rounded-xl bg-gradient-to-br from-slate-100/90 via-white/80 to-slate-50/90 border-2 border-slate-300/70 shadow-lg backdrop-blur-sm min-w-[200px]">
+        <div className="flex flex-col items-center gap-3 relative z-10">
+          <div className="px-6 py-5 rounded-xl bg-white border-2 border-slate-300/70 shadow-lg backdrop-blur-sm min-w-[200px]">
             {/* Subtle infrastructure pattern */}
             <div className="absolute inset-0 rounded-xl opacity-[0.03] pointer-events-none"
               style={{
@@ -112,8 +114,8 @@ export function EvidencePipeline({ className }: EvidencePipelineProps) {
         </div>
 
         {/* Station 3: Signals */}
-        <div className="flex flex-col items-end gap-4">
-          <div className="flex flex-wrap justify-end gap-2.5">
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex flex-wrap justify-end gap-2">
             {[
               "Competitive positioning",
               "Pricing strategy",
@@ -136,10 +138,10 @@ export function EvidencePipeline({ className }: EvidencePipelineProps) {
       </div>
 
       {/* Mobile: 2-row layout */}
-      <div className="md:hidden flex flex-col gap-4">
+      <div className="md:hidden flex flex-col gap-3">
         {/* Row 1: Sources → Engine */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1 flex flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 flex flex-wrap gap-2.5">
             {evidenceSources.map((source, idx) => {
               const Icon = source.icon
               return (
@@ -169,7 +171,7 @@ export function EvidencePipeline({ className }: EvidencePipelineProps) {
             </svg>
           </div>
           <div className="flex-shrink-0">
-            <div className="px-6 py-4 rounded-xl bg-gradient-to-br from-slate-100/90 via-white/80 to-slate-50/90 border-2 border-slate-300/70 shadow-lg backdrop-blur-sm">
+            <div className="px-5 py-4 rounded-xl bg-white border-2 border-slate-300/70 shadow-lg backdrop-blur-sm">
               <div className="flex flex-col items-center gap-2.5">
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 rounded-lg bg-slate-200/50 border border-slate-300/50">
@@ -192,14 +194,14 @@ export function EvidencePipeline({ className }: EvidencePipelineProps) {
         </div>
         
         {/* Row 2: Signals */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <div className="flex-1" />
           <div className="flex-shrink-0 text-slate-400">
             <svg className="w-5 h-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
-          <div className="flex-1 flex flex-wrap justify-center gap-2.5">
+          <div className="flex-1 flex flex-wrap justify-center gap-2">
             {[
               "Competitive positioning",
               "Pricing strategy",

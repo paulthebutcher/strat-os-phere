@@ -14,12 +14,12 @@ import { OutcomeArtifact } from "./OutcomeArtifact"
 
 export function OutcomeExampleSection() {
   return (
-    <MarketingSection variant="muted">
+    <MarketingSection tone="alt" density="normal">
       <MarketingContainer maxWidth="6xl">
         <Reveal>
-          <div className="flex flex-col gap-8 sm:gap-12">
+          <div className="flex flex-col gap-6 sm:gap-8">
             {/* Section headline - centered, compact */}
-            <div className="text-center space-y-3 sm:space-y-4 max-w-2xl mx-auto">
+            <div className="text-center space-y-2 sm:space-y-3 max-w-2xl mx-auto">
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-text-primary leading-tight">
                 No dashboards. No rabbit holes.
               </h2>
