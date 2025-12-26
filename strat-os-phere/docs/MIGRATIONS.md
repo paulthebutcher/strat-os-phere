@@ -48,6 +48,46 @@ The authoritative workflow for schema changes is:
 - ✅ **Always** regenerate types after applying migrations
 - ✅ **Always** run `pnpm check:schema` before committing to catch drift
 
+### Schema Health Checks
+
+#### Required MVP Tables
+
+The following tables are required for MVP functionality and must exist:
+
+- `projects` - Core project data
+- `competitors` - Competitor records
+- `project_inputs` - Versioned JSON inputs for onboarding
+- `project_runs` - Analysis run orchestration (replaces analysis_runs)
+- `project_shares` - Public share links
+- `evidence_sources` - Scraped web content as evidence
+- `evidence_cache` - Cached evidence data
+- `artifacts` - Analysis output artifacts
+
+To verify tables exist, run this SQL in Supabase SQL editor:
+
+```sql
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
+AND table_name IN (
+  'projects',
+  'competitors',
+  'project_inputs',
+  'project_runs',
+  'project_shares',
+  'evidence_sources',
+  'evidence_cache',
+  'artifacts'
+);
+```
+
+Expected: All tables listed above should be present.
+
+#### Schema Drift Prevention
+
+- Run `pnpm check:schema` to catch references to forbidden columns
+- Run `pnpm schema:health` to catch architectural drift patterns
+- Ensure `database.types.ts` is regenerated after schema changes
+
 ### Schema Drift Prevention
 
 The `pnpm check:schema` script enforces that:

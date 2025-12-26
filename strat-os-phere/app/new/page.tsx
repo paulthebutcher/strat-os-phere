@@ -43,6 +43,17 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function NewAnalysisPage(props: PageProps) {
   const supabase = await createClient()
+  
+  // Dev-only schema preflight check
+  if (process.env.NODE_ENV !== 'production') {
+    const { checkRequiredTables } = await import('@/lib/server/schemaPreflight')
+    const preflightResult = await checkRequiredTables(supabase)
+    if (!preflightResult.ok) {
+      // Log error but don't block - let the page render and fail naturally
+      console.error('[DEV] Schema preflight warning:', preflightResult.error)
+    }
+  }
+  
   const {
     data: { user },
   } = await supabase.auth.getUser()

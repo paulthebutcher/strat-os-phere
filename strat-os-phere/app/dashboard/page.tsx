@@ -40,6 +40,34 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function DashboardPage() {
   const supabase = await createClient()
+  
+  // Dev-only schema preflight check
+  if (process.env.NODE_ENV !== 'production') {
+    const { assertSchemaReady } = await import('@/lib/server/schemaPreflight')
+    try {
+      await assertSchemaReady(supabase)
+    } catch (error) {
+      // In dev, show a clear error message
+      return (
+        <PageShell>
+          <PageHeader title="Schema Check Failed" />
+          <PageSection>
+            <div className="rounded-lg border border-destructive bg-destructive/10 p-6">
+              <h2 className="text-lg font-semibold text-destructive mb-2">
+                Missing Database Tables
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                {error instanceof Error ? error.message : 'Required database tables are missing'}
+              </p>
+              <p className="text-sm font-mono bg-muted p-3 rounded">
+                Run: <code>supabase db reset</code> (local) or <code>supabase db push</code> (remote)
+              </p>
+            </div>
+          </PageSection>
+        </PageShell>
+      )
+    }
+  }
   const {
     data: { user },
   } = await supabase.auth.getUser()
