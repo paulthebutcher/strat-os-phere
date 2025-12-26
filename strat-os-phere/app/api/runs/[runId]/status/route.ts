@@ -1,11 +1,9 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getRunStatus } from '@/lib/runs/status'
-import { getAnalysisRunById } from '@/lib/data/runs'
 import { getProjectById } from '@/lib/data/projects'
-import type { ArtifactRow } from '@/lib/supabase/database.types'
-import type { RunStatusResponse } from '@/lib/runs/types'
+import { getLatestRunForProject } from '@/lib/data/projectRuns'
+import { getStepStatus, type StepName } from '@/lib/runs/orchestrator'
 import { ok, fail } from '@/lib/contracts/api'
 import { appErrorToCode, errorCodeToStatus } from '@/lib/contracts/errors'
 import { toAppError } from '@/lib/errors/errors'
@@ -14,7 +12,13 @@ import { z } from 'zod'
 /**
  * Response schema for run status endpoint
  * Maintains backward compatibility with existing RunStatusResponse
+ * Now includes step status information
  */
+const RunStatusStepSchema = z.object({
+  label: z.string(),
+  completed: z.boolean(),
+})
+
 const RunStatusResponseSchema = z.object({
   runId: z.string().uuid(),
   analysisId: z.string().uuid().optional(),
@@ -26,6 +30,7 @@ const RunStatusResponseSchema = z.object({
   }).optional(),
   updatedAt: z.string().datetime(),
   errorMessage: z.string().optional(),
+  steps: z.array(RunStatusStepSchema).optional(),
 })
 
 type RunStatusResponseContract = z.infer<typeof RunStatusResponseSchema>
@@ -55,79 +60,93 @@ export async function GET(
       )
     }
 
-    // Try to get run record to find projectId
-    const runRecord = await getAnalysisRunById(supabase, runId)
-    let projectId: string | null = null
+    // Get run record from project_runs table
+    const { data: runRecord, error: runError } = await supabase
+      .from('project_runs')
+      .select('*')
+      .eq('id', runId)
+      .single()
 
-    if (runRecord) {
-      projectId = runRecord.project_id
-    } else {
-      // Fallback: try to find projectId from artifacts by searching for artifacts with this runId
-      // This is a fallback for when the run record doesn't exist yet
-      // We'll search for artifacts where content_json contains the runId
-      const { data: artifacts, error: artifactsError } = await supabase
-        .from('artifacts')
-        .select('project_id, content_json')
-
-      if (!artifactsError && artifacts && Array.isArray(artifacts) && artifacts.length > 0) {
-        // Filter in memory to find artifacts with matching runId
-        // This is not ideal but works as a fallback
-        const typedArtifacts = artifacts as Pick<ArtifactRow, 'project_id' | 'content_json'>[]
-        for (const artifact of typedArtifacts) {
-          const contentJson = artifact.content_json
-          if (
-            contentJson &&
-            typeof contentJson === 'object' &&
-            'run_id' in contentJson &&
-            contentJson.run_id === runId
-          ) {
-            projectId = artifact.project_id
-            break
-          }
-        }
-      }
-    }
-
-    // If we have projectId, get status
-    if (projectId) {
-      // Verify user has access to this project
-      const project = await getProjectById(supabase, projectId)
-      if (!project || project.user_id !== user.id) {
-        return NextResponse.json(
-          fail('FORBIDDEN', 'You do not have access to this run'),
-          { status: 403 }
-        )
-      }
-
-      const statusInfo = await getRunStatus(supabase, runId, projectId)
-      
-      // Convert to RunStatusResponse format
-      const responseData: RunStatusResponseContract = {
+    if (runError || !runRecord) {
+      // Run not found - return queued status
+      const notFoundResponse: RunStatusResponseContract = {
         runId,
-        analysisId: projectId, // Using projectId as analysisId for now
-        status: statusInfo.status as 'queued' | 'running' | 'completed' | 'failed',
-        progress: statusInfo.progress
-          ? {
-              completed: statusInfo.progress,
-              total: 100,
-            }
-          : undefined,
-        updatedAt: statusInfo.updatedAt || new Date().toISOString(),
+        status: 'queued',
+        updatedAt: new Date().toISOString(),
       }
-      
-      // Validate outgoing payload
-      const validated = RunStatusResponseSchema.parse(responseData)
-      return NextResponse.json(ok(validated))
+      const notFoundValidated = RunStatusResponseSchema.parse(notFoundResponse)
+      return NextResponse.json(ok(notFoundValidated))
     }
 
-    // If no projectId found, return queued status
-    // This can happen if the run doesn't exist yet
+    type ProjectRunRow = {
+      id: string
+      project_id: string
+      status: 'queued' | 'running' | 'succeeded' | 'failed'
+      created_at: string
+      error_message: string | null
+      metrics: Record<string, any>
+    }
+
+    const typedRun = runRecord as ProjectRunRow
+    const projectId = typedRun.project_id
+
+    // Verify user has access to this project
+    const project = await getProjectById(supabase, projectId)
+    if (!project || project.user_id !== user.id) {
+      return NextResponse.json(
+        fail('FORBIDDEN', 'You do not have access to this run'),
+        { status: 403 }
+      )
+    }
+
+    // Map project_runs status to RunStatusResponse status
+    const statusMap: Record<string, 'queued' | 'running' | 'completed' | 'failed'> = {
+      queued: 'queued',
+      running: 'running',
+      succeeded: 'completed',
+      failed: 'failed',
+    }
+
+    const status = statusMap[typedRun.status] || 'queued'
+
+    // Get step statuses
+    const stepNames: StepName[] = ['context', 'evidence', 'analysis', 'opportunities']
+    const stepLabels: Record<StepName, string> = {
+      context: 'Context',
+      evidence: 'Evidence Collection',
+      analysis: 'Analysis',
+      opportunities: 'Opportunities',
+    }
+
+    const steps = stepNames.map((stepName) => {
+      const stepStatus = getStepStatus(typedRun as any, stepName)
+      return {
+        label: stepLabels[stepName],
+        completed: stepStatus.status === 'completed',
+      }
+    })
+
+    // Calculate progress from step statuses
+    const completedSteps = steps.filter((s) => s.completed).length
+    const progress = stepNames.length > 0 ? Math.round((completedSteps / stepNames.length) * 100) : undefined
+
+    // Convert to RunStatusResponse format
     const responseData: RunStatusResponseContract = {
       runId,
-      status: 'queued',
-      updatedAt: new Date().toISOString(),
+      analysisId: projectId,
+      status,
+      progress: progress !== undefined
+        ? {
+            completed: progress,
+            total: 100,
+          }
+        : undefined,
+      updatedAt: typedRun.created_at || new Date().toISOString(),
+      errorMessage: typedRun.error_message || undefined,
+      steps,
     }
     
+    // Validate outgoing payload
     const validated = RunStatusResponseSchema.parse(responseData)
     return NextResponse.json(ok(validated))
   } catch (error) {

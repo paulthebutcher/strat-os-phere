@@ -28,6 +28,7 @@ import { getProjectById } from '@/lib/data/projects'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { generateOpportunitiesV1 } from '@/lib/opportunities/generateOpportunitiesV1'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
+import { markStepCompleted, markStepFailed } from '@/lib/runs/orchestrator'
 
 /**
  * Pipeline version constant - update when pipeline logic changes
@@ -488,6 +489,13 @@ export async function runProjectAnalysis(
       opportunitiesStep.finished_at = new Date().toISOString()
       opportunitiesStep.error = error instanceof Error ? error.message : String(error)
       
+      // Mark analysis step as failed
+      await markStepFailed(supabase, run.id, 'analysis', {
+        code: 'OPPORTUNITY_GENERATION_ERROR',
+        message: 'Failed to generate opportunities',
+        detail: error instanceof Error ? error.stack?.slice(0, 500) : String(error),
+      })
+      
       const failedRun = await setRunFailed(supabase, run.id, {
         error_code: 'OPPORTUNITY_GENERATION_ERROR',
         error_message: 'Failed to generate opportunities',
@@ -509,7 +517,10 @@ export async function runProjectAnalysis(
       }
     }
 
-    // Step 6: Mark as succeeded with output
+    // Step 6: Mark analysis step as completed
+    await markStepCompleted(supabase, run.id, 'analysis')
+
+    // Step 7: Mark as succeeded with output
     // Build output with opportunities artifact if generated
     const output: Record<string, any> = {
       pipeline_version: pipelineVersion,
@@ -531,6 +542,11 @@ export async function runProjectAnalysis(
 
     if (!successResult.ok) {
       // Try to mark as failed
+      await markStepFailed(supabase, run.id, 'analysis', {
+        code: 'COMPLETION_ERROR',
+        message: 'Failed to mark run as succeeded',
+        detail: successResult.error.message,
+      })
       await setRunFailed(supabase, run.id, {
         error_code: 'COMPLETION_ERROR',
         error_message: 'Failed to mark run as succeeded',

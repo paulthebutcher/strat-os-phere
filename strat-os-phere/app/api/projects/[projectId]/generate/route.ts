@@ -1,11 +1,20 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { runProjectAnalysis, PIPELINE_VERSION } from '@/lib/analysis/runProjectAnalysis'
 import { toAppError, NotReadyError, UnauthorizedError, NotFoundError, AnalysisFailedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
 import { ok, fail } from '@/lib/contracts/api'
 import { appErrorToCode, errorCodeToStatus } from '@/lib/contracts/errors'
 import { RunIdSchema } from '@/lib/contracts/domain'
+import {
+  getOrCreateActiveRun,
+  getStepStatus,
+  advanceRun,
+  type StepName,
+} from '@/lib/runs/orchestrator'
+import { getLatestSuccessfulArtifact } from '@/lib/artifacts/getLatestSuccessfulArtifact'
+import { logger } from '@/lib/logger'
 import { z } from 'zod'
 
 /**
@@ -20,6 +29,12 @@ type GenerateAnalysisResponse = z.infer<typeof GenerateAnalysisResponseSchema>
 /**
  * POST /api/projects/[projectId]/generate
  * Triggers a new analysis run for the project using project_runs
+ * 
+ * Idempotent behavior:
+ * - If analysis step already completed and latest artifact exists, return it (don't regen)
+ * - If analysis step is running, return status
+ * - If analysis step failed, allow retry
+ * 
  * Returns ApiResponse<{ runId }>
  */
 export async function POST(
@@ -28,6 +43,87 @@ export async function POST(
 ): Promise<NextResponse<{ ok: true; data: GenerateAnalysisResponse } | { ok: false; error: { code: string; message: string; details?: Record<string, unknown> } }>> {
   const { projectId } = await params
   try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json(
+        fail('UNAUTHENTICATED', 'You must be signed in to generate analysis'),
+        { status: 401 }
+      )
+    }
+
+    // Get or create active run
+    const runResult = await getOrCreateActiveRun(supabase, projectId, user.id, {
+      allowCreate: true,
+      pipelineVersion: PIPELINE_VERSION,
+    })
+
+    if (!runResult.ok) {
+      // Map orchestrator error codes to contract error codes
+      const errorCode = runResult.error.code === 'NO_INPUTS'
+        ? 'NOT_READY'
+        : 'INTERNAL_ERROR'
+      return NextResponse.json(
+        fail(errorCode, runResult.error.message),
+        { status: 400 }
+      )
+    }
+
+    const run = runResult.run
+    const runId = run.id
+
+    // Check analysis step status
+    const analysisStepStatus = getStepStatus(run, 'analysis')
+
+    // If analysis step already completed, check for artifacts and return
+    if (analysisStepStatus.status === 'completed') {
+      // Check if we have a latest successful artifact
+      const artifact = await getLatestSuccessfulArtifact(supabase, {
+        projectId,
+        runId,
+        type: 'opportunities_v3', // or whatever the main artifact type is
+      })
+
+      if (artifact) {
+        logger.info('[generate] Analysis step already completed with artifact', {
+          projectId,
+          runId,
+          artifactId: artifact.id,
+        })
+        const responseData: GenerateAnalysisResponse = {
+          runId,
+        }
+        const validated = GenerateAnalysisResponseSchema.parse(responseData)
+        return NextResponse.json(ok(validated), { status: 200 })
+      }
+    }
+
+    // If analysis step is running, return current status
+    if (analysisStepStatus.status === 'running') {
+      logger.info('[generate] Analysis step already running', {
+        projectId,
+        runId,
+      })
+      const responseData: GenerateAnalysisResponse = {
+        runId,
+      }
+      const validated = GenerateAnalysisResponseSchema.parse(responseData)
+      return NextResponse.json(ok(validated), { status: 200 })
+    }
+
+    // Advance run to analysis step (idempotent, handles retry if failed)
+    const advanceResult = await advanceRun(supabase, runId, 'analysis')
+    if (!advanceResult.ok) {
+      return NextResponse.json(
+        fail('INTERNAL_ERROR', advanceResult.error.message),
+        { status: 500 }
+      )
+    }
+
+    // Proceed with analysis
     const result = await runProjectAnalysis(projectId, PIPELINE_VERSION)
 
     if (result.ok) {

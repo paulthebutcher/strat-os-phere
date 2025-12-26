@@ -12,7 +12,14 @@ import { fetchUrlsParallel, TOTAL_FETCH_BUDGET_MS_PER_COMPETITOR, type FetchedPa
 import { performShortlist, DEFAULT_SHORTLIST_QUOTA } from '@/lib/evidence/shortlist'
 import { toFetchedPage } from '@/lib/evidence/normalizeToFetchedPage'
 import { FLAGS } from '@/lib/flags'
-import { resolveActiveRunId } from '@/lib/runs/activeRun'
+import {
+  getOrCreateActiveRun,
+  advanceRun,
+  markStepCompleted,
+  markStepFailed,
+  getStepStatus,
+  type StepName,
+} from '@/lib/runs/orchestrator'
 import { ok, fail } from '@/lib/contracts/api'
 import { appErrorToCode, errorCodeToStatus } from '@/lib/contracts/errors'
 import { toAppError } from '@/lib/errors/errors'
@@ -32,9 +39,12 @@ type CollectEvidenceResponse = z.infer<typeof CollectEvidenceResponseSchema>
 /**
  * POST /api/projects/[projectId]/collect-evidence
  * Collects evidence for all competitors in a project (evidence-only, no analysis)
- * This is a "soft start" that runs in the background
  * 
- * Requires runId (via body or resolved from active run)
+ * Idempotent behavior:
+ * - If evidence step already completed, return success immediately
+ * - If evidence step is running, return current status (don't start another)
+ * - If evidence step failed, allow retry (reset and re-run)
+ * 
  * Returns ApiResponse<{ runId, message }>
  */
 export async function POST(
@@ -67,31 +77,75 @@ export async function POST(
       // Body is optional, so ignore parse errors
     }
 
-    // Resolve active run ID (prefer explicit runId from body, else latest, don't create)
-    const runResolution = await resolveActiveRunId(supabase, projectId, {
-      runIdOverride: body?.runId ?? null,
-      allowCreate: false,
+    // Get or create active run (idempotent)
+    const runResult = await getOrCreateActiveRun(supabase, projectId, user.id, {
+      runId: body?.runId,
+      allowCreate: true,
     })
 
-    if (!runResolution.runId) {
-      logger.error('[collect-evidence] No run found and cannot create', {
-        projectId,
-        userId: user.id,
-      })
+    if (!runResult.ok) {
+      // Map orchestrator error codes to contract error codes
+      const errorCode = runResult.error.code === 'NO_ACTIVE_RUN' || runResult.error.code === 'NO_INPUTS'
+        ? 'NOT_READY'
+        : 'INTERNAL_ERROR'
       return NextResponse.json(
-        fail('NOT_READY', 'No analysis run found. Please generate an analysis first.', {
-          code: 'NO_RUN',
-        }),
+        fail(errorCode, runResult.error.message),
         { status: 400 }
       )
     }
 
-    const runId = runResolution.runId
+    const run = runResult.run
+    const runId = run.id
+
+    // Check evidence step status
+    const evidenceStepStatus = getStepStatus(run, 'evidence')
+
+    // If step already completed, return success immediately
+    if (evidenceStepStatus.status === 'completed') {
+      logger.info('[collect-evidence] Evidence step already completed', {
+        projectId,
+        runId,
+      })
+      const responseData: CollectEvidenceResponse = {
+        runId,
+        message: 'Evidence collection already completed',
+      }
+      const validated = CollectEvidenceResponseSchema.parse(responseData)
+      return NextResponse.json(ok(validated))
+    }
+
+    // If step is running, return current status (don't start another)
+    if (evidenceStepStatus.status === 'running') {
+      logger.info('[collect-evidence] Evidence step already running', {
+        projectId,
+        runId,
+      })
+      const responseData: CollectEvidenceResponse = {
+        runId,
+        message: 'Evidence collection in progress',
+      }
+      const validated = CollectEvidenceResponseSchema.parse(responseData)
+      return NextResponse.json(ok(validated))
+    }
+
+    // Advance run to evidence step (idempotent, handles retry if failed)
+    const advanceResult = await advanceRun(supabase, runId, 'evidence')
+    if (!advanceResult.ok) {
+      return NextResponse.json(
+        fail('INTERNAL_ERROR', advanceResult.error.message),
+        { status: 500 }
+      )
+    }
 
     // Get all competitors for the project
     const competitors = await listCompetitorsForProject(supabase, projectId)
 
     if (competitors.length === 0) {
+      // Mark step as failed
+      await markStepFailed(supabase, runId, 'evidence', {
+        code: 'NO_COMPETITORS',
+        message: 'No competitors found. Please add competitors first.',
+      })
       return NextResponse.json(
         fail('NOT_READY', 'No competitors found. Please add competitors first.'),
         { status: 400 }
@@ -103,7 +157,7 @@ export async function POST(
       runId,
       userId: user.id,
       competitorCount: competitors.length,
-      runSource: runResolution.source,
+      action: advanceResult.action,
     })
 
     // Collect evidence for each competitor (non-blocking, fire and forget)
@@ -198,7 +252,7 @@ export async function POST(
             sources = extractionResults.filter((s) => s !== null) as typeof sources
           }
 
-          // Store evidence sources
+          // Store evidence sources (idempotent via upsertEvidenceSource)
           await Promise.all(
             sources
               .filter((page): page is FetchedPage & { extracted: NonNullable<FetchedPage['extracted']> } => 
@@ -241,9 +295,24 @@ export async function POST(
           })
         }
       })
-    ).catch((error) => {
-      logger.error('[collect-evidence] Background collection error', error)
-    })
+    )
+      .then(async () => {
+        // Mark evidence step as completed
+        await markStepCompleted(supabase, runId, 'evidence')
+        logger.info('[collect-evidence] Evidence collection completed', {
+          projectId,
+          runId,
+        })
+      })
+      .catch(async (error) => {
+        // Mark evidence step as failed
+        await markStepFailed(supabase, runId, 'evidence', {
+          code: 'COLLECTION_ERROR',
+          message: 'Failed to collect evidence',
+          detail: error instanceof Error ? error.message : String(error),
+        })
+        logger.error('[collect-evidence] Background collection error', error)
+      })
 
     // Return immediately - collection runs in background
     logger.info('[collect-evidence] Evidence collection initiated', {
@@ -251,7 +320,6 @@ export async function POST(
       runId,
       userId: user.id,
       competitorCount: competitors.length,
-      runSource: runResolution.source,
     })
 
     const responseData: CollectEvidenceResponse = {
