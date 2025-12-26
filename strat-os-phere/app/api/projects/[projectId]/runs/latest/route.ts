@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getLatestRunForProject } from '@/lib/data/runs'
+import { getLatestRunForProject } from '@/lib/data/projectRuns'
 import { getProjectSafe } from '@/lib/data/projectsContract'
 
 /**
@@ -48,7 +48,8 @@ export async function GET(
     }
     const project = projectResult.data
 
-    const latestRun = await getLatestRunForProject(supabase, projectId)
+    const latestRunResult = await getLatestRunForProject(supabase, projectId)
+    const latestRun = latestRunResult.ok ? latestRunResult.data : null
 
     return NextResponse.json({
       ok: true,

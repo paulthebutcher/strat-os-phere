@@ -1,3 +1,7 @@
+-- REFERENCE ONLY - DO NOT RUN DIRECTLY
+-- This table has been replaced by project_runs. See:
+-- strat-os-phere/supabase/migrations/20250114000000_create_project_runs.sql
+--
 -- Migration: Create analysis_runs and analysis_run_events tables
 -- Run this in your Supabase SQL editor or via migration tool
 

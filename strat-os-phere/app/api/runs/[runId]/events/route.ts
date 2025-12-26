@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
-import { listAnalysisRunEvents, getAnalysisRunById } from '@/lib/data/runs'
+import { getProjectRunById } from '@/lib/data/projectRuns'
 import { getProjectById } from '@/lib/data/projects'
 
 /**
  * GET /api/runs/[runId]/events
  * Returns the latest events for a run (newest first, max 100)
+ * 
+ * NOTE: This endpoint currently returns empty events array since project_runs
+ * doesn't have a separate events table. Events would need to be stored in
+ * the metrics JSONB field or re-implemented separately.
  */
 export async function GET(
   request: Request,
@@ -33,7 +37,8 @@ export async function GET(
     }
 
     // Verify run access via project
-    const run = await getAnalysisRunById(supabase, runId)
+    const runResult = await getProjectRunById(supabase, runId)
+    const run = runResult.ok ? runResult.data : null
     if (!run) {
       return NextResponse.json(
         {
@@ -61,7 +66,9 @@ export async function GET(
       )
     }
 
-    const events = await listAnalysisRunEvents(supabase, runId, 100)
+    // TODO: Events need to be re-implemented using project_runs.metrics JSONB
+    // For now, return empty array
+    const events: any[] = []
 
     return NextResponse.json({
       ok: true,

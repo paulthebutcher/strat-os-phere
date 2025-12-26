@@ -1,3 +1,7 @@
+-- REFERENCE ONLY - DO NOT RUN DIRECTLY
+-- This SQL is for reference only. The actual migration is in:
+-- strat-os-phere/supabase/migrations/20250117000002_create_evidence_sources.sql
+--
 -- Migration: PR4 - Evidence normalization + coverage gating
 -- Ensures evidence_sources table has required columns, indexes, and constraints
 -- Run this in your Supabase SQL editor or via migration tool

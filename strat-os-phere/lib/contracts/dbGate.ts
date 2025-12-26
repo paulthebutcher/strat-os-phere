@@ -8,8 +8,7 @@
  */
 
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
-import type { AnalysisRunRow } from '@/lib/supabase/types'
-import { getAnalysisRunById } from '@/lib/data/runs'
+import { getProjectRunById, type ProjectRun } from '@/lib/data/projectRuns'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { z } from './z'
 import { RunStatusSchema, ArtifactSchema } from './domain'
@@ -25,25 +24,16 @@ type RunErrorLike =
   | undefined
 
 /**
- * Normalize error from AnalysisRunRow to canonical error shape.
- * Prefers structured error (jsonb) over error_message (text) for backward compatibility.
+ * Normalize error from ProjectRun to canonical error shape.
+ * Uses error_code and error_message fields from ProjectRun.
  */
-function normalizeRunError(runRecord: AnalysisRunRow): { code: string; message: string; details?: unknown } | undefined {
-  // Prefer structured error jsonb field
-  if (runRecord.error && typeof runRecord.error === 'object' && !Array.isArray(runRecord.error)) {
-    const err = runRecord.error as { message?: string; code?: string; details?: unknown }
+function normalizeRunError(runRecord: ProjectRun): { code: string; message: string; details?: unknown } | undefined {
+  // Use error_code and error_message from ProjectRun
+  if (runRecord.error_code && runRecord.error_message) {
     return {
-      code: err.code ?? 'INTERNAL_ERROR',
-      message: err.message ?? 'Unknown error',
-      details: err.details,
-    }
-  }
-  
-  // Fall back to error_message text field for backward compatibility
-  if (runRecord.error_message) {
-    return {
-      code: 'INTERNAL_ERROR',
+      code: runRecord.error_code,
       message: runRecord.error_message,
+      details: runRecord.error_detail || undefined,
     }
   }
   
@@ -59,7 +49,8 @@ export async function gateRunStatus(
   runId: string,
   projectId: string
 ): Promise<z.infer<typeof RunStatusSchema>> {
-  const runRecord = await getAnalysisRunById(supabase, runId)
+  const runRecordResult = await getProjectRunById(supabase, runId)
+  const runRecord = runRecordResult.ok ? runRecordResult.data : null
   
   if (!runRecord) {
     // Return minimal queued status if run doesn't exist
@@ -72,22 +63,32 @@ export async function gateRunStatus(
     }
   }
   
+  // Extract progress from metrics if available
+  let progress: { completed: number; total: number } | undefined = undefined
+  if (runRecord.metrics && typeof runRecord.metrics === 'object' && 'percent' in runRecord.metrics) {
+    const percent = (runRecord.metrics as { percent?: number }).percent
+    if (typeof percent === 'number') {
+      progress = {
+        completed: percent,
+        total: 100,
+      }
+    }
+  }
+  
+  // Map ProjectRun to canonical shape (map 'succeeded' to 'completed')
+  const state = runRecord.status === 'succeeded' ? 'completed' : runRecord.status as 'queued' | 'running' | 'completed' | 'failed'
+  
   // Map DB record to canonical shape
   const canonical = {
     id: runRecord.id,
     projectId: runRecord.project_id,
-    state: runRecord.status as 'queued' | 'running' | 'completed' | 'failed',
+    state,
     currentStep: undefined, // Not in DB yet
     stepStatus: undefined, // Not in DB yet
     createdAt: runRecord.created_at,
-    updatedAt: runRecord.updated_at,
+    updatedAt: runRecord.finished_at || runRecord.created_at, // Use finished_at or created_at as updatedAt
     error: normalizeRunError(runRecord),
-    progress: runRecord.percent
-      ? {
-          completed: runRecord.percent,
-          total: 100,
-        }
-      : undefined,
+    progress,
   }
   
   // Validate against schema

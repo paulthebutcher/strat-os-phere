@@ -12,7 +12,7 @@
  */
 
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
-import { getLatestRunForProject } from '@/lib/data/runs'
+import { getLatestRunForProject } from '@/lib/data/projectRuns'
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { readLatestEvidenceBundle } from '@/lib/evidence/readBundle'
@@ -189,8 +189,8 @@ export async function getDecisionRunState(
   projectId: string
 ): Promise<DecisionRunState> {
   // Fetch all required data in parallel
-  const [run, competitors, artifacts, evidenceBundle, coverageLite] = await Promise.all([
-    getLatestRunForProject(supabase, projectId).catch(() => null),
+  const [runResult, competitors, artifacts, evidenceBundle, coverageLite] = await Promise.all([
+    getLatestRunForProject(supabase, projectId).catch(() => ({ ok: false as const, data: null })),
     listCompetitorsForProject(supabase, projectId).catch(() => []),
     listArtifacts(supabase, { projectId }).catch(() => []),
     readLatestEvidenceBundle(supabase, projectId).catch(() => null),
@@ -202,15 +202,16 @@ export async function getDecisionRunState(
     })),
   ])
 
-  // Normalize run data (handle undefined)
+  // Normalize run data (handle Result type)
+  const run = runResult.ok ? runResult.data : null
   const normalizedRun = normalizeValue(run)
 
-  // Derive run status (adapt run type to match expected interface)
+  // Derive run status (adapt ProjectRun type to match expected interface)
   const runForStatus = normalizedRun
     ? {
         status: normalizedRun.status,
-        completed_at: normalizedRun.completed_at ?? null,
-        finished_at: ('finished_at' in normalizedRun && typeof normalizedRun.finished_at === 'string' ? normalizedRun.finished_at : null),
+        completed_at: normalizedRun.finished_at && normalizedRun.status === 'succeeded' ? normalizedRun.finished_at : null,
+        finished_at: normalizedRun.finished_at ?? null,
       }
     : null
   const runStatus = deriveRunStatus(runForStatus)

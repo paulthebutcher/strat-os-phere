@@ -1,16 +1,22 @@
 /**
  * Progress event writer that persists events to the database
  * Wraps the existing progress callback system to add database persistence
+ * 
+ * NOTE: This module has been disabled during migration from analysis_runs to project_runs.
+ * Progress events were stored in analysis_run_events table, but project_runs uses metrics JSONB.
+ * This needs to be re-implemented to store progress events in project_runs.metrics field.
  */
 
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import type { ProgressCallback, ProgressEvent } from './progress'
-import { createAnalysisRunEvent, updateAnalysisRun } from '@/lib/data/runs'
+import { updateRunMetrics, setRunRunning, setRunSucceeded, setRunFailed } from '@/lib/data/projectRuns'
 import { logger } from '@/lib/logger'
 
 /**
  * Create a progress callback that writes events to the database
- * Also updates the run's current_phase and percent
+ * 
+ * NOTE: Currently disabled - needs re-implementation for project_runs
+ * Events should be stored in project_runs.metrics JSONB field
  */
 export function createProgressWriter(
   supabase: TypedSupabaseClient,
@@ -18,53 +24,27 @@ export function createProgressWriter(
 ): ProgressCallback {
   return async (event: ProgressEvent) => {
     try {
-      // Map progress status to event level
-      const level =
-        event.status === 'failed' || event.status === 'blocked'
-          ? 'error'
-          : event.status === 'completed'
-          ? 'info'
-          : 'info'
-
-      // Write event to database
-      await createAnalysisRunEvent(supabase, {
-        run_id: runId,
-        level,
-        phase: event.phase,
-        message: event.message,
-        meta: event.detail || event.meta ? {
-          detail: event.detail,
-          ...event.meta,
-        } : null,
-      })
-
-      // Update run status with current phase and percent
-      const updates: Parameters<typeof updateAnalysisRun>[2] = {
-        current_phase: event.phase,
-        last_heartbeat_at: new Date().toISOString(),
-      }
-
-      if (event.percent !== undefined) {
-        updates.percent = event.percent
-      }
-
-      // Update status based on event status
+      // TODO: Re-implement progress tracking using project_runs.metrics
+      // Store events as an array in metrics.events or similar
+      
+      // For now, just update run status based on event
       if (event.status === 'failed' || event.status === 'blocked') {
-        updates.status = 'failed'
-        if (event.detail) {
-          updates.error_message = event.detail
-        }
+        await setRunFailed(supabase, runId, {
+          error_code: 'PROGRESS_EVENT_FAILED',
+          error_message: event.message || 'Progress event indicated failure',
+          error_detail: event.detail || undefined,
+        })
       } else if (event.status === 'completed' && event.phase === 'finalize') {
-        updates.status = 'completed'
-        updates.completed_at = new Date().toISOString()
-        updates.percent = 100
+        await setRunSucceeded(supabase, runId, {})
       } else if (event.status === 'started' && event.phase === 'load_input') {
-        // Mark as running when generation actually starts
-        updates.status = 'running'
-        updates.started_at = new Date().toISOString()
+        await setRunRunning(supabase, runId)
+      } else if (event.percent !== undefined) {
+        // Update progress in metrics
+        await updateRunMetrics(supabase, runId, {
+          percent: event.percent,
+          current_phase: event.phase || undefined,
+        })
       }
-
-      await updateAnalysisRun(supabase, runId, updates)
     } catch (error) {
       // Log but don't throw - progress writing should not break generation
       logger.error('Failed to write progress event', {
@@ -78,23 +58,43 @@ export function createProgressWriter(
 
 /**
  * Initialize a run in the database
+ * 
+ * NOTE: This has been adapted to use project_runs instead of analysis_runs
+ * Derives inputVersion from project_inputs (defaults to 1 if none exists)
+ * Uses runId as idempotencyKey since runId should be unique
  */
 export async function initializeRun(
   supabase: TypedSupabaseClient,
   projectId: string,
   runId: string
 ): Promise<void> {
-  const { createAnalysisRun } = await import('@/lib/data/runs')
+  const { getProjectRunById, createProjectRun } = await import('@/lib/data/projectRuns')
+  const { getLatestProjectInput } = await import('@/lib/data/projectInputs')
+  
   // Check if run already exists
-  const { getAnalysisRunById } = await import('@/lib/data/runs')
-  const existing = await getAnalysisRunById(supabase, runId)
-  if (existing) {
+  const existingResult = await getProjectRunById(supabase, runId)
+  if (existingResult.ok && existingResult.data) {
     return // Run already exists, skip creation
   }
-  await createAnalysisRun(supabase, {
-    project_id: projectId,
-    id: runId,
-    status: 'queued',
-  } as Parameters<typeof createAnalysisRun>[1])
+  
+  // Get latest input version (default to 1 if none exists)
+  let inputVersion = 1
+  const latestInputResult = await getLatestProjectInput(supabase, projectId)
+  if (latestInputResult.ok && latestInputResult.data) {
+    inputVersion = latestInputResult.data.version
+  }
+  
+  // Use runId as idempotency key (runId should be unique)
+  const idempotencyKey = runId
+  
+  // Create new run
+  const createResult = await createProjectRun(supabase, {
+    projectId,
+    inputVersion,
+    idempotencyKey,
+  })
+  
+  if (!createResult.ok) {
+    throw new Error(`Failed to create project run: ${createResult.error.message}`)
+  }
 }
-

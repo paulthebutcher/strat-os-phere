@@ -1,7 +1,7 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getLatestRunningRunForProject } from '@/lib/data/runs'
+import { getLatestRunningRunForProject } from '@/lib/data/projectRuns'
 import { getProjectById } from '@/lib/data/projects'
 
 /**
@@ -38,7 +38,8 @@ export async function GET(
     }
 
     // Get latest running run
-    const runningRun = await getLatestRunningRunForProject(supabase, projectId)
+    const runningRunResult = await getLatestRunningRunForProject(supabase, projectId)
+    const runningRun = runningRunResult.ok ? runningRunResult.data : null
 
     if (!runningRun) {
       return NextResponse.json({
@@ -47,10 +48,15 @@ export async function GET(
       })
     }
 
+    // Extract progress from metrics if available, otherwise undefined
+    const progress = runningRun.metrics && typeof runningRun.metrics === 'object' && 'percent' in runningRun.metrics
+      ? (runningRun.metrics as { percent?: number }).percent
+      : undefined
+
     return NextResponse.json({
       status: runningRun.status,
       runId: runningRun.id,
-      progress: runningRun.percent ?? undefined,
+      progress,
       updatedAt: runningRun.created_at,
     })
   } catch (error) {

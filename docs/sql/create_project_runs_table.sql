@@ -8,6 +8,10 @@
 --   1. supabase db push (remote) / supabase db reset (local)
 --   2. Regenerate types: supabase gen types typescript --local > lib/supabase/database.types.ts
 --
+-- REFERENCE ONLY - DO NOT RUN DIRECTLY
+-- This SQL is for reference only. The actual migration is in:
+-- strat-os-phere/supabase/migrations/20250114000000_create_project_runs.sql
+--
 -- Migration: Create project_runs table for append-only run records
 -- Run this in your Supabase SQL editor or via migration tool
 -- 

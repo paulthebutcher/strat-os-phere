@@ -1,3 +1,7 @@
+-- REFERENCE ONLY - DO NOT RUN DIRECTLY
+-- This SQL is for reference only. The actual migration is in:
+-- strat-os-phere/supabase/migrations/20250117000001_create_project_shares.sql
+--
 -- Migration: Create project_shares table for public share links
 -- Run this in your Supabase SQL editor or via migration tool
 

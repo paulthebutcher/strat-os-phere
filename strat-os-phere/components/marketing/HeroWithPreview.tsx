@@ -22,12 +22,12 @@ import { MarketingContainer } from "./MarketingContainer"
 export function HeroWithPreview() {
   return (
     <section className="relative overflow-hidden pt-12 md:pt-24 pb-6 sm:pb-12 md:pb-16">
-      {/* Subtle radial gradient background */}
+      {/* Ambient background - softened and simplified */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div 
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[1000px] opacity-[0.08]"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[1400px] opacity-[0.04]"
           style={{
-            background: "radial-gradient(ellipse 1200px 1000px at 50% 0%, hsl(var(--accent-primary) / 0.1) 0%, transparent 70%)",
+            background: "radial-gradient(circle 700px at 50% 50%, hsl(var(--accent-primary) / 0.08) 0%, transparent 65%)",
           }}
         />
       </div>
@@ -36,8 +36,8 @@ export function HeroWithPreview() {
       <div className="relative z-10">
         <MarketingContainer maxWidth="6xl">
           <div className="flex flex-col gap-4 sm:gap-8 md:gap-10">
-            {/* Top: Copy and CTAs - PRIMARY READING PATH */}
-            <div className="max-w-[55ch] mx-auto text-center space-y-4 sm:space-y-6">
+            {/* Top: Copy and CTAs - PRIMARY READING PATH - centered in viewport */}
+            <div className="max-w-[55ch] mx-auto text-center space-y-3 sm:space-y-5">
               <Reveal delay={0}>
                 <h1 className={cn(
                   "editorial-headline mx-auto lg:max-w-none lg:whitespace-nowrap"
@@ -51,7 +51,7 @@ export function HeroWithPreview() {
                   <p className={cn(
                     "editorial-body text-text-primary max-w-[55ch] mx-auto"
                   )}>
-                    Turn public competitive signals into strategic bets you can defend.
+                    Turn competitive signals into strategic bets you can defend.
                   </p>
                   <p className={cn(
                     "editorial-body text-text-secondary max-w-[55ch] mx-auto"
@@ -103,8 +103,14 @@ export function HeroWithPreview() {
 
             {/* Hero Artifact: Large, centered deliverable */}
             <div className="max-w-6xl mx-auto w-full">
-              <div className="shadow-2xl rounded-xl overflow-hidden border-2 border-slate-200/50">
-                <HeroReadoutReveal variant="full" />
+              <div className="relative">
+                {/* Caption label */}
+                <p className="text-center editorial-meta mb-2 text-text-muted">
+                  Example decision output
+                </p>
+                <div className="shadow-2xl rounded-xl overflow-hidden border-2 border-slate-200/50">
+                  <HeroReadoutReveal variant="full" />
+                </div>
               </div>
               {/* Editorial footnote: time & effort cue */}
               <p className="text-center editorial-meta mt-4 text-text-secondary">

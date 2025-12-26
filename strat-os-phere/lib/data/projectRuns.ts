@@ -745,3 +745,47 @@ export async function listRunsForProject(
   }
 }
 
+/**
+ * Get the latest running or queued run for a project
+ * This is used to check if there's an active run in progress
+ */
+export async function getLatestRunningRunForProject(
+  client: Client,
+  projectId: string
+): Promise<ProjectRunResult<ProjectRun | null>> {
+  try {
+    const typedClient = getTypedClient(client)
+    
+    const { data, error } = await typedClient
+      .from('project_runs')
+      .select('*')
+      .eq('project_id', projectId)
+      .in('status', ['queued', 'running'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error && error.code !== 'PGRST116') {
+      logServerError('getLatestRunningRunForProject', error, { projectId })
+      return {
+        ok: false,
+        error: {
+          code: error.code || 'UNKNOWN',
+          message: error.message || 'Failed to fetch latest running run',
+        },
+      }
+    }
+
+    return { ok: true, data: data ? (data as ProjectRun) : null }
+  } catch (error) {
+    logServerError('getLatestRunningRunForProject', error, { projectId })
+    return {
+      ok: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      },
+    }
+  }
+}
+

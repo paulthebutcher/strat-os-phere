@@ -45,8 +45,11 @@ export function ProblemSection() {
           
           {/* Visual: Full-width fragmented visual - narrative chaos, not UI - SECONDARY CONTENT */}
           <Reveal delay={60}>
-            <div className="w-full max-w-5xl mx-auto">
+            <div className="w-full max-w-5xl mx-auto space-y-3">
               <SignalChaosPanel className="rounded-xl border border-border-subtle/40 lg:min-h-[500px] w-full" />
+              <p className="text-center text-xs text-text-muted">
+                Unstructured competitive signals
+              </p>
             </div>
           </Reveal>
         </div>

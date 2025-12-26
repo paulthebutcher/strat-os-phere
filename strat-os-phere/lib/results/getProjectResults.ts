@@ -4,17 +4,17 @@
  */
 
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
-import type { Project, Artifact, AnalysisRun } from '@/lib/supabase/types'
+import type { Project, Artifact } from '@/lib/supabase/types'
 import { getProjectSafe } from '@/lib/data/projectsContract'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { getArtifactsForRun } from './runs'
-import { getAnalysisRunById, getLatestRunningRunForProject } from '@/lib/data/runs'
+import { getLatestRunningRunForProject, getProjectRunById, type ProjectRun } from '@/lib/data/projectRuns'
 import { getLatestCommittedRunForProject } from '@/lib/data/projectRuns'
 
 export interface ProjectResults {
   project: Project
   activeRunId: string | null
-  activeRun: AnalysisRun | null // The run record (may be running)
+  activeRun: ProjectRun | null // The run record (may be running)
   artifacts: Artifact[]
   hasSuccessfulRun: boolean
   artifactsByType: Record<string, Artifact | undefined> // Partial artifacts keyed by type
@@ -52,11 +52,12 @@ export async function getProjectResults(
   // 3. Else use latest successful (committed) run
   // 4. Else null (show empty state)
   let activeRunId: string | null = null
-  let activeRun: AnalysisRun | null = null
+  let activeRun: ProjectRun | null = null
   
   if (runId) {
     // Check if this run exists (either in artifacts or as a run record)
-    const runRecord = await getAnalysisRunById(supabase, runId)
+    const runRecordResult = await getProjectRunById(supabase, runId)
+    const runRecord = runRecordResult.ok ? runRecordResult.data : null
     const runArtifacts = getArtifactsForRun(allArtifacts, runId)
     
     if (runRecord || runArtifacts.length > 0) {
@@ -67,10 +68,10 @@ export async function getProjectResults(
   
   // If no runId specified, check for running run first
   if (!activeRunId) {
-    const runningRun = await getLatestRunningRunForProject(supabase, projectId)
-    if (runningRun) {
-      activeRunId = runningRun.id
-      activeRun = runningRun
+    const runningRunResult = await getLatestRunningRunForProject(supabase, projectId)
+    if (runningRunResult.ok && runningRunResult.data) {
+      activeRunId = runningRunResult.data.id
+      activeRun = runningRunResult.data
     }
   }
   

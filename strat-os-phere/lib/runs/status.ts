@@ -6,7 +6,7 @@
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import type { Artifact } from '@/lib/supabase/types'
 import { listArtifacts } from '@/lib/data/artifacts'
-import { getAnalysisRunById } from '@/lib/data/runs'
+import { getProjectRunById, type ProjectRun } from '@/lib/data/projectRuns'
 import type { AnalysisRunStatus } from '@/lib/supabase/types'
 
 export interface RunStatusInfo {
@@ -51,21 +51,30 @@ function deriveStatusFromArtifacts(
 }
 
 /**
- * Get run status by checking analysis_runs table first, then falling back to artifacts
+ * Get run status by checking project_runs table first, then falling back to artifacts
  */
 export async function getRunStatus(
   supabase: TypedSupabaseClient,
   runId: string,
   projectId: string
 ): Promise<RunStatusInfo> {
-  // First, try to get from analysis_runs table
-  const runRecord = await getAnalysisRunById(supabase, runId)
+  // First, try to get from project_runs table
+  const runRecordResult = await getProjectRunById(supabase, runId)
+  const runRecord = runRecordResult.ok ? runRecordResult.data : null
 
   if (runRecord) {
+    // Extract progress from metrics if available
+    const progress = runRecord.metrics && typeof runRecord.metrics === 'object' && 'percent' in runRecord.metrics
+      ? (runRecord.metrics as { percent?: number }).percent
+      : undefined
+    
+    // Map ProjectRun status to AnalysisRunStatus
+    const status = runRecord.status === 'succeeded' ? 'completed' : runRecord.status as AnalysisRunStatus
+    
     return {
-      status: runRecord.status,
-      progress: runRecord.percent ?? undefined,
-      updatedAt: runRecord.created_at,
+      status,
+      progress,
+      updatedAt: runRecord.finished_at || runRecord.created_at,
     }
   }
 

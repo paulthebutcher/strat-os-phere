@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getAnalysisRunById } from '@/lib/data/runs'
+import { getProjectRunById } from '@/lib/data/projectRuns'
 import { getProjectById } from '@/lib/data/projects'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { getArtifactsForRun } from '@/lib/results/runs'
@@ -35,7 +35,8 @@ export async function GET(
     }
 
     // Verify run access via project
-    const run = await getAnalysisRunById(supabase, runId)
+    const runResult = await getProjectRunById(supabase, runId)
+    const run = runResult.ok ? runResult.data : null
     if (!run) {
       return NextResponse.json(
         {
