@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { sampleAnalysis } from "./sampleReadoutData"
 import { CheckCircle2, AlertCircle, TrendingUp } from "lucide-react"
+import { SignatureMark } from "./SignatureMark"
 
 interface OutcomeArtifactProps {
   className?: string
@@ -69,10 +70,13 @@ export function OutcomeArtifact({ className }: OutcomeArtifactProps) {
         "rounded-3xl border-2 border-border-subtle bg-white",
         "shadow-2xl p-10 sm:p-14 md:p-20 space-y-10 sm:space-y-12",
         "backdrop-blur-sm",
-        "corner-cut corner-cut-top-right",
         className
       )}
     >
+      {/* Corner cut signature mark */}
+      <SignatureMark variant="cornerCut" cornerPosition="top-right" delay={150} />
+      {/* Punch dots on left edge (receipt vibe) */}
+      <SignatureMark variant="punch" punchPosition="left" delay={200} />
       {/* Subtle texture overlay for depth */}
       <div 
         className="absolute inset-0 rounded-3xl opacity-[0.015] pointer-events-none"

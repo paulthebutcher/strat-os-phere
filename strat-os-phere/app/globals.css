@@ -324,6 +324,22 @@
   --evidence-community-bg: 34 80% 96%; /* Soft cyan */
   --evidence-community-text: 34 80% 35%; /* Cyan text */
   --evidence-community-accent: 34 211 238; /* Cyan accent (RGB) */
+  
+  /* Marketing Plinth Visual Language - Ink + Paper System */
+  /* Paper tones - subtle background variations */
+  --paper-0: 255 255 255; /* Pure white base */
+  --paper-1: 252 252 252; /* Slightly warm off-white */
+  
+  /* Ink tones - text hierarchy */
+  --ink-0: 15 23 42; /* Deep slate for primary text */
+  --ink-1: 51 65 85; /* Medium slate for secondary text */
+  
+  /* Hairline borders - ultra-subtle separation */
+  --hairline: 0 0% 88%; /* Very light gray, barely visible */
+  
+  /* Accent colors - used rarely for emphasis */
+  --accent-0: 230 65% 50%; /* Primary indigo */
+  --accent-1: 262 83% 58%; /* Violet accent */
 }
 
 .dark {
@@ -501,6 +517,15 @@
   --color-evidence-community-bg: hsl(var(--evidence-community-bg));
   --color-evidence-community-text: hsl(var(--evidence-community-text));
   --color-evidence-community-accent: rgb(var(--evidence-community-accent));
+  
+  /* Marketing Plinth Visual Language - Ink + Paper */
+  --color-paper-0: rgb(var(--paper-0));
+  --color-paper-1: rgb(var(--paper-1));
+  --color-ink-0: hsl(var(--ink-0));
+  --color-ink-1: hsl(var(--ink-1));
+  --color-hairline: hsl(var(--hairline));
+  --color-accent-0: hsl(var(--accent-0));
+  --color-accent-1: hsl(var(--accent-1));
   
   /* Border radius */
   --radius-sm: var(--radius-sm);
@@ -856,9 +881,11 @@
     line-height: 1.2;
     letter-spacing: -0.015em;
     color: hsl(var(--text-primary));
-    max-width: 25ch; /* Short, declarative sentences */
     margin: 0;
   }
+  
+  /* Marketing headline - single-line on desktop (enforced via component classes) */
+  /* Components use whitespace-nowrap lg:whitespace-nowrap for responsive control */
   
   /* Kicker / Eyebrow - Uppercase, tight tracking, anchors context */
   .editorial-kicker {
@@ -1285,6 +1312,109 @@
     border: 1px solid hsl(var(--plinth-border-evidence-inner));
     pointer-events: none;
     z-index: 1;
+  }
+
+  /* Marketing Plinth Paper Section - Ink + Paper Visual Language */
+  .plinth-paper-section {
+    position: relative;
+    background: rgb(var(--paper-0));
+    border: 1px solid hsl(var(--hairline));
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xl) var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    /* Subtle noise texture via CSS pattern */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.008) 1px,
+        rgba(0, 0, 0, 0.008) 2px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.006) 1px,
+        rgba(0, 0, 0, 0.006) 2px
+      );
+    /* Soft vignette overlay */
+    background-image: 
+      radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        transparent 60%,
+        rgba(0, 0, 0, 0.02) 100%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.008) 1px,
+        rgba(0, 0, 0, 0.008) 2px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.006) 1px,
+        rgba(0, 0, 0, 0.006) 2px
+      ),
+      rgb(var(--paper-0));
+  }
+
+  .plinth-paper-section-raised {
+    position: relative;
+    background: rgb(var(--paper-1));
+    border: 1px solid hsl(var(--hairline));
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xl) var(--spacing-lg);
+    box-shadow: var(--shadow);
+    /* Subtle noise texture */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.008) 1px,
+        rgba(0, 0, 0, 0.008) 2px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.006) 1px,
+        rgba(0, 0, 0, 0.006) 2px
+      );
+    /* Soft vignette overlay */
+    background-image: 
+      radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        transparent 60%,
+        rgba(0, 0, 0, 0.02) 100%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.008) 1px,
+        rgba(0, 0, 0, 0.008) 2px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.006) 1px,
+        rgba(0, 0, 0, 0.006) 2px
+      ),
+      rgb(var(--paper-1));
+  }
+
+  /* Hairline divider style */
+  .plinth-hairline {
+    border-top: 1px solid hsl(var(--hairline));
+    margin: var(--spacing-lg) 0;
   }
 }
 

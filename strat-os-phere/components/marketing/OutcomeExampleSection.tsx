@@ -22,6 +22,8 @@ import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal, ArtifactSettle } from "./motion"
 import { OutcomeArtifact } from "./OutcomeArtifact"
+import { SignatureMark } from "./SignatureMark"
+import { cn } from "@/lib/utils"
 
 export function OutcomeExampleSection() {
   return (
@@ -31,8 +33,17 @@ export function OutcomeExampleSection() {
           <div className="flex flex-col gap-6 sm:gap-8">
             {/* Section headline - centered, compact */}
             <div className="text-center space-y-4 max-w-[65ch] mx-auto">
-              <h2 className="editorial-section-headline mx-auto">
-                A <span className="editorial-gradient-text">defensible call</span>
+              <h2 className={cn(
+                "editorial-section-headline mx-auto relative inline-block",
+                "whitespace-nowrap lg:whitespace-nowrap",
+                "text-2xl sm:text-3xl md:text-4xl lg:text-4xl",
+                "max-w-full"
+              )}>
+                <SignatureMark variant="tick" delay={100} />
+                <span className="ml-2">
+                  A <span className="editorial-gradient-text">defensible call</span>
+                </span>
+                <SignatureMark variant="underline" delay={200} />
               </h2>
               <p className="editorial-body mx-auto">
                 The recommendation. The confidence. The evidence. The conditions that would change it.

@@ -22,7 +22,9 @@ import { TheTurnSection } from "@/components/marketing/TheTurnSection"
 import { OutcomeExampleSection } from "@/components/marketing/OutcomeExampleSection"
 import { WhyItHoldsUpSection } from "@/components/marketing/WhyItHoldsUpSection"
 import { StructureEmergingSection } from "@/components/marketing/StructureEmergingSection"
-import { TypographicMoment } from "@/components/marketing/TypographicMoment"
+import { EditorialBreak } from "@/components/marketing/layout/EditorialBreak"
+import { PaperSection } from "@/components/marketing/layout/PaperSection"
+import { OffsetDivider } from "@/components/marketing/layout/OffsetDivider"
 import { createPageMetadata } from "@/lib/seo/metadata"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -54,10 +56,10 @@ export default function MarketingHome() {
         {/* ACT III — The Shift: Evidence Creates Structure */}
         <StructureEmergingSection />
         
-        {/* Typographic Moment: Editorial Pause */}
-        <TypographicMoment mark="underline" spacing="normal">
+        {/* Editorial Break: Typographic Moment */}
+        <EditorialBreak caption="Evidence replaces debate">
           This is where opinions end
-        </TypographicMoment>
+        </EditorialBreak>
         
         {/* ACT IV — The Outcome: A Defensible Call */}
         <OutcomeExampleSection />

@@ -17,19 +17,29 @@
  */
 "use client"
 
-import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
 import { StakesDossierPanel } from "./StakesDossierPanel"
+import { PaperSection } from "./layout/PaperSection"
+import { OffsetDivider } from "./layout/OffsetDivider"
+import { SignatureMark } from "./SignatureMark"
+import { cn } from "@/lib/utils"
 
 export function TheTurnSection() {
   return (
-    <MarketingSection tone="default" density="tight">
+    <PaperSection tone="paper" className="my-16 sm:my-20 md:my-24">
       <MarketingContainer maxWidth="6xl">
         <Reveal>
           <div className="text-center space-y-4 mb-8 max-w-[65ch] mx-auto">
-            <h2 className="editorial-section-headline mx-auto">
-              Being wrong is expensive
+            <h2 className={cn(
+              "editorial-section-headline mx-auto relative inline-block",
+              "whitespace-nowrap lg:whitespace-nowrap",
+              "text-2xl sm:text-3xl md:text-4xl lg:text-4xl",
+              "max-w-full"
+            )}>
+              <SignatureMark variant="tick" delay={100} />
+              <span className="ml-2">Being wrong is expensive</span>
+              <SignatureMark variant="underline" delay={200} />
             </h2>
             <p className="editorial-body mx-auto">
               Every week of indecision compounds. Resources allocated elsewhere while the decision remains unresolved.
@@ -37,14 +47,14 @@ export function TheTurnSection() {
           </div>
         </Reveal>
         
-        {/* Asymmetrical divider for visual interest */}
-        <div className="divider-asymmetric mb-8" />
+        {/* Offset divider with label */}
+        <OffsetDivider label="Stakes" align="left" />
         
         <Reveal delay={60}>
           <StakesDossierPanel className="rounded-xl lg:min-h-[600px] w-full" />
         </Reveal>
       </MarketingContainer>
-    </MarketingSection>
+    </PaperSection>
   )
 }
 
