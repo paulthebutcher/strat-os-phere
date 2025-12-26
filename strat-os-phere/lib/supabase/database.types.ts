@@ -234,6 +234,43 @@ export interface AnalysisRunEventInsert {
 
 export type AnalysisRunEventUpdate = Partial<AnalysisRunEventInsert>
 
+// Project run status
+export type ProjectRunStatus = 'queued' | 'running' | 'succeeded' | 'failed'
+
+export interface ProjectRunRow {
+  id: string
+  project_id: string
+  input_version: number
+  status: ProjectRunStatus
+  started_at: string | null
+  finished_at: string | null
+  created_at: string
+  committed_at: string | null
+  error_code: string | null
+  error_message: string | null
+  error_detail: string | null
+  output: Json | null
+  metrics: Json
+  idempotency_key: string
+}
+
+export interface ProjectRunInsert {
+  project_id: string
+  input_version: number
+  status: ProjectRunStatus
+  started_at?: string | null
+  finished_at?: string | null
+  committed_at?: string | null
+  error_code?: string | null
+  error_message?: string | null
+  error_detail?: string | null
+  output?: Json | null
+  metrics?: Json
+  idempotency_key: string
+}
+
+export type ProjectRunUpdate = Partial<ProjectRunInsert>
+
 // Supabase generated-style Database type
 export type Database = {
   public: {
@@ -278,6 +315,12 @@ export type Database = {
         Row: EvidenceCacheRow
         Insert: EvidenceCacheInsert
         Update: EvidenceCacheUpdate
+        Relationships: []
+      }
+      project_runs: {
+        Row: ProjectRunRow
+        Insert: ProjectRunInsert
+        Update: ProjectRunUpdate
         Relationships: []
       }
     }

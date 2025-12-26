@@ -12,7 +12,7 @@
 
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/supabase/database.types'
+import type { Database, ProjectRunUpdate } from '@/lib/supabase/database.types'
 import { getProjectRunById } from '@/lib/data/projectRuns'
 import { getLatestSuccessfulArtifact } from '@/lib/artifacts/getLatestSuccessfulArtifact'
 import { logger } from '@/lib/logger'
@@ -149,10 +149,19 @@ export async function commitDecisionResult(
     }
 
     // 3. Set committed_at = now()
+    // Use type assertion to work around TypeScript inference issue with Supabase client
+    // The Database type is correct, but the client's .from().update() chain doesn't always
+    // preserve the generic type parameter correctly (same pattern used in projectRuns.ts)
     const typedClient = supabase as unknown as SupabaseClient<Database>
-    const { data, error } = await typedClient
-      .from('project_runs')
-      .update({ committed_at: new Date().toISOString() })
+    
+    // Compile-time check: ensure committed_at is a valid field in Update type
+    const updatePayload: Database['public']['Tables']['project_runs']['Update'] = {
+      committed_at: new Date().toISOString(),
+    }
+    
+    const { data, error } = await (typedClient
+      .from('project_runs') as any)
+      .update(updatePayload)
       .eq('id', runId)
       .select()
       .single()

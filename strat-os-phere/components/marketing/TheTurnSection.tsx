@@ -19,7 +19,7 @@
 
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { StakesDossierPanel } from "./StakesDossierPanel"
+import { StakesProofCards } from "./StakesProofCards"
 import { PaperSection } from "./layout/PaperSection"
 import { OffsetDivider } from "./layout/OffsetDivider"
 import { SignatureMark } from "./SignatureMark"
@@ -31,7 +31,7 @@ export function TheTurnSection() {
       <MarketingContainer maxWidth="6xl">
         <Reveal>
           {/* PRIMARY READING PATH - Core claim */}
-          <div className="text-center space-y-3 sm:space-y-4 mb-6 sm:mb-8 max-w-[55ch] mx-auto">
+          <div className="text-center space-y-3 sm:space-y-4 mb-8 sm:mb-12 max-w-[55ch] mx-auto">
             <h2 className={cn(
               "editorial-section-headline mx-auto relative inline-block",
               "whitespace-nowrap lg:whitespace-nowrap",
@@ -43,18 +43,18 @@ export function TheTurnSection() {
               <SignatureMark variant="underline" delay={200} />
             </h2>
             <p className="editorial-body mx-auto text-base sm:text-lg leading-relaxed sm:leading-normal">
-              Every week of indecision compounds. Resources allocated elsewhere while the decision remains unresolved.
+              This usually takes a long time and costs a lot of money.
             </p>
           </div>
         </Reveal>
         
         {/* Offset divider with label - hidden on mobile */}
-        <div className="hidden sm:block">
+        <div className="hidden sm:block mb-8">
           <OffsetDivider label="Stakes" align="left" />
         </div>
         
         <Reveal delay={60}>
-          <StakesDossierPanel className="rounded-xl lg:min-h-[600px] w-full" />
+          <StakesProofCards />
         </Reveal>
       </MarketingContainer>
     </PaperSection>

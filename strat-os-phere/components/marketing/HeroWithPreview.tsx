@@ -40,18 +40,25 @@ export function HeroWithPreview() {
             <div className="max-w-[55ch] mx-auto text-center space-y-4 sm:space-y-6">
               <Reveal delay={0}>
                 <h1 className={cn(
-                  "editorial-headline mx-auto"
+                  "editorial-headline mx-auto lg:max-w-none lg:whitespace-nowrap"
                 )}>
                   Find your <span className="editorial-gradient-text">unfair advantage</span>.
                 </h1>
               </Reveal>
               
               <Reveal delay={60}>
-                <p className={cn(
-                  "editorial-body text-text-primary max-w-[55ch] mx-auto"
-                )}>
-                  Turn competitive evidence into strategic bets you can defend in skeptical rooms.
-                </p>
+                <div className="space-y-2">
+                  <p className={cn(
+                    "editorial-body text-text-primary max-w-[55ch] mx-auto"
+                  )}>
+                    Turn public competitive signals into strategic bets you can defend.
+                  </p>
+                  <p className={cn(
+                    "editorial-body text-text-secondary max-w-[55ch] mx-auto"
+                  )}>
+                    Citations, assumptions, and confidence—ready to forward.
+                  </p>
+                </div>
               </Reveal>
 
               <Reveal delay={90}>
@@ -66,7 +73,7 @@ export function HeroWithPreview() {
                           HoverLift.className
                         )}
                       >
-                        See an example decision
+                        View example decision
                       </Button>
                     </Link>
                     <Link href="/how-plinth-thinks" className="w-full sm:w-auto">
