@@ -23,12 +23,12 @@ import { cn } from "@/lib/utils"
 
 export function ProblemSection() {
   return (
-    <MarketingSection tone="alt" density="tight">
+    <MarketingSection tone="alt" density="tight" className="py-8 sm:py-14 md:py-16">
       <MarketingContainer maxWidth="6xl">
-        <div className="flex flex-col gap-6 sm:gap-8">
+        <div className="flex flex-col gap-4 sm:gap-8">
           {/* Context: Text content above - centered, constrained width - PRIMARY READING PATH */}
           <Reveal>
-            <div className="text-center space-y-4 max-w-[55ch] mx-auto">
+            <div className="text-center space-y-3 sm:space-y-4 max-w-[55ch] mx-auto">
               <h2 className={cn(
                 "editorial-section-headline mx-auto relative inline-block",
                 "whitespace-nowrap lg:whitespace-nowrap",
@@ -37,7 +37,7 @@ export function ProblemSection() {
               )}>
                 Decisions without shape
               </h2>
-              <p className="editorial-body mx-auto">
+              <p className="editorial-body mx-auto text-base sm:text-lg leading-relaxed sm:leading-normal">
                 Too many opinions. Not enough proof. Most strategy debates fail before they start—not because ideas are bad, but because <span className="color-moment-accent font-medium">evidence never makes it to the table</span>.
               </p>
             </div>

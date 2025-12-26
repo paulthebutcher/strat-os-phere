@@ -21,7 +21,7 @@ import { MarketingContainer } from "./MarketingContainer"
 
 export function HeroWithPreview() {
   return (
-    <section className="relative overflow-hidden pt-20 md:pt-24 pb-8 sm:pb-12 md:pb-16">
+    <section className="relative overflow-hidden pt-12 md:pt-24 pb-6 sm:pb-12 md:pb-16">
       {/* Subtle radial gradient background */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div 
@@ -35,9 +35,9 @@ export function HeroWithPreview() {
       {/* Main content: stacked layout */}
       <div className="relative z-10">
         <MarketingContainer maxWidth="6xl">
-          <div className="flex flex-col gap-6 sm:gap-8 md:gap-10">
+          <div className="flex flex-col gap-4 sm:gap-8 md:gap-10">
             {/* Top: Copy and CTAs - PRIMARY READING PATH */}
-            <div className="max-w-[55ch] mx-auto text-center space-y-5 sm:space-y-6">
+            <div className="max-w-[55ch] mx-auto text-center space-y-4 sm:space-y-6">
               <Reveal delay={0}>
                 <h1 className={cn(
                   "editorial-headline mx-auto"
@@ -82,14 +82,14 @@ export function HeroWithPreview() {
                       </Button>
                     </Link>
                   </div>
-                  <p className="editorial-meta mt-0.5">Built for leaders who need more than analysis—they need conviction.</p>
+                  <p className="editorial-meta mt-0.5 hidden sm:block">Built for leaders who need more than analysis—they need conviction.</p>
                 </div>
               </Reveal>
             </div>
 
-            {/* Bridge copy above artifact */}
+            {/* Bridge copy above artifact - hidden on mobile */}
             <Reveal delay={120}>
-              <p className="text-center editorial-meta max-w-[65ch] mx-auto">
+              <p className="text-center editorial-meta max-w-[65ch] mx-auto hidden sm:block">
                 The answer. Documented. Defensible.
               </p>
             </Reveal>
