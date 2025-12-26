@@ -126,7 +126,7 @@ export function HeroMoment({
               Recommendation
             </div>
           )}
-          <h3 className="text-lg md:text-xl font-semibold text-text-primary leading-snug mb-4">
+          <h3 className="text-lg md:text-xl font-semibold text-text-primary leading-snug mb-4 line-clamp-2">
             {primaryOpportunity.title}
           </h3>
           
@@ -145,8 +145,8 @@ export function HeroMoment({
             {variant === "full" && (
               <>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-text-primary">
-                    {primaryOpportunity.overallScore} / 100
+                  <span className="font-bold text-text-primary text-base">
+                    {primaryOpportunity.overallScore}/100
                   </span>
                   <span className="text-text-secondary">Overall score</span>
                 </div>
@@ -156,14 +156,20 @@ export function HeroMoment({
                   </span>
                   <span className="text-text-muted">·</span>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {primaryOpportunity.evidenceTypes.map((type, idx) => (
+                    {primaryOpportunity.evidenceTypes.slice(0, 3).map((type, idx) => (
                       <span key={idx} className="text-text-secondary capitalize">
                         {type}
-                        {idx < primaryOpportunity.evidenceTypes.length - 1 && (
+                        {idx < Math.min(primaryOpportunity.evidenceTypes.length, 3) - 1 && (
                           <span className="text-text-muted ml-1.5">·</span>
                         )}
                       </span>
                     ))}
+                    {primaryOpportunity.evidenceTypes.length > 3 && (
+                      <>
+                        <span className="text-text-muted ml-1.5">·</span>
+                        <span className="text-text-secondary">+{primaryOpportunity.evidenceTypes.length - 3}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </>
@@ -180,40 +186,72 @@ export function HeroMoment({
               Source links
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Evidence row with chips */}
+          {variant === "full" && (
+            <div className="mb-4 pb-4 border-b border-border-subtle">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">Evidence:</span>
+                {primaryOpportunity.evidenceTypes.slice(0, 3).map((type, idx) => (
+                  <Badge 
+                    key={idx} 
+                    variant="secondary" 
+                    className="text-[10px] px-2 py-0.5"
+                  >
+                    {type}
+                  </Badge>
+                ))}
+                {primaryOpportunity.evidenceTypes.length > 3 && (
+                  <Badge 
+                    variant="secondary" 
+                    className="text-[10px] px-2 py-0.5"
+                  >
+                    +{primaryOpportunity.evidenceTypes.length - 3}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             {evidenceCategories.map((category, idx) => (
               <div 
                 key={idx}
-                className="p-4 rounded-lg border border-border-subtle bg-surface-muted/30 space-y-3"
+                className="p-3 rounded-lg border border-border-subtle bg-surface-muted/30 space-y-2"
               >
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-text-primary">
+                <div className="space-y-1.5">
+                  <h4 className="text-xs font-semibold text-text-primary line-clamp-1">
                     {category.category}
                   </h4>
-                  <p className="text-xs text-text-secondary leading-relaxed">
+                  <p className="text-[11px] text-text-secondary leading-snug line-clamp-2">
                     {category.insight}
                   </p>
                 </div>
                 
-                <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-text-primary">
-                      {category.score} / {category.maxScore}
+                <div className="flex items-center justify-between pt-1.5 border-t border-border-subtle">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-text-primary">
+                      {category.score}/{category.maxScore}
                     </span>
-                    <span className="text-xs text-text-secondary">Score</span>
                   </div>
                 </div>
                 
-                <div className="flex flex-wrap gap-1.5">
-                  {category.sourceTypes.map((type, typeIdx) => (
+                <div className="flex flex-wrap gap-1">
+                  {category.sourceTypes.slice(0, 3).map((type, typeIdx) => (
                     <Badge 
                       key={typeIdx} 
                       variant="secondary" 
-                      className="text-xs px-2 py-0.5"
+                      className="text-[10px] px-1.5 py-0.5"
                     >
                       {type}
                     </Badge>
                   ))}
+                  {category.sourceTypes.length > 3 && (
+                    <Badge 
+                      variant="secondary" 
+                      className="text-[10px] px-1.5 py-0.5"
+                    >
+                      +{category.sourceTypes.length - 3}
+                    </Badge>
+                  )}
                 </div>
               </div>
             ))}

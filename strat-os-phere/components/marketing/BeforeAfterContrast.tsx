@@ -154,21 +154,6 @@ export function BeforeAfterContrast({ className }: BeforeAfterContrastProps) {
               </span>
             </div>
           </div>
-          
-          {/* After callout pills - explicit labels */}
-          <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
-            <div className="bg-accent-primary text-white text-[11px] px-3 py-1.5 rounded-full font-semibold shadow-lg">
-              Recommendation
-            </div>
-            <div className="bg-accent-primary text-white text-[11px] px-3 py-1.5 rounded-full font-semibold shadow-lg">
-              {sampleAnalysis.evidence.totalSources - 7} sources
-            </div>
-          </div>
-          <div className="absolute top-16 left-4 z-10">
-            <div className="bg-accent-primary text-white text-[11px] px-3 py-1.5 rounded-full font-semibold shadow-lg">
-              Confidence: Investment-ready
-            </div>
-          </div>
 
           {/* Clean Plinth Decision Readout (larger, sharper, full opacity) */}
           <div className="h-full min-h-[550px] md:min-h-[650px] flex items-center justify-center">

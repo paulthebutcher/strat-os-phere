@@ -26,8 +26,8 @@ function InputCardVisual({ phase }: { phase: number }) {
   return (
     <div 
       className={cn(
-        "p-3 rounded-lg bg-white/80 border border-border-subtle/60 shadow-sm space-y-2 transition-all duration-700",
-        shouldBlur ? "opacity-40 blur-[2px]" : "opacity-75 blur-[0.5px]"
+        "p-3 rounded-lg bg-white/80 border border-border-subtle/60 shadow-sm space-y-2 transition-all duration-700 min-h-[120px]",
+        shouldBlur ? "opacity-35 blur-[2px]" : "opacity-60 blur-[0.5px]"
       )}
     >
       <div className="space-y-1.5">
@@ -56,8 +56,8 @@ function EvidenceChaosThumbnail({ phase }: { phase: number }) {
   return (
     <div 
       className={cn(
-        "relative rounded-lg overflow-hidden border border-border-subtle/60 shadow-sm transition-all duration-700",
-        shouldBlur ? "opacity-30 blur-[3px]" : "opacity-70 blur-[1px]"
+        "relative rounded-lg overflow-hidden border border-border-subtle/60 shadow-sm transition-all duration-700 min-h-[120px]",
+        shouldBlur ? "opacity-35 blur-[3px]" : "opacity-65 blur-[1px]"
       )}
     >
       <ProblemEvidenceCollage className="aspect-[4/3] scale-75 origin-center" />
@@ -80,17 +80,25 @@ function ReadoutHeroVisual({ phase }: { phase: number }) {
   return (
     <div 
       className={cn(
-        "relative rounded-xl overflow-hidden shadow-2xl border-2 border-border-subtle bg-white transition-all duration-500",
+        "relative rounded-xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-2 border-border-subtle bg-white transition-all duration-500",
         isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
       )}
     >
-      {/* Plinth Readout tag */}
-      <div className="absolute top-3 right-3 z-10 bg-accent-primary text-white text-[10px] px-2 py-1 rounded-full font-medium shadow-lg">
+      {/* Subtle spotlight behind the card */}
+      <div 
+        className="absolute -inset-4 opacity-60 rounded-2xl pointer-events-none -z-10"
+        style={{
+          background: 'radial-gradient(circle at center, hsl(230 65% 50% / 0.1), hsl(230 65% 50% / 0.05), transparent)'
+        }}
+      />
+      
+      {/* Plinth Readout tag - moved to top-left */}
+      <div className="absolute top-3 left-3 z-10 bg-accent-primary text-white text-[10px] px-3 py-1.5 rounded-md font-semibold shadow-lg uppercase tracking-wide">
         Plinth Readout
       </div>
       
       {/* Main readout */}
-      <div className="p-6 md:p-8">
+      <div className="p-6 md:p-8 pt-12 md:pt-14">
         <HeroMoment variant="full" className="min-h-[500px]" />
       </div>
       
@@ -117,8 +125,8 @@ function ReadoutHeroVisual({ phase }: { phase: number }) {
         </div>
       </div>
       
-      {/* Subtle glow effect */}
-      <div className="absolute inset-0 rounded-xl ring-2 ring-accent-primary/20 pointer-events-none" />
+      {/* Stronger glow effect */}
+      <div className="absolute inset-0 rounded-xl ring-2 ring-accent-primary/30 pointer-events-none" />
     </div>
   )
 }
@@ -140,10 +148,10 @@ export function TheFlowSection() {
         
         <Reveal delay={60}>
           <div className="space-y-6 sm:space-y-8">
-            {/* Weighted 3-step layout: [small] → [medium] → [large] */}
-            <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-4">
-              {/* Step 1: You bring (small, ~25%) */}
-              <div className="flex flex-col items-center text-center space-y-3 lg:space-y-4 flex-1 lg:flex-[0.25] w-full">
+            {/* Weighted 3-step layout: [1fr] → [1.2fr] → [2fr] with arrows */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.2fr_auto_2fr] items-start gap-4 lg:gap-4">
+              {/* Step 1: You bring (small) */}
+              <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
                 <div className="w-full">
                   <InputCardVisual phase={1} />
                 </div>
@@ -158,7 +166,7 @@ export function TheFlowSection() {
               </div>
 
               {/* Arrow 1 (desktop) */}
-              <div className="hidden lg:flex items-center justify-center flex-shrink-0 px-2">
+              <div className="hidden lg:flex items-center justify-center self-center">
                 <ArrowRight className="w-6 h-6 text-text-muted" />
               </div>
               
@@ -167,8 +175,8 @@ export function TheFlowSection() {
                 <ChevronDown className="w-5 h-5 text-text-muted" />
               </div>
 
-              {/* Step 2: Plinth does (medium, ~30%) */}
-              <div className="flex flex-col items-center text-center space-y-3 lg:space-y-4 flex-1 lg:flex-[0.3] w-full">
+              {/* Step 2: Plinth does (medium) */}
+              <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
                 <div className="w-full">
                   <EvidenceChaosThumbnail phase={1} />
                 </div>
@@ -183,7 +191,7 @@ export function TheFlowSection() {
               </div>
 
               {/* Arrow 2 (desktop) */}
-              <div className="hidden lg:flex items-center justify-center flex-shrink-0 px-2">
+              <div className="hidden lg:flex items-center justify-center self-center">
                 <ArrowRight className="w-6 h-6 text-text-muted" />
               </div>
               
@@ -192,8 +200,8 @@ export function TheFlowSection() {
                 <ChevronDown className="w-5 h-5 text-text-muted" />
               </div>
 
-              {/* Step 3: You get (large, dominant, ~45%) */}
-              <div className="flex flex-col items-center text-center space-y-3 lg:space-y-4 flex-1 lg:flex-[0.45] w-full">
+              {/* Step 3: You get (large, dominant) */}
+              <div className="flex flex-col items-center text-center space-y-2 lg:space-y-3">
                 <div className="w-full">
                   <ReadoutHeroVisual phase={2} />
                 </div>

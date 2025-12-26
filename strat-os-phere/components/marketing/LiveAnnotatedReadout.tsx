@@ -11,13 +11,11 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { SectionHeader } from "./SectionHeader"
 import { Reveal } from "./motion"
-import { ConfidencePill } from "./ConfidencePill"
 import { sampleAnalysis } from "./sampleReadoutData"
 import { Play, Pause } from "lucide-react"
 
@@ -25,7 +23,8 @@ type AnnotationId = "recommendation" | "evidence" | "confidence" | "scorecard" |
 
 interface Annotation {
   id: AnnotationId
-  label: string
+  number: number
+  caption: string
   explanation: string
   targetSelector: string // CSS selector for the element to highlight
 }
@@ -33,32 +32,37 @@ interface Annotation {
 const annotations: Annotation[] = [
   {
     id: "recommendation",
-    label: "Recommendation",
-    explanation: "One call, not a list. Clear enough to act on.",
+    number: 1,
+    caption: "The call",
+    explanation: "One recommendation, clearly stated.",
     targetSelector: "[data-annotation='recommendation']",
   },
   {
     id: "evidence",
-    label: "Evidence",
-    explanation: "Every claim links to a source you can open.",
+    number: 2,
+    caption: "The proof",
+    explanation: "Sources you can open and share.",
     targetSelector: "[data-annotation='evidence']",
   },
   {
     id: "confidence",
-    label: "Confidence",
-    explanation: "Bounded by coverage, not vibes.",
+    number: 3,
+    caption: "The bounds",
+    explanation: "Confidence is tied to coverage.",
     targetSelector: "[data-annotation='confidence']",
   },
   {
     id: "scorecard",
-    label: "Scorecard",
-    explanation: "Why this ranks above other bets.",
+    number: 4,
+    caption: "The score",
+    explanation: "Why this outranks other bets.",
     targetSelector: "[data-annotation='scorecard']",
   },
   {
     id: "what-would-change",
-    label: "What would change",
-    explanation: "Signals that could strengthen or erase the edge.",
+    number: 5,
+    caption: "The trigger",
+    explanation: "What would change the conclusion.",
     targetSelector: "[data-annotation='what-would-change']",
   },
 ]
@@ -102,11 +106,16 @@ export function LiveAnnotatedReadout() {
     }
   }
 
-  // Update highlight overlay position
+  // Update highlight overlay position with percentage-based positioning
   useEffect(() => {
     if (!activeAnnotation || !readoutRef.current || !highlightOverlayRef.current) {
       if (highlightOverlayRef.current) {
         highlightOverlayRef.current.style.display = "none"
+      }
+      // Hide spotlight mask
+      const spotlightMask = readoutRef.current?.querySelector('[data-spotlight-mask]') as HTMLElement
+      if (spotlightMask) {
+        spotlightMask.style.display = "none"
       }
       return
     }
@@ -121,12 +130,33 @@ export function LiveAnnotatedReadout() {
     const containerRect = container.getBoundingClientRect()
     const targetRect = target.getBoundingClientRect()
 
+    // Calculate positions in pixels (absolute positioning within container)
+    const top = targetRect.top - containerRect.top + container.scrollTop
+    const left = targetRect.left - containerRect.left
+    const width = targetRect.width
+    const height = targetRect.height
+
     const overlay = highlightOverlayRef.current
     overlay.style.display = "block"
-    overlay.style.top = `${targetRect.top - containerRect.top + container.scrollTop}px`
-    overlay.style.left = `${targetRect.left - containerRect.left}px`
-    overlay.style.width = `${targetRect.width}px`
-    overlay.style.height = `${targetRect.height}px`
+    overlay.style.top = `${top}px`
+    overlay.style.left = `${left}px`
+    overlay.style.width = `${width}px`
+    overlay.style.height = `${height}px`
+
+    // Update spotlight mask position - subtle dimming effect
+    const spotlightMask = readoutRef.current?.querySelector('[data-spotlight-mask]') as HTMLElement
+    if (spotlightMask) {
+      const centerX = (left + width / 2) / containerRect.width
+      const centerY = (top + height / 2) / container.scrollHeight
+      const radius = Math.max(width, height) * 1.5
+      const maxRadius = Math.sqrt(containerRect.width ** 2 + container.scrollHeight ** 2)
+      const radiusPercent = (radius / maxRadius) * 100
+      
+      spotlightMask.style.display = "block"
+      // Use inline style with calculated values for radial gradient
+      const gradient = `radial-gradient(ellipse ${radiusPercent * 2}% ${radiusPercent * 2}% at ${centerX * 100}% ${centerY * 100}%, transparent 0%, transparent 30%, rgba(0, 0, 0, 0.04) 100%)`
+      spotlightMask.style.background = gradient
+    }
   }, [activeAnnotation])
 
   // Handle tour playback
@@ -176,11 +206,60 @@ export function LiveAnnotatedReadout() {
         </Reveal>
 
         <Reveal delay={60}>
+          {/* Mobile: Annotation Rail (Top) */}
+          <div className="lg:hidden mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-text-primary">Steps</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={isTourPlaying ? stopTour : startTour}
+                className="text-xs h-8"
+              >
+                {isTourPlaying ? (
+                  <>
+                    <Pause className="w-3 h-3 mr-1.5" />
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3 h-3 mr-1.5" />
+                    Play tour
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {annotations.map((annotation) => (
+                <button
+                  key={annotation.id}
+                  onClick={() => handleAnnotationClick(annotation.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200",
+                    activeAnnotation === annotation.id
+                      ? "border-accent-primary bg-accent-primary/5 shadow-sm"
+                      : "border-border-subtle bg-white hover:border-accent-primary/30 hover:bg-surface-muted/50"
+                  )}
+                >
+                  <span className="text-xs font-semibold text-text-muted">{annotation.number}.</span>
+                  <span className="text-xs font-medium text-text-primary">{annotation.caption}</span>
+                </button>
+              ))}
+            </div>
+            {activeAnnotationData && (
+              <div className="mt-3 p-3 rounded-lg border border-border-subtle bg-surface-muted/30">
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  {activeAnnotationData.explanation}
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             {/* Desktop: Annotation Rail (Left) */}
             <div className="hidden lg:flex flex-col gap-3 w-64 flex-shrink-0">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-text-primary">Annotations</h3>
+                <h3 className="text-sm font-semibold text-text-primary">Steps</h3>
                 <Button
                   variant="outline"
                   size="sm"
@@ -212,7 +291,15 @@ export function LiveAnnotatedReadout() {
                         : "border-border-subtle bg-white hover:border-accent-primary/30 hover:bg-surface-muted/50"
                     )}
                   >
-                    <p className="text-sm font-medium text-text-primary">{annotation.label}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-semibold text-text-muted">{annotation.number}.</span>
+                      <p className="text-sm font-medium text-text-primary">{annotation.caption}</p>
+                    </div>
+                    {activeAnnotation === annotation.id && (
+                      <p className="text-xs text-text-secondary leading-relaxed mt-1">
+                        {annotation.explanation}
+                      </p>
+                    )}
                   </button>
                 ))}
               </div>
@@ -224,10 +311,19 @@ export function LiveAnnotatedReadout() {
                 ref={readoutRef}
                 className="relative bg-white rounded-lg shadow-lg border border-border-subtle overflow-auto max-h-[800px]"
               >
-                {/* Highlight Overlay */}
+                {/* Spotlight mask overlay - dims everything except active region */}
+                <div
+                  data-spotlight-mask
+                  className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-300"
+                  style={{
+                    display: "none",
+                  }}
+                />
+                
+                {/* Highlight Overlay - thin outline with mild glow */}
                 <div
                   ref={highlightOverlayRef}
-                  className="absolute pointer-events-none z-10 rounded-md border-2 border-accent-primary bg-accent-primary/5 shadow-[0_0_0_4px_rgba(var(--accent-primary)/0.1)] transition-all duration-300"
+                  className="absolute pointer-events-none z-20 rounded-md border border-accent-primary/40 bg-transparent shadow-[0_0_0_1px_rgba(79,70,229,0.15),0_0_12px_rgba(79,70,229,0.1)] transition-all duration-300"
                   style={{ display: "none" }}
                 />
 
@@ -236,16 +332,12 @@ export function LiveAnnotatedReadout() {
                   {/* Recommendation Section */}
                   <div
                     data-annotation="recommendation"
-                    className={cn(
-                      "pb-6 border-b border-border-subtle transition-all duration-300",
-                      activeAnnotation === "recommendation" && "bg-accent-primary/5 -mx-6 md:-mx-8 px-6 md:px-8 pt-6 rounded-t-lg"
-                    )}
+                    className="pb-6 border-b border-border-subtle"
                   >
                     <h3 className="text-lg md:text-xl font-semibold text-text-primary leading-snug mb-4">
                       {sampleAnalysis.recommendation.title}
                     </h3>
                     <div className="flex flex-wrap items-center gap-4 text-sm">
-                      <ConfidencePill level={sampleAnalysis.recommendation.confidenceLevel} />
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-text-primary">
                           {sampleAnalysis.recommendation.score} / 100
@@ -284,14 +376,10 @@ export function LiveAnnotatedReadout() {
                   {/* Confidence Section */}
                   <div
                     data-annotation="confidence"
-                    className={cn(
-                      "py-6 border-b border-border-subtle transition-all duration-300",
-                      activeAnnotation === "confidence" && "bg-accent-primary/5 -mx-6 md:-mx-8 px-6 md:px-8 rounded-lg"
-                    )}
+                    className="py-6 border-b border-border-subtle"
                   >
                     <div className="flex items-center gap-3 mb-4">
-                      <ConfidencePill level={sampleAnalysis.recommendation.confidenceLevel} />
-                      <span className="text-sm text-text-secondary">
+                      <span className="text-sm font-semibold text-text-primary">
                         {sampleAnalysis.recommendation.confidence}
                       </span>
                     </div>
@@ -304,10 +392,7 @@ export function LiveAnnotatedReadout() {
                   {/* Scorecard Section */}
                   <div
                     data-annotation="scorecard"
-                    className={cn(
-                      "py-6 border-b border-border-subtle transition-all duration-300",
-                      activeAnnotation === "scorecard" && "bg-accent-primary/5 -mx-6 md:-mx-8 px-6 md:px-8 rounded-lg"
-                    )}
+                    className="py-6 border-b border-border-subtle"
                   >
                     <h4 className="text-sm font-semibold text-text-primary mb-4">Scorecard</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -335,19 +420,9 @@ export function LiveAnnotatedReadout() {
                   {/* Evidence Section */}
                   <div
                     data-annotation="evidence"
-                    className={cn(
-                      "py-6 border-b border-border-subtle transition-all duration-300",
-                      activeAnnotation === "evidence" && "bg-accent-primary/5 -mx-6 md:-mx-8 px-6 md:px-8 rounded-lg"
-                    )}
+                    className="py-6 border-b border-border-subtle"
                   >
                     <h4 className="text-sm font-semibold text-text-primary mb-4">Evidence</h4>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {sampleAnalysis.evidence.types.map((type, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs px-2 py-0.5">
-                          {type.type} ({type.count})
-                        </Badge>
-                      ))}
-                    </div>
                     <div className="space-y-2">
                       {sampleAnalysis.evidence.sources.slice(0, 5).map((source, idx) => (
                         <div
@@ -362,9 +437,9 @@ export function LiveAnnotatedReadout() {
                           >
                             <span>{source.domain}{source.path}</span>
                           </a>
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                          <span className="text-text-muted text-[10px]">
                             {source.type}
-                          </Badge>
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -373,10 +448,7 @@ export function LiveAnnotatedReadout() {
                   {/* What Would Change Section */}
                   <div
                     data-annotation="what-would-change"
-                    className={cn(
-                      "pt-6 transition-all duration-300",
-                      activeAnnotation === "what-would-change" && "bg-accent-primary/5 -mx-6 md:-mx-8 px-6 md:px-8 pb-6 rounded-b-lg"
-                    )}
+                    className="pt-6"
                   >
                     <h4 className="text-sm font-semibold text-text-primary mb-3">
                       What would change this decision?
@@ -393,62 +465,6 @@ export function LiveAnnotatedReadout() {
                 </div>
               </div>
 
-              {/* Explanation Panel */}
-              {activeAnnotationData && (
-                <div className="mt-4 p-4 rounded-lg border border-border-subtle bg-surface-muted/30">
-                  <p className="text-sm text-text-secondary leading-relaxed">
-                    {activeAnnotationData.explanation}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile: Annotation Chips (Horizontal Row) */}
-            <div className="lg:hidden">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-text-primary">Annotations</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={isTourPlaying ? stopTour : startTour}
-                  className="text-xs h-8"
-                >
-                  {isTourPlaying ? (
-                    <>
-                      <Pause className="w-3 h-3 mr-1.5" />
-                      Pause
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-3 h-3 mr-1.5" />
-                      Play tour
-                    </>
-                  )}
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {annotations.map((annotation) => (
-                  <button
-                    key={annotation.id}
-                    onClick={() => handleAnnotationClick(annotation.id)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200",
-                      activeAnnotation === annotation.id
-                        ? "border-accent-primary bg-accent-primary/10 text-accent-primary"
-                        : "border-border-subtle bg-white text-text-secondary hover:border-accent-primary/30 hover:text-text-primary"
-                    )}
-                  >
-                    {annotation.label}
-                  </button>
-                ))}
-              </div>
-              {activeAnnotationData && (
-                <div className="mt-3 p-3 rounded-lg border border-border-subtle bg-surface-muted/30">
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {activeAnnotationData.explanation}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </Reveal>
