@@ -7,6 +7,7 @@ import {
 import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { createArtifact, listArtifacts } from '@/lib/data/artifacts'
 import { getProjectSafe } from '@/lib/data/projectsContract'
+import { setRunFailed } from '@/lib/data/projectRuns'
 import {
   assertHasCompetitors,
   COMPETITOR_PROFILE_ARTIFACT_TYPES,
@@ -1246,12 +1247,17 @@ export async function generateResultsV2(
     // Mark run as failed in database
     try {
       const supabase = await createClient()
-      const { updateAnalysisRun } = await import('@/lib/data/runs')
-      await updateAnalysisRun(supabase, runId, {
-        status: 'failed',
+      const errorCode = isAppError(error) ? error.code : 'UNEXPECTED_ERROR'
+      const result = await setRunFailed(supabase, runId, {
+        error_code: errorCode,
         error_message: error instanceof Error ? error.message : String(error),
-        completed_at: new Date().toISOString(),
       })
+      if (!result.ok) {
+        logger.error('Failed to update run status on error', {
+          runId,
+          error: result.error.message,
+        })
+      }
     } catch (dbError) {
       logger.error('Failed to update run status on error', {
         runId,
