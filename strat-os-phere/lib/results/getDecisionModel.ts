@@ -14,6 +14,64 @@ import type { Opportunity } from '@/lib/contracts/domain'
 import { OpportunitySchema } from '@/lib/contracts/domain'
 
 /**
+ * Extract run ID from artifact (drift-safe across versions)
+ * 
+ * Strategy:
+ * 1. Prefer artifactRow.run_id (if available - most authoritative)
+ * 2. Fall back to normalized artifact's runId (already extracted from content.meta)
+ * 3. Fall back to content.meta.* fields directly (best-effort across versions)
+ * 
+ * This helper isolates version quirks so PR 1.5 can standardize metadata cleanly.
+ */
+type MaybeRunId = string | null | undefined
+
+function extractRunIdFromArtifact(args: {
+  artifactRowRunId?: MaybeRunId
+  normalizedRunId?: MaybeRunId
+  artifactContent?: unknown
+}): string | null {
+  // 1) Prefer DB row metadata if present (most authoritative)
+  if (args.artifactRowRunId) return args.artifactRowRunId
+
+  // 2) Use normalized artifact's runId (already extracted from content.meta)
+  if (args.normalizedRunId) return args.normalizedRunId
+
+  // 3) Best-effort fallback to content.meta.* across versions
+  const content = args.artifactContent as any
+  const meta = content?.meta ?? content?.content?.meta ?? content?.content?.metadata ?? null
+
+  const candidate =
+    meta?.run_id ??
+    meta?.runId ??
+    meta?.artifactRunId ?? // keep as fallback for backwards compatibility
+    meta?.generated_by_run_id ??
+    null
+
+  return typeof candidate === 'string' && candidate.length > 0 ? candidate : null
+}
+
+/**
+ * Extract generated_at timestamp from artifact (drift-safe across versions)
+ * 
+ * Strategy:
+ * 1. Use normalized artifact's generatedAt (already extracted)
+ * 2. Fall back to content.meta.* fields directly (best-effort across versions)
+ */
+function extractGeneratedAt(args: {
+  normalizedGeneratedAt?: MaybeRunId
+  artifactContent?: unknown
+}): string | null {
+  // 1) Use normalized artifact's generatedAt (already extracted from content.meta)
+  if (args.normalizedGeneratedAt) return args.normalizedGeneratedAt
+
+  // 2) Best-effort fallback to content.meta.* across versions
+  const a = args.artifactContent as any
+  const meta = a?.content?.meta ?? a?.meta ?? null
+  const candidate = meta?.generated_at ?? meta?.generatedAt ?? null
+  return typeof candidate === 'string' ? candidate : null
+}
+
+/**
  * Get canonical decision model (opportunities) for a project
  * 
  * Returns opportunities in the canonical contract shape.
@@ -123,9 +181,15 @@ export async function getDecisionModel(
     }
   }
   
-  // Extract metadata
-  const runId = bestOpportunities.artifactRunId || null
-  const generatedAt = bestOpportunities.content?.meta?.generated_at || null
+  // Extract metadata (drift-safe: use normalized fields + fallbacks)
+  const runId = extractRunIdFromArtifact({
+    normalizedRunId: bestOpportunities.runId,
+    artifactContent: bestOpportunities,
+  })
+  const generatedAt = extractGeneratedAt({
+    normalizedGeneratedAt: bestOpportunities.generatedAt,
+    artifactContent: bestOpportunities,
+  })
   
   return {
     opportunities,
