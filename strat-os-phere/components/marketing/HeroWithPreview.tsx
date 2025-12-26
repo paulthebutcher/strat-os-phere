@@ -36,8 +36,8 @@ export function HeroWithPreview() {
       <div className="relative z-10">
         <MarketingContainer maxWidth="6xl">
           <div className="flex flex-col gap-6 sm:gap-8 md:gap-10">
-            {/* Top: Copy and CTAs */}
-            <div className="max-w-[1100px] mx-auto text-center space-y-5 sm:space-y-6">
+            {/* Top: Copy and CTAs - PRIMARY READING PATH */}
+            <div className="max-w-[55ch] mx-auto text-center space-y-5 sm:space-y-6">
               <Reveal delay={0}>
                 <h1 className={cn(
                   "editorial-headline mx-auto"
@@ -48,16 +48,16 @@ export function HeroWithPreview() {
               
               <Reveal delay={60}>
                 <p className={cn(
-                  "editorial-body text-text-primary max-w-[65ch] mx-auto"
+                  "editorial-body text-text-primary max-w-[55ch] mx-auto"
                 )}>
-                  See where you're ahead—and why it holds up when challenged.
+                  Turn competitive evidence into strategic bets you can defend in skeptical rooms.
                 </p>
               </Reveal>
 
               <Reveal delay={90}>
                 <div className="flex flex-col items-center gap-2.5">
                   <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center items-center w-full">
-                    <Link href="/new" className="w-full sm:w-auto">
+                    <Link href="/example" className="w-full sm:w-auto">
                       <Button 
                         size="lg" 
                         variant="brand"
@@ -66,10 +66,10 @@ export function HeroWithPreview() {
                           HoverLift.className
                         )}
                       >
-                        Pressure-test an idea →
+                        See an example decision
                       </Button>
                     </Link>
-                    <Link href="/example" className="w-full sm:w-auto">
+                    <Link href="/how-plinth-thinks" className="w-full sm:w-auto">
                       <Button 
                         size="lg" 
                         variant="outline" 
@@ -78,11 +78,11 @@ export function HeroWithPreview() {
                           HoverLift.subtle
                         )}
                       >
-                        See a real readout →
+                        How it works
                       </Button>
                     </Link>
                   </div>
-                  <p className="editorial-meta mt-0.5">Get a defensible readout in minutes</p>
+                  <p className="editorial-meta mt-0.5">Built for leaders who need more than analysis—they need conviction.</p>
                 </div>
               </Reveal>
             </div>
@@ -99,6 +99,10 @@ export function HeroWithPreview() {
               <div className="shadow-2xl rounded-xl overflow-hidden border-2 border-slate-200/50">
                 <HeroReadoutReveal variant="full" />
               </div>
+              {/* Editorial footnote: time & effort cue */}
+              <p className="text-center editorial-meta mt-4 text-text-secondary">
+                Analyzed 47 sources across 4 evidence types · Generated in 3.2 minutes
+              </p>
             </div>
           </div>
         </MarketingContainer>

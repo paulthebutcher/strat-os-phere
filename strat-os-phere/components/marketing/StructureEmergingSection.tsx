@@ -20,17 +20,16 @@ import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
 import { StructureEmergingPanel } from "./StructureEmergingPanel"
-import { SignatureMark } from "./SignatureMark"
 import { cn } from "@/lib/utils"
 
 export function StructureEmergingSection() {
   return (
-    <MarketingSection tone="alt" density="normal">
+    <MarketingSection tone="alt" density="dense">
       <MarketingContainer maxWidth="6xl">
         <div className="flex flex-col gap-6 sm:gap-8">
-          {/* Section headline - centered, compact with color moment */}
+          {/* Section headline - centered, compact with color moment - PRIMARY READING PATH */}
           <Reveal>
-            <div className="text-center space-y-2 sm:space-y-3 max-w-3xl mx-auto">
+            <div className="text-center space-y-2 sm:space-y-3 max-w-[55ch] mx-auto">
               <h2 className={cn(
                 "text-2xl sm:text-3xl md:text-4xl lg:text-4xl",
                 "font-semibold tracking-tight text-text-primary leading-tight",
@@ -38,13 +37,9 @@ export function StructureEmergingSection() {
                 "whitespace-nowrap lg:whitespace-nowrap",
                 "max-w-full"
               )}>
-                <SignatureMark variant="tick" delay={100} />
-                <span className="ml-2">
-                  Evidence creates <span className="color-moment-highlight">structure</span>
-                </span>
-                <SignatureMark variant="underline" delay={200} />
+                Evidence creates <span className="color-moment-highlight">structure</span>
               </h2>
-              <p className="text-sm sm:text-base text-text-secondary">
+              <p className="text-sm sm:text-base text-text-secondary leading-snug">
                 The fog lifts. Fragments align. Signals group. Boundaries appear.
               </p>
             </div>

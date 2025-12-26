@@ -16,7 +16,7 @@ interface MarketingSectionProps {
   /** Visual treatment variant */
   tone?: "default" | "alt" | "subtle"
   /** Vertical spacing density */
-  density?: "tight" | "normal" | "spacious"
+  density?: "tight" | "normal" | "spacious" | "dense"
   /** Legacy variant prop (maps to tone) */
   variant?: "default" | "muted" | "gradient" | "bordered" | "tinted"
   className?: string
@@ -46,6 +46,7 @@ export function MarketingSection({
     tight: "py-12 sm:py-14 md:py-16",
     normal: "py-16 sm:py-18 md:py-20",
     spacious: "py-20 sm:py-24 md:py-28",
+    dense: "py-10 sm:py-12 md:py-14", // Reduced padding for evidence-heavy areas
   }
   
   // Subtle section separator (not heavy borders) - removed for cleaner transitions

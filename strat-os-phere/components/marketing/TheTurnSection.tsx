@@ -30,7 +30,8 @@ export function TheTurnSection() {
     <PaperSection tone="paper" className="my-16 sm:my-20 md:my-24">
       <MarketingContainer maxWidth="6xl">
         <Reveal>
-          <div className="text-center space-y-4 mb-8 max-w-[65ch] mx-auto">
+          {/* PRIMARY READING PATH - Core claim */}
+          <div className="text-center space-y-4 mb-8 max-w-[55ch] mx-auto">
             <h2 className={cn(
               "editorial-section-headline mx-auto relative inline-block",
               "whitespace-nowrap lg:whitespace-nowrap",

@@ -27,12 +27,12 @@ import { cn } from "@/lib/utils"
 
 export function OutcomeExampleSection() {
   return (
-    <MarketingSection tone="alt" density="normal">
+    <MarketingSection tone="alt" density="dense">
       <MarketingContainer maxWidth="6xl">
         <Reveal>
           <div className="flex flex-col gap-6 sm:gap-8">
-            {/* Section headline - centered, compact */}
-            <div className="text-center space-y-4 max-w-[65ch] mx-auto">
+            {/* Section headline - centered, compact - PRIMARY READING PATH */}
+            <div className="text-center space-y-4 max-w-[55ch] mx-auto">
               <h2 className={cn(
                 "editorial-section-headline mx-auto relative inline-block",
                 "whitespace-nowrap lg:whitespace-nowrap",
@@ -45,7 +45,7 @@ export function OutcomeExampleSection() {
                 </span>
                 <SignatureMark variant="underline" delay={200} />
               </h2>
-              <p className="editorial-body mx-auto">
+              <p className="editorial-body mx-auto leading-snug">
                 The recommendation. The confidence. The evidence. The conditions that would change it.
               </p>
             </div>
@@ -53,8 +53,12 @@ export function OutcomeExampleSection() {
             {/* Hero Outcome Artifact - centered, heroic with settling motion */}
             <Reveal delay={60}>
               <ArtifactSettle delay={100}>
-                <div className="flex justify-center">
+                <div className="flex flex-col items-center">
                   <OutcomeArtifact className="w-full max-w-5xl" />
+                  {/* Editorial footnote: time & effort cue */}
+                  <p className="editorial-meta mt-4 text-text-secondary text-center">
+                    Synthesized from 47 verifiable sources · Confidence calculated across 4 evidence dimensions
+                  </p>
                 </div>
               </ArtifactSettle>
             </Reveal>

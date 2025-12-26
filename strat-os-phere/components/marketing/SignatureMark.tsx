@@ -49,6 +49,8 @@ export function SignatureMark({
 
   // Tick variant - small vertical mark on left
   if (variant === "tick") {
+    // Subtle imperfection: minor offset to reinforce physicality
+    const offsetX = 0.5 // Small horizontal offset
     return (
       <span
         ref={ref}
@@ -59,13 +61,14 @@ export function SignatureMark({
       >
         <span
           className={cn(
-            "absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4",
+            "absolute top-1/2 -translate-y-1/2 w-[2px] h-4",
             "bg-accent-primary",
             "origin-center",
             "transition-transform duration-[150ms] ease-out",
             isVisible ? "scale-y-100" : "scale-y-0"
           )}
           style={{
+            left: `${offsetX}px`,
             transitionDelay: `${delay}ms`,
           }}
         />
@@ -75,6 +78,8 @@ export function SignatureMark({
 
   // Underline variant - horizontal line that draws in
   if (variant === "underline") {
+    // Subtle imperfection: minor vertical offset to reinforce physicality
+    const offsetY = -0.5 // Small vertical offset
     return (
       <span
         ref={ref}
@@ -85,13 +90,14 @@ export function SignatureMark({
       >
         <span
           className={cn(
-            "absolute bottom-0 left-0 right-0 h-[2px]",
+            "absolute left-0 right-0 h-[2px]",
             "bg-gradient-to-r from-accent-primary via-accent-primary/80 to-transparent",
             "origin-left",
             "transition-transform duration-[150ms] ease-out",
             isVisible ? "scale-x-100" : "scale-x-0"
           )}
           style={{
+            bottom: `${offsetY}px`,
             transitionDelay: `${delay}ms`,
           }}
         />
@@ -101,11 +107,27 @@ export function SignatureMark({
 
   // Punch variant - receipt-style dots on an edge
   if (variant === "punch") {
+    // Subtle imperfection: minor offsets based on position
+    const offsets = {
+      top: { x: 0, y: 0.5 },
+      bottom: { x: 0, y: -0.5 },
+      left: { x: 0.5, y: 0 },
+      right: { x: -0.5, y: 0 },
+    }
+    const offset = offsets[punchPosition]
+    
     const positionClasses = {
-      top: "absolute top-0 left-1/2 -translate-x-1/2 flex gap-1",
-      bottom: "absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-1",
-      left: "absolute left-0 top-1/2 -translate-y-1/2 flex flex-col gap-1",
-      right: "absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-1",
+      top: "absolute left-1/2 -translate-x-1/2 flex gap-1",
+      bottom: "absolute left-1/2 -translate-x-1/2 flex gap-1",
+      left: "absolute top-1/2 -translate-y-1/2 flex flex-col gap-1",
+      right: "absolute top-1/2 -translate-y-1/2 flex flex-col gap-1",
+    }
+
+    const positionStyles = {
+      top: { top: `${offset.y}px` },
+      bottom: { bottom: `${-offset.y}px` },
+      left: { left: `${offset.x}px` },
+      right: { right: `${-offset.x}px` },
     }
 
     return (
@@ -123,6 +145,7 @@ export function SignatureMark({
             isVisible ? "opacity-100" : "opacity-0"
           )}
           style={{
+            ...positionStyles[punchPosition],
             transitionDelay: `${delay}ms`,
           }}
         >
@@ -145,11 +168,27 @@ export function SignatureMark({
 
   // CornerCut variant - subtle corner notch
   if (variant === "cornerCut") {
+    // Subtle imperfection: minor offsets based on corner position
+    const cornerOffsets = {
+      "top-left": { x: 0.5, y: 0.5 },
+      "top-right": { x: -0.5, y: 0.5 },
+      "bottom-left": { x: 0.5, y: -0.5 },
+      "bottom-right": { x: -0.5, y: -0.5 },
+    }
+    const offset = cornerOffsets[cornerPosition]
+    
     const cornerClasses = {
-      "top-left": "top-0 left-0 border-t border-l",
-      "top-right": "top-0 right-0 border-t border-r",
-      "bottom-left": "bottom-0 left-0 border-b border-l",
-      "bottom-right": "bottom-0 right-0 border-b border-r",
+      "top-left": "border-t border-l",
+      "top-right": "border-t border-r",
+      "bottom-left": "border-b border-l",
+      "bottom-right": "border-b border-r",
+    }
+
+    const cornerStyles = {
+      "top-left": { top: `${offset.y}px`, left: `${offset.x}px` },
+      "top-right": { top: `${offset.y}px`, right: `${-offset.x}px` },
+      "bottom-left": { bottom: `${-offset.y}px`, left: `${offset.x}px` },
+      "bottom-right": { bottom: `${-offset.y}px`, right: `${-offset.x}px` },
     }
 
     return (
@@ -169,6 +208,7 @@ export function SignatureMark({
             isVisible ? "opacity-100" : "opacity-0"
           )}
           style={{
+            ...cornerStyles[cornerPosition],
             transitionDelay: `${delay}ms`,
             clipPath: cornerPosition === "top-left" 
               ? "polygon(0 0, 0 100%, 100% 0)"

@@ -24,10 +24,11 @@ import { cn } from "@/lib/utils"
 
 export function WhyItHoldsUpSection() {
   return (
-    <MarketingSection tone="default" density="normal">
+    <MarketingSection tone="default" density="dense">
       <MarketingContainer maxWidth="6xl">
         <Reveal>
-          <div className="text-center space-y-4 mb-8 max-w-[65ch] mx-auto">
+          {/* PRIMARY READING PATH - Core claim */}
+          <div className="text-center space-y-4 mb-8 max-w-[55ch] mx-auto">
             <h2 className={cn(
               "editorial-section-headline mx-auto relative inline-block",
               "whitespace-nowrap lg:whitespace-nowrap",
@@ -40,7 +41,7 @@ export function WhyItHoldsUpSection() {
               </span>
               <SignatureMark variant="underline" delay={200} />
             </h2>
-            <p className="editorial-body mx-auto">
+            <p className="editorial-body mx-auto leading-snug">
               Closed loops. Clean timelines. Fewer artifacts, more resolution.
             </p>
           </div>

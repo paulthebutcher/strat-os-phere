@@ -8,13 +8,15 @@
  */
 
 import type {
+  ArtifactSettleProps,
   RevealProps,
   StaggerProps,
-  ArtifactSettleProps,
 } from "./index"
 
 // Type checks - if any of these are missing, TypeScript will error
-export type _CheckRevealProps = RevealProps
-export type _CheckStaggerProps = StaggerProps
-export type _CheckArtifactSettleProps = ArtifactSettleProps
+export type _MotionExportsAreValid = {
+  ArtifactSettleProps: ArtifactSettleProps
+  RevealProps: RevealProps
+  StaggerProps: StaggerProps
+}
 
