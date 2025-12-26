@@ -1,3 +1,6 @@
+-- REFERENCE ONLY - DO NOT RUN DIRECTLY
+-- These columns do not exist in production. Latest run info is derived from artifacts/project_runs.
+--
 -- Migration: Add latest_successful_run_id and latest_run_id to projects table
 -- Run this in your Supabase SQL editor or via migration tool
 

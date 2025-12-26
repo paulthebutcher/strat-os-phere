@@ -1,3 +1,6 @@
+-- REFERENCE ONLY - DO NOT RUN DIRECTLY
+-- This SQL is for reference only. Check supabase/migrations/ for the actual migration.
+--
 -- Migration: Create evidence_cache table for optimized evidence fetching
 -- Run this in your Supabase SQL editor or via migration tool
 

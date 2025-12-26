@@ -1,3 +1,6 @@
+-- REFERENCE ONLY - DO NOT RUN DIRECTLY
+-- This SQL is for reference only. Check supabase/migrations/ for the actual migration.
+--
 -- Migration: Create competitors table for PR-3
 -- This table stores competitor companies with their primary websites
 -- Run this in your Supabase SQL editor or via migration tool
