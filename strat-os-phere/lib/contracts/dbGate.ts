@@ -8,11 +8,25 @@
  */
 
 import type { TypedSupabaseClient } from '@/lib/supabase/types'
+import type { AnalysisRunRow } from '@/lib/supabase/types'
 import { getAnalysisRunById } from '@/lib/data/runs'
 import { listArtifacts } from '@/lib/data/artifacts'
 import { RunStatusSchema, ArtifactSchema } from './domain'
 import { SchemaMismatchError } from '@/lib/errors/errors'
 import { z } from 'zod'
+
+/**
+ * Safely extract updated_at from AnalysisRunRow, handling schema drift.
+ * Falls back to created_at if updated_at is not present.
+ */
+function getRunUpdatedAt(runRecord: AnalysisRunRow): string {
+  const r = runRecord as AnalysisRunRow & {
+    updated_at?: string | null
+    updatedAt?: string | null
+  }
+
+  return (r.updated_at ?? r.updatedAt ?? runRecord.created_at) as string
+}
 
 /**
  * Validate and gate a run status read
@@ -44,7 +58,7 @@ export async function gateRunStatus(
     currentStep: undefined, // Not in DB yet
     stepStatus: undefined, // Not in DB yet
     createdAt: runRecord.created_at,
-    updatedAt: runRecord.updated_at || runRecord.created_at,
+    updatedAt: getRunUpdatedAt(runRecord),
     error: runRecord.error
       ? {
           code: 'INTERNAL_ERROR',
