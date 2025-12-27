@@ -3,6 +3,7 @@
 import { ProjectSidebar } from '@/components/nav/ProjectSidebar'
 import { SidebarProvider, useSidebar } from '@/components/nav/SidebarContext'
 import { cn } from '@/lib/utils'
+import { appGutter } from '@/lib/ui/tokens'
 
 interface ProjectLayoutShellProps {
   projectId: string
@@ -33,13 +34,13 @@ function ProjectLayoutShellInner({
       <main
         className={cn(
           'flex-1 relative z-0 transition-[margin-left] duration-200 ease-out',
-          // Expanded: 240px sidebar + 24px gap = 264px
-          'md:ml-[264px]',
-          // Collapsed: 64px sidebar + 24px gap = 88px
-          isCollapsed && 'md:ml-[88px]'
+          // Expanded: 240px sidebar
+          'md:ml-[240px]',
+          // Collapsed: 64px sidebar
+          isCollapsed && 'md:ml-[64px]'
         )}
       >
-        <div className="pt-0 md:pt-0">
+        <div className={cn("pt-0 md:pt-0", appGutter.combined)}>
           {children}
         </div>
       </main>
@@ -60,7 +61,8 @@ function ProjectLayoutShellInner({
  * Layout spacing:
  * - Sidebar-to-main gutter: 24px for tight spacing (max allowed)
  * - Sidebar width: 240px expanded, 64px collapsed
- * - Main content margin-left: 264px expanded (240px + 24px), 88px collapsed (64px + 24px)
+ * - Main content margin-left: 240px expanded (sidebar width), 64px collapsed (sidebar width)
+ * - Main content padding-left: 16px on mobile, 24px on desktop (creates the gutter)
  */
 export function ProjectLayoutShell(props: ProjectLayoutShellProps) {
   return (

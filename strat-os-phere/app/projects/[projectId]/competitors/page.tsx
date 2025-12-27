@@ -224,7 +224,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
 
   return (
     <PageGuidanceWrapper pageId={PAGE_IDS.competitors}>
-      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
+      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center pr-4">
         <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
           <header className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">

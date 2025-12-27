@@ -11,6 +11,7 @@ import { RegenerateButton } from '@/components/results/RegenerateButton'
 import { GenerateResultsV2Button } from '@/components/results/GenerateResultsV2Button'
 import { MIN_COMPETITORS_FOR_ANALYSIS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
+import { appGutter } from '@/lib/ui/tokens'
 
 interface AppShellProps {
   children: React.ReactNode
@@ -201,7 +202,7 @@ export function AppShell({
 
       {/* Main Content */}
       <main className="flex-1 md:ml-64">
-        <div className="pt-0 md:pt-0">
+        <div className={cn("pt-0 md:pt-0", appGutter.combined)}>
           {children}
         </div>
       </main>

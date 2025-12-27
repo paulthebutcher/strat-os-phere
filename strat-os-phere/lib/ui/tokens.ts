@@ -12,6 +12,14 @@ export const sectionPaddingY = 'py-8 sm:py-12'
 export const cardRadius = 'rounded-lg'
 export const shadowCard = 'shadow-sm'
 
+// App shell layout tokens
+// Gutter between left nav and main content: 24px on desktop, 16px on mobile
+export const appGutter = {
+  mobile: 'pl-4', // 16px
+  desktop: 'pl-6', // 24px
+  combined: 'pl-4 md:pl-6', // Responsive: 16px mobile, 24px desktop
+} as const
+
 // Typography tokens
 export const textStyles = {
   heading: {
