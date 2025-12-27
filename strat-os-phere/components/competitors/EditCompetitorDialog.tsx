@@ -1,11 +1,17 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { MAX_EVIDENCE_CHARS } from '@/lib/constants'
 import type { Competitor } from '@/lib/supabase/types'
 import { cn } from '@/lib/utils'
@@ -37,9 +43,8 @@ export function EditCompetitorDialog({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const dialogRef = useRef<HTMLDivElement>(null)
-  const previousFocusRef = useRef<HTMLElement | null>(null)
 
+  // Reset form when dialog opens or competitor changes
   useEffect(() => {
     if (open) {
       setName(competitor.name)
@@ -47,65 +52,15 @@ export function EditCompetitorDialog({
       setEvidence(competitor.evidence_text ?? '')
       setError(null)
       setSuccess(null)
-      // Store the previously focused element
-      previousFocusRef.current = document.activeElement as HTMLElement
-      // Focus the first input when dialog opens
-      setTimeout(() => {
-        const firstInput = dialogRef.current?.querySelector('input') as HTMLInputElement
-        firstInput?.focus()
-      }, 0)
-    } else {
-      // Restore focus when dialog closes
-      if (previousFocusRef.current) {
-        previousFocusRef.current.focus()
-      }
     }
   }, [open, competitor])
 
-  // Handle escape key
-  useEffect(() => {
-    if (!open) return
-
-    function handleEscape(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !saving) {
-        setOpen(false)
-      }
+  // Prevent closing dialog while saving
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!saving) {
+      setOpen(newOpen)
     }
-
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [open, saving])
-
-  // Focus trap
-  useEffect(() => {
-    if (!open || !dialogRef.current) return
-
-    const dialog = dialogRef.current
-    const focusableElements = dialog.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
-    const firstElement = focusableElements[0]
-    const lastElement = focusableElements[focusableElements.length - 1]
-
-    function handleTab(e: KeyboardEvent) {
-      if (e.key !== 'Tab') return
-
-      if (e.shiftKey) {
-        if (document.activeElement === firstElement) {
-          e.preventDefault()
-          lastElement?.focus()
-        }
-      } else {
-        if (document.activeElement === lastElement) {
-          e.preventDefault()
-          firstElement?.focus()
-        }
-      }
-    }
-
-    dialog.addEventListener('keydown', handleTab)
-    return () => dialog.removeEventListener('keydown', handleTab)
-  }, [open])
+  }
 
   const evidenceLength = evidence.length
   const evidenceQuality = getEvidenceQuality(evidenceLength)
@@ -211,47 +166,16 @@ export function EditCompetitorDialog({
         Edit
       </Button>
 
-      {open ? (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 px-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !saving) {
-              setOpen(false)
-            }
-          }}
-        >
-          <div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={`edit-competitor-${competitor.id}-title`}
-            className="panel w-full max-w-lg px-6 py-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <h2
-                  id={`edit-competitor-${competitor.id}-title`}
-                  className="text-sm font-semibold"
-                >
-                  Edit competitor
-                </h2>
-                <p className="text-xs text-text-secondary">
-                  {competitor.name}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={saving}
-                className="rounded-full px-2 text-sm text-text-secondary hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
-                aria-label="Close dialog"
-              >
-                <span aria-hidden="true">✕</span>
-              </button>
-            </div>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit competitor</DialogTitle>
+            <p className="text-xs text-text-secondary mt-1">
+              {competitor.name}
+            </p>
+          </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label
                   htmlFor={`edit-name-${competitor.id}`}
@@ -345,24 +269,23 @@ export function EditCompetitorDialog({
                 </p>
               ) : null}
 
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setOpen(false)}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" size="sm" disabled={saving}>
-                  {saving ? 'Saving…' : 'Save changes'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setOpen(false)}
+                disabled={saving}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" disabled={saving}>
+                {saving ? 'Saving…' : 'Save changes'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

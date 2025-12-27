@@ -2,6 +2,12 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { toastSuccess, toastError } from '@/lib/toast/toast'
 
 interface ShareButtonProps {
@@ -89,31 +95,20 @@ export function ShareButton({ projectId }: ShareButtonProps) {
     }
   }
 
-  if (!isOpen) {
-    return (
+  return (
+    <>
       <Button onClick={handleOpen} variant="outline" type="button">
         Share readout
       </Button>
-    )
-  }
 
-  return (
-    <>
-      {/* Modal overlay */}
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-        onClick={() => setIsOpen(false)}
-      >
-        <div
-          className="relative w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-lg"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Share readout</h2>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share readout</DialogTitle>
             <p className="mt-1 text-sm text-muted-foreground">
               Anyone with this link can view
             </p>
-          </div>
+          </DialogHeader>
 
           {loading && !shareUrl && (
             <div className="py-4 text-sm text-muted-foreground">Creating share link...</div>
@@ -165,8 +160,8 @@ export function ShareButton({ projectId }: ShareButtonProps) {
               </Button>
             )}
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
