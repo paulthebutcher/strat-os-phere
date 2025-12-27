@@ -26,14 +26,14 @@ export function PageShell({
   return (
     <div 
       className={cn(
-        "flex min-h-[calc(100vh-57px)] items-start justify-center",
+        "flex h-[calc(100vh-57px)] min-h-0 items-start justify-center",
         noLeftPadding ? "pr-4" : "px-4",
         className
       )}
       {...props}
     >
       <main className={cn(
-        "flex w-full flex-col gap-8 py-8 md:py-10 animate-fade-in",
+        "flex w-full flex-col gap-8 py-8 md:py-10 animate-fade-in min-h-0 overflow-y-auto",
         size === "default" ? "max-w-7xl" : "max-w-6xl"
       )}>
         {children}

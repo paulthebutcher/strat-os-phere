@@ -34,11 +34,14 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
   // Lock body scroll when dialog is open
+  // Store original overflow value and restore it on cleanup
   React.useEffect(() => {
-    const originalStyle = window.getComputedStyle(document.body).overflow
+    const originalOverflow = document.body.style.overflow
+    const computedOverflow = window.getComputedStyle(document.body).overflow
     document.body.style.overflow = 'hidden'
     return () => {
-      document.body.style.overflow = originalStyle
+      // Restore original value if it was set, otherwise restore computed value
+      document.body.style.overflow = originalOverflow || computedOverflow
     }
   }, [])
 

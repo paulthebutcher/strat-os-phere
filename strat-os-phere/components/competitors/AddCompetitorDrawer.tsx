@@ -15,11 +15,14 @@ export function AddCompetitorDrawer({
 }: AddCompetitorDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
+  const originalOverflowRef = useRef<string>('')
 
   useEffect(() => {
     if (open) {
       // Store the previously focused element
       previousFocusRef.current = document.activeElement as HTMLElement
+      // Store original overflow value before locking (both style and computed)
+      originalOverflowRef.current = document.body.style.overflow || window.getComputedStyle(document.body).overflow
       // Prevent body scroll when drawer is open
       document.body.style.overflow = 'hidden'
       // Focus the first input when drawer opens
@@ -28,11 +31,18 @@ export function AddCompetitorDrawer({
         firstInput?.focus()
       }, 100)
     } else {
-      // Restore body scroll
-      document.body.style.overflow = ''
       // Restore focus when drawer closes
       if (previousFocusRef.current) {
         previousFocusRef.current.focus()
+      }
+    }
+    
+    // Cleanup: always restore scroll when effect re-runs or component unmounts
+    return () => {
+      if (open) {
+        // Restore original overflow value
+        const originalValue = originalOverflowRef.current
+        document.body.style.overflow = originalValue || ''
       }
     }
   }, [open])

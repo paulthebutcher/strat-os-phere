@@ -40,7 +40,7 @@ export function ProjectAppShell({
   className,
 }: ProjectAppShellProps) {
   return (
-    <div className="flex min-h-[calc(100vh-57px)] relative">
+    <div className="flex h-[calc(100vh-57px)] min-h-0 relative">
       <ProjectNav
         projectId={projectId}
         projectTitle={projectTitle}
@@ -52,7 +52,7 @@ export function ProjectAppShell({
       {/* Sidebar-to-main gutter: 24px for tight spacing (max allowed) */}
       <main
         className={cn(
-          'flex-1 relative z-0',
+          'flex-1 relative z-0 min-h-0 overflow-y-auto',
           // Desktop: sidebar is 240px, content starts after it
           'md:ml-[240px]',
           // Main content padding creates the 24px gutter

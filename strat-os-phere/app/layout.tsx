@@ -41,7 +41,7 @@ export default async function RootLayout({
           <Suspense fallback={null}>
             <Nav />
           </Suspense>
-          <div className="min-h-screen">
+          <div className="w-full">
             {children}
           </div>
           <RunToasts />
