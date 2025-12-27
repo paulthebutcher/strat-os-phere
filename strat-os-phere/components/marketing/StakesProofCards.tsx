@@ -29,6 +29,7 @@ export function StakesProofCards({ className }: StakesProofCardsProps) {
           copy="Strategic decisions typically take 6–12 weeks to resolve. During that time, teams wait—or move in parallel without coordination."
           proofPoint="Planning cycles, review meetings, rework."
           visual={<TimeVisual />}
+          colorClass="text-indigo-600"
         />
 
         {/* Card 2 - Cost */}
@@ -37,6 +38,7 @@ export function StakesProofCards({ className }: StakesProofCardsProps) {
           copy="Delays multiply cost across engineering capacity, leadership review cycles, and external research spend."
           proofPoint="One unresolved decision touches 5–10 people repeatedly."
           visual={<CostVisual />}
+          colorClass="text-blue-600"
         />
 
         {/* Card 3 - Opportunity */}
@@ -45,6 +47,7 @@ export function StakesProofCards({ className }: StakesProofCardsProps) {
           copy="While teams wait, competitors move, markets shift, budgets lock, and strategic windows close."
           proofPoint="Opportunity cost rarely appears on a roadmap."
           visual={<OpportunityVisual />}
+          colorClass="text-emerald-600"
         />
 
         {/* Card 4 - Drift */}
@@ -53,6 +56,7 @@ export function StakesProofCards({ className }: StakesProofCardsProps) {
           copy="The biggest risk isn't choosing wrong. It's never choosing—and letting inertia decide the outcome."
           proofPoint="Indecision is still a strategy (just not yours)."
           visual={<DriftVisual />}
+          colorClass="text-amber-600"
         />
       </div>
 
@@ -71,13 +75,14 @@ interface ProofCardProps {
   copy: string
   proofPoint: string
   visual: React.ReactNode
+  colorClass: string
 }
 
-function ProofCard({ title, copy, proofPoint, visual }: ProofCardProps) {
+function ProofCard({ title, copy, proofPoint, visual, colorClass }: ProofCardProps) {
   return (
     <div className="bg-white border border-border-subtle rounded-lg shadow-sm p-6 space-y-5">
       {/* Simplified visual motif */}
-      <div className="h-12 flex items-center justify-center text-text-muted/30">
+      <div className={cn("h-12 flex items-center justify-center", colorClass)}>
         {visual}
       </div>
 
@@ -116,14 +121,14 @@ function TimeVisual() {
         x2="90"
         y2="16"
         stroke="currentColor"
-        strokeWidth="1"
+        strokeWidth="1.5"
         strokeDasharray="3 2"
-        opacity="0.25"
+        opacity="0.8"
       />
       {/* Timeline markers */}
-      <line x1="25" y1="12" x2="25" y2="20" stroke="currentColor" strokeWidth="1" opacity="0.25" />
-      <line x1="50" y1="12" x2="50" y2="20" stroke="currentColor" strokeWidth="1" opacity="0.25" />
-      <line x1="75" y1="12" x2="75" y2="20" stroke="currentColor" strokeWidth="1" opacity="0.25" />
+      <line x1="25" y1="12" x2="25" y2="20" stroke="currentColor" strokeWidth="1.5" opacity="0.8" />
+      <line x1="50" y1="12" x2="50" y2="20" stroke="currentColor" strokeWidth="1.5" opacity="0.8" />
+      <line x1="75" y1="12" x2="75" y2="20" stroke="currentColor" strokeWidth="1.5" opacity="0.8" />
     </svg>
   )
 }
@@ -132,11 +137,11 @@ function CostVisual() {
   return (
     <div className="w-full h-full flex items-end justify-center gap-1.5 px-4">
       {/* Simplified stacked bars */}
-      <div className="h-4 w-1.5 bg-current opacity-20" />
-      <div className="h-6 w-1.5 bg-current opacity-25" />
-      <div className="h-8 w-1.5 bg-current opacity-30" />
-      <div className="h-7 w-1.5 bg-current opacity-25" />
-      <div className="h-9 w-1.5 bg-current opacity-30" />
+      <div className="h-4 w-2 bg-current opacity-75" />
+      <div className="h-6 w-2 bg-current opacity-80" />
+      <div className="h-8 w-2 bg-current opacity-90" />
+      <div className="h-7 w-2 bg-current opacity-80" />
+      <div className="h-9 w-2 bg-current opacity-90" />
     </div>
   )
 }
@@ -155,16 +160,16 @@ function OpportunityVisual() {
       <path
         d="M 20 24 L 45 16 L 65 14"
         stroke="currentColor"
-        strokeWidth="1"
+        strokeWidth="1.5"
         fill="none"
-        opacity="0.2"
+        opacity="0.8"
       />
       <path
         d="M 20 24 L 45 16 L 70 18 L 85 22"
         stroke="currentColor"
-        strokeWidth="1"
+        strokeWidth="1.5"
         fill="none"
-        opacity="0.2"
+        opacity="0.8"
       />
     </svg>
   )
@@ -185,27 +190,27 @@ function DriftVisual() {
         x="20"
         y="14"
         width="50"
-        height="2"
+        height="2.5"
         fill="currentColor"
-        opacity="0.2"
+        opacity="0.8"
         rx="1"
       />
       <rect
         x="24"
         y="18"
         width="50"
-        height="2"
+        height="2.5"
         fill="currentColor"
-        opacity="0.2"
+        opacity="0.8"
         rx="1"
       />
       <rect
         x="28"
         y="22"
         width="50"
-        height="2"
+        height="2.5"
         fill="currentColor"
-        opacity="0.2"
+        opacity="0.8"
         rx="1"
       />
     </svg>

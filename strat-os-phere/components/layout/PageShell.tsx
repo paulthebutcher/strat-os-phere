@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils"
 export interface PageShellProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode
   size?: "default" | "wide"
+  /** If true, removes left padding for use in layouts with sidebar spacing */
+  noLeftPadding?: boolean
 }
 
 /**
@@ -11,19 +13,21 @@ export interface PageShellProps extends React.HTMLAttributes<HTMLDivElement> {
  * 
  * Provides standardized page container with:
  * - Max width (default: 7xl, wide: 6xl for content-focused pages)
- * - Horizontal padding (responsive)
+ * - Horizontal padding (responsive, can be disabled on left for sidebar layouts)
  * - Vertical padding (consistent)
  */
 export function PageShell({
   children,
   size = "default",
+  noLeftPadding = false,
   className,
   ...props
 }: PageShellProps) {
   return (
     <div 
       className={cn(
-        "flex min-h-[calc(100vh-57px)] items-start justify-center px-4",
+        "flex min-h-[calc(100vh-57px)] items-start justify-center",
+        noLeftPadding ? "pr-4" : "px-4",
         className
       )}
       {...props}
