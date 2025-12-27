@@ -59,9 +59,7 @@ export function ProjectAppShell({
           appGutter.combined
         )}
       >
-        <div className="pt-0 md:pt-0">
-          {children}
-        </div>
+        {children}
       </main>
     </div>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Plus, CheckCircle2, Circle, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,6 +25,7 @@ import type { Competitor } from '@/lib/supabase/types'
 import { addCompetitorFromSearch } from '@/app/projects/[projectId]/competitors/actions'
 import { normalizeUrl, toDisplayDomain } from '@/lib/url/normalizeUrl'
 import { normalizeDomain } from '@/lib/competitors/domainFilters'
+import type { SuggestionsStatus } from '@/lib/competitors/getCompetitorsPageModel'
 
 interface CompetitorsPageClientProps {
   projectId: string
@@ -32,6 +33,8 @@ interface CompetitorsPageClientProps {
   competitorCount: number
   readyForAnalysis: boolean
   remainingToReady: number
+  suggestionsStatus?: SuggestionsStatus
+  suggestedNamesCount?: number
 }
 
 type CompetitorCandidate = {
@@ -48,8 +51,12 @@ export function CompetitorsPageClient({
   competitorCount,
   readyForAnalysis,
   remainingToReady,
+  suggestionsStatus,
+  suggestedNamesCount = 0,
 }: CompetitorsPageClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const debugMode = process.env.NODE_ENV !== 'production' && searchParams?.get('debug') === '1'
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<CompetitorCandidate[]>([])
@@ -680,6 +687,24 @@ export function CompetitorsPageClient({
           compact
         />
       </AddCompetitorDrawer>
+
+      {/* Debug mode (dev-only) */}
+      {debugMode && (
+        <div className="mt-8 p-4 border border-border rounded-lg bg-muted/30">
+          <h3 className="text-sm font-semibold mb-2">Debug Info</h3>
+          <pre className="text-xs overflow-auto">
+            {JSON.stringify(
+              {
+                competitorCount,
+                suggestionsStatus,
+                suggestedNamesCount,
+              },
+              null,
+              2
+            )}
+          </pre>
+        </div>
+      )}
     </>
   )
 }

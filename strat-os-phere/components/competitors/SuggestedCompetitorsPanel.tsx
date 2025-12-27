@@ -51,7 +51,7 @@ export function SuggestedCompetitorsPanel({
     try {
       const result = await refreshCompetitorSuggestions(projectId)
 
-      if (!result.success) {
+      if (!result.ok) {
         setError(result.message || 'Failed to refresh suggestions. Please try again.')
         setIsRefreshing(false)
         return

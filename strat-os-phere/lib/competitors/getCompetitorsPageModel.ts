@@ -12,6 +12,11 @@ import { loadProject } from '@/lib/projects/loadProject'
 import { logger } from '@/lib/logger'
 import { normalizeUrl } from '@/lib/url/normalizeUrl'
 
+export type SuggestionsStatus =
+  | { state: 'ready'; source: 'step1' | 'refresh'; count: number }
+  | { state: 'empty'; reason?: 'no_step1_context' | 'no_results' }
+  | { state: 'error'; code: string; message: string; recoverable: boolean }
+
 export type CompetitorsPageModel = {
   projectId: string
   decisionSummary?: {
@@ -34,6 +39,7 @@ export type CompetitorsPageModel = {
     confidence?: 'high' | 'medium' | 'low'
     reason?: string
   }>
+  suggestionsStatus: SuggestionsStatus
   state: {
     canSuggest: boolean
     isEmpty: boolean
@@ -118,6 +124,7 @@ export async function getCompetitorsPageModel(
     projectId,
     existingCompetitors: [],
     suggestions: [],
+    suggestionsStatus: { state: 'empty', reason: 'no_step1_context' },
     state: {
       canSuggest: false,
       isEmpty: true,
@@ -201,7 +208,7 @@ export async function getCompetitorsPageModel(
     // Continue - we can still show manual add
   }
 
-  // 4. Process suggestions from saved names (defensive)
+  // 4. Process suggestions from saved names and determine status (defensive)
   if (suggestedCompetitorNames.length > 0) {
     // Convert saved names to suggestion objects
     // URLs will be resolved when user confirms, but we can show names now
@@ -214,12 +221,27 @@ export async function getCompetitorsPageModel(
         confidence: 'medium' as const,
       }
     })
+    
+    // Determine source: if decision context exists, likely from step1; otherwise refresh
+    // We can't know for sure, but default to 'step1' if we have context
+    const source: 'step1' | 'refresh' = model.state.hasDecisionContext ? 'step1' : 'refresh'
+    model.suggestionsStatus = {
+      state: 'ready',
+      source,
+      count: suggestedCompetitorNames.length,
+    }
   } else if (model.state.hasDecisionContext) {
     // No suggestions saved, but we have context - can suggest
-    model.errors.suggestionsLoad = 'No suggestions available. Click "Find competitors" to search.'
+    model.suggestionsStatus = {
+      state: 'empty',
+      reason: 'no_results',
+    }
   } else {
     // No context, can't suggest
-    model.errors.suggestionsLoad = 'Complete Step 1 first to enable competitor suggestions'
+    model.suggestionsStatus = {
+      state: 'empty',
+      reason: 'no_step1_context',
+    }
   }
 
   return model

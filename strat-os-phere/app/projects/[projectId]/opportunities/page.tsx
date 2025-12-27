@@ -293,7 +293,7 @@ export default async function OpportunitiesPage(props: OpportunitiesPageProps) {
 
     return (
       <PageGuidanceWrapper pageId={PAGE_IDS.results}>
-        <PageShell size="wide">
+        <PageShell size="wide" noLeftPadding>
           {/* Breadcrumb Navigation */}
           <PageSection>
             <ProjectBreadcrumbs

@@ -26,7 +26,7 @@ export function FindCompetitorsCard({ projectId }: FindCompetitorsCardProps) {
     try {
       const result = await refreshCompetitorSuggestions(projectId)
 
-      if (!result.success) {
+      if (!result.ok) {
         setError(result.message || 'Failed to search for competitors. Please try again.')
         setIsSearching(false)
         return
@@ -54,11 +54,29 @@ export function FindCompetitorsCard({ projectId }: FindCompetitorsCardProps) {
           We can search for competitors based on your decision context from Step 1.
           This will search the web and suggest relevant companies for your analysis.
         </p>
+        <p className="text-xs text-muted-foreground italic">
+          We couldn't find strong matches yet—try refining your market/category or add manually.
+        </p>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3">
-          <p className="text-sm font-medium text-destructive">{error}</p>
+        <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-4 py-3">
+          <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
+            Couldn't fetch suggested competitors
+          </p>
+          <p className="text-xs text-yellow-800 dark:text-yellow-200 mt-1">
+            {error}
+          </p>
+          <div className="flex gap-2 mt-3">
+            <Button
+              onClick={handleFind}
+              variant="outline"
+              size="sm"
+              disabled={isSearching}
+            >
+              Try again
+            </Button>
+          </div>
         </div>
       )}
 

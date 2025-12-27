@@ -171,7 +171,7 @@ export default async function OpportunityDetailPage(props: OpportunityDetailPage
 
     return (
       <PageGuidanceWrapper pageId={PAGE_IDS.opportunityDetail}>
-        <PageShell size="wide">
+        <PageShell size="wide" noLeftPadding>
           {/* Breadcrumb Navigation */}
           <PageSection>
             <ProjectBreadcrumbs

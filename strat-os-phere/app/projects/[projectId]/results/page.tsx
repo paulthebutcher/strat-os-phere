@@ -298,7 +298,7 @@ export default async function ResultsPage(props: ResultsPageProps) {
         initialRun={uiRun}
         initialArtifacts={results.artifacts}
       >
-        <PageShell size="wide">
+        <PageShell size="wide" noLeftPadding>
           {/* First Win Checklist in Guided Mode */}
           <FirstWinChecklistWrapper
             projectId={projectId}

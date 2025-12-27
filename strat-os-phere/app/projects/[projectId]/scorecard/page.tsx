@@ -141,7 +141,7 @@ export default async function ScorecardPage(props: ScorecardPageProps) {
     const { scoringMatrix } = normalized
 
     return (
-      <PageShell size="wide">
+      <PageShell size="wide" noLeftPadding>
         {/* Breadcrumb Navigation */}
         <PageSection>
           <ProjectBreadcrumbs

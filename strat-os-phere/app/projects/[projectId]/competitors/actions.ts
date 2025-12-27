@@ -18,7 +18,7 @@ import { loadProject } from '@/lib/projects/loadProject'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { getLatestProjectInput, updateProjectInput, upsertProjectInput } from '@/lib/data/projectInputs'
-import { tavilySearch } from '@/lib/tavily/client'
+import { tavilySearch, TavilyError } from '@/lib/tavily/client'
 
 type ActionResult = {
   success: boolean
@@ -293,30 +293,46 @@ export async function confirmSuggestedCompetitors(
       if (!name || !name.trim()) continue
 
       // Call the competitors suggest API to resolve URL
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/competitors/suggest`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: name.trim(),
-          }),
-        }
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        if (data.ok && Array.isArray(data.candidates) && data.candidates.length > 0) {
-          // Use the first (highest scoring) candidate
-          const candidate = data.candidates[0]
-          if (candidate.url) {
-            competitorsToAdd.push({
-              name: candidate.name || name.trim(),
-              url: candidate.url,
-            })
-            continue
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/competitors/suggest`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: name.trim(),
+            }),
           }
+        )
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.ok && Array.isArray(data.candidates) && data.candidates.length > 0) {
+            // Use the first (highest scoring) candidate
+            const candidate = data.candidates[0]
+            if (candidate.url) {
+              competitorsToAdd.push({
+                name: candidate.name || name.trim(),
+                url: candidate.url,
+              })
+              continue
+            }
+          }
+        } else {
+          // Log API error but continue with fallback
+          const errorData = await response.json().catch(() => ({}))
+          logger.warn('[confirmSuggestedCompetitors] API error for name', {
+            name: name.trim(),
+            status: response.status,
+            error: errorData.error,
+          })
         }
+      } catch (error) {
+        // Log fetch error but continue with fallback
+        logger.warn('[confirmSuggestedCompetitors] Fetch error for name', {
+          name: name.trim(),
+          error: error instanceof Error ? error.message : String(error),
+        })
       }
 
       // Fallback: create competitor with placeholder URL if resolution fails
@@ -394,38 +410,61 @@ export async function confirmSuggestedCompetitors(
   }
 }
 
+export type RefreshSuggestionsResult =
+  | { ok: true; names: string[]; saved: boolean }
+  | {
+      ok: false
+      code:
+        | 'MISSING_API_KEY'
+        | 'TAVILY_ERROR'
+        | 'TIMEOUT'
+        | 'NO_CONTEXT'
+        | 'NO_RESULTS'
+        | 'UNKNOWN'
+      message: string
+    }
+
 /**
  * Refresh competitor suggestions using Tavily search
  * Reads decision context from project_inputs and saves suggestions
- * Never throws - always returns success/error result
+ * Never throws - always returns structured result with error codes
  */
 export async function refreshCompetitorSuggestions(
   projectId: string
-): Promise<ActionResult & { suggestions?: string[] }> {
+): Promise<RefreshSuggestionsResult> {
   const { supabase } = await requireProjectAccess(projectId)
 
   try {
     // 1. Load decision context from project inputs
     const inputResult = await getLatestProjectInput(supabase, projectId)
-    
+
     if (!inputResult.ok || !inputResult.data) {
+      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=NO_CONTEXT details=no_project_inputs')
       return {
-        success: false,
+        ok: false,
+        code: 'NO_CONTEXT',
         message: 'No decision context found. Complete Step 1 first.',
       }
     }
 
     const inputs = inputResult.data.input_json as Record<string, any>
-    
+
     // Extract company name and context
     const companyName = inputs.your_product || inputs.companyName || ''
     const market = inputs.market || ''
-    const hypothesis = inputs.hypothesis || inputs.decision || inputs.decisionText || ''
-    
-    if (!companyName || typeof companyName !== 'string' || !companyName.trim()) {
+    const hypothesis =
+      inputs.hypothesis || inputs.decision || inputs.decisionText || ''
+
+    // Check if we have sufficient context (need at least decision text or company name)
+    const hasDecisionText = Boolean(
+      inputs.hypothesis || inputs.decision || inputs.decisionText
+    )
+    if (!hasDecisionText && (!companyName || typeof companyName !== 'string' || !companyName.trim())) {
+      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=NO_CONTEXT details=insufficient_context')
       return {
-        success: false,
-        message: 'Company name is required. Complete Step 1 first.',
+        ok: false,
+        code: 'NO_CONTEXT',
+        message: 'Decision context is required. Complete Step 1 first.',
       }
     }
 
@@ -442,9 +481,19 @@ export async function refreshCompetitorSuggestions(
       }
     }
 
-    // 3. Call Tavily (defensive - catch all errors)
+    // 3. Check if Tavily API key is configured
+    if (!process.env.TAVILY_API_KEY) {
+      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=MISSING_API_KEY details=env_var_not_set')
+      return {
+        ok: false,
+        code: 'MISSING_API_KEY',
+        message: 'Search API is not configured. Please contact support.',
+      }
+    }
+
+    // 4. Call Tavily (defensive - catch all errors)
     let tavilyResults: Array<{ title?: string; url: string; content?: string }> = []
-    
+
     try {
       const searchResult = await tavilySearch({
         query: query.trim(),
@@ -453,25 +502,50 @@ export async function refreshCompetitorSuggestions(
       })
       tavilyResults = searchResult.results || []
     } catch (error) {
-      logger.error('[competitors] Tavily search failed', { projectId, error })
+      // Map TavilyError to our error codes
+      if (error instanceof TavilyError) {
+        let code: 'MISSING_API_KEY' | 'TAVILY_ERROR' | 'TIMEOUT' | 'UNKNOWN' = 'TAVILY_ERROR'
+        if (error.code === 'MISSING_API_KEY') {
+          code = 'MISSING_API_KEY'
+        } else if (error.code === 'TIMEOUT') {
+          code = 'TIMEOUT'
+        }
+        
+        const errorMessage = error.message || 'Failed to search for competitors'
+        logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=' + code + ' details=' + errorMessage)
+        return {
+          ok: false,
+          code,
+          message:
+            code === 'MISSING_API_KEY'
+              ? 'Search API is not configured. Please contact support.'
+              : code === 'TIMEOUT'
+                ? 'Search timed out. Please try again.'
+                : 'Failed to search for competitors. Please try again later.',
+        }
+      }
+      
+      logger.error('[competitors.refreshSuggestions] projectId=' + projectId + ' code=TAVILY_ERROR details=unexpected_error', { error })
       return {
-        success: false,
+        ok: false,
+        code: 'TAVILY_ERROR',
         message: 'Failed to search for competitors. Please try again later.',
       }
     }
 
     if (tavilyResults.length === 0) {
+      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=NO_RESULTS details=tavily_returned_empty')
       return {
-        success: false,
-        message: 'No competitors found. Try adding them manually.',
-        suggestions: [],
+        ok: false,
+        code: 'NO_RESULTS',
+        message: 'No competitors found. Try refining your search or add them manually.',
       }
     }
 
-    // 4. Extract and normalize competitor names
+    // 5. Extract and normalize competitor names
     const seenNames = new Set<string>()
     const suggestions: string[] = []
-    const userCompanyLower = companyName.toLowerCase().trim()
+    const userCompanyLower = (companyName || '').toLowerCase().trim()
 
     for (const result of tavilyResults.slice(0, 8)) {
       if (!result.url) continue
@@ -479,10 +553,10 @@ export async function refreshCompetitorSuggestions(
       try {
         const urlObj = new URL(result.url.startsWith('http') ? result.url : `https://${result.url}`)
         const domain = urlObj.hostname.replace(/^www\./, '')
-        
+
         // Extract name from title or domain
         let name = result.title || domain.split('.')[0] || domain
-        
+
         // Clean up name
         name = name
           .replace(/^(top|best|the)\s+/i, '')
@@ -495,8 +569,8 @@ export async function refreshCompetitorSuggestions(
           name.length === 0 ||
           name.length >= 50 ||
           seenNames.has(nameLower) ||
-          nameLower === userCompanyLower ||
-          domain.includes(userCompanyLower.replace(/\s+/g, ''))
+          (userCompanyLower && (nameLower === userCompanyLower ||
+          domain.includes(userCompanyLower.replace(/\s+/g, ''))))
         ) {
           continue
         }
@@ -510,34 +584,48 @@ export async function refreshCompetitorSuggestions(
     }
 
     if (suggestions.length === 0) {
+      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=NO_RESULTS details=parsing_resulted_in_zero_names')
       return {
-        success: false,
-        message: 'No valid competitors found. Try adding them manually.',
-        suggestions: [],
+        ok: false,
+        code: 'NO_RESULTS',
+        message: 'No valid competitors found. Try refining your search or add them manually.',
       }
     }
 
-    // 5. Save suggestions to project_inputs
+    // 6. Save suggestions to project_inputs
+    let saved = false
     try {
       const inputId = inputResult.data.id
-      await updateProjectInput(supabase, inputId, {
+      const updateResult = await updateProjectInput(supabase, inputId, {
         suggestedCompetitorNames: suggestions,
       })
+      saved = updateResult.ok
+      if (!saved) {
+        logger.error('[competitors.refreshSuggestions] projectId=' + projectId + ' code=UNKNOWN details=failed_to_save', { error: updateResult.error })
+      }
     } catch (error) {
-      logger.error('[competitors] Failed to save suggestions', { projectId, error })
-      // Still return success with suggestions - they can be used even if save fails
+      logger.error('[competitors.refreshSuggestions] projectId=' + projectId + ' code=UNKNOWN details=save_exception', { error })
+      // Continue - we'll return suggestions even if save fails
+    }
+
+    if (!saved) {
+      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=UNKNOWN details=save_failed_but_returning_names')
+    } else {
+      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=OK details=saved_' + suggestions.length + '_names')
     }
 
     revalidatePath(`/projects/${projectId}/competitors`)
 
     return {
-      success: true,
-      suggestions,
+      ok: true,
+      names: suggestions,
+      saved,
     }
   } catch (error) {
-    logger.error('[competitors] refreshCompetitorSuggestions failed', { projectId, error })
+    logger.error('[competitors.refreshSuggestions] projectId=' + projectId + ' code=UNKNOWN details=unexpected_error', { error })
     return {
-      success: false,
+      ok: false,
+      code: 'UNKNOWN',
       message: error instanceof Error ? error.message : 'Failed to refresh suggestions',
     }
   }

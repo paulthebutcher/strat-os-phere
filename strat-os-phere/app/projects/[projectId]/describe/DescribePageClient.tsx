@@ -174,7 +174,7 @@ export function DescribePageClient({
                 Note: {warnings.join(', ')}
               </p>
               <p className="text-xs text-muted-foreground">
-                You can still proceed to competitor selection.
+                Saved. We'll suggest competitors in the next step.
               </p>
             </div>
           )}

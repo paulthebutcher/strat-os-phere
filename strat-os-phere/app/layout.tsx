@@ -34,7 +34,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased plinth-page`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased plinth-page overflow-hidden h-screen`}
       >
         <ToastProvider>
           {/* Nav handles its own auth check - wrap in Suspense to avoid blocking layout */}

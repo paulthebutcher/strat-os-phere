@@ -167,7 +167,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
   // Render based on model state
   return (
     <PageGuidanceWrapper pageId={PAGE_IDS.competitors}>
-      <PageShell size="wide">
+      <PageShell size="wide" noLeftPadding>
           <header className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -254,19 +254,64 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
           })()}
 
           <div className="space-y-6">
-            {/* Show suggested competitors panel */}
-            {model.suggestions.length > 0 && competitorCount === 0 && (
+            {/* Show suggested competitors panel when ready */}
+            {model.suggestionsStatus.state === 'ready' && competitorCount === 0 && (
               <SuggestedCompetitorsPanel
                 projectId={projectId}
                 suggestedNames={model.suggestions.map((s) => s.name)}
               />
             )}
 
-            {/* Show "Find competitors" button if no suggestions but can suggest */}
-            {model.suggestions.length === 0 && 
-             model.state.canSuggest && 
+            {/* Show "Find competitors" card when empty (but can suggest) or error */}
+            {model.suggestionsStatus.state === 'empty' && 
+             model.suggestionsStatus.reason !== 'no_step1_context' && 
              competitorCount === 0 && (
               <FindCompetitorsCard projectId={projectId} />
+            )}
+
+            {/* Show empty state message for no_step1_context */}
+            {model.suggestionsStatus.state === 'empty' && 
+             model.suggestionsStatus.reason === 'no_step1_context' && 
+             competitorCount === 0 && (
+              <SurfaceCard className="p-6 space-y-4 border-t-4 border-t-yellow-500/20">
+                <div className="space-y-2">
+                  <h3 className="text-base font-semibold text-foreground">
+                    Add decision context to unlock suggested competitors
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Complete Step 1 (Decision) to enable automatic competitor suggestions based on your analysis context.
+                  </p>
+                </div>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href={`/projects/${projectId}/describe`}>
+                    Go to Decision step
+                  </Link>
+                </Button>
+              </SurfaceCard>
+            )}
+
+            {/* Error state callout */}
+            {model.suggestionsStatus.state === 'error' && competitorCount === 0 && (
+              <SurfaceCard className="p-4 border-yellow-500/20 bg-yellow-500/10">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
+                      Couldn't fetch suggested competitors
+                    </p>
+                    <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                      {model.suggestionsStatus.message}
+                    </p>
+                    <div className="flex gap-2 mt-3">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/projects/${projectId}/describe`}>
+                          Go back to Decision step
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </SurfaceCard>
             )}
 
             {/* Main competitors UI - always show, even if empty */}
@@ -276,6 +321,8 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
               competitorCount={competitorCount}
               readyForAnalysis={readyForAnalysis}
               remainingToReady={remainingToReady}
+              suggestionsStatus={model.suggestionsStatus}
+              suggestedNamesCount={model.suggestions.length}
             />
             
             {/* Evidence preview (only if we have competitors) */}

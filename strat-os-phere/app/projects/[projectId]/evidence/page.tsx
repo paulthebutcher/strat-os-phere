@@ -251,7 +251,7 @@ export default async function EvidencePage(props: EvidencePageProps) {
     if (!activeRunId) {
       const competitorCount = stepState?.competitorsCount ?? 0
       return (
-        <PageShell size="wide">
+        <PageShell size="wide" noLeftPadding>
           <PageHeader
             title="Evidence"
             subtitle="Supporting evidence and citations for the competitive analysis."
@@ -271,7 +271,7 @@ export default async function EvidencePage(props: EvidencePageProps) {
     const hasEvidenceForRun = evidenceSourcesForRun.length > 0
 
     return (
-      <PageShell size="wide">
+      <PageShell size="wide" noLeftPadding>
         <PageHeader
           title="Evidence"
           subtitle="Supporting evidence and citations for the competitive analysis."

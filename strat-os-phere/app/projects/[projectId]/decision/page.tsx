@@ -303,7 +303,7 @@ export default async function DecisionPage(props: DecisionPageProps) {
 
     return (
       <PageGuidanceWrapper pageId={PAGE_IDS.decision}>
-        <PageShell size="wide">
+        <PageShell size="wide" noLeftPadding>
           {/* Breadcrumb Navigation */}
           <PageSection>
             <ProjectBreadcrumbs

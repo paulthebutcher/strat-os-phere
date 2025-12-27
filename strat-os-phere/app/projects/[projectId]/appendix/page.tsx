@@ -137,7 +137,7 @@ export default async function AppendixPage(props: AppendixPageProps) {
     const normalized = normalizeResultsArtifacts(artifacts)
 
     return (
-      <PageShell size="wide">
+      <PageShell size="wide" noLeftPadding>
         <AppendixContent
           projectId={projectId}
           normalized={normalized}

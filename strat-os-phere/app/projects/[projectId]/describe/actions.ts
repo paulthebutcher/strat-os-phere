@@ -29,6 +29,11 @@ type ActionResult =
         version: number
       }
       warnings?: string[]
+      competitorSuggestion?: {
+        attempted: boolean
+        ok: boolean
+        reason?: string
+      }
     }
   | {
       success: false
@@ -92,7 +97,7 @@ export async function submitDescribeStep(
       ...(payload.marketCategory?.trim() && { marketCategory: payload.marketCategory.trim() }),
     }
 
-    // Attempt competitor inference with timeout (800-1500ms)
+    // Attempt competitor inference with timeout (1.2s)
     // This is optional - if company name is missing or inference fails/times out, we proceed with core fields only
     const inferenceTimeout = 1200 // 1.2 seconds
     const competitorInferencePromise = primaryCompanyName
@@ -105,23 +110,60 @@ export async function submitDescribeStep(
 
     let competitorNames: string[] = []
     const warnings: string[] = []
+    let competitorSuggestion:
+      | { attempted: boolean; ok: boolean; reason?: string }
+      | undefined
 
-    try {
-      const inferenceResult = await competitorInferencePromise
-      if (inferenceResult.success) {
-        competitorNames = inferenceResult.names
-      } else {
-        // Inference failed or timed out - log it and add warning
-        logger.warn('Competitor inference failed or timed out', {
-          projectId,
-          reason: inferenceResult.reason,
-        })
+    // Check if Tavily API key is configured
+    const tavilyApiKey = process.env.TAVILY_API_KEY
+
+    if (!primaryCompanyName) {
+      competitorSuggestion = { attempted: false }
+    } else if (!tavilyApiKey) {
+      competitorSuggestion = {
+        attempted: true,
+        ok: false,
+        reason: 'Missing Tavily key',
+      }
+      warnings.push('Competitor suggestions unavailable')
+    } else {
+      try {
+        const inferenceResult = await competitorInferencePromise
+        if (inferenceResult.success) {
+          competitorNames = inferenceResult.names
+          competitorSuggestion = {
+            attempted: true,
+            ok: true,
+          }
+        } else {
+          // Inference failed or timed out
+          const reason =
+            inferenceResult.reason === 'timeout'
+              ? 'Timed out'
+              : inferenceResult.reason === 'no_company_name'
+                ? 'No company name'
+                : 'Unknown error'
+          competitorSuggestion = {
+            attempted: true,
+            ok: false,
+            reason,
+          }
+          logger.warn('Competitor inference failed or timed out', {
+            projectId,
+            reason: inferenceResult.reason,
+          })
+          warnings.push('Competitor suggestions unavailable')
+        }
+      } catch (error) {
+        // Should not happen due to timeout handling, but catch just in case
+        competitorSuggestion = {
+          attempted: true,
+          ok: false,
+          reason: 'Exception',
+        }
+        logger.error('Unexpected error during competitor inference', error)
         warnings.push('Competitor suggestions unavailable')
       }
-    } catch (error) {
-      // Should not happen due to timeout handling, but catch just in case
-      logger.error('Unexpected error during competitor inference', error)
-      warnings.push('Competitor suggestions unavailable')
     }
 
     // Prepare final input JSON - include competitor names if available
@@ -170,6 +212,7 @@ export async function submitDescribeStep(
         version: inputResult.data.version,
       },
       ...(warnings.length > 0 && { warnings }),
+      ...(competitorSuggestion && { competitorSuggestion }),
     }
   } catch (error) {
     logger.error('Failed to submit describe step', error)

@@ -1,7 +1,7 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { tavilySearch } from '@/lib/tavily/client'
+import { tavilySearch, TavilyError } from '@/lib/tavily/client'
 import { logger } from '@/lib/logger'
 import { normalizeUrl, toDisplayDomain } from '@/lib/url/normalizeUrl'
 import {
@@ -162,11 +162,14 @@ export async function POST(request: Request): Promise<NextResponse> {
     // Check if Tavily is configured
     const tavilyApiKey = process.env.TAVILY_API_KEY
     if (!tavilyApiKey) {
-      return NextResponse.json({
-        ok: false,
-        candidates: [],
-        error: 'Tavily API key is not configured',
-      } satisfies SuggestCompetitorsResponse)
+      return NextResponse.json(
+        {
+          ok: false,
+          candidates: [],
+          error: 'Tavily API key is not configured',
+        } satisfies SuggestCompetitorsResponse,
+        { status: 500 }
+      )
     }
 
     // Parse and validate request
@@ -219,14 +222,41 @@ export async function POST(request: Request): Promise<NextResponse> {
         content: r.content,
       }))
     } catch (error) {
+      // Map TavilyError to appropriate response
+      if (error instanceof TavilyError) {
+        const errorMessage =
+          error.code === 'MISSING_API_KEY'
+            ? 'Search API is not configured'
+            : error.code === 'TIMEOUT'
+              ? 'Search timed out'
+              : 'Couldn\'t fetch suggestions. Try again.'
+        
+        logger.error('[competitors/suggest] Tavily search failed', {
+          code: error.code,
+          error: error.message,
+        })
+        
+        return NextResponse.json(
+          {
+            ok: false,
+            candidates: [],
+            error: errorMessage,
+          } satisfies SuggestCompetitorsResponse,
+          { status: error.code === 'MISSING_API_KEY' ? 500 : 500 }
+        )
+      }
+      
       logger.error('[competitors/suggest] Tavily search failed', {
         error: error instanceof Error ? error.message : String(error),
       })
-      return NextResponse.json({
-        ok: false,
-        candidates: [],
-        error: 'Couldn\'t fetch suggestions. Try again.',
-      } satisfies SuggestCompetitorsResponse)
+      return NextResponse.json(
+        {
+          ok: false,
+          candidates: [],
+          error: 'Couldn\'t fetch suggestions. Try again.',
+        } satisfies SuggestCompetitorsResponse,
+        { status: 500 }
+      )
     }
 
     if (tavilyResults.length === 0) {

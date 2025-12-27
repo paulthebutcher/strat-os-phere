@@ -11,10 +11,18 @@ export interface PageShellProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * PageShell - Consistent page width, horizontal padding, and vertical padding
  * 
- * Provides standardized page container with:
- * - Max width (default: 7xl, wide: 6xl for content-focused pages)
- * - Horizontal padding (responsive, can be disabled on left for sidebar layouts)
- * - Vertical padding (consistent)
+ * Scroll contract:
+ * - Standalone pages (noLeftPadding=false): PageShell owns scrolling
+ * - ProjectAppShell pages (noLeftPadding=true): ProjectAppShell main owns scrolling
+ * 
+ * When noLeftPadding=true (inside ProjectAppShell):
+ * - Does NOT set fixed height or overflow-y-auto (scroll handled by shell)
+ * - Does NOT add horizontal padding (shell provides gutter)
+ * - Simply provides flex-1 min-h-0 content wrapper with max-width and vertical padding
+ * 
+ * When noLeftPadding=false (standalone):
+ * - Sets h-[calc(100vh-57px)] and overflow-y-auto (single scroll container)
+ * - Adds px-4 horizontal padding and centers content with max-width
  */
 export function PageShell({
   children,
@@ -23,11 +31,31 @@ export function PageShell({
   className,
   ...props
 }: PageShellProps) {
+  // When inside ProjectAppShell (noLeftPadding=true): minimal wrapper, no scroll
+  if (noLeftPadding) {
+    return (
+      <div 
+        className={cn(
+          "flex flex-1 min-h-0 flex-col",
+          className
+        )}
+        {...props}
+      >
+        <div className={cn(
+          "flex w-full flex-col gap-8 py-8 md:py-10 animate-fade-in",
+          size === "default" ? "max-w-7xl" : "max-w-6xl"
+        )}>
+          {children}
+        </div>
+      </div>
+    )
+  }
+
+  // Standalone pages: PageShell owns scrolling
   return (
     <div 
       className={cn(
-        "flex h-[calc(100vh-57px)] min-h-0 items-start justify-center",
-        noLeftPadding ? "pr-4" : "px-4",
+        "flex h-[calc(100vh-57px)] min-h-0 items-start justify-center px-4",
         className
       )}
       {...props}

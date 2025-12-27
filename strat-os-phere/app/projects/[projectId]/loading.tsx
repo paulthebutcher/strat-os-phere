@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function ProjectLoading() {
   return (
-    <PageShell size="wide">
+    <PageShell size="wide" noLeftPadding>
       <PageSection>
         <Skeleton className="h-4 w-64" />
       </PageSection>
