@@ -112,7 +112,6 @@ export function AnalysisContextForm({
                     className="text-sm font-medium text-foreground"
                   >
                     Your company or product
-                    <span className="text-destructive ml-1">*</span>
                   </label>
                 </div>
                 <Input
@@ -121,7 +120,6 @@ export function AnalysisContextForm({
                   value={companyName}
                   onChange={(e) => onCompanyNameChange(e.target.value)}
                   placeholder="e.g. monday.com, Asana, PagerDuty"
-                  required
                   className="text-sm"
                 />
                 <p className="text-xs text-muted-foreground">

@@ -59,16 +59,10 @@ export function DescribePageClient({
     notes !== lastSavedValues.notes
 
   const handleSubmit = async () => {
-    // Validate required fields - decision is the primary visible required field
+    // Validate required fields - only decision framing is required
     if (!decision.trim()) {
       setStatus('error')
       setError('Decision framing is required. What are you trying to decide?')
-      return
-    }
-    // Company name is required by backend but in an accordion - validate and show error if missing
-    if (!companyName.trim()) {
-      setStatus('error')
-      setError('Company or product name is required. Please expand "Add details" and fill it in.')
       return
     }
 
@@ -78,7 +72,7 @@ export function DescribePageClient({
 
     try {
       const result = await submitDescribeStep(projectId, {
-        primaryCompanyName: companyName.trim(),
+        primaryCompanyName: companyName.trim() || undefined,
         contextText: notes.trim() || undefined,
         decisionFraming: {
           decision: decision.trim(),
@@ -125,8 +119,7 @@ export function DescribePageClient({
   const isSaved = status === 'saved'
   const isError = status === 'error'
   const isIdle = status === 'idle'
-  // Enable CTA when decision field is filled (the primary visible required field)
-  // Company name is in an accordion, so we'll validate it in handleSubmit
+  // Enable CTA when decision field is filled (the only required field)
   const canContinue = decision.trim().length > 0 && !isSaving
 
   return (

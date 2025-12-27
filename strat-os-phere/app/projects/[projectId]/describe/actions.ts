@@ -9,7 +9,7 @@ import { upsertProjectInput } from '@/lib/data/projectInputs'
 import { logger } from '@/lib/logger'
 
 interface SubmitDescribePayload {
-  primaryCompanyName: string
+  primaryCompanyName?: string
   contextText?: string
   decisionFraming?: {
     decision: string
@@ -69,21 +69,18 @@ export async function submitDescribeStep(
 ): Promise<ActionResult> {
   const { supabase } = await requireProjectAccess(projectId)
 
-  // Validate required fields
-  const primaryCompanyName = payload.primaryCompanyName?.trim()
-  if (!primaryCompanyName) {
-    return { success: false, error: 'Company name is required.' }
-  }
-
+  // Validate required fields - only decision framing is required
   const decision = payload.decisionFraming?.decision?.trim()
   if (!decision) {
     return { success: false, error: 'Decision framing is required. What are you trying to decide?' }
   }
 
+  const primaryCompanyName = payload.primaryCompanyName?.trim() || undefined
+
   try {
     // Prepare core input JSON - remove undefined values
     const coreInputJson: Record<string, any> = {
-      primaryCompanyName,
+      ...(primaryCompanyName && { primaryCompanyName }),
       decisionFraming: {
         decision,
         ...(payload.decisionFraming?.audience && { audience: payload.decisionFraming.audience }),
@@ -96,13 +93,15 @@ export async function submitDescribeStep(
     }
 
     // Attempt competitor inference with timeout (800-1500ms)
-    // This is optional - if it fails or times out, we proceed with core fields only
+    // This is optional - if company name is missing or inference fails/times out, we proceed with core fields only
     const inferenceTimeout = 1200 // 1.2 seconds
-    const competitorInferencePromise = inferCompetitorNamesWithTimeout(
-      primaryCompanyName,
-      payload.contextText,
-      inferenceTimeout
-    )
+    const competitorInferencePromise = primaryCompanyName
+      ? inferCompetitorNamesWithTimeout(
+          primaryCompanyName,
+          payload.contextText,
+          inferenceTimeout
+        )
+      : Promise.resolve({ success: false as const, reason: 'no_company_name' })
 
     let competitorNames: string[] = []
     const warnings: string[] = []
