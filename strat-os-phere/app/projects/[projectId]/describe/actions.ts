@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 
 import { loadProject } from '@/lib/projects/loadProject'
 import { createClient } from '@/lib/supabase/server'
-import { createDraftProjectInput, finalizeProjectInput } from '@/lib/data/projectInputs'
+import { upsertProjectInput } from '@/lib/data/projectInputs'
 import { logger } from '@/lib/logger'
 
 interface SubmitDescribePayload {
@@ -48,6 +48,12 @@ async function requireProjectAccess(projectId: string) {
 
 /**
  * Submit Step 1 (describe) and infer competitor names only (no URL resolution)
+ * 
+ * This function ensures durable persistence of decision framing context.
+ * - Uses upsert semantics keyed by (project_id, version=1)
+ * - Validates required fields before saving
+ * - Returns explicit errors if save fails
+ * - Blocks progression until save is confirmed
  */
 export async function submitDescribeStep(
   projectId: string,
@@ -55,40 +61,50 @@ export async function submitDescribeStep(
 ): Promise<ActionResult> {
   const { supabase } = await requireProjectAccess(projectId)
 
+  // Validate required fields
   const primaryCompanyName = payload.primaryCompanyName?.trim()
   if (!primaryCompanyName) {
     return { success: false, message: 'Company name is required.' }
   }
 
+  const decision = payload.decisionFraming?.decision?.trim()
+  if (!decision) {
+    return { success: false, message: 'Decision framing is required. What are you trying to decide?' }
+  }
+
   try {
-    // Save project inputs
+    // Prepare input JSON - remove undefined values
     const inputJson: Record<string, any> = {
       primaryCompanyName,
-      contextText: payload.contextText?.trim() || undefined,
-      decisionFraming: payload.decisionFraming,
-      marketCategory: payload.marketCategory?.trim() || undefined,
+      decisionFraming: {
+        decision,
+        ...(payload.decisionFraming?.audience && { audience: payload.decisionFraming.audience }),
+        ...(payload.decisionFraming?.audienceOtherText && { audienceOtherText: payload.decisionFraming.audienceOtherText }),
+        ...(payload.decisionFraming?.yourProduct && { yourProduct: payload.decisionFraming.yourProduct }),
+        ...(payload.decisionFraming?.horizon && { horizon: payload.decisionFraming.horizon }),
+      },
+      ...(payload.contextText?.trim() && { contextText: payload.contextText.trim() }),
+      ...(payload.marketCategory?.trim() && { marketCategory: payload.marketCategory.trim() }),
     }
 
-    // Remove undefined values
-    const cleanedInputJson: Record<string, any> = {}
-    for (const [key, value] of Object.entries(inputJson)) {
-      if (value !== undefined) {
-        cleanedInputJson[key] = value
-      }
-    }
-
-    // Create or update project input
-    const inputResult = await createDraftProjectInput(
+    // Upsert project input - Step 1 always uses version=1 for consistency
+    // This ensures a single source of truth for the decision context
+    const inputResult = await upsertProjectInput(
       supabase,
       projectId,
-      cleanedInputJson
+      1, // Step 1 uses version 1
+      inputJson,
+      'draft' // Step 1 inputs remain draft until finalized
     )
 
     if (!inputResult.ok) {
-      logger.error('Failed to save project input', { error: inputResult.error })
+      logger.error('Failed to save project input in Step 1', { 
+        error: inputResult.error,
+        projectId,
+      })
       return {
         success: false,
-        message: 'Failed to save project context. Please try again.',
+        message: inputResult.error.message || 'Failed to save decision context. Please try again.',
       }
     }
 
@@ -103,10 +119,11 @@ export async function submitDescribeStep(
     // Competitors are created only via Step 2 confirmation.
     if (competitorNames.length > 0) {
       const updatedInputJson = {
-        ...cleanedInputJson,
+        ...inputJson,
         suggestedCompetitorNames: competitorNames,
       }
-      await createDraftProjectInput(supabase, projectId, updatedInputJson)
+      // Update the same version with competitor suggestions
+      await upsertProjectInput(supabase, projectId, 1, updatedInputJson, 'draft')
     }
 
     // Dev-only logging

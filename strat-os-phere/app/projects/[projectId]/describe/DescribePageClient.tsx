@@ -1,14 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Search } from 'lucide-react'
+import { Loader2, Search, CheckCircle2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { AnalysisContextForm } from '@/components/onboarding/AnalysisContextForm'
 import { AnalysisFramingCard } from '@/components/onboarding/AnalysisFramingCard'
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
-import { CheckCircle2 } from 'lucide-react'
 import { submitDescribeStep } from './actions'
 import { microcopy } from '@/lib/copy/microcopy'
 import { PageShell } from '@/components/layout/PageShell'
@@ -21,7 +20,7 @@ interface DescribePageClientProps {
   existingInputs: Record<string, any>
 }
 
-type DiscoveryStatus = 'idle' | 'searching' | 'success' | 'error'
+type DiscoveryStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 export function DescribePageClient({
   projectId,
@@ -43,18 +42,38 @@ export function DescribePageClient({
   )
   const [status, setStatus] = useState<DiscoveryStatus>('idle')
   const [error, setError] = useState<string | null>(null)
+  const [isSaved, setIsSaved] = useState(
+    Boolean(existingInputs.primaryCompanyName && existingInputs.decisionFraming?.decision)
+  )
+
+  // Track if form has been modified since last save
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
+  // Mark form as modified when fields change
+  useEffect(() => {
+    const hasChanges = 
+      companyName !== (existingInputs.primaryCompanyName || '') ||
+      decision !== (existingInputs.decisionFraming?.decision || '') ||
+      market !== (existingInputs.marketCategory || '') ||
+      notes !== (existingInputs.contextText || '')
+    setHasUnsavedChanges(hasChanges)
+    if (hasChanges) {
+      setIsSaved(false)
+    }
+  }, [companyName, decision, market, notes, existingInputs])
 
   const handleSubmit = async () => {
+    // Validate required fields
     if (!companyName.trim()) {
-      setError('Please enter a company name')
+      setError('Company name is required.')
       return
     }
     if (!decision.trim()) {
-      setError('Please enter a decision')
+      setError('Decision framing is required. What are you trying to decide?')
       return
     }
 
-    setStatus('searching')
+    setStatus('saving')
     setError(null)
 
     try {
@@ -69,11 +88,14 @@ export function DescribePageClient({
 
       if (!result.success) {
         setStatus('error')
-        setError(result.message || 'Failed to submit. Please try again.')
+        setError(result.message || 'Failed to save decision context. Please try again.')
         return
       }
 
-      setStatus('success')
+      // Save successful - mark as saved and proceed
+      setStatus('saved')
+      setIsSaved(true)
+      setHasUnsavedChanges(false)
 
       // Navigate to Step 2 (competitors) after a brief delay
       setTimeout(() => {
@@ -84,19 +106,20 @@ export function DescribePageClient({
       setError(
         err instanceof Error
           ? err.message
-          : 'Failed to submit. Please try again.'
+          : 'Failed to save decision context. Please try again.'
       )
     }
   }
 
-  const isLoading = status === 'searching'
+  const isSaving = status === 'saving'
+  const isSavedState = status === 'saved' || isSaved
   const canContinue = companyName.trim().length > 0 && decision.trim().length > 0
 
   return (
     <PageShell>
       <PageHeader
-        title="Describe your analysis"
-        subtitle="Step 1: Tell us what you're trying to decide and we'll suggest competitors to compare against."
+        title="Frame your decision"
+        subtitle="Step 1: Define what you're deciding and the context that matters. This sets the direction for your competitive analysis."
       />
 
       <PageSection>
@@ -125,13 +148,23 @@ export function DescribePageClient({
             }}
           />
 
-          {/* Status messages */}
-          {isLoading && (
+          {/* Saved state indicator */}
+          {isSavedState && !hasUnsavedChanges && !isSaving && (
+            <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/20">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+              <p className="text-sm font-medium text-foreground">
+                Decision context saved
+              </p>
+            </div>
+          )}
+
+          {/* Saving status */}
+          {isSaving && (
             <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-muted/30">
               <Loader2 className="h-5 w-5 animate-spin text-indigo-600 dark:text-indigo-400" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">
-                  Analyzing context and finding competitors...
+                  Saving decision context...
                 </p>
               </div>
             </div>
@@ -144,11 +177,11 @@ export function DescribePageClient({
             </div>
           )}
 
-          {/* Success message */}
-          {status === 'success' && (
-            <div className="rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20 px-4 py-3">
+          {/* Success message - shown briefly before navigation */}
+          {status === 'saved' && (
+            <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/20 px-4 py-3">
               <p className="text-sm font-medium text-foreground">
-                Analysis context saved. Proceeding to competitor selection...
+                Decision context saved. Proceeding to competitor selection...
               </p>
             </div>
           )}
@@ -159,30 +192,30 @@ export function DescribePageClient({
               <Button
                 type="button"
                 onClick={handleSubmit}
-                disabled={isLoading || !canContinue}
+                disabled={isSaving || !canContinue}
                 className="flex-1"
                 size="lg"
                 variant="brand"
               >
-                {isLoading ? (
+                {isSaving ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Analyzing...
+                    Saving...
                   </>
                 ) : (
                   <>
                     <Search className="h-4 w-4 mr-2" />
-                    Continue to Competitors
+                    Save & Continue to Competitors
                   </>
                 )}
               </Button>
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground text-center">
-                {microcopy.onboarding.helperText.evidenceGuidance}
+                Your decision context is saved and will guide the competitive analysis
               </p>
               <p className="text-xs text-muted-foreground text-center">
-                Step 2: Review suggested competitors → Step 3: Evidence collection
+                Next: Review suggested competitors → Evidence collection → Analysis
               </p>
             </div>
           </div>

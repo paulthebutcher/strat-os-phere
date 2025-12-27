@@ -25,6 +25,7 @@ import { listCompetitorsForProject } from '@/lib/data/competitors'
 import { getLatestProjectInput } from '@/lib/data/projectInputs'
 import { logger } from '@/lib/logger'
 import { getProjectStepState, logStepState } from '@/lib/projects/stepState'
+import { EvidenceEmptyStateActionable } from '@/components/evidence/EvidenceEmptyStateActionable'
 
 interface EvidencePageProps {
   params: Promise<{
@@ -248,6 +249,7 @@ export default async function EvidencePage(props: EvidencePageProps) {
 
     // Show empty state if no run exists
     if (!activeRunId) {
+      const competitorCount = stepState?.competitorsCount ?? 0
       return (
         <PageShell size="wide">
           <PageHeader
@@ -255,17 +257,11 @@ export default async function EvidencePage(props: EvidencePageProps) {
             subtitle="Supporting evidence and citations for the competitive analysis."
           />
           <PageSection>
-            <div className="rounded-lg border border-border bg-card p-8 text-center">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                No analysis run yet
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Generate an analysis to start collecting evidence.
-              </p>
-              <div className="text-xs text-muted-foreground mt-4">
-                Run: none • Source: {runResolution.source}
-              </div>
-            </div>
+            <EvidenceEmptyStateActionable
+              projectId={projectId}
+              competitorCount={competitorCount}
+              evidenceSourceCount={0}
+            />
           </PageSection>
         </PageShell>
       )
@@ -299,6 +295,8 @@ export default async function EvidencePage(props: EvidencePageProps) {
             bundle={hasEvidenceForRun ? evidenceBundle : null}
             evidenceStatus={decisionRunState?.evidenceStatus ?? undefined}
             hasRun={!!activeRunId && !hasEvidenceForRun}
+            competitorCount={stepState?.competitorsCount ?? 0}
+            evidenceSourceCount={evidenceSourcesForRun.length}
           />
           {/* Show debug info in dev mode */}
           {process.env.NODE_ENV === 'development' && (

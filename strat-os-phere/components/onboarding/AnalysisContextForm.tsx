@@ -70,13 +70,13 @@ export function AnalysisContextForm({
   return (
     <SurfaceCard className="p-6 md:p-8 shadow-md border-t-4 border-t-primary/20">
       <div className="space-y-6">
-        {/* Magic input - primary field */}
+        {/* Decision input - primary field */}
         <div className="space-y-2">
           <label
             htmlFor="magicInput"
             className="text-sm font-semibold text-foreground"
           >
-            What are you trying to decide?
+            What decision are you making?
             <span className="text-destructive ml-1">*</span>
           </label>
           <Textarea
@@ -93,7 +93,7 @@ export function AnalysisContextForm({
             }}
           />
           <p className="text-xs text-muted-foreground">
-            Write it like you'd text a teammate. We'll infer what to research.
+            Describe the strategic question or decision you're facing. This shapes how we analyze competitors and identify opportunities.
           </p>
         </div>
 
@@ -111,10 +111,9 @@ export function AnalysisContextForm({
                     htmlFor="companyName"
                     className="text-sm font-medium text-foreground"
                   >
-                    Company or product name
+                    Your company or product
                     <span className="text-destructive ml-1">*</span>
                   </label>
-                  <span className="text-xs text-muted-foreground">Helps us find official sources</span>
                 </div>
                 <Input
                   id="companyName"
@@ -125,6 +124,9 @@ export function AnalysisContextForm({
                   required
                   className="text-sm"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Used to identify relevant competitors and official sources
+                </p>
               </div>
 
               {/* Market / category */}
@@ -134,9 +136,8 @@ export function AnalysisContextForm({
                     htmlFor="market"
                     className="text-sm font-medium text-foreground"
                   >
-                    Market / category
+                    Market or category
                   </label>
-                  <span className="text-xs text-muted-foreground">Improves competitor relevance</span>
                 </div>
                 <Input
                   id="market"
@@ -146,6 +147,9 @@ export function AnalysisContextForm({
                   placeholder="e.g. Project management software, Incident management platforms"
                   className="text-sm"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Helps focus the competitive landscape analysis
+                </p>
               </div>
 
               {/* Notes / constraints */}
@@ -156,18 +160,20 @@ export function AnalysisContextForm({
                       htmlFor="notes"
                       className="text-sm font-medium text-foreground"
                     >
-                      Notes / constraints
+                      Additional context or constraints
                     </label>
-                    <span className="text-xs text-muted-foreground">Constraints we should respect</span>
                   </div>
                   <Textarea
                     id="notes"
                     value={notes}
                     onChange={(e) => onNotesChange(e.target.value)}
-                    placeholder="Any additional context, constraints, or considerations..."
+                    placeholder="Any constraints, considerations, or context that should guide the analysis..."
                     rows={3}
                     className="text-sm"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Constraints, assumptions, or context that should inform the analysis
+                  </p>
                 </div>
               )}
             </AccordionContent>

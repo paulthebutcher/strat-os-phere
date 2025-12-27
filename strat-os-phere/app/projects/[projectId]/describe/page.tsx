@@ -18,8 +18,8 @@ export async function generateMetadata(props: DescribePageProps): Promise<Metada
   const projectId = params.projectId
   
   return createPageMetadata({
-    title: "Describe your analysis",
-    description: "Step 1: Describe the decision, market, and customer for your competitive analysis.",
+    title: "Frame your decision",
+    description: "Step 1: Define the decision you're making and the context that matters for your competitive analysis.",
     path: `/projects/${projectId}/describe`,
     ogVariant: "default",
     robots: {
@@ -57,11 +57,12 @@ export default async function DescribePage(props: DescribePageProps) {
 
   const project = projectResult.project
 
-  // Load existing project inputs if any
+  // Load existing Step 1 project inputs (version 1) if any
   let existingInputs: Record<string, any> = {}
   try {
-    const { getLatestProjectInput } = await import('@/lib/data/projectInputs')
-    const inputResult = await getLatestProjectInput(supabase, projectId)
+    const { getProjectInputByVersion } = await import('@/lib/data/projectInputs')
+    // Step 1 always uses version 1 for consistency
+    const inputResult = await getProjectInputByVersion(supabase, projectId, 1)
     if (inputResult.ok && inputResult.data && inputResult.data.input_json) {
       existingInputs = inputResult.data.input_json as Record<string, any>
     }

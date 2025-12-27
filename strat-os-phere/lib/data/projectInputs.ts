@@ -41,6 +41,49 @@ export type ProjectInput = {
 }
 
 /**
+ * Get a project input for a specific (project_id, version) pair.
+ */
+export async function getProjectInputByVersion(
+  client: Client,
+  projectId: string,
+  version: number
+): Promise<ProjectInputResult<ProjectInput | null>> {
+  try {
+    const typedClient = getTypedClient(client)
+    
+    const { data, error } = await typedClient
+      .from('project_inputs')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('version', version)
+      .maybeSingle()
+
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 is "no rows found" which is fine
+      logServerError('getProjectInputByVersion', error, { projectId, version })
+      return {
+        ok: false,
+        error: {
+          code: error.code || 'UNKNOWN',
+          message: error.message || 'Failed to fetch project input',
+        },
+      }
+    }
+
+    return { ok: true, data: data ? (data as ProjectInput) : null }
+  } catch (error) {
+    logServerError('getProjectInputByVersion', error, { projectId, version })
+    return {
+      ok: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      },
+    }
+  }
+}
+
+/**
  * Get the latest project input for a project.
  * 
  * Returns:
@@ -406,6 +449,138 @@ export async function finalizeProjectInput(
     return { ok: true, data: data as ProjectInput }
   } catch (error) {
     logServerError('finalizeProjectInput', error, { id })
+    return {
+      ok: false,
+      error: {
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      },
+    }
+  }
+}
+
+/**
+ * Upsert a project input for a specific (project_id, version) pair.
+ * 
+ * This function ensures create-or-update semantics:
+ * - If a row exists with the given project_id and version, it updates it
+ * - If no row exists, it creates a new one
+ * 
+ * For Step 1, use version=1 to ensure a single durable source of truth.
+ */
+export async function upsertProjectInput(
+  client: Client,
+  projectId: string,
+  version: number,
+  inputJson: Record<string, any>,
+  status: 'draft' | 'final' = 'draft'
+): Promise<ProjectInputResult<ProjectInput>> {
+  try {
+    const typedClient = getTypedClient(client)
+    
+    // Try to find existing input with this project_id and version
+    const { data: existingData, error: findError } = await typedClient
+      .from('project_inputs')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('version', version)
+      .maybeSingle()
+
+    if (findError && findError.code !== 'PGRST116') {
+      // PGRST116 is "no rows found" which is fine
+      logServerError('upsertProjectInput (find)', findError, { projectId, version })
+      return {
+        ok: false,
+        error: {
+          code: findError.code || 'UNKNOWN',
+          message: findError.message || 'Failed to check existing project input',
+        },
+      }
+    }
+
+    if (existingData) {
+      // Update existing row
+      const existingTyped = existingData as ProjectInput
+      const mergedJson = mergeInputJson(existingTyped.input_json as Record<string, any>, inputJson)
+      
+      const { data, error } = await (typedClient
+        .from('project_inputs') as any)
+        .update({
+          input_json: mergedJson,
+          status,
+        })
+        .eq('id', existingTyped.id)
+        .select()
+        .single()
+
+      if (error) {
+        logServerError('upsertProjectInput (update)', error, { projectId, version, id: existingTyped.id })
+        return {
+          ok: false,
+          error: {
+            code: error.code || 'UNKNOWN',
+            message: error.message || 'Failed to update project input',
+          },
+        }
+      }
+
+      if (!data) {
+        return {
+          ok: false,
+          error: {
+            code: 'NO_DATA',
+            message: 'No data returned from update',
+          },
+        }
+      }
+
+      // Log health event (dev-only)
+      const updatedInput = data as ProjectInput
+      logProjectInputSaved(updatedInput.project_id, updatedInput.version, updatedInput.status)
+
+      return { ok: true, data: updatedInput }
+    } else {
+      // Create new row
+      const { data, error } = await (typedClient
+        .from('project_inputs') as any)
+        .insert({
+          project_id: projectId,
+          version,
+          status,
+          input_json: inputJson,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        logServerError('upsertProjectInput (insert)', error, { projectId, version })
+        return {
+          ok: false,
+          error: {
+            code: error.code || 'UNKNOWN',
+            message: error.message || 'Failed to create project input',
+          },
+        }
+      }
+
+      if (!data) {
+        return {
+          ok: false,
+          error: {
+            code: 'NO_DATA',
+            message: 'No data returned from insert',
+          },
+        }
+      }
+
+      // Log health event (dev-only)
+      const createdInput = data as ProjectInput
+      logProjectInputSaved(createdInput.project_id, createdInput.version, createdInput.status)
+
+      return { ok: true, data: createdInput }
+    }
+  } catch (error) {
+    logServerError('upsertProjectInput', error, { projectId, version })
     return {
       ok: false,
       error: {

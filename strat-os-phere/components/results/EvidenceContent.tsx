@@ -32,6 +32,14 @@ interface EvidenceContentProps {
    * Used to show appropriate empty state messaging
    */
   hasRun?: boolean
+  /**
+   * Competitor count for empty state checklist
+   */
+  competitorCount?: number
+  /**
+   * Evidence source count for empty state checklist
+   */
+  evidenceSourceCount?: number
 }
 
 export function EvidenceContent({
@@ -44,6 +52,8 @@ export function EvidenceContent({
   bundle,
   evidenceStatus,
   hasRun = false,
+  competitorCount = 0,
+  evidenceSourceCount = 0,
 }: EvidenceContentProps) {
   // Prefer v3, fallback to v2
   const opportunities = opportunitiesV3 ?? opportunitiesV2 ?? null
@@ -120,7 +130,12 @@ export function EvidenceContent({
         <EvidencePartialPanel projectId={projectId} />
       ) : (
         // Not started: Show not started panel
-        <EvidenceNotStartedPanel projectId={projectId} hasRun={hasRun} />
+        <EvidenceNotStartedPanel 
+          projectId={projectId} 
+          hasRun={hasRun}
+          competitorCount={competitorCount}
+          evidenceSourceCount={evidenceSourceCount}
+        />
       )}
     </section>
   )
