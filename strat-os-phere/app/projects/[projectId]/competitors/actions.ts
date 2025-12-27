@@ -19,6 +19,8 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 import { getLatestProjectInput, updateProjectInput, upsertProjectInput } from '@/lib/data/projectInputs'
 import { tavilySearch, TavilyError } from '@/lib/tavily/client'
+import { makeTraceId, ok, fail, type Result } from '@/lib/telemetry/result'
+import { logInfo, logWarn, logError } from '@/lib/telemetry/log'
 
 type ActionResult = {
   success: boolean
@@ -411,17 +413,18 @@ export async function confirmSuggestedCompetitors(
 }
 
 export type RefreshSuggestionsResult =
-  | { ok: true; names: string[]; saved: boolean }
+  | { ok: true; names: string[]; saved: boolean; traceId: string }
   | {
       ok: false
       code:
-        | 'MISSING_API_KEY'
+        | 'MISSING_TAVILY_KEY'
         | 'TAVILY_ERROR'
         | 'TIMEOUT'
         | 'NO_CONTEXT'
         | 'NO_RESULTS'
         | 'UNKNOWN'
       message: string
+      traceId: string
     }
 
 /**
@@ -433,17 +436,24 @@ export async function refreshCompetitorSuggestions(
   projectId: string
 ): Promise<RefreshSuggestionsResult> {
   const { supabase } = await requireProjectAccess(projectId)
+  const traceId = makeTraceId()
 
   try {
     // 1. Load decision context from project inputs
     const inputResult = await getLatestProjectInput(supabase, projectId)
 
     if (!inputResult.ok || !inputResult.data) {
-      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=NO_CONTEXT details=no_project_inputs')
+      logInfo('competitors.refresh', {
+        traceId,
+        projectId,
+        errorCode: 'NO_CONTEXT',
+        details: 'no_project_inputs',
+      })
       return {
         ok: false,
         code: 'NO_CONTEXT',
         message: 'No decision context found. Complete Step 1 first.',
+        traceId,
       }
     }
 
@@ -460,11 +470,17 @@ export async function refreshCompetitorSuggestions(
       inputs.hypothesis || inputs.decision || inputs.decisionText
     )
     if (!hasDecisionText && (!companyName || typeof companyName !== 'string' || !companyName.trim())) {
-      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=NO_CONTEXT details=insufficient_context')
+      logInfo('competitors.refresh', {
+        traceId,
+        projectId,
+        errorCode: 'NO_CONTEXT',
+        details: 'insufficient_context',
+      })
       return {
         ok: false,
         code: 'NO_CONTEXT',
         message: 'Decision context is required. Complete Step 1 first.',
+        traceId,
       }
     }
 
@@ -483,11 +499,17 @@ export async function refreshCompetitorSuggestions(
 
     // 3. Check if Tavily API key is configured
     if (!process.env.TAVILY_API_KEY) {
-      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=MISSING_API_KEY details=env_var_not_set')
+      logWarn('competitors.refresh', {
+        traceId,
+        projectId,
+        errorCode: 'MISSING_TAVILY_KEY',
+        details: 'env_var_not_set',
+      })
       return {
         ok: false,
-        code: 'MISSING_API_KEY',
-        message: 'Search API is not configured. Please contact support.',
+        code: 'MISSING_TAVILY_KEY',
+        message: 'Competitor suggestions are unavailable in this environment.',
+        traceId,
       }
     }
 
@@ -504,41 +526,61 @@ export async function refreshCompetitorSuggestions(
     } catch (error) {
       // Map TavilyError to our error codes
       if (error instanceof TavilyError) {
-        let code: 'MISSING_API_KEY' | 'TAVILY_ERROR' | 'TIMEOUT' | 'UNKNOWN' = 'TAVILY_ERROR'
+        let code: 'MISSING_TAVILY_KEY' | 'TAVILY_ERROR' | 'TIMEOUT' | 'UNKNOWN' = 'TAVILY_ERROR'
         if (error.code === 'MISSING_API_KEY') {
-          code = 'MISSING_API_KEY'
+          code = 'MISSING_TAVILY_KEY'
         } else if (error.code === 'TIMEOUT') {
           code = 'TIMEOUT'
         }
-        
+
         const errorMessage = error.message || 'Failed to search for competitors'
-        logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=' + code + ' details=' + errorMessage)
+        logWarn('competitors.refresh', {
+          traceId,
+          projectId,
+          errorCode: code,
+          details: errorMessage,
+        })
         return {
           ok: false,
           code,
           message:
-            code === 'MISSING_API_KEY'
-              ? 'Search API is not configured. Please contact support.'
+            code === 'MISSING_TAVILY_KEY'
+              ? 'Competitor suggestions are unavailable in this environment.'
               : code === 'TIMEOUT'
                 ? 'Search timed out. Please try again.'
                 : 'Failed to search for competitors. Please try again later.',
+          traceId,
         }
       }
-      
-      logger.error('[competitors.refreshSuggestions] projectId=' + projectId + ' code=TAVILY_ERROR details=unexpected_error', { error })
+
+      logError('competitors.refresh', {
+        traceId,
+        projectId,
+        errorCode: 'TAVILY_ERROR',
+        details: 'unexpected_error',
+        error: error instanceof Error ? error.message : String(error),
+      })
       return {
         ok: false,
         code: 'TAVILY_ERROR',
         message: 'Failed to search for competitors. Please try again later.',
+        traceId,
       }
     }
 
     if (tavilyResults.length === 0) {
-      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=NO_RESULTS details=tavily_returned_empty')
+      logInfo('competitors.refresh', {
+        traceId,
+        projectId,
+        namesCount: 0,
+        errorCode: 'NO_RESULTS',
+        details: 'tavily_returned_empty',
+      })
       return {
         ok: false,
         code: 'NO_RESULTS',
         message: 'No competitors found. Try refining your search or add them manually.',
+        traceId,
       }
     }
 
@@ -584,11 +626,18 @@ export async function refreshCompetitorSuggestions(
     }
 
     if (suggestions.length === 0) {
-      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=NO_RESULTS details=parsing_resulted_in_zero_names')
+      logInfo('competitors.refresh', {
+        traceId,
+        projectId,
+        namesCount: 0,
+        errorCode: 'NO_RESULTS',
+        details: 'parsing_resulted_in_zero_names',
+      })
       return {
         ok: false,
         code: 'NO_RESULTS',
         message: 'No valid competitors found. Try refining your search or add them manually.',
+        traceId,
       }
     }
 
@@ -600,19 +649,33 @@ export async function refreshCompetitorSuggestions(
         suggestedCompetitorNames: suggestions,
       })
       saved = updateResult.ok
-      if (!saved) {
-        logger.error('[competitors.refreshSuggestions] projectId=' + projectId + ' code=UNKNOWN details=failed_to_save', { error: updateResult.error })
+      if (!updateResult.ok) {
+        logError('competitors.refresh', {
+          traceId,
+          projectId,
+          errorCode: 'UNKNOWN',
+          details: 'failed_to_save',
+          error: updateResult.error.message || 'Unknown error',
+        })
       }
     } catch (error) {
-      logger.error('[competitors.refreshSuggestions] projectId=' + projectId + ' code=UNKNOWN details=save_exception', { error })
+      logError('competitors.refresh', {
+        traceId,
+        projectId,
+        errorCode: 'UNKNOWN',
+        details: 'save_exception',
+        error: error instanceof Error ? error.message : String(error),
+      })
       // Continue - we'll return suggestions even if save fails
     }
 
-    if (!saved) {
-      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=UNKNOWN details=save_failed_but_returning_names')
-    } else {
-      logger.info('[competitors.refreshSuggestions] projectId=' + projectId + ' code=OK details=saved_' + suggestions.length + '_names')
-    }
+    logInfo('competitors.refresh', {
+      traceId,
+      projectId,
+      namesCount: suggestions.length,
+      saved,
+      errorCode: saved ? undefined : 'UNKNOWN',
+    })
 
     revalidatePath(`/projects/${projectId}/competitors`)
 
@@ -620,13 +683,21 @@ export async function refreshCompetitorSuggestions(
       ok: true,
       names: suggestions,
       saved,
+      traceId,
     }
   } catch (error) {
-    logger.error('[competitors.refreshSuggestions] projectId=' + projectId + ' code=UNKNOWN details=unexpected_error', { error })
+    logError('competitors.refresh', {
+      traceId,
+      projectId,
+      errorCode: 'UNKNOWN',
+      details: 'unexpected_error',
+      error: error instanceof Error ? error.message : String(error),
+    })
     return {
       ok: false,
       code: 'UNKNOWN',
       message: error instanceof Error ? error.message : 'Failed to refresh suggestions',
+      traceId,
     }
   }
 }

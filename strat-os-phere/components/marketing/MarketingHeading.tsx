@@ -41,7 +41,7 @@ export function MarketingHeading({
     <Component
       className={cn(
         "font-bold tracking-tight text-text-primary",
-        "leading-[1.1] pb-[0.12em]",
+        "leading-[1.08] pb-[0.08em]",
         "overflow-visible",
         sizeClasses[size],
         className

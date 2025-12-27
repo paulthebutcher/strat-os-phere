@@ -12,6 +12,7 @@
 import { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { Reveal } from "../motion"
+import { MarketingContainer } from "../MarketingContainer"
 
 interface EditorialBreakProps {
   /** The main typographic statement */
@@ -34,7 +35,7 @@ export function EditorialBreak({
         className
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <MarketingContainer maxWidth="6xl">
         <Reveal delay={0}>
           <div className="text-center space-y-4">
             <h2
@@ -43,7 +44,7 @@ export function EditorialBreak({
                 "font-semibold tracking-tight",
                 "whitespace-normal sm:whitespace-normal md:whitespace-nowrap lg:whitespace-nowrap",
                 "max-w-full",
-                "leading-[1.1] pb-[0.12em]",
+                "leading-[1.08] pb-[0.08em]",
                 "overflow-visible"
               )}
               style={{
@@ -59,7 +60,7 @@ export function EditorialBreak({
             )}
           </div>
         </Reveal>
-      </div>
+      </MarketingContainer>
     </section>
   )
 }

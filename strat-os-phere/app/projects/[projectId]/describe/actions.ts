@@ -7,6 +7,8 @@ import { loadProject } from '@/lib/projects/loadProject'
 import { createClient } from '@/lib/supabase/server'
 import { upsertProjectInput } from '@/lib/data/projectInputs'
 import { logger } from '@/lib/logger'
+import { makeTraceId, ok, fail, type Result } from '@/lib/telemetry/result'
+import { logInfo, logWarn, logError } from '@/lib/telemetry/log'
 
 interface SubmitDescribePayload {
   primaryCompanyName?: string
@@ -97,62 +99,56 @@ export async function submitDescribeStep(
       ...(payload.marketCategory?.trim() && { marketCategory: payload.marketCategory.trim() }),
     }
 
+    // Generate traceId for this operation
+    const traceId = makeTraceId()
+
     // Attempt competitor inference with timeout (1.2s)
     // This is optional - if company name is missing or inference fails/times out, we proceed with core fields only
     const inferenceTimeout = 1200 // 1.2 seconds
-    const competitorInferencePromise = primaryCompanyName
-      ? inferCompetitorNamesWithTimeout(
-          primaryCompanyName,
-          payload.contextText,
-          inferenceTimeout
-        )
-      : Promise.resolve({ success: false as const, reason: 'no_company_name' })
-
     let competitorNames: string[] = []
     const warnings: string[] = []
     let competitorSuggestion:
-      | { attempted: boolean; ok: boolean; reason?: string }
+      | { attempted: boolean; ok: boolean; reason?: string; traceId?: string }
       | undefined
-
-    // Check if Tavily API key is configured
-    const tavilyApiKey = process.env.TAVILY_API_KEY
+    let suggestionsTraceId = traceId
+    let suggestionsOk = false
+    let suggestionsErrorCode: string | undefined
 
     if (!primaryCompanyName) {
-      competitorSuggestion = { attempted: false }
-    } else if (!tavilyApiKey) {
-      competitorSuggestion = {
-        attempted: true,
-        ok: false,
-        reason: 'Missing Tavily key',
-      }
-      warnings.push('Competitor suggestions unavailable')
+      competitorSuggestion = { attempted: false, ok: false }
     } else {
       try {
-        const inferenceResult = await competitorInferencePromise
-        if (inferenceResult.success) {
-          competitorNames = inferenceResult.names
+        const inferenceResult = await inferCompetitorNamesWithTimeout(
+          primaryCompanyName,
+          payload.contextText,
+          inferenceTimeout,
+          traceId
+        )
+
+        suggestionsTraceId = inferenceResult.traceId
+
+        if (inferenceResult.ok) {
+          competitorNames = inferenceResult.data
           competitorSuggestion = {
             attempted: true,
             ok: true,
+            traceId: inferenceResult.traceId,
           }
+          suggestionsOk = true
         } else {
-          // Inference failed or timed out
-          const reason =
-            inferenceResult.reason === 'timeout'
-              ? 'Timed out'
-              : inferenceResult.reason === 'no_company_name'
-                ? 'No company name'
-                : 'Unknown error'
+          // Inference failed
           competitorSuggestion = {
             attempted: true,
             ok: false,
-            reason,
+            reason: inferenceResult.error.code,
+            traceId: inferenceResult.traceId,
           }
-          logger.warn('Competitor inference failed or timed out', {
-            projectId,
-            reason: inferenceResult.reason,
-          })
-          warnings.push('Competitor suggestions unavailable')
+          suggestionsErrorCode = inferenceResult.error.code
+
+          // Only add warning for MISSING_TAVILY_KEY (other errors are silent to user)
+          if (inferenceResult.error.code === 'MISSING_TAVILY_KEY') {
+            warnings.push('Competitor suggestions unavailable')
+          }
         }
       } catch (error) {
         // Should not happen due to timeout handling, but catch just in case
@@ -160,9 +156,14 @@ export async function submitDescribeStep(
           attempted: true,
           ok: false,
           reason: 'Exception',
+          traceId,
         }
-        logger.error('Unexpected error during competitor inference', error)
-        warnings.push('Competitor suggestions unavailable')
+        suggestionsErrorCode = 'UNKNOWN'
+        logError('describe.submit.exception', {
+          traceId,
+          projectId,
+          error: error instanceof Error ? error.message : String(error),
+        })
       }
     }
 
@@ -187,11 +188,29 @@ export async function submitDescribeStep(
         error: inputResult.error,
         projectId,
       })
+      logError('describe.submit', {
+        traceId,
+        projectId,
+        savedOk: false,
+        namesCount: competitorNames.length,
+        suggestionsOk,
+        errorCode: 'SAVE_FAILED',
+      })
       return {
         success: false,
         error: inputResult.error.message || 'Failed to save decision context. Please try again.',
       }
     }
+
+    // Always log describe.submit event
+    logInfo('describe.submit', {
+      traceId: suggestionsTraceId,
+      projectId,
+      savedOk: true,
+      namesCount: competitorNames.length,
+      suggestionsOk,
+      ...(suggestionsErrorCode && { errorCode: suggestionsErrorCode }),
+    })
 
     // Dev-only logging
     if (process.env.NODE_ENV !== 'production') {
@@ -225,28 +244,34 @@ export async function submitDescribeStep(
 
 /**
  * Infer competitor names with timeout wrapper.
- * Returns success/failure result to avoid throwing errors.
+ * Returns Result to avoid throwing errors.
  */
 async function inferCompetitorNamesWithTimeout(
   companyName: string,
   contextText: string | undefined,
-  timeoutMs: number
-): Promise<{ success: true; names: string[] } | { success: false; reason: string }> {
+  timeoutMs: number,
+  traceId: string
+): Promise<Result<string[]>> {
   try {
-    const timeoutPromise = new Promise<{ success: false; reason: string }>((resolve) => {
-      setTimeout(() => resolve({ success: false, reason: 'timeout' }), timeoutMs)
+    const timeoutPromise = new Promise<Result<string[]>>((resolve) => {
+      setTimeout(
+        () => resolve(fail('TIMEOUT', 'Competitor inference timed out', traceId)),
+        timeoutMs
+      )
     })
 
-    const inferencePromise = inferCompetitorNames(companyName, contextText).then((names) => ({
-      success: true as const,
-      names,
-    }))
+    const inferencePromise = inferCompetitorNames(companyName, contextText, traceId)
 
     const result = await Promise.race([inferencePromise, timeoutPromise])
     return result
   } catch (error) {
-    logger.error('Error in competitor inference timeout wrapper', error)
-    return { success: false, reason: 'exception' }
+    logError('describe.inferCompetitorNamesWithTimeout.exception', {
+      traceId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return fail('UNKNOWN', 'Competitor inference failed', traceId, {
+      error: error instanceof Error ? error.message : String(error),
+    })
   }
 }
 
@@ -258,15 +283,19 @@ async function inferCompetitorNamesWithTimeout(
  */
 async function inferCompetitorNames(
   companyName: string,
-  contextText?: string
-): Promise<string[]> {
-  try {
-    const tavilyApiKey = process.env.TAVILY_API_KEY
-    if (!tavilyApiKey) {
-      logger.warn('Tavily API key not configured')
-      return []
-    }
+  contextText: string | undefined,
+  traceId: string
+): Promise<Result<string[]>> {
+  // Check if Tavily API key is configured
+  if (!process.env.TAVILY_API_KEY) {
+    return fail(
+      'MISSING_TAVILY_KEY',
+      'Competitor suggestions are unavailable in this environment.',
+      traceId
+    )
+  }
 
+  try {
     // Build query for competitors
     let competitorQuery = `${companyName} alternatives competitors`
     if (contextText) {
@@ -280,7 +309,7 @@ async function inferCompetitorNames(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        api_key: tavilyApiKey,
+        api_key: process.env.TAVILY_API_KEY,
         query: competitorQuery,
         max_results: 10,
         search_depth: 'basic',
@@ -288,8 +317,14 @@ async function inferCompetitorNames(
     })
 
     if (!response.ok) {
-      logger.warn('Failed to infer competitor names from Tavily', { status: response.status })
-      return []
+      logWarn('describe.inferCompetitorNames.tavily_http_error', {
+        traceId,
+        status: response.status,
+        companyName,
+      })
+      return fail('TAVILY_ERROR', 'Failed to fetch competitor suggestions', traceId, {
+        status: response.status,
+      })
     }
 
     const data = await response.json()
@@ -308,7 +343,7 @@ async function inferCompetitorNames(
 
         // Extract name from title or domain
         let name = result.title || domain.split('.')[0] || domain
-        
+
         // Clean up name (remove common aggregator keywords)
         name = name
           .replace(/^(top|best|the)\s+/i, '')
@@ -325,10 +360,16 @@ async function inferCompetitorNames(
       }
     }
 
-    return names.slice(0, 8)
+    return ok(names.slice(0, 8), traceId)
   } catch (error) {
-    logger.error('Error inferring competitor names', error)
-    return []
+    logError('describe.inferCompetitorNames.exception', {
+      traceId,
+      error: error instanceof Error ? error.message : String(error),
+      companyName,
+    })
+    return fail('UNKNOWN', 'Failed to infer competitor names', traceId, {
+      error: error instanceof Error ? error.message : String(error),
+    })
   }
 }
 

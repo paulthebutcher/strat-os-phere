@@ -35,6 +35,8 @@ export function TheTurnSection() {
               "editorial-section-headline mx-auto relative inline-block",
               "whitespace-nowrap lg:whitespace-nowrap",
               "text-2xl sm:text-3xl md:text-4xl lg:text-4xl",
+              "font-semibold tracking-tight text-text-primary",
+              "leading-[1.08] pb-[0.08em]",
               "max-w-full"
             )}>
               <span>Being wrong is expensive</span>

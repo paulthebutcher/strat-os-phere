@@ -11,6 +11,8 @@ import {
   isLikelyCompanyDomain,
   normalizeDomain,
 } from '@/lib/competitors/domainFilters'
+import { makeTraceId } from '@/lib/telemetry/result'
+import { logInfo, logWarn, logError } from '@/lib/telemetry/log'
 
 export const runtime = 'nodejs'
 
@@ -31,11 +33,9 @@ export type CompetitorCandidate = {
   reason?: string
 }
 
-export type SuggestCompetitorsResponse = {
-  ok: boolean
-  candidates: CompetitorCandidate[]
-  error?: string
-}
+export type SuggestCompetitorsResponse =
+  | { ok: true; candidates: CompetitorCandidate[]; traceId: string }
+  | { ok: false; candidates: CompetitorCandidate[]; error?: string; traceId: string; errorCode?: string }
 
 /**
  * Extract company name from domain or title
@@ -158,15 +158,23 @@ function scoreCandidate(
  * Output: { candidates: Array<{ name: string; url: string; domain: string; score: number; reason?: string }> }
  */
 export async function POST(request: Request): Promise<NextResponse> {
+  const traceId = makeTraceId()
+
   try {
     // Check if Tavily is configured
-    const tavilyApiKey = process.env.TAVILY_API_KEY
-    if (!tavilyApiKey) {
+    if (!process.env.TAVILY_API_KEY) {
+      logWarn('api.competitors.suggest', {
+        traceId,
+        errorCode: 'MISSING_TAVILY_KEY',
+        query: 'unknown',
+      })
       return NextResponse.json(
         {
           ok: false,
           candidates: [],
-          error: 'Tavily API key is not configured',
+          error: 'Competitor suggestions are unavailable in this environment.',
+          traceId,
+          errorCode: 'MISSING_TAVILY_KEY',
         } satisfies SuggestCompetitorsResponse,
         { status: 500 }
       )
@@ -181,6 +189,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         ok: false,
         candidates: [],
         error: 'Invalid JSON in request body',
+        traceId,
+        errorCode: 'INVALID_JSON',
       } satisfies SuggestCompetitorsResponse)
     }
 
@@ -190,6 +200,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         ok: false,
         candidates: [],
         error: `Validation failed: ${validationResult.error.errors.map((e) => e.message).join(', ')}`,
+        traceId,
+        errorCode: 'VALIDATION_ERROR',
       } satisfies SuggestCompetitorsResponse)
     }
 
@@ -224,29 +236,42 @@ export async function POST(request: Request): Promise<NextResponse> {
     } catch (error) {
       // Map TavilyError to appropriate response
       if (error instanceof TavilyError) {
+        const errorCode =
+          error.code === 'MISSING_API_KEY'
+            ? 'MISSING_TAVILY_KEY'
+            : error.code === 'TIMEOUT'
+              ? 'TIMEOUT'
+              : 'TAVILY_ERROR'
         const errorMessage =
           error.code === 'MISSING_API_KEY'
-            ? 'Search API is not configured'
+            ? 'Competitor suggestions are unavailable in this environment.'
             : error.code === 'TIMEOUT'
               ? 'Search timed out'
               : 'Couldn\'t fetch suggestions. Try again.'
-        
-        logger.error('[competitors/suggest] Tavily search failed', {
-          code: error.code,
-          error: error.message,
+
+        logWarn('api.competitors.suggest', {
+          traceId,
+          query: tavilyQuery,
+          errorCode,
+          details: error.message,
         })
-        
+
         return NextResponse.json(
           {
             ok: false,
             candidates: [],
             error: errorMessage,
+            traceId,
+            errorCode,
           } satisfies SuggestCompetitorsResponse,
-          { status: error.code === 'MISSING_API_KEY' ? 500 : 500 }
+          { status: 500 }
         )
       }
-      
-      logger.error('[competitors/suggest] Tavily search failed', {
+
+      logError('api.competitors.suggest', {
+        traceId,
+        query: tavilyQuery,
+        errorCode: 'UNKNOWN',
         error: error instanceof Error ? error.message : String(error),
       })
       return NextResponse.json(
@@ -254,15 +279,23 @@ export async function POST(request: Request): Promise<NextResponse> {
           ok: false,
           candidates: [],
           error: 'Couldn\'t fetch suggestions. Try again.',
+          traceId,
+          errorCode: 'UNKNOWN',
         } satisfies SuggestCompetitorsResponse,
         { status: 500 }
       )
     }
 
     if (tavilyResults.length === 0) {
+      logInfo('api.competitors.suggest', {
+        traceId,
+        query: tavilyQuery,
+        candidatesCount: 0,
+      })
       return NextResponse.json({
         ok: true,
         candidates: [],
+        traceId,
       } satisfies SuggestCompetitorsResponse)
     }
 
@@ -350,27 +383,45 @@ export async function POST(request: Request): Promise<NextResponse> {
         score: item.score,
       }))
 
-    // Fail-safe: if filtering removed too much, return empty with helpful message
+    // Fail-safe: if filtering removed too much, return empty (no error, just empty list)
     if (candidates.length === 0) {
+      logInfo('api.competitors.suggest', {
+        traceId,
+        query: tavilyQuery,
+        candidatesCount: 0,
+        details: 'filtering_removed_all_candidates',
+      })
       return NextResponse.json({
         ok: true,
         candidates: [],
-        error: 'No clean company domains found. Try another query or add manually.',
+        traceId,
       } satisfies SuggestCompetitorsResponse)
     }
+
+    logInfo('api.competitors.suggest', {
+      traceId,
+      query: tavilyQuery,
+      candidatesCount: candidates.length,
+    })
 
     return NextResponse.json({
       ok: true,
       candidates,
+      traceId,
     } satisfies SuggestCompetitorsResponse)
   } catch (error) {
-    logger.error('[competitors/suggest] Unexpected error', {
+    logError('api.competitors.suggest', {
+      traceId,
+      query: 'unknown',
+      errorCode: 'UNKNOWN',
       error: error instanceof Error ? error.message : String(error),
     })
     return NextResponse.json({
       ok: false,
       candidates: [],
       error: error instanceof Error ? error.message : 'Unexpected error occurred',
+      traceId,
+      errorCode: 'UNKNOWN',
     } satisfies SuggestCompetitorsResponse)
   }
 }

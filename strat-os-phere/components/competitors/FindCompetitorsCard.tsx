@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Search, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
@@ -16,31 +17,78 @@ interface FindCompetitorsCardProps {
  */
 export function FindCompetitorsCard({ projectId }: FindCompetitorsCardProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const debugParam = searchParams?.get('debug') === '1'
+  // In production, only show debug logs if ?debug=1 is present
+  // In dev, always show debug logs
+  const debugMode = debugParam || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname.includes('localhost')))
   const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [lastErrorCode, setLastErrorCode] = useState<string | null>(null)
 
   const handleFind = async () => {
     setIsSearching(true)
     setError(null)
+    setLastErrorCode(null)
+
+    // Debug logging
+    if (debugMode) {
+      console.log('[plinth] findCompetitors.click', {
+        timestamp: new Date().toISOString(),
+        projectId,
+      })
+    }
 
     try {
       const result = await refreshCompetitorSuggestions(projectId)
 
       if (!result.ok) {
         setError(result.message || 'Failed to search for competitors. Please try again.')
+        setLastErrorCode(result.code || 'UNKNOWN')
         setIsSearching(false)
+
+        // Debug logging for error
+        if (debugMode) {
+          console.log('[plinth] findCompetitors.error', {
+            timestamp: new Date().toISOString(),
+            projectId,
+            errorCode: result.code,
+            traceId: result.traceId,
+            message: result.message,
+          })
+        }
         return
+      }
+
+      // Debug logging for success
+      if (debugMode) {
+        console.log('[plinth] findCompetitors.success', {
+          timestamp: new Date().toISOString(),
+          projectId,
+          traceId: result.traceId,
+          namesCount: result.names.length,
+          saved: result.saved,
+        })
       }
 
       // Refresh the page to show new suggestions
       router.refresh()
     } catch (err) {
-      setError(
+      const errorMessage =
         err instanceof Error
           ? err.message
           : 'Failed to search for competitors. Please try again.'
-      )
+      setError(errorMessage)
       setIsSearching(false)
+
+      // Debug logging for exception
+      if (debugMode) {
+        console.error('[plinth] findCompetitors.exception', {
+          timestamp: new Date().toISOString(),
+          projectId,
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
     }
   }
 
@@ -67,6 +115,11 @@ export function FindCompetitorsCard({ projectId }: FindCompetitorsCardProps) {
           <p className="text-xs text-yellow-800 dark:text-yellow-200 mt-1">
             {error}
           </p>
+          {lastErrorCode === 'NO_RESULTS' && (
+            <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1 italic">
+              No suggestions found; try broader market/category.
+            </p>
+          )}
           <div className="flex gap-2 mt-3">
             <Button
               onClick={handleFind}

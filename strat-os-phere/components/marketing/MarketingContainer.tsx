@@ -29,7 +29,7 @@ const maxWidthClasses = {
 export function MarketingContainer({
   children,
   className,
-  maxWidth = "7xl",
+  maxWidth = "6xl",
 }: MarketingContainerProps) {
   return (
     <div className={cn("mx-auto w-full px-4 sm:px-6 lg:px-8", maxWidthClasses[maxWidth], className)}>

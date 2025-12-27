@@ -27,6 +27,8 @@ import { SurfaceCard } from '@/components/ui/SurfaceCard'
 import Link from 'next/link'
 import { AlertCircle } from 'lucide-react'
 import { FindCompetitorsCard } from '@/components/competitors/FindCompetitorsCard'
+import { CompetitorsDebugPanel } from '@/components/competitors/CompetitorsDebugPanel'
+import { getLatestProjectInput } from '@/lib/data/projectInputs'
 
 interface CompetitorsPageProps {
   params: Promise<{
@@ -97,6 +99,34 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
 
   // Build view model (defensive - never throws)
   const model = await getCompetitorsPageModel(supabase, projectId)
+
+  // Load debug information (always load, client component decides visibility)
+  let debugInfo: {
+    tavilyKeyConfigured: boolean
+    suggestedNamesCount: number
+    hasSuggestedNames: boolean
+  } | null = null
+  
+  try {
+    const inputResult = await getLatestProjectInput(supabase, projectId)
+    const suggestedNames: string[] =
+      inputResult.ok && inputResult.data?.input_json
+        ? (inputResult.data.input_json as Record<string, any>).suggestedCompetitorNames || []
+        : []
+    
+    debugInfo = {
+      tavilyKeyConfigured: !!process.env.TAVILY_API_KEY,
+      suggestedNamesCount: Array.isArray(suggestedNames) ? suggestedNames.length : 0,
+      hasSuggestedNames: Array.isArray(suggestedNames) && suggestedNames.length > 0,
+    }
+  } catch {
+    // Ignore errors in debug info gathering
+    debugInfo = {
+      tavilyKeyConfigured: !!process.env.TAVILY_API_KEY,
+      suggestedNamesCount: 0,
+      hasSuggestedNames: false,
+    }
+  }
 
   // Handle auth errors from model
   if (model.errors.decisionLoad?.includes('access') || model.errors.decisionLoad?.includes('not found')) {
@@ -262,10 +292,32 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
               />
             )}
 
-            {/* Show "Find competitors" card when empty (but can suggest) or error */}
+            {/* Show "Find competitors" card when empty (but can suggest) */}
             {model.suggestionsStatus.state === 'empty' && 
              model.suggestionsStatus.reason !== 'no_step1_context' && 
              competitorCount === 0 && (
+              <FindCompetitorsCard projectId={projectId} />
+            )}
+
+            {/* Show compact callout when suggestions unavailable */}
+            {model.suggestionsStatus.state === 'error' && competitorCount === 0 && (
+              <SurfaceCard className="p-4 border-yellow-500/20 bg-yellow-500/10">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
+                      Competitor suggestions unavailable
+                    </p>
+                    <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                      {model.suggestionsStatus.message || 'You can still add competitors manually. If this persists, check configuration.'}
+                    </p>
+                  </div>
+                </div>
+              </SurfaceCard>
+            )}
+
+            {/* Show "Find competitors" card for retry when there's an error */}
+            {model.suggestionsStatus.state === 'error' && competitorCount === 0 && (
               <FindCompetitorsCard projectId={projectId} />
             )}
 
@@ -287,30 +339,6 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
                     Go to Decision step
                   </Link>
                 </Button>
-              </SurfaceCard>
-            )}
-
-            {/* Error state callout */}
-            {model.suggestionsStatus.state === 'error' && competitorCount === 0 && (
-              <SurfaceCard className="p-4 border-yellow-500/20 bg-yellow-500/10">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 space-y-2">
-                    <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
-                      Couldn't fetch suggested competitors
-                    </p>
-                    <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                      {model.suggestionsStatus.message}
-                    </p>
-                    <div className="flex gap-2 mt-3">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/projects/${projectId}/describe`}>
-                          Go back to Decision step
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
               </SurfaceCard>
             )}
 
@@ -337,6 +365,15 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
                 }))}
               />
             )}
+
+            {/* Debug panel (only visible with ?debug=1 or in dev mode) */}
+            <CompetitorsDebugPanel
+              projectId={projectId}
+              competitorCount={competitorCount}
+              suggestedNamesCount={model.suggestions.length}
+              suggestionsStatus={model.suggestionsStatus}
+              debugInfo={debugInfo}
+            />
           </div>
       </PageShell>
     </PageGuidanceWrapper>
