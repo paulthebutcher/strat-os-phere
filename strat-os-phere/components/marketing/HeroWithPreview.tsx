@@ -39,7 +39,8 @@ export function HeroWithPreview() {
           <div className="flex flex-col items-center text-center space-y-4 sm:space-y-5 md:space-y-6">
             <Reveal delay={0}>
               <h1 className={cn(
-                "editorial-headline lg:max-w-none lg:whitespace-nowrap"
+                "editorial-headline lg:max-w-none lg:whitespace-nowrap",
+                "leading-[1.1] pb-[0.12em] overflow-visible"
               )}>
                 Find your <span className="editorial-gradient-text">unfair advantage</span>.
               </h1>

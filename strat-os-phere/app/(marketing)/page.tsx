@@ -53,8 +53,10 @@ export default function MarketingHome() {
         <ProblemSection />
         
         {/* Authoritative Interrupt: Hard scroll stop */}
-        <AuthoritativeInterrupt>
-          Strategy without evidence is just opinion
+        <AuthoritativeInterrupt
+          subhead="Plinth turns public competitive signals into defensible decisions—with citations, assumptions, and confidence you can forward."
+        >
+          Strategy without evidence is just opinion.
         </AuthoritativeInterrupt>
         
         {/* ACT II — The Stakes: Being Wrong Is Expensive */}

@@ -40,10 +40,11 @@ export function EditorialBreak({
             <h2
               className={cn(
                 "editorial-headline mx-auto",
-                "font-semibold tracking-tight leading-[1.1]",
+                "font-semibold tracking-tight",
                 "whitespace-normal sm:whitespace-normal md:whitespace-nowrap lg:whitespace-nowrap",
                 "max-w-full",
-                "overflow-hidden"
+                "leading-[1.1] pb-[0.12em]",
+                "overflow-visible"
               )}
               style={{
                 fontSize: "clamp(2rem, 5vw, 3.5rem)",

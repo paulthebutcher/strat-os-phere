@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, Circle, Loader2, X } from 'lucide-react'
+import { CheckCircle2, Circle, Loader2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SurfaceCard } from '@/components/ui/SurfaceCard'
-import { confirmSuggestedCompetitors } from '@/app/projects/[projectId]/competitors/actions'
+import { confirmSuggestedCompetitors, refreshCompetitorSuggestions } from '@/app/projects/[projectId]/competitors/actions'
 import { useRouter } from 'next/navigation'
+import { CompetitorLogo } from '@/components/competitors/CompetitorLogo'
 
 interface SuggestedCompetitorsPanelProps {
   projectId: string
@@ -27,6 +28,7 @@ export function SuggestedCompetitorsPanel({
     new Set(suggestedNames) // Default: all selected
   )
   const [isConfirming, setIsConfirming] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleToggle = (name: string) => {
@@ -40,6 +42,31 @@ export function SuggestedCompetitorsPanel({
       return updated
     })
     setError(null)
+  }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    setError(null)
+
+    try {
+      const result = await refreshCompetitorSuggestions(projectId)
+
+      if (!result.success) {
+        setError(result.message || 'Failed to refresh suggestions. Please try again.')
+        setIsRefreshing(false)
+        return
+      }
+
+      // Refresh the page to show new suggestions
+      router.refresh()
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to refresh suggestions. Please try again.'
+      )
+      setIsRefreshing(false)
+    }
   }
 
   const handleConfirm = async () => {
@@ -84,18 +111,38 @@ export function SuggestedCompetitorsPanel({
 
   return (
     <SurfaceCard className="p-6 space-y-4 border-t-4 border-t-primary/20">
-      <div className="space-y-2">
-        <h3 className="text-base font-semibold text-foreground">
-          Suggested competitors
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Based on your analysis context, we suggest these companies for comparison.
-          Review and select the ones you want to include. You can add or remove
-          competitors later.
-        </p>
-        <p className="text-xs text-muted-foreground italic">
-          These are suggestions, not selections. URLs will be resolved after you confirm.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2 flex-1">
+          <h3 className="text-base font-semibold text-foreground">
+            Suggested competitors
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Based on your analysis context, we suggest these companies for comparison.
+            Review and select the ones you want to include. You can add or remove
+            competitors later.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            These are suggestions, not selections. URLs will be resolved after you confirm.
+          </p>
+        </div>
+        <Button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          variant="outline"
+          size="sm"
+        >
+          {isRefreshing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Searching...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </>
+          )}
+        </Button>
       </div>
 
       {/* Suggested competitors list */}
@@ -118,6 +165,9 @@ export function SuggestedCompetitorsPanel({
                 ) : (
                   <Circle className="h-5 w-5 text-muted-foreground" />
                 )}
+              </div>
+              <div className="flex-shrink-0">
+                <CompetitorLogo name={name} size={32} />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">{name}</p>

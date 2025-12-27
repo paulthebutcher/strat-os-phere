@@ -69,7 +69,8 @@ export function TypographicMoment({
                 "editorial-headline mx-auto",
                 "text-4xl sm:text-5xl md:text-6xl lg:text-7xl",
                 "font-semibold tracking-tight",
-                "leading-[1.1]",
+                "leading-[1.1] pb-[0.12em]",
+                "overflow-visible",
                 mark === "underline" && "relative inline-block"
               )}
             >

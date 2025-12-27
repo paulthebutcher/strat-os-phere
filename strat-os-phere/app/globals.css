@@ -863,15 +863,17 @@
   }
   
   /* Editorial Typography Hierarchy - Marketing Only */
-  /* Headline (H1) - Large, assertive, compact line-height, max 1-2 lines */
+  /* Headline (H1) - Large, assertive, safe line-height with descender protection */
   .editorial-headline {
     font-size: clamp(2rem, 5vw, 3.5rem); /* 32px - 56px responsive */
     font-weight: 600;
-    line-height: 1.15; /* Compact, assertive */
+    line-height: 1.1; /* Safe line-height to prevent descender clipping */
     letter-spacing: -0.02em;
     color: hsl(var(--text-primary));
     max-width: 18ch; /* ~12-14 words per line (approximately 18-20ch for short words) */
     margin: 0;
+    padding-bottom: 0.12em; /* Additional descender protection */
+    overflow: visible; /* Ensure descenders are not clipped */
   }
   
   /* Section Headline (H2) - Interprets meaning, strong weight contrast */

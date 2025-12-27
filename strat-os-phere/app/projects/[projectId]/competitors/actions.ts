@@ -17,7 +17,8 @@ import {
 import { loadProject } from '@/lib/projects/loadProject'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
-import { getLatestProjectInput, updateProjectInput } from '@/lib/data/projectInputs'
+import { getLatestProjectInput, updateProjectInput, upsertProjectInput } from '@/lib/data/projectInputs'
+import { tavilySearch } from '@/lib/tavily/client'
 
 type ActionResult = {
   success: boolean
@@ -382,7 +383,7 @@ export async function confirmSuggestedCompetitors(
 
     return { success: true }
   } catch (error) {
-    logger.error('Failed to confirm suggested competitors', error)
+      logger.error('Failed to confirm suggested competitors', error)
 
     const message =
       error instanceof Error
@@ -390,5 +391,154 @@ export async function confirmSuggestedCompetitors(
         : 'Unable to add competitors. Please try again.'
 
     return { success: false, message }
+  }
+}
+
+/**
+ * Refresh competitor suggestions using Tavily search
+ * Reads decision context from project_inputs and saves suggestions
+ * Never throws - always returns success/error result
+ */
+export async function refreshCompetitorSuggestions(
+  projectId: string
+): Promise<ActionResult & { suggestions?: string[] }> {
+  const { supabase } = await requireProjectAccess(projectId)
+
+  try {
+    // 1. Load decision context from project inputs
+    const inputResult = await getLatestProjectInput(supabase, projectId)
+    
+    if (!inputResult.ok || !inputResult.data) {
+      return {
+        success: false,
+        message: 'No decision context found. Complete Step 1 first.',
+      }
+    }
+
+    const inputs = inputResult.data.input_json as Record<string, any>
+    
+    // Extract company name and context
+    const companyName = inputs.your_product || inputs.companyName || ''
+    const market = inputs.market || ''
+    const hypothesis = inputs.hypothesis || inputs.decision || inputs.decisionText || ''
+    
+    if (!companyName || typeof companyName !== 'string' || !companyName.trim()) {
+      return {
+        success: false,
+        message: 'Company name is required. Complete Step 1 first.',
+      }
+    }
+
+    // 2. Build Tavily query
+    let query = `${companyName.trim()} alternatives competitors`
+    if (market && typeof market === 'string') {
+      query = `${market.trim()} ${query}`
+    }
+    if (hypothesis && typeof hypothesis === 'string') {
+      // Use first sentence or first 50 chars of hypothesis for context
+      const contextSnippet = hypothesis.split('.')[0].substring(0, 50).trim()
+      if (contextSnippet) {
+        query = `${contextSnippet} ${query}`
+      }
+    }
+
+    // 3. Call Tavily (defensive - catch all errors)
+    let tavilyResults: Array<{ title?: string; url: string; content?: string }> = []
+    
+    try {
+      const searchResult = await tavilySearch({
+        query: query.trim(),
+        maxResults: 10,
+        searchDepth: 'basic',
+      })
+      tavilyResults = searchResult.results || []
+    } catch (error) {
+      logger.error('[competitors] Tavily search failed', { projectId, error })
+      return {
+        success: false,
+        message: 'Failed to search for competitors. Please try again later.',
+      }
+    }
+
+    if (tavilyResults.length === 0) {
+      return {
+        success: false,
+        message: 'No competitors found. Try adding them manually.',
+        suggestions: [],
+      }
+    }
+
+    // 4. Extract and normalize competitor names
+    const seenNames = new Set<string>()
+    const suggestions: string[] = []
+    const userCompanyLower = companyName.toLowerCase().trim()
+
+    for (const result of tavilyResults.slice(0, 8)) {
+      if (!result.url) continue
+
+      try {
+        const urlObj = new URL(result.url.startsWith('http') ? result.url : `https://${result.url}`)
+        const domain = urlObj.hostname.replace(/^www\./, '')
+        
+        // Extract name from title or domain
+        let name = result.title || domain.split('.')[0] || domain
+        
+        // Clean up name
+        name = name
+          .replace(/^(top|best|the)\s+/i, '')
+          .replace(/\s+(alternatives?|competitors?|vs|comparison).*$/i, '')
+          .trim()
+
+        // Skip if empty, too long, duplicate, or matches user's company
+        const nameLower = name.toLowerCase()
+        if (
+          name.length === 0 ||
+          name.length >= 50 ||
+          seenNames.has(nameLower) ||
+          nameLower === userCompanyLower ||
+          domain.includes(userCompanyLower.replace(/\s+/g, ''))
+        ) {
+          continue
+        }
+
+        seenNames.add(nameLower)
+        suggestions.push(name)
+      } catch {
+        // Skip invalid URLs
+        continue
+      }
+    }
+
+    if (suggestions.length === 0) {
+      return {
+        success: false,
+        message: 'No valid competitors found. Try adding them manually.',
+        suggestions: [],
+      }
+    }
+
+    // 5. Save suggestions to project_inputs
+    try {
+      const inputId = inputResult.data.id
+      await updateProjectInput(supabase, inputId, {
+        suggestedCompetitorNames: suggestions,
+      })
+    } catch (error) {
+      logger.error('[competitors] Failed to save suggestions', { projectId, error })
+      // Still return success with suggestions - they can be used even if save fails
+    }
+
+    revalidatePath(`/projects/${projectId}/competitors`)
+
+    return {
+      success: true,
+      suggestions,
+    }
+  } catch (error) {
+    logger.error('[competitors] refreshCompetitorSuggestions failed', { projectId, error })
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to refresh suggestions',
+    }
   }
 }

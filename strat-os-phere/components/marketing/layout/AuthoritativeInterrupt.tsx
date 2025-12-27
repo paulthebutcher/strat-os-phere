@@ -16,12 +16,15 @@ import { Reveal } from "../motion"
 interface AuthoritativeInterruptProps {
   /** The authoritative statement - single line */
   children: ReactNode
+  /** Optional subhead text */
+  subhead?: string
   /** Additional className */
   className?: string
 }
 
 export function AuthoritativeInterrupt({
   children,
+  subhead,
   className,
 }: AuthoritativeInterruptProps) {
   return (
@@ -32,17 +35,18 @@ export function AuthoritativeInterrupt({
         className
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal delay={0}>
-          <div className="text-center">
+          <div className="text-center space-y-4">
             <h2
               className={cn(
                 "mx-auto",
-                "font-bold tracking-tight leading-[1.05]",
+                "font-bold tracking-tight",
                 "text-text-primary",
                 "whitespace-normal sm:whitespace-normal md:whitespace-nowrap lg:whitespace-nowrap",
                 "max-w-full",
-                "overflow-hidden"
+                "leading-[1.1] pb-[0.12em]",
+                "overflow-visible"
               )}
               style={{
                 fontSize: "clamp(2.25rem, 6vw, 4rem)",
@@ -50,6 +54,11 @@ export function AuthoritativeInterrupt({
             >
               {children}
             </h2>
+            {subhead && (
+              <p className="editorial-body text-text-secondary max-w-2xl mx-auto mt-6">
+                {subhead}
+              </p>
+            )}
           </div>
         </Reveal>
       </div>
