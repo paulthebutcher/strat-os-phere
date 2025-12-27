@@ -16,20 +16,72 @@
  */
 "use client"
 
+import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { FileText, DollarSign, MessageSquare, GitBranch, TrendingUp } from "lucide-react"
+import { FileText, DollarSign, MessageSquare, GitBranch, TrendingUp, Check } from "lucide-react"
 
 interface StructureEmergingPanelProps {
   className?: string
 }
 
+type EvidenceType = "pricing" | "docs" | "reviews" | "changelog"
+
+interface EvidenceTypeConfig {
+  id: EvidenceType
+  label: string
+  icon: typeof DollarSign
+  count: number
+  color: string
+  railColor: string
+}
+
+const evidenceTypes: EvidenceTypeConfig[] = [
+  {
+    id: "pricing",
+    label: "Pricing",
+    icon: DollarSign,
+    count: 23,
+    color: "hsl(142, 60%, 40%)", // Success green
+    railColor: "hsl(142, 60%, 40%)",
+  },
+  {
+    id: "docs",
+    label: "Docs",
+    icon: FileText,
+    count: 31,
+    color: "hsl(var(--accent-primary))", // Indigo/blue
+    railColor: "hsl(var(--accent-primary))",
+  },
+  {
+    id: "reviews",
+    label: "Reviews",
+    icon: MessageSquare,
+    count: 47,
+    color: "hsl(38, 80%, 45%)", // Warning amber
+    railColor: "hsl(38, 80%, 45%)",
+  },
+  {
+    id: "changelog",
+    label: "Changelog",
+    icon: GitBranch,
+    count: 12,
+    color: "hsl(var(--marketing-gradient-end))", // Purple
+    railColor: "hsl(var(--marketing-gradient-end))",
+  },
+]
+
 export function StructureEmergingPanel({ className }: StructureEmergingPanelProps) {
+  const [selectedTab, setSelectedTab] = useState<EvidenceType>("pricing")
+
+  const selectedType = evidenceTypes.find((t) => t.id === selectedTab)!
+
   return (
     <div
       className={cn(
-        "relative w-full min-h-[500px] p-8 sm:p-12 overflow-hidden",
+        "relative w-full min-h-[500px] p-6 sm:p-10 overflow-hidden",
         "bg-gradient-to-br from-slate-50 via-white to-slate-50/80",
         "border border-slate-200/60",
+        "shadow-[inset_0_1px_2px_0_rgba(0,0,0,0.02)]",
         className
       )}
     >
@@ -45,126 +97,201 @@ export function StructureEmergingPanel({ className }: StructureEmergingPanelProp
         }}
       />
 
-      <div className="relative z-10">
-        {/* Top: Fragments beginning to align */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-3 items-center justify-center">
-            {/* Evidence type groups - now aligned */}
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg shadow-sm">
-              <DollarSign className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-semibold text-slate-700">Pricing</span>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">23</span>
-            </div>
+      <div className="relative z-10 flex flex-col gap-6">
+        {/* Tabs: Evidence type groups */}
+        <div className="flex flex-wrap gap-2 items-center justify-center">
+          {evidenceTypes.map((type) => {
+            const Icon = type.icon
+            const isSelected = selectedTab === type.id
             
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg shadow-sm">
-              <FileText className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-semibold text-slate-700">Docs</span>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">31</span>
+            return (
+              <button
+                key={type.id}
+                onClick={() => setSelectedTab(type.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all",
+                  "border",
+                  isSelected
+                    ? [
+                        "bg-white",
+                        "border-[hsl(var(--accent-primary))]/30",
+                        "shadow-sm",
+                        "[&_svg]:text-[hsl(var(--accent-primary))]",
+                      ]
+                    : [
+                        "bg-white/80 border-slate-200/60",
+                        "hover:bg-white hover:border-slate-300/60",
+                        "[&_svg]:text-slate-600",
+                      ]
+                )}
+                style={
+                  isSelected
+                    ? {
+                        backgroundColor: `hsl(var(--accent-primary) / 0.06)`,
+                        borderColor: `hsl(var(--accent-primary) / 0.25)`,
+                      }
+                    : undefined
+                }
+              >
+                <Icon className="w-4 h-4" />
+                <span className="text-sm font-semibold text-slate-700">{type.label}</span>
+                <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                  {type.count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Confidence cue */}
+        <div className="text-center">
+          <p className="text-xs text-slate-500">
+            113 sources grouped into 4 evidence types
+          </p>
+        </div>
+
+        {/* Insight cards with signal rails */}
+        <div className="space-y-3">
+          {/* Signal Group 1 - Competitive Positioning (Pricing category - green) */}
+          <div
+            className="bg-white border border-slate-200 rounded-lg shadow-sm relative overflow-hidden"
+            style={{
+              borderLeftWidth: "3px",
+              borderLeftColor: evidenceTypes[0].railColor, // Pricing - green
+            }}
+          >
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-4 h-4 text-slate-600" />
+                <h4 className="text-sm font-semibold text-slate-900">Competitive Positioning</h4>
+                <span className="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                  12 signals
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                    Recent
+                  </div>
+                  <div className="text-sm font-medium text-slate-900">4 of 5</div>
+                  <div className="text-xs text-slate-500 mt-0.5">offer free tiers</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                    Market
+                  </div>
+                  <div className="text-sm font-medium text-slate-900">Expansions</div>
+                  <div className="text-xs text-slate-500 mt-0.5">noted</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                    Timing
+                  </div>
+                  <div className="text-sm font-medium text-slate-900">Favorable</div>
+                  <div className="text-xs text-slate-500 mt-0.5">expectation shift</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                    Pattern
+                  </div>
+                  <div className="text-sm font-medium text-slate-900">Consistent</div>
+                  <div className="text-xs text-slate-500 mt-0.5">across segments</div>
+                </div>
+              </div>
             </div>
-            
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg shadow-sm">
-              <MessageSquare className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-semibold text-slate-700">Reviews</span>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">47</span>
-            </div>
-            
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg shadow-sm">
-              <GitBranch className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-semibold text-slate-700">Changelog</span>
-              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">12</span>
+          </div>
+
+          {/* Signal Group 2 - Market Friction (Docs category - blue) */}
+          <div
+            className="bg-white border border-slate-200 rounded-lg shadow-sm relative overflow-hidden"
+            style={{
+              borderLeftWidth: "3px",
+              borderLeftColor: evidenceTypes[1].railColor, // Docs - indigo/blue
+            }}
+          >
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <FileText className="w-4 h-4 text-slate-600" />
+                <h4 className="text-sm font-semibold text-slate-900">Market Friction</h4>
+                <span className="ml-auto text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                  8 signals
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div>
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                    Enterprise
+                  </div>
+                  <div className="text-sm font-medium text-slate-900">Evaluation</div>
+                  <div className="text-xs text-slate-500 mt-0.5">delays</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                    Mid-market
+                  </div>
+                  <div className="text-sm font-medium text-slate-900">Longer</div>
+                  <div className="text-xs text-slate-500 mt-0.5">trials</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                    Pattern
+                  </div>
+                  <div className="text-sm font-medium text-slate-900">Consistent</div>
+                  <div className="text-xs text-slate-500 mt-0.5">across segments</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Middle: Signals grouped into structured rows */}
-        <div className="space-y-4 mb-8">
-          {/* Signal Group 1 */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-slate-600" />
-              <h4 className="text-sm font-semibold text-slate-900">Competitive Positioning</h4>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-              <div className="text-xs text-slate-600">
-                <div className="font-medium text-slate-900">4 of 5</div>
-                <div className="text-slate-500">offer free tiers</div>
-              </div>
-              <div className="text-xs text-slate-600">
-                <div className="font-medium text-slate-900">Recent</div>
-                <div className="text-slate-500">expansions noted</div>
-              </div>
-              <div className="text-xs text-slate-600">
-                <div className="font-medium text-slate-900">Market</div>
-                <div className="text-slate-500">expectation shift</div>
-              </div>
-              <div className="text-xs text-slate-600">
-                <div className="font-medium text-slate-900">Timing</div>
-                <div className="text-slate-500">favorable</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Signal Group 2 */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-4 h-4 text-slate-600" />
-              <h4 className="text-sm font-semibold text-slate-900">Market Friction</h4>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-              <div className="text-xs text-slate-600">
-                <div className="font-medium text-slate-900">Enterprise</div>
-                <div className="text-slate-500">evaluation delays</div>
-              </div>
-              <div className="text-xs text-slate-600">
-                <div className="font-medium text-slate-900">Mid-market</div>
-                <div className="text-slate-500">longer trials</div>
-              </div>
-              <div className="text-xs text-slate-600">
-                <div className="font-medium text-slate-900">Pattern</div>
-                <div className="text-slate-500">consistent</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom: Clear boundaries appearing - narrative summary, not dashboard */}
-        <div className="bg-white border-2 border-slate-300 rounded-lg p-6 shadow-md">
-          <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-slate-200">
+        {/* Bottom: Status bar with progression steps */}
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-5">
+          {/* Status bar header */}
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
             <div>
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
-                Structure Emerging
-              </div>
-              <div className="text-lg font-bold text-slate-900">
-                Signals aligned
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Structure emerging
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
-                Clarity
+            <div className="flex items-center gap-2">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Clarity:
               </div>
-              <div className="text-lg font-bold text-slate-900">
-                Increasing
+              <div className="text-sm font-semibold text-slate-900">Increasing</div>
+              <div className="flex gap-1 ml-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--accent-primary))]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--accent-primary))]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
               </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center p-3 bg-slate-50 rounded border border-slate-200">
-              <div className="text-2xl font-bold text-slate-900 mb-1">✓</div>
-              <div className="text-xs text-slate-600">Grouped</div>
-            </div>
-            <div className="text-center p-3 bg-slate-50 rounded border border-slate-200">
-              <div className="text-2xl font-bold text-slate-900 mb-1">✓</div>
-              <div className="text-xs text-slate-600">Organized</div>
-            </div>
-            <div className="text-center p-3 bg-slate-50 rounded border border-slate-200">
-              <div className="text-2xl font-bold text-slate-900 mb-1">✓</div>
-              <div className="text-xs text-slate-600">Bounded</div>
-            </div>
+          {/* Progression steps */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Grouped", color: "hsl(var(--accent-primary))" },
+              { label: "Organized", color: "hsl(var(--accent-primary))" },
+              { label: "Bounded", color: "hsl(var(--accent-primary))" },
+            ].map((step, idx) => (
+              <div
+                key={idx}
+                className="text-center p-3 rounded border border-slate-200 transition-all"
+                style={{
+                  backgroundColor: `hsl(var(--accent-primary) / 0.04)`,
+                }}
+              >
+                <div className="mb-1.5">
+                  <Check
+                    className="w-5 h-5 mx-auto"
+                    style={{ color: step.color }}
+                  />
+                </div>
+                <div className="text-xs font-medium text-slate-700">{step.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
     </div>
   )
 }
-

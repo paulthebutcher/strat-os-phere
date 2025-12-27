@@ -26,10 +26,10 @@ export function StructureEmergingSection() {
   return (
     <MarketingSection tone="alt" density="dense">
       <MarketingContainer maxWidth="6xl">
-        <div className="flex flex-col gap-6 sm:gap-8">
+        <div className="flex flex-col gap-4 sm:gap-5">
           {/* Section headline - centered, compact with color moment - PRIMARY READING PATH */}
           <Reveal>
-            <div className="text-center space-y-2 sm:space-y-3 max-w-[55ch] mx-auto">
+            <div className="text-center space-y-2 max-w-[55ch] mx-auto">
               <h2 className={cn(
                 "text-2xl sm:text-3xl md:text-4xl lg:text-4xl",
                 "font-semibold tracking-tight text-text-primary leading-tight",
@@ -37,7 +37,7 @@ export function StructureEmergingSection() {
                 "whitespace-nowrap lg:whitespace-nowrap",
                 "max-w-full"
               )}>
-                Evidence creates <span className="color-moment-highlight">structure</span>
+                Evidence creates <span className="color-moment-highlight font-medium">structure</span>
               </h2>
               <p className="text-sm sm:text-base text-text-secondary leading-snug">
                 The fog lifts. Fragments align. Signals group. Boundaries appear.
@@ -47,7 +47,7 @@ export function StructureEmergingSection() {
           
           {/* Structure Emerging Panel - narrative visual */}
           <Reveal delay={60}>
-            <StructureEmergingPanel className="rounded-xl border border-border-subtle/40 lg:min-h-[500px] w-full" />
+            <StructureEmergingPanel className="rounded-xl border border-border-subtle/60 shadow-sm lg:min-h-[500px] w-full" />
           </Reveal>
         </div>
       </MarketingContainer>
