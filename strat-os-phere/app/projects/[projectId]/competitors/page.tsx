@@ -17,6 +17,7 @@ import { PageGuidanceWrapper } from '@/components/guidance/PageGuidanceWrapper'
 import { AddCompetitorsButton } from '@/components/competitors/AddCompetitorsButton'
 import { PAGE_IDS } from '@/lib/guidance/content'
 import { TourLink } from '@/components/guidance/TourLink'
+import { PageShell } from '@/components/layout/PageShell'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { SuggestedCompetitorsPanel } from '@/components/competitors/SuggestedCompetitorsPanel'
 import { getProjectStepState } from '@/lib/projects/stepState'
@@ -166,8 +167,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
   // Render based on model state
   return (
     <PageGuidanceWrapper pageId={PAGE_IDS.competitors}>
-      <div className="flex min-h-[calc(100vh-57px)] items-start justify-center pr-4">
-        <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
+      <PageShell size="wide">
           <header className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -291,8 +291,7 @@ export default async function CompetitorsPage(props: CompetitorsPageProps) {
               />
             )}
           </div>
-        </main>
-      </div>
+      </PageShell>
     </PageGuidanceWrapper>
   )
 }

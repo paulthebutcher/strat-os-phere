@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { ProjectLayoutShell } from '@/components/layout/ProjectLayoutShell'
+import { ProjectAppShell } from '@/components/layout/ProjectAppShell'
 import { createClient } from '@/lib/supabase/server'
 import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { loadProject } from '@/lib/projects/loadProject'
@@ -71,9 +71,9 @@ export async function ProjectLayoutContent({ projectId, children }: ProjectLayou
   const { project } = result
 
   return (
-    <ProjectLayoutShell
+    <ProjectAppShell
       projectId={project.id}
-      projectName={project.name}
+      projectTitle={project.name}
       subtitle={project.market}
     >
       {/* Project Status Bar - appears on all project pages */}
@@ -85,7 +85,7 @@ export async function ProjectLayoutContent({ projectId, children }: ProjectLayou
         />
       </PageSection>
       {children}
-    </ProjectLayoutShell>
+    </ProjectAppShell>
   )
 }
 

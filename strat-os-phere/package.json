@@ -43,7 +43,8 @@
     "health": "npm run test:smoke",
     "check:schema": "tsx scripts/check-schema-drift.ts",
     "check:forbidden": "tsx scripts/checkForbiddenTokens.ts",
-    "schema:health": "tsx scripts/schemaHealthCheck.ts"
+    "schema:health": "tsx scripts/schemaHealthCheck.ts",
+    "nav:check": "tsx scripts/checkProjectNavDrift.ts"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

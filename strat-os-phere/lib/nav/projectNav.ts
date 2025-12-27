@@ -1,6 +1,13 @@
 /**
- * Canonical project navigation configuration
- * Single source of truth for project-level navigation items
+ * @deprecated This file is deprecated. Use lib/navigation/projectNavSchema.ts instead.
+ * 
+ * This file is kept for backward compatibility with deprecated ProjectSidebar component.
+ * New code should use:
+ * - Schema: lib/navigation/projectNavSchema.ts
+ * - Component: components/nav/ProjectNav.tsx
+ * - Shell: components/layout/ProjectAppShell.tsx
+ * 
+ * Migration: Replace imports from this file with imports from lib/navigation/projectNavSchema.ts
  */
 
 import {

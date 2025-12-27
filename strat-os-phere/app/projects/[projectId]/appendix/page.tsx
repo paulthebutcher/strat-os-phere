@@ -11,6 +11,7 @@ import { ProjectErrorState } from '@/components/projects/ProjectErrorState'
 import { logProjectError } from '@/lib/projects/logProjectError'
 import { toAppError, SchemaMismatchError, NotFoundError, UnauthorizedError } from '@/lib/errors/errors'
 import { logAppError } from '@/lib/errors/log'
+import { PageShell } from '@/components/layout/PageShell'
 
 interface AppendixPageProps {
   params: Promise<{
@@ -135,15 +136,13 @@ export default async function AppendixPage(props: AppendixPageProps) {
     
     const normalized = normalizeResultsArtifacts(artifacts)
 
-  return (
-    <div className="flex min-h-[calc(100vh-57px)] items-start justify-center px-4">
-      <main className="flex w-full max-w-5xl flex-col gap-6 py-10">
+    return (
+      <PageShell size="wide">
         <AppendixContent
           projectId={projectId}
           normalized={normalized}
         />
-      </main>
-    </div>
+      </PageShell>
     )
   } catch (error) {
     // Log any unexpected errors

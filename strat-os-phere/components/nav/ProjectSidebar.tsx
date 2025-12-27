@@ -1,3 +1,11 @@
+/**
+ * @deprecated This component is deprecated. Use ProjectNav instead.
+ * This file is kept for reference but should not be used in new code.
+ * 
+ * Migration: Replace ProjectSidebar with ProjectNav from @/components/nav/ProjectNav
+ * The new ProjectNav uses the canonical projectNavSchema from @/lib/navigation/projectNavSchema
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'

@@ -1,3 +1,10 @@
+/**
+ * @deprecated This component is deprecated. Use ProjectAppShell + ProjectNav instead.
+ * This file is kept for reference but should not be used in new code.
+ * 
+ * Migration: Replace ProjectShell with ProjectAppShell from @/components/layout/ProjectAppShell
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'

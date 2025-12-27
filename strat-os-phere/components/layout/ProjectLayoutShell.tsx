@@ -1,3 +1,10 @@
+/**
+ * @deprecated This component is deprecated. Use ProjectAppShell instead.
+ * This file is kept for reference but should not be used in new code.
+ * 
+ * Migration: Replace ProjectLayoutShell with ProjectAppShell from @/components/layout/ProjectAppShell
+ */
+
 'use client'
 
 import { ProjectSidebar } from '@/components/nav/ProjectSidebar'
