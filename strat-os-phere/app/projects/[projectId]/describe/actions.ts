@@ -21,11 +21,19 @@ interface SubmitDescribePayload {
   marketCategory?: string
 }
 
-type ActionResult = {
-  success: boolean
-  message?: string
-  suggestedCompetitorNames?: string[]
-}
+type ActionResult =
+  | {
+      success: true
+      data: {
+        projectInputId: string
+        version: number
+      }
+      warnings?: string[]
+    }
+  | {
+      success: false
+      error: string
+    }
 
 async function requireProjectAccess(projectId: string) {
   const supabase = await createClient()
@@ -64,17 +72,17 @@ export async function submitDescribeStep(
   // Validate required fields
   const primaryCompanyName = payload.primaryCompanyName?.trim()
   if (!primaryCompanyName) {
-    return { success: false, message: 'Company name is required.' }
+    return { success: false, error: 'Company name is required.' }
   }
 
   const decision = payload.decisionFraming?.decision?.trim()
   if (!decision) {
-    return { success: false, message: 'Decision framing is required. What are you trying to decide?' }
+    return { success: false, error: 'Decision framing is required. What are you trying to decide?' }
   }
 
   try {
-    // Prepare input JSON - remove undefined values
-    const inputJson: Record<string, any> = {
+    // Prepare core input JSON - remove undefined values
+    const coreInputJson: Record<string, any> = {
       primaryCompanyName,
       decisionFraming: {
         decision,
@@ -87,7 +95,43 @@ export async function submitDescribeStep(
       ...(payload.marketCategory?.trim() && { marketCategory: payload.marketCategory.trim() }),
     }
 
-    // Upsert project input - Step 1 always uses version=1 for consistency
+    // Attempt competitor inference with timeout (800-1500ms)
+    // This is optional - if it fails or times out, we proceed with core fields only
+    const inferenceTimeout = 1200 // 1.2 seconds
+    const competitorInferencePromise = inferCompetitorNamesWithTimeout(
+      primaryCompanyName,
+      payload.contextText,
+      inferenceTimeout
+    )
+
+    let competitorNames: string[] = []
+    const warnings: string[] = []
+
+    try {
+      const inferenceResult = await competitorInferencePromise
+      if (inferenceResult.success) {
+        competitorNames = inferenceResult.names
+      } else {
+        // Inference failed or timed out - log it and add warning
+        logger.warn('Competitor inference failed or timed out', {
+          projectId,
+          reason: inferenceResult.reason,
+        })
+        warnings.push('Competitor suggestions unavailable')
+      }
+    } catch (error) {
+      // Should not happen due to timeout handling, but catch just in case
+      logger.error('Unexpected error during competitor inference', error)
+      warnings.push('Competitor suggestions unavailable')
+    }
+
+    // Prepare final input JSON - include competitor names if available
+    const inputJson: Record<string, any> = {
+      ...coreInputJson,
+      ...(competitorNames.length > 0 && { suggestedCompetitorNames: competitorNames }),
+    }
+
+    // Single atomic upsert - Step 1 always uses version=1 for consistency
     // This ensures a single source of truth for the decision context
     const inputResult = await upsertProjectInput(
       supabase,
@@ -104,26 +148,8 @@ export async function submitDescribeStep(
       })
       return {
         success: false,
-        message: inputResult.error.message || 'Failed to save decision context. Please try again.',
+        error: inputResult.error.message || 'Failed to save decision context. Please try again.',
       }
-    }
-
-    // Infer competitor names only (no URL resolution)
-    const competitorNames = await inferCompetitorNames(
-      primaryCompanyName,
-      payload.contextText
-    )
-
-    // Store suggested competitor names in project input
-    // IMPORTANT: This only stores names, NOT competitor rows.
-    // Competitors are created only via Step 2 confirmation.
-    if (competitorNames.length > 0) {
-      const updatedInputJson = {
-        ...inputJson,
-        suggestedCompetitorNames: competitorNames,
-      }
-      // Update the same version with competitor suggestions
-      await upsertProjectInput(supabase, projectId, 1, updatedInputJson, 'draft')
     }
 
     // Dev-only logging
@@ -131,6 +157,7 @@ export async function submitDescribeStep(
       logger.info('[flow] step1 submitted', {
         projectId,
         suggestedCount: competitorNames.length,
+        hasWarnings: warnings.length > 0,
       })
     }
 
@@ -139,14 +166,45 @@ export async function submitDescribeStep(
 
     return {
       success: true,
-      suggestedCompetitorNames: competitorNames,
+      data: {
+        projectInputId: inputResult.data.id,
+        version: inputResult.data.version,
+      },
+      ...(warnings.length > 0 && { warnings }),
     }
   } catch (error) {
     logger.error('Failed to submit describe step', error)
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to submit. Please try again.',
+      error: error instanceof Error ? error.message : 'Failed to submit. Please try again.',
     }
+  }
+}
+
+/**
+ * Infer competitor names with timeout wrapper.
+ * Returns success/failure result to avoid throwing errors.
+ */
+async function inferCompetitorNamesWithTimeout(
+  companyName: string,
+  contextText: string | undefined,
+  timeoutMs: number
+): Promise<{ success: true; names: string[] } | { success: false; reason: string }> {
+  try {
+    const timeoutPromise = new Promise<{ success: false; reason: string }>((resolve) => {
+      setTimeout(() => resolve({ success: false, reason: 'timeout' }), timeoutMs)
+    })
+
+    const inferencePromise = inferCompetitorNames(companyName, contextText).then((names) => ({
+      success: true as const,
+      names,
+    }))
+
+    const result = await Promise.race([inferencePromise, timeoutPromise])
+    return result
+  } catch (error) {
+    logger.error('Error in competitor inference timeout wrapper', error)
+    return { success: false, reason: 'exception' }
   }
 }
 

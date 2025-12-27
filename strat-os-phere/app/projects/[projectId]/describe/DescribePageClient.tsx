@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Search, CheckCircle2 } from 'lucide-react'
 
@@ -42,39 +42,38 @@ export function DescribePageClient({
   )
   const [status, setStatus] = useState<DiscoveryStatus>('idle')
   const [error, setError] = useState<string | null>(null)
-  const [isSaved, setIsSaved] = useState(
-    Boolean(existingInputs.primaryCompanyName && existingInputs.decisionFraming?.decision)
-  )
+  const [warnings, setWarnings] = useState<string[]>([])
+  
+  // Track last saved values to detect unsaved changes
+  const [lastSavedValues, setLastSavedValues] = useState({
+    companyName: existingInputs.primaryCompanyName || '',
+    decision: existingInputs.decisionFraming?.decision || '',
+    market: existingInputs.marketCategory || '',
+    notes: existingInputs.contextText || '',
+  })
 
-  // Track if form has been modified since last save
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-
-  // Mark form as modified when fields change
-  useEffect(() => {
-    const hasChanges = 
-      companyName !== (existingInputs.primaryCompanyName || '') ||
-      decision !== (existingInputs.decisionFraming?.decision || '') ||
-      market !== (existingInputs.marketCategory || '') ||
-      notes !== (existingInputs.contextText || '')
-    setHasUnsavedChanges(hasChanges)
-    if (hasChanges) {
-      setIsSaved(false)
-    }
-  }, [companyName, decision, market, notes, existingInputs])
+  const hasUnsavedChanges =
+    companyName !== lastSavedValues.companyName ||
+    decision !== lastSavedValues.decision ||
+    market !== lastSavedValues.market ||
+    notes !== lastSavedValues.notes
 
   const handleSubmit = async () => {
     // Validate required fields
     if (!companyName.trim()) {
+      setStatus('error')
       setError('Company name is required.')
       return
     }
     if (!decision.trim()) {
+      setStatus('error')
       setError('Decision framing is required. What are you trying to decide?')
       return
     }
 
     setStatus('saving')
     setError(null)
+    setWarnings([])
 
     try {
       const result = await submitDescribeStep(projectId, {
@@ -88,19 +87,29 @@ export function DescribePageClient({
 
       if (!result.success) {
         setStatus('error')
-        setError(result.message || 'Failed to save decision context. Please try again.')
+        setError(result.error || 'Failed to save decision context. Please try again.')
         return
       }
 
-      // Save successful - mark as saved and proceed
-      setStatus('saved')
-      setIsSaved(true)
-      setHasUnsavedChanges(false)
+      // Save successful - update last saved values to clear unsaved changes flag
+      setLastSavedValues({
+        companyName: companyName.trim(),
+        decision: decision.trim(),
+        market: market.trim(),
+        notes: notes.trim(),
+      })
 
-      // Navigate to Step 2 (competitors) after a brief delay
-      setTimeout(() => {
-        router.push(`/projects/${projectId}/competitors`)
-      }, 500)
+      // Show warnings if any (non-blocking)
+      if (result.warnings && result.warnings.length > 0) {
+        setWarnings(result.warnings)
+      }
+
+      // Mark as saved and navigate immediately
+      setStatus('saved')
+
+      // Navigate immediately (no setTimeout)
+      // router.push doesn't throw, so we just call it directly
+      router.push(`/projects/${projectId}/competitors`)
     } catch (err) {
       setStatus('error')
       setError(
@@ -112,8 +121,10 @@ export function DescribePageClient({
   }
 
   const isSaving = status === 'saving'
-  const isSavedState = status === 'saved' || isSaved
-  const canContinue = companyName.trim().length > 0 && decision.trim().length > 0
+  const isSaved = status === 'saved'
+  const isError = status === 'error'
+  const isIdle = status === 'idle'
+  const canContinue = companyName.trim().length > 0 && decision.trim().length > 0 && !isSaving
 
   return (
     <PageShell>
@@ -132,28 +143,42 @@ export function DescribePageClient({
             notes={notes}
             onCompanyNameChange={(value) => {
               setCompanyName(value)
-              setError(null)
+              if (isError) {
+                setError(null)
+                setStatus('idle')
+              }
             }}
             onDecisionChange={(value) => {
               setDecision(value)
-              setError(null)
+              if (isError) {
+                setError(null)
+                setStatus('idle')
+              }
             }}
             onMarketChange={(value) => {
               setMarket(value)
-              setError(null)
+              if (isError) {
+                setError(null)
+                setStatus('idle')
+              }
             }}
             onNotesChange={(value) => {
               setNotes(value)
-              setError(null)
+              if (isError) {
+                setError(null)
+                setStatus('idle')
+              }
             }}
           />
 
-          {/* Saved state indicator */}
-          {isSavedState && !hasUnsavedChanges && !isSaving && (
-            <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/20">
-              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
-              <p className="text-sm font-medium text-foreground">
-                Decision context saved
+          {/* Warnings (non-blocking) */}
+          {warnings.length > 0 && (
+            <div className="rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50/30 dark:bg-yellow-950/20 px-4 py-3">
+              <p className="text-sm font-medium text-foreground mb-1">
+                Note: {warnings.join(', ')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                You can still proceed to competitor selection.
               </p>
             </div>
           )}
@@ -177,22 +202,13 @@ export function DescribePageClient({
             </div>
           )}
 
-          {/* Success message - shown briefly before navigation */}
-          {status === 'saved' && (
-            <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/20 px-4 py-3">
-              <p className="text-sm font-medium text-foreground">
-                Decision context saved. Proceeding to competitor selection...
-              </p>
-            </div>
-          )}
-
           {/* Actions */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Button
                 type="button"
                 onClick={handleSubmit}
-                disabled={isSaving || !canContinue}
+                disabled={!canContinue}
                 className="flex-1"
                 size="lg"
                 variant="brand"
