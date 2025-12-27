@@ -18,7 +18,7 @@
 import { MarketingSection } from "./MarketingSection"
 import { MarketingContainer } from "./MarketingContainer"
 import { Reveal } from "./motion"
-import { SignalChaosPanel } from "./SignalChaosPanel"
+import { EvidenceCardsVisual } from "./EvidenceCardsVisual"
 import { cn } from "@/lib/utils"
 
 export function ProblemSection() {
@@ -43,12 +43,12 @@ export function ProblemSection() {
             </div>
           </Reveal>
           
-          {/* Visual: Full-width fragmented visual - narrative chaos, not UI - SECONDARY CONTENT */}
+          {/* Visual: Evidence cards grid - structured sources that should reach the table */}
           <Reveal delay={60}>
             <div className="w-full max-w-5xl mx-auto space-y-3">
-              <SignalChaosPanel className="rounded-xl border border-border-subtle/40 lg:min-h-[500px] w-full" />
+              <EvidenceCardsVisual className="lg:min-h-[500px] w-full" />
               <p className="text-center text-xs text-text-muted">
-                Unstructured competitive signals
+                Evidence sources scattered across domains
               </p>
             </div>
           </Reveal>
