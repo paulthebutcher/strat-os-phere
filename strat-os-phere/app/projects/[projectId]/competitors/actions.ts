@@ -21,6 +21,7 @@ import { getLatestProjectInput, updateProjectInput, upsertProjectInput } from '@
 import { tavilySearch, TavilyError } from '@/lib/tavily/client'
 import { makeTraceId, ok, fail, type Result } from '@/lib/telemetry/result'
 import { logInfo, logWarn, logError } from '@/lib/telemetry/log'
+import { isErr, errToString } from '@/lib/results/result'
 
 type ActionResult = {
   success: boolean
@@ -649,13 +650,14 @@ export async function refreshCompetitorSuggestions(
         suggestedCompetitorNames: suggestions,
       })
       saved = updateResult.ok
-      if (!updateResult.ok) {
+      if (isErr(updateResult)) {
+        const errorDetails = errToString(updateResult.error)
         logError('competitors.refresh', {
           traceId,
           projectId,
           errorCode: 'UNKNOWN',
           details: 'failed_to_save',
-          error: updateResult.error.message || 'Unknown error',
+          error: errorDetails,
         })
       }
     } catch (error) {

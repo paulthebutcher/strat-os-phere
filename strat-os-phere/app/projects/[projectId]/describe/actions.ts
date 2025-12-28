@@ -9,6 +9,7 @@ import { upsertProjectInput } from '@/lib/data/projectInputs'
 import { logger } from '@/lib/logger'
 import { makeTraceId, ok, fail, type Result } from '@/lib/telemetry/result'
 import { logInfo, logWarn, logError } from '@/lib/telemetry/log'
+import { isErr, errToString } from '@/lib/results/result'
 
 interface SubmitDescribePayload {
   primaryCompanyName?: string
@@ -183,9 +184,10 @@ export async function submitDescribeStep(
       'draft' // Step 1 inputs remain draft until finalized
     )
 
-    if (!inputResult.ok) {
+    if (isErr(inputResult)) {
+      const errorDetails = errToString(inputResult.error)
       logger.error('Failed to save project input in Step 1', { 
-        error: inputResult.error,
+        error: errorDetails,
         projectId,
       })
       logError('describe.submit', {
@@ -196,9 +198,16 @@ export async function submitDescribeStep(
         suggestionsOk,
         errorCode: 'SAVE_FAILED',
       })
+      // Extract message from structured error if available
+      const errorMessage = typeof inputResult.error === 'object' && 
+                          inputResult.error !== null && 
+                          'message' in inputResult.error &&
+                          typeof inputResult.error.message === 'string'
+        ? inputResult.error.message
+        : errorDetails
       return {
         success: false,
-        error: inputResult.error.message || 'Failed to save decision context. Please try again.',
+        error: errorMessage || 'Failed to save decision context. Please try again.',
       }
     }
 

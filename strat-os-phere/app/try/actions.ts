@@ -12,6 +12,7 @@ import { createCompetitorForProject } from '@/app/projects/[projectId]/competito
 import { generateAnalysis } from '@/app/projects/[projectId]/results/actions'
 import type { TryDraft } from '@/lib/tryDraft'
 import { logger } from '@/lib/logger'
+import { isErr, errToString } from '@/lib/results/result'
 
 interface CreateProjectFromTryDraftResult {
   success: boolean
@@ -82,10 +83,11 @@ export async function createProjectFromTryDraft(
 
     if (inputResult.ok) {
       await finalizeProjectInput(supabase, inputResult.data.id)
-    } else {
+    } else if (isErr(inputResult)) {
+      const errorDetails = errToString(inputResult.error)
       logger.warn('Failed to create project input from try draft', {
         projectId,
-        error: inputResult.error,
+        error: errorDetails,
       })
     }
   }

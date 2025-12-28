@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { INVARIANTS, isAllowedProjectField } from '@/lib/health/invariants'
 import { getLatestProjectInput } from '@/lib/data/projectInputs'
 import { getLatestRunForProject } from '@/lib/data/projectRuns'
+import { isErr, errToString } from '@/lib/results/result'
 
 /**
  * Dev-only API endpoint for schema health checks
@@ -82,9 +83,15 @@ export async function GET() {
     if (projectId) {
       const inputResult = await getLatestProjectInput(supabase, projectId)
       
-      if (!inputResult.ok) {
+      if (isErr(inputResult)) {
         inputsStatus = 'warning'
-        inputsMessage = `Could not fetch project inputs: ${inputResult.error.message}`
+        const errorMessage = typeof inputResult.error === 'object' && 
+                            inputResult.error !== null && 
+                            'message' in inputResult.error &&
+                            typeof inputResult.error.message === 'string'
+          ? inputResult.error.message
+          : errToString(inputResult.error)
+        inputsMessage = `Could not fetch project inputs: ${errorMessage}`
       } else if (inputResult.data) {
         inputsMessage = 'OK: project_inputs contains versioned inputs'
         sampleInput = {

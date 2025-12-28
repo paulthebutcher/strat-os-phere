@@ -20,6 +20,7 @@ import {
   type ProjectRun,
 } from '@/lib/data/projectRuns'
 import { logger } from '@/lib/logger'
+import { isErr, errToString } from '@/lib/results/result'
 import { getEvidenceCoverage } from '@/lib/evidence'
 import { evaluateReadiness } from '@/lib/evidence/readiness'
 import { invariant } from '@/lib/guardrails/invariants'
@@ -80,7 +81,7 @@ export async function runProjectAnalysis(
       // Fetch latest project input (final preferred)
       const inputResult = await getLatestProjectInput(supabase, projectId)
       
-      if (!inputResult.ok) {
+      if (isErr(inputResult)) {
         // Create a failed run for NO_INPUTS error
         const idempotencyKey = `${projectId}:0:${pipelineVersion}`
         const createResult = await createProjectRun(supabase, {
@@ -89,11 +90,19 @@ export async function runProjectAnalysis(
           idempotencyKey,
         })
 
+        // Extract error message safely
+        const errorMessage = typeof inputResult.error === 'object' && 
+                            inputResult.error !== null && 
+                            'message' in inputResult.error &&
+                            typeof inputResult.error.message === 'string'
+          ? inputResult.error.message
+          : errToString(inputResult.error)
+
         if (createResult.ok && createResult.data) {
           const failedResult = await setRunFailed(supabase, createResult.data.id, {
             error_code: 'NO_INPUTS',
             error_message: 'No project inputs found',
-            error_detail: inputResult.error.message,
+            error_detail: errorMessage,
           })
 
           if (failedResult.ok) {
@@ -112,7 +121,7 @@ export async function runProjectAnalysis(
           ok: false,
           error: {
             code: 'INPUT_FETCH_ERROR',
-            message: inputResult.error.message || 'Failed to fetch project inputs',
+            message: errorMessage || 'Failed to fetch project inputs',
           },
         }
       }

@@ -9,6 +9,7 @@ import type { TypedSupabaseClient } from '@/lib/supabase/types'
 import { updateRunMetrics, type ProjectRun } from '@/lib/data/projectRuns'
 import { parseStepStatus, serializeStepStatus, type StepName, type StepStatusMap } from '@/lib/runs/stepStatusSchema'
 import { logger } from '@/lib/logger'
+import { isErr, errToString } from '@/lib/results/result'
 
 /**
  * Try to atomically mark a step as running
@@ -98,11 +99,12 @@ export async function tryMarkStepRunning(
     // Step 4: Write update
     const updateResult = await updateRunMetrics(supabase, runId, updatedMetrics)
 
-    if (!updateResult.ok) {
+    if (isErr(updateResult)) {
+      const errorDetails = errToString(updateResult.error)
       logger.error('[runPersistence] Failed to update step status', {
         runId,
         stepName,
-        error: updateResult.error.message,
+        error: errorDetails,
       })
       return { ok: false, reason: 'update_failed' }
     }

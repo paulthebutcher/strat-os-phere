@@ -8,6 +8,7 @@ import {
   createDraftProjectInput,
   finalizeProjectInput,
 } from '@/lib/data/projectInputs'
+import { isErr, errToString } from '@/lib/results/result'
 import type {
   RiskPosture,
   AmbitionLevel,
@@ -149,9 +150,10 @@ export async function createProjectFromForm(
     cleanedInputJson
   )
 
-  if (!inputResult.ok) {
+  if (isErr(inputResult)) {
     // Log error but don't fail project creation
-    console.error('Failed to create project input:', inputResult.error)
+    const errorDetails = errToString(inputResult.error)
+    console.error('Failed to create project input:', errorDetails)
     // Continue - project is created, input can be added later
   } else {
     // Finalize the input since this is the completion of onboarding
